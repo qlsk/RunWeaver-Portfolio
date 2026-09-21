@@ -1,0 +1,76 @@
+#!/bin/sh
+
+SCRIPT_DIR="Assets/01_Scirpts"
+
+echo "Running pre-commit checks..."
+
+# ------------------------------------------------------------
+# 1. Staged C# 파일 조회
+# ------------------------------------------------------------
+
+CS_FILES=$(
+    git diff --cached \
+        --name-only \
+        --diff-filter=ACMR \
+        -- "$SCRIPT_DIR" |
+    grep '\.cs$'
+)
+
+if [ -z "$CS_FILES" ]; then
+    echo ""
+    echo "$SCRIPT_DIR 폴더에 검사할 C# 파일이 없습니다."
+    echo "Pre-commit checks passed."
+    exit 0
+fi
+
+echo ""
+echo "Staged C# files:"
+echo "$CS_FILES"
+
+
+# ------------------------------------------------------------
+# 2. Whitespace 검사
+# ------------------------------------------------------------
+
+echo ""
+echo "[1/2] Checking whitespace..."
+
+if ! git diff --cached --check -- "$SCRIPT_DIR"; then
+    echo ""
+    echo "Whitespace 오류가 발견되었습니다."
+    echo "불필요한 공백이나 잘못된 줄 끝을 수정해주세요."
+    exit 1
+fi
+
+echo "Whitespace check passed."
+
+
+# ------------------------------------------------------------
+# 3. C# 코드 스타일 검사
+# ------------------------------------------------------------
+
+echo ""
+echo "[2/2] Checking C# formatting..."
+
+if ! dotnet format \
+    --verify-no-changes \
+    --severity info \
+    --include $CS_FILES; then
+
+    echo ""
+    echo "C# 코드 스타일 검사를 통과하지 못했습니다."
+    echo ""
+    echo "다음 명령으로 자동 포맷할 수 있습니다:"
+    echo ""
+    echo "  dotnet format --include $SCRIPT_DIR"
+    echo ""
+    echo "수정된 파일을 다시 stage한 뒤 커밋해주세요."
+    exit 1
+fi
+
+echo "C# formatting check passed."
+
+echo ""
+echo "Pre-commit checks passed."
+
+exit 0
