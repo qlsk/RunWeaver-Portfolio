@@ -1,0 +1,162 @@
+﻿name: Gemini Commit Review
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'Assets/**'
+      - 'Packages/**'
+      - 'ProjectSettings/**'
+      - 'Docs/**'
+      - 'GEMINI.md'
+      - '.github/workflows/gemini-commit-review.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: gemini-commit-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: Review Unity project
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare project review context
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          REVIEW_PATHS=(. ':(exclude)Assets/19_ThirdParty/**')
+          git ls-files -- "${REVIEW_PATHS[@]}" > project-files.txt
+
+          LAST_REVIEWED_SHA="$(
+            gh api \
+              "/repos/${REPOSITORY}/actions/workflows/gemini-commit-review.yml/runs?branch=${BRANCH}&status=success&per_page=100" \
+              | jq -r \
+                --arg current "${COMMIT_SHA}" \
+                '(.workflow_runs | map(select(.head_sha != $current))[0].head_sha) // empty'
+          )"
+
+          if [[ -n "${LAST_REVIEWED_SHA}" ]] \
+            && git cat-file -e "${LAST_REVIEWED_SHA}^{commit}" 2>/dev/null \
+            && git merge-base --is-ancestor "${LAST_REVIEWED_SHA}" "${COMMIT_SHA}"; then
+            echo "마지막으로 리뷰에 성공한 ${LAST_REVIEWED_SHA}부터 변경사항을 비교합니다."
+            git diff \
+              --no-ext-diff \
+              --unified=80 \
+              "${LAST_REVIEWED_SHA}" \
+              "${COMMIT_SHA}" \
+              -- "${REVIEW_PATHS[@]}" > commit.diff
+          elif [[ -n "${BEFORE_SHA}" ]] \
+            && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null \
+            && git merge-base --is-ancestor "${BEFORE_SHA}" "${COMMIT_SHA}"; then
+            echo "이전 리뷰 성공 기록이 없어 이번 푸시 전체를 비교합니다."
+            git diff \
+              --no-ext-diff \
+              --unified=80 \
+              "${BEFORE_SHA}" \
+              "${COMMIT_SHA}" \
+              -- "${REVIEW_PATHS[@]}" > commit.diff
+          elif git rev-parse "${COMMIT_SHA}^" > /dev/null 2>&1; then
+            echo "이전 리뷰 성공 기록이 없어 직전 커밋부터 변경사항을 비교합니다."
+            git diff \
+              --no-ext-diff \
+              --unified=80 \
+              "${COMMIT_SHA}^" \
+              "${COMMIT_SHA}" \
+              -- "${REVIEW_PATHS[@]}" > commit.diff
+          else
+            echo "이전 커밋이 없어 현재 커밋 전체를 리뷰합니다."
+            git show \
+              --format= \
+              --no-ext-diff \
+              --unified=80 \
+              "${COMMIT_SHA}" \
+              -- "${REVIEW_PATHS[@]}" > commit.diff
+          fi
+
+          if [[ ! -s commit.diff ]]; then
+            echo "비교할 자체 프로젝트 변경사항이 없어 현재 프로젝트 상태를 검토합니다."
+          fi
+
+      - name: Run Gemini review
+        id: gemini_review
+        uses: google-github-actions/run-gemini-cli@v0.1.22
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY_YSH }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY_YSH }}
+          gemini_model: 'gemini-3.1-flash-lite'
+          prompt: |
+            현재 체크아웃된 Unity 프로젝트를 전체적으로 검토하세요.
+            commit.diff는 변경 맥락을 파악하기 위한 자료이며,
+            리뷰 범위를 변경된 줄이나 파일에만 제한하지 마세요.
+
+            먼저 GEMINI.md와 Docs/code-review-guide.md를 읽으세요.
+            project-files.txt로 프로젝트 구조를 파악하고 commit.diff를 읽은 뒤,
+            실제 프로젝트 파일을 직접 열어 구현과 참조 관계를 확인하세요.
+            diff가 비어 있어도 현재 프로젝트 상태에 대한 검토를 수행하세요.
+
+            저장소의 GEMINI.md와 GEMINI.md에서 가져온
+            코드 리뷰 기준을 반드시 적용하세요.
+
+            Assets/01_Scripts의 게임 코드와 Assets/16_Editors의 에디터 코드,
+            씬과 프리팹, ScriptableObject 및 설정 에셋, asmdef와 meta 참조,
+            Packages, ProjectSettings, Docs, GitHub Actions 설정을 검토하세요.
+            기능 간 의존성, 책임 분리, 데이터 흐름, 프로젝트 설정과 구현의
+            일관성 및 테스트 현황을 함께 확인하세요.
+            Assets/19_ThirdParty는 외부 에셋이므로 내부 전체를 일괄 리뷰하지 말고,
+            프로젝트와의 연결이나 호환성을 확인할 때 필요한 파일만 읽으세요.
+            이미지, 오디오 등 바이너리 내용은 텍스트로 읽지 마세요.
+
+            코드의 버그, 예외 가능성, Unity 생명주기 문제,
+            성능 문제, 메모리 할당, 설계 및 가독성을 검토하세요.
+
+            변경으로 발생한 문제와 기존 프로젝트의 문제를 구분하고,
+            중요도, 파일 및 위치, 근거, 영향, 현실적인 수정안을 제시하세요.
+            근거가 약한 추측이나 과도한 리팩터링 제안은 피하세요.
+            Docs/code-review-guide.md의 결과 형식을 따르고,
+            실제 확인한 범위와 미확인 범위, 실행하지 않은 검증을 명시하세요.
+            시간이나 컨텍스트 제한으로 읽지 못한 파일까지 검토했다고 표현하지 마세요.
+
+            파일을 수정하거나 Commit하지 말고
+            리뷰 결과만 한국어로 작성하세요.
+
+      - name: Post review on commit
+        if: ${{ steps.gemini_review.outputs.summary != '' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_BODY: ${{ steps.gemini_review.outputs.summary }}
+          REPOSITORY: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          jq -n \
+            --arg body "## Gemini Commit Review
+
+          ${REVIEW_BODY}" \
+            '{body: $body}' > comment.json
+
+          gh api \
+            --method POST \
+            "/repos/${REPOSITORY}/commits/${COMMIT_SHA}/comments" \
+            --input comment.json
