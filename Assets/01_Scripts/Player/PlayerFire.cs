@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PlayerFire : MonoBehaviour
 {
+    /*
+     * TODO: Object Pooling
+     */
     [Header("마탄 쿨타임")]
     [SerializeField] private float _bulletFireRate = 1f;
     [Header("마탄 프리팹")]

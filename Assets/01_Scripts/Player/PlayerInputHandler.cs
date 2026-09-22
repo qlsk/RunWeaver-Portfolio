@@ -3,19 +3,6 @@ using System;
 
 public class PlayerInputHandler : MonoBehaviour
 {
-    private static PlayerInputHandler _instance;
-    public static PlayerInputHandler Instance => _instance;
-
-    private void Awake()
-    {
-        if (_instance != null)
-        {
-            Destroy(this);
-        }
-
-        _instance = this;
-    }
-
     // key binding
     [Header("룬 도감 오픈 키")]
     [SerializeField] private KeyCode _playerOpenRuneBookKeyCode = KeyCode.Tab;
@@ -27,7 +14,7 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private KeyCode _playerSkill2KeyCode = KeyCode.E;
 
     // Event Handler
-    public event EventHandler DashPressed;
+    public event Action DashPressed;
     public event EventHandler Skill1Pressed;
     public event EventHandler Skill2Pressed;
     public event EventHandler OpenRuneBookPressed;
@@ -48,7 +35,7 @@ public class PlayerInputHandler : MonoBehaviour
         if (Input.GetKeyDown(_playerDashKeyCode))
         {
             // Dash 사용
-            DashPressed?.Invoke(this, EventArgs.Empty);
+            DashPressed?.Invoke();
         }
 
         // skill 1 key 입력 시
