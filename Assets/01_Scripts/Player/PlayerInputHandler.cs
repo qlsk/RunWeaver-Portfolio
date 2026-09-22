@@ -65,8 +65,8 @@ public class PlayerInputHandler : MonoBehaviour
         _mousePosition = Input.mousePosition;
 
         // player move input 갱신
-        float horizontal = Input.GetAxis("Horizontal"); // 좌 우
-        float vertical = Input.GetAxis("Vertical"); // 상 하
+        float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
+        float vertical = Input.GetAxisRaw("Vertical"); // 상 하
         _moveDirection = new Vector2(horizontal, vertical).normalized;
     }
 }

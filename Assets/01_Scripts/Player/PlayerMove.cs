@@ -3,12 +3,13 @@ using UnityEngine.InputSystem;
 
 public class PlayerMove : MonoBehaviour
 {
-    private PlayerInputHandler _playerInputHandler;
-    [SerializeField] private float _moveSpeed = 3f;
+    [SerializeField] private PlayerInputHandler _playerInputHandler;
+    [SerializeField] private float _moveSpeed = 5f;
+    private Rigidbody2D _playerRigidbody2D;
 
     private void Start()
     {
-        _playerInputHandler = FindObjectOfType<PlayerInputHandler>();
+        _playerRigidbody2D = GetComponent<Rigidbody2D>();
     }
 
     private void FixedUpdate()
@@ -18,6 +19,6 @@ public class PlayerMove : MonoBehaviour
 
     public void Move()
     {
-        transform.position += _moveSpeed * Time.deltaTime * (Vector3)_playerInputHandler.MoveDirection;
+        _playerRigidbody2D.linearVelocity = _playerInputHandler.MoveDirection * _moveSpeed;
     }
 }
