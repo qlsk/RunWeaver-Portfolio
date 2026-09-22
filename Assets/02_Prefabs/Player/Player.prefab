@@ -43,8 +43,9 @@ GameObject:
   - component: {fileID: 2327959787812838743}
   - component: {fileID: 2179557753070468687}
   - component: {fileID: 340774800492513042}
-  - component: {fileID: 5141058915935371194}
   - component: {fileID: 1796876364397183347}
+  - component: {fileID: 5141058915935371194}
+  - component: {fileID: 5863673722175249506}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -139,6 +140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  _playerInputHandler: {fileID: 5863673722175249506}
+  _dash: {fileID: 1796876364397183347}
   _playerMoveSpeed: 5
 --- !u!114 &340774800492513042
 MonoBehaviour:
@@ -155,6 +158,21 @@ MonoBehaviour:
   _bulletFireRate: 1
   _bulletPrefab: {fileID: 1808444329942870919, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
   _firePosition: {fileID: 2639883728027744658}
+--- !u!114 &1796876364397183347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Dash
+  _playerInputHandler: {fileID: 5863673722175249506}
+  _dashDuration: 1
+  _dashPower: 5
 --- !u!50 &5141058915935371194
 Rigidbody2D:
   serializedVersion: 5
@@ -182,7 +200,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &1796876364397183347
+--- !u!114 &5863673722175249506
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -191,7 +209,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4117483220137768412}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
+  m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Dash
-  _dashPower: 5
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+  _playerOpenRuneBookKeyCode: 9
+  _playerDashKeyCode: 32
+  _playerSkill1KeyCode: 113
+  _playerSkill2KeyCode: 101

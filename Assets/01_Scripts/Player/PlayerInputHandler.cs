@@ -15,9 +15,9 @@ public class PlayerInputHandler : MonoBehaviour
 
     // Event Handler
     public event Action DashPressed;
-    public event EventHandler Skill1Pressed;
-    public event EventHandler Skill2Pressed;
-    public event EventHandler OpenRuneBookPressed;
+    public event Action Skill1Pressed;
+    public event Action Skill2Pressed;
+    public event Action OpenRuneBookPressed;
 
     // 마우스 position
     private Vector2 _mousePosition;
@@ -42,21 +42,21 @@ public class PlayerInputHandler : MonoBehaviour
         if (Input.GetKeyDown(_playerSkill1KeyCode))
         {
             // 스킬 1 사용
-            Skill1Pressed?.Invoke(this, EventArgs.Empty);
+            Skill1Pressed?.Invoke();
         }
 
         // skill 2 key 입력 시
         if (Input.GetKeyDown(_playerSkill2KeyCode))
         {
             // 스킬 2 사용
-            Skill2Pressed?.Invoke(this, EventArgs.Empty);
+            Skill2Pressed?.Invoke();
         }
 
         // open rune book key 입력 시
         if (Input.GetKeyDown(_playerOpenRuneBookKeyCode))
         {
             // 룬 도감 오픈
-            OpenRuneBookPressed?.Invoke(this, EventArgs.Empty);
+            OpenRuneBookPressed?.Invoke();
         }
 
         // 마우스 position 갱신

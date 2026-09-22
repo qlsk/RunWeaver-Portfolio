@@ -267,54 +267,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Dash
---- !u!1 &2003980912
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2003980914}
-  - component: {fileID: 2003980913}
-  m_Layer: 0
-  m_Name: '@InputManager'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2003980913
+--- !u!114 &896673882 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 5863673722175249506, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2003980912}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
-  _playerOpenRuneBookKeyCode: 9
-  _playerDashKeyCode: 32
-  _playerSkill1KeyCode: 113
-  _playerSkill2KeyCode: 101
---- !u!4 &2003980914
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2003980912}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.758, y: -0.04924, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &869455812298708977
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -334,7 +297,7 @@ PrefabInstance:
     - target: {fileID: 1796876364397183347, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: _playerInputHandler
       value: 
-      objectReference: {fileID: 2003980913}
+      objectReference: {fileID: 896673882}
     - target: {fileID: 2179557753070468687, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: _dash
       value: 
@@ -342,7 +305,7 @@ PrefabInstance:
     - target: {fileID: 2179557753070468687, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: _playerInputHandler
       value: 
-      objectReference: {fileID: 2003980913}
+      objectReference: {fileID: 896673882}
     - target: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_Name
       value: Player
@@ -398,4 +361,3 @@ SceneRoots:
   m_Roots:
   - {fileID: 62873830}
   - {fileID: 869455812298708977}
-  - {fileID: 2003980914}
