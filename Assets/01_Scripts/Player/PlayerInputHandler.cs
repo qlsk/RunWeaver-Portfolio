@@ -26,8 +26,8 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 MousePosition => _mousePosition;
 
     // player move input (위 아래 왼쪽 오른쪽)
-    private Vector2 _moveInput;
-    public Vector2 MoveInput => _moveInput;
+    private Vector2 _moveDirection;
+    public Vector2 MoveDirection => _moveDirection;
 
     private KeyCode _currentPlayerKeyCode;
 
@@ -67,6 +67,6 @@ public class PlayerInputHandler : MonoBehaviour
         // player move input 갱신
         float horizontal = Input.GetAxis("Horizontal"); // 좌 우
         float vertical = Input.GetAxis("Vertical"); // 상 하
-        _moveInput = new Vector2(horizontal, vertical).normalized;
+        _moveDirection = new Vector2(horizontal, vertical).normalized;
     }
 }

@@ -222,6 +222,7 @@ GameObject:
   - component: {fileID: 896673876}
   - component: {fileID: 896673875}
   - component: {fileID: 896673877}
+  - component: {fileID: 896673878}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -297,7 +298,7 @@ Transform:
   m_GameObject: {fileID: 896673874}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.74547, y: -0.07993, z: 0}
+  m_LocalPosition: {x: -3.97, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -323,6 +324,19 @@ MonoBehaviour:
   _playerDashKeyCode: 32
   _playerSkill1KeyCode: 113
   _playerSkill2KeyCode: 101
+--- !u!114 &896673878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896673874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  _moveSpeed: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
