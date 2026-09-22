@@ -21,7 +21,7 @@ public class PlayerFire : MonoBehaviour
             // 마탄 쿨타이머 초기화
             _bulletFireCoolTimer = 0f;
         }
-    
+
         _bulletFireCoolTimer += Time.deltaTime;
     }
 }

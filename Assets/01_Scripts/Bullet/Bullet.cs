@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    // 마탄 속도
+    [Header("마탄 속도")]
     [SerializeField] private float _bulletSpeed = 5f;
-    // 마탄 데미지
+    [Header("마탄 데미지")]
     [SerializeField] private float _bulletDamage = 10f;
 
     // 목표 지점

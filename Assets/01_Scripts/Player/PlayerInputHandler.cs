@@ -16,16 +16,14 @@ public class PlayerInputHandler : MonoBehaviour
         _instance = this;
     }
 
-    // player move key binding
-    [SerializeField] private KeyCode _playerMoveUpKeyCode = KeyCode.W;
-    [SerializeField] private KeyCode _playerMoveDownKeyCode = KeyCode.S;
-    [SerializeField] private KeyCode _playerMoveLeftKeyCode = KeyCode.A;
-    [SerializeField] private KeyCode _playerMoveRightKeyCode = KeyCode.D;
-
     // key binding
+    [Header("룬 도감 오픈 키")]
     [SerializeField] private KeyCode _playerOpenRuneBookKeyCode = KeyCode.Tab;
+    [Header("대시 키")]
     [SerializeField] private KeyCode _playerDashKeyCode = KeyCode.Space;
+    [Header("스킬 1 키")]
     [SerializeField] private KeyCode _playerSkill1KeyCode = KeyCode.Q;
+    [Header("스킬 2 키")]
     [SerializeField] private KeyCode _playerSkill2KeyCode = KeyCode.E;
 
     // Event Handler
