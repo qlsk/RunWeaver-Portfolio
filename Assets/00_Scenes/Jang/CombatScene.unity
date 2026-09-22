@@ -364,10 +364,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
-  _playerMoveUpKeyCode: 119
-  _playerMoveDownKeyCode: 115
-  _playerMoveLeftKeyCode: 97
-  _playerMoveRightKeyCode: 100
   _playerOpenRuneBookKeyCode: 9
   _playerDashKeyCode: 32
   _playerSkill1KeyCode: 113
@@ -384,7 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
-  _moveSpeed: 3
+  _playerMoveSpeed: 5
 --- !u!50 &896673879
 Rigidbody2D:
   serializedVersion: 5
@@ -452,7 +448,7 @@ Transform:
   m_GameObject: {fileID: 1935843448}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.31, y: -0.23, z: 0}
+  m_LocalPosition: {x: 0.441, y: -0.054, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -469,6 +465,14 @@ PrefabInstance:
     - target: {fileID: 1435869128427126605, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
       propertyPath: m_Name
       value: Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 4460692351979282860, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.40687495
+      objectReference: {fileID: 0}
+    - target: {fileID: 4460692351979282860, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.069179684
       objectReference: {fileID: 0}
     - target: {fileID: 4460692351979282860, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
       propertyPath: m_LocalPosition.x
