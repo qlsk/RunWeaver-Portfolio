@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    [SerializeField] private PlayerInputHandler _playerInputHandler;
-
     /*
      * TODO: Object Pooling
      */
