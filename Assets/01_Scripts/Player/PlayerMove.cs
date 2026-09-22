@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
-    [SerializeField] private PlayerInputHandler _playerInputHandler;
     [SerializeField] private float _moveSpeed = 5f;
     private Rigidbody2D _playerRigidbody2D;
 
@@ -16,8 +15,8 @@ public class PlayerMove : MonoBehaviour
         Move();
     }
 
-    public void Move()
+    private void Move()
     {
-        _playerRigidbody2D.linearVelocity = _playerInputHandler.MoveDirection * _moveSpeed;
+        _playerRigidbody2D.linearVelocity = PlayerInputHandler.Instance.MoveDirection * _moveSpeed;
     }
 }

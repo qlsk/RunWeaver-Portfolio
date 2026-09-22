@@ -3,6 +3,19 @@ using System;
 
 public class PlayerInputHandler : MonoBehaviour
 {
+    private static PlayerInputHandler _instance;
+    public static PlayerInputHandler Instance => _instance;
+
+    private void Awake()
+    {
+        if (_instance != null)
+        {
+            Destroy(this);
+        }
+
+        _instance = this;
+    }
+
     // player move key binding
     [SerializeField] private KeyCode _playerMoveUpKeyCode = KeyCode.W;
     [SerializeField] private KeyCode _playerMoveDownKeyCode = KeyCode.S;
