@@ -34,7 +34,6 @@ public class PlayerMove : MonoBehaviour
         if (!CanMove)
         {
             _isMoving = false;
-            _playerRigidbody2D.velocity = Vector2.zero;
             return;
         }
 
