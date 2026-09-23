@@ -25,4 +25,8 @@ public class Bullet : MonoBehaviour
     {
         transform.Translate(_bulletSpeed * Time.deltaTime * _targetDirection);
     }
+
+    /*
+     * TODO: 데미지 처리
+     */
 }
