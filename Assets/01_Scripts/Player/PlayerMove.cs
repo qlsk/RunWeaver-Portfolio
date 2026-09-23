@@ -7,6 +7,14 @@ public class PlayerMove : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
 
+    private bool _canMove = true;
+    public bool CanMove => _canMove;
+
+    public void SetCanMove(bool canMove)
+    {
+        _canMove = canMove;
+    }
+
     private void Start()
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
@@ -20,7 +28,7 @@ public class PlayerMove : MonoBehaviour
 
     private void Move()
     {
-        if (_dash.IsDashing)
+        if (!CanMove)
         {
             return;
         }
