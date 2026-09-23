@@ -5,6 +5,7 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
 {
     private bool _isInitialized = false;
     private Dictionary<string, RuneEffect> _database = new();
+    private IReadOnlyList<RuneEffect> _effects;
 
     public void Initialize(IReadOnlyList<RuneEffect> effects)
     {
@@ -18,12 +19,14 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
             }
         }
 
+        _effects = new List<RuneEffect>(_database.Values);
+
         Debug.Log($"룬 효과 데이터베이스를 초기화했습니다.");
     }
 
     public IReadOnlyList<RuneEffect> GetAll()
     {
-        return new List<RuneEffect>(_database.Values);
+        return _effects;
     }
 
     public bool TryGetById(string id, out RuneEffect runeEffect)
