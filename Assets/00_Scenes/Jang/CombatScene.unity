@@ -261,7 +261,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1796876364397183347, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
   m_PrefabInstance: {fileID: 869455812298708977}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1507582792}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
@@ -272,12 +272,69 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5863673722175249506, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
   m_PrefabInstance: {fileID: 869455812298708977}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1507582792}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+--- !u!1 &1507582792 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1507582798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507582792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  _maxHealth: 100
+  _currentHealth: 0
+  _invincibilityDuration: 1
+--- !u!70 &1507582799
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507582792}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.10551274, y: -0.11490822}
+  m_Size: {x: 0.679435, y: 1.2907839}
+  m_Direction: 0
 --- !u!1001 &869455812298708977
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -353,7 +410,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1507582798}
+    - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1507582799}
   m_SourcePrefab: {fileID: 100100000, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
