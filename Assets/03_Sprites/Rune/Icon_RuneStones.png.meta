@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c98c24100ffd984409fa87490b57065b
+guid: 7cef7657db2339c479401c91aeb58a51
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -56,6 +56,24 @@ TextureImporter:
   - first:
       213: 124941876052197588
     second: Icon_RuneStones_17
+  - first:
+      213: -3323818397740962450
+    second: Icon_RuneStones_18
+  - first:
+      213: -5901216450114959112
+    second: Icon_RuneStones_19
+  - first:
+      213: -2731124379251967108
+    second: Icon_RuneStones_20
+  - first:
+      213: -855475221100195300
+    second: Icon_RuneStones_21
+  - first:
+      213: 6137979465830254291
+    second: Icon_RuneStones_22
+  - first:
+      213: 7713085516914661668
+    second: Icon_RuneStones_23
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -88,7 +106,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -135,7 +153,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -161,33 +179,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WindowsStoreApps
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -206,10 +198,10 @@ TextureImporter:
       name: Icon_RuneStones_0
       rect:
         serializedVersion: 2
-        x: 43
-        y: 747
-        width: 230
-        height: 254
+        x: 0
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -228,10 +220,10 @@ TextureImporter:
       name: Icon_RuneStones_1
       rect:
         serializedVersion: 2
-        x: 288
-        y: 747
-        width: 223
-        height: 257
+        x: 256
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -250,10 +242,10 @@ TextureImporter:
       name: Icon_RuneStones_2
       rect:
         serializedVersion: 2
-        x: 547
-        y: 746
-        width: 217
-        height: 250
+        x: 512
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -272,10 +264,10 @@ TextureImporter:
       name: Icon_RuneStones_3
       rect:
         serializedVersion: 2
-        x: 803
-        y: 747
-        width: 191
-        height: 242
+        x: 768
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -294,10 +286,10 @@ TextureImporter:
       name: Icon_RuneStones_4
       rect:
         serializedVersion: 2
-        x: 1040
-        y: 746
-        width: 222
-        height: 249
+        x: 1024
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -316,10 +308,10 @@ TextureImporter:
       name: Icon_RuneStones_5
       rect:
         serializedVersion: 2
-        x: 1293
-        y: 741
-        width: 220
-        height: 258
+        x: 1280
+        y: 768
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -338,10 +330,10 @@ TextureImporter:
       name: Icon_RuneStones_6
       rect:
         serializedVersion: 2
-        x: 43
-        y: 508
-        width: 207
-        height: 236
+        x: 0
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -360,10 +352,10 @@ TextureImporter:
       name: Icon_RuneStones_7
       rect:
         serializedVersion: 2
-        x: 302
-        y: 505
-        width: 205
-        height: 243
+        x: 256
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -382,10 +374,10 @@ TextureImporter:
       name: Icon_RuneStones_8
       rect:
         serializedVersion: 2
-        x: 543
-        y: 506
-        width: 216
-        height: 237
+        x: 512
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -404,10 +396,10 @@ TextureImporter:
       name: Icon_RuneStones_9
       rect:
         serializedVersion: 2
-        x: 797
-        y: 506
-        width: 217
-        height: 229
+        x: 768
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -426,10 +418,10 @@ TextureImporter:
       name: Icon_RuneStones_10
       rect:
         serializedVersion: 2
-        x: 1044
-        y: 505
-        width: 211
-        height: 238
+        x: 1024
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -448,10 +440,10 @@ TextureImporter:
       name: Icon_RuneStones_11
       rect:
         serializedVersion: 2
-        x: 1295
-        y: 505
-        width: 208
-        height: 235
+        x: 1280
+        y: 512
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -470,10 +462,10 @@ TextureImporter:
       name: Icon_RuneStones_12
       rect:
         serializedVersion: 2
-        x: 44
-        y: 263
-        width: 212
-        height: 244
+        x: 0
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -492,10 +484,10 @@ TextureImporter:
       name: Icon_RuneStones_13
       rect:
         serializedVersion: 2
-        x: 302
-        y: 266
-        width: 210
-        height: 233
+        x: 256
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -514,10 +506,10 @@ TextureImporter:
       name: Icon_RuneStones_14
       rect:
         serializedVersion: 2
-        x: 549
-        y: 265
-        width: 202
-        height: 236
+        x: 512
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -536,10 +528,10 @@ TextureImporter:
       name: Icon_RuneStones_15
       rect:
         serializedVersion: 2
-        x: 797
-        y: 267
-        width: 202
-        height: 240
+        x: 768
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -558,10 +550,10 @@ TextureImporter:
       name: Icon_RuneStones_16
       rect:
         serializedVersion: 2
-        x: 1049
-        y: 269
-        width: 211
-        height: 232
+        x: 1024
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -580,10 +572,10 @@ TextureImporter:
       name: Icon_RuneStones_17
       rect:
         serializedVersion: 2
-        x: 1300
-        y: 261
-        width: 201
-        height: 239
+        x: 1280
+        y: 256
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -602,20 +594,20 @@ TextureImporter:
       name: Icon_RuneStones_18
       rect:
         serializedVersion: 2
-        x: 48
-        y: 23
-        width: 207
-        height: 238
+        x: 0
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 077fe543d7dad0140b6ea387491efc94
-      internalID: 1138389905
+      spriteID: e6dedb017cc6fd1d0800000000000000
+      internalID: -3323818397740962450
       vertices: []
       indices: 
       edges: []
@@ -624,20 +616,20 @@ TextureImporter:
       name: Icon_RuneStones_19
       rect:
         serializedVersion: 2
-        x: 301
-        y: 21
-        width: 194
-        height: 244
+        x: 256
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 46e139e31c70042409bdadc1a579ac94
-      internalID: -308566761
+      spriteID: 8f8c43497eaaa1ea0800000000000000
+      internalID: -5901216450114959112
       vertices: []
       indices: 
       edges: []
@@ -646,20 +638,20 @@ TextureImporter:
       name: Icon_RuneStones_20
       rect:
         serializedVersion: 2
-        x: 539
-        y: 38
-        width: 201
-        height: 222
+        x: 512
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: de6e676dfa11e3745b580192260774ee
-      internalID: -891145091
+      spriteID: c7bf641e8d8191ad0800000000000000
+      internalID: -2731124379251967108
       vertices: []
       indices: 
       edges: []
@@ -668,20 +660,20 @@ TextureImporter:
       name: Icon_RuneStones_21
       rect:
         serializedVersion: 2
-        x: 797
-        y: 20
-        width: 194
-        height: 245
+        x: 768
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 4b7ddac4902647d4cafdada9b9ce398d
-      internalID: -645520838
+      spriteID: c129c24a1ddb024f0800000000000000
+      internalID: -855475221100195300
       vertices: []
       indices: 
       edges: []
@@ -690,20 +682,20 @@ TextureImporter:
       name: Icon_RuneStones_22
       rect:
         serializedVersion: 2
-        x: 1036
-        y: 26
-        width: 198
-        height: 240
+        x: 1024
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 9f23ccb0ffb26a048a03894e5e2f99fe
-      internalID: -906589289
+      spriteID: 3d64473cdcb7e2550800000000000000
+      internalID: 6137979465830254291
       vertices: []
       indices: 
       edges: []
@@ -712,20 +704,20 @@ TextureImporter:
       name: Icon_RuneStones_23
       rect:
         serializedVersion: 2
-        x: 1296
-        y: 32
-        width: 205
-        height: 227
+        x: 1280
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 4007d3477bdbb714ab2cf3614fc711e8
-      internalID: -215591027
+      spriteID: 42998e579626a0b60800000000000000
+      internalID: 7713085516914661668
       vertices: []
       indices: 
       edges: []
@@ -734,7 +726,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 244366c9d6941df4eb79e76d6fc79111
+    spriteID: 2dd71fe2ebe19284cb188d3b9cdb077f
     internalID: 0
     vertices: []
     indices: 
@@ -756,13 +748,13 @@ TextureImporter:
       Icon_RuneStones_15: 1976946872110894690
       Icon_RuneStones_16: 3446582300622708786
       Icon_RuneStones_17: 124941876052197588
-      Icon_RuneStones_18: 1138389905
-      Icon_RuneStones_19: -308566761
+      Icon_RuneStones_18: -3323818397740962450
+      Icon_RuneStones_19: -5901216450114959112
       Icon_RuneStones_2: -5325970167742481903
-      Icon_RuneStones_20: -891145091
-      Icon_RuneStones_21: -645520838
-      Icon_RuneStones_22: -906589289
-      Icon_RuneStones_23: -215591027
+      Icon_RuneStones_20: -2731124379251967108
+      Icon_RuneStones_21: -855475221100195300
+      Icon_RuneStones_22: 6137979465830254291
+      Icon_RuneStones_23: 7713085516914661668
       Icon_RuneStones_3: 4058797750991297796
       Icon_RuneStones_4: 4009302172095895347
       Icon_RuneStones_5: 1602728749058618339
