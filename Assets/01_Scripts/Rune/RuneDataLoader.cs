@@ -46,7 +46,6 @@ public class RuneDataLoader : MonoBehaviour
         }
 
         onSuccess(request.downloadHandler.text);
-        Debug.Log("룬 효과 CSV 다운로드에 성공했습니다.");
     }
 
     private bool TryParseCsv<T>(string csv, out IReadOnlyList<T> parseResult)
@@ -120,12 +119,12 @@ public class RuneDataLoader : MonoBehaviour
         };
 
         yield return StartCoroutine(DownloadCsv(_runeStoneCsvUrl, onSuccess));
-
         if (!_isRuneStoneCsvDownloadSuccess)
         {
             Debug.LogError($"{nameof(_runeStoneCsvUrl)} 다운로드에 실패했습니다.");
             yield break;
         }
+        Debug.Log("룬석 CSV 다운로드에 성공했습니다.");
 
         if (!TryParseCsv(_runeStoneCsv, out IReadOnlyList<RuneStoneCsvHeader> runeStoneCsvRows))
         {
@@ -186,6 +185,7 @@ public class RuneDataLoader : MonoBehaviour
             Debug.LogError($"{nameof(_runeEffectCsvUrl)} 다운로드에 실패했습니다.");
             yield break;
         }
+        Debug.Log("룬 효과 CSV 다운로드에 성공했습니다.");
 
         if (!TryParseCsv(_runeEffectCsv, out IReadOnlyList<RuneEffectCsvHeader> runeEffectCsvRows))
         {
