@@ -25,6 +25,9 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         OnAwake();
     }
 
+    /// <summary>
+    /// Child classes override the provided OnAwake() instead of Awake().
+    /// </summary>
     protected virtual void OnAwake() { }
 
     private void OnDestroy()
@@ -38,5 +41,8 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         s_instance = null;
     }
 
+    /// <summary>
+    /// Child classes override the provided OnSingletonDestroyed() instead of OnDestroy().
+    /// </summary>
     protected virtual void OnSingletonDestroyed() { }
 }
