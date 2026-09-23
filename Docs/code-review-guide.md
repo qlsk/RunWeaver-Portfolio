@@ -12,7 +12,7 @@
 ## 프로젝트 검토 항목
 
 * 변경 diff에만 한정하지 않고 현재 프로젝트의 구조와 구현을 함께 검토한다.
-* Assets/01_Scripts의 게임 코드와 Assets/16_Editors의 에디터 코드에서 책임 분리, 기능 간 의존성, 데이터 흐름을 확인한다.
+* Assets/01_Scripts의 게임 코드와 Assets/Editor의 에디터 코드에서 책임 분리, 기능 간 의존성, 데이터 흐름을 확인한다.
 * 씬, 프리팹, ScriptableObject 및 설정 에셋의 연결과 직렬화된 참조를 관련 코드 및 meta GUID와 함께 확인한다.
 * Packages와 ProjectSettings에서 패키지 의존성, Unity 버전, 입력, 물리, 렌더링 및 빌드 설정의 일관성을 확인한다.
 * Docs, GitHub Actions 및 .husky 구성을 확인하여 문서와 구현의 불일치나 검증 공백을 찾는다.
