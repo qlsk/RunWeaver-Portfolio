@@ -9,6 +9,7 @@ public class Dash : MonoBehaviour
     [SerializeField] private float _dashCooldown = 3f;
     private Rigidbody2D _playerRigidbody2D;
     private PlayerMove _playerMove;
+    private PlayerHealth _playerHealth;
 
     private bool _isDashing = false;
     private bool _canDash = true;
@@ -17,6 +18,7 @@ public class Dash : MonoBehaviour
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerMove = GetComponent<PlayerMove>();
+        _playerHealth = GetComponent<PlayerHealth>();
     }
 
     private void OnEnable()
@@ -40,14 +42,22 @@ public class Dash : MonoBehaviour
         _isDashing = true;
         _canDash = false;
 
-        // 
+        // dash 중 무적
+        _playerHealth.SetCanTakeDamage(false);
+        // dahs 중 조작 불가능
         _playerMove.SetCanMove(false);
+        // dash 목표 지점 설정 (마우스 방향)
         Vector2 dashDirection = _playerInputHandler.MoveDirection;
+
+        // dash 수행
         _playerRigidbody2D.linearVelocity = dashDirection * _dashPower;
 
         // dash 유지 시간
         yield return new WaitForSeconds(_dashDuration);
 
+        // dash 무적 끝
+        _playerHealth.SetCanTakeDamage(true);
+        // dash 후 조작 가능
         _playerMove.SetCanMove(true);
         _isDashing = false;
 
