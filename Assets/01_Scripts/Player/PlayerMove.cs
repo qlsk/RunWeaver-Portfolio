@@ -10,6 +10,9 @@ public class PlayerMove : MonoBehaviour
     private bool _canMove = true;
     public bool CanMove => _canMove;
 
+    private bool _isMoving = false;
+    public bool IsMoving => _isMoving;
+
     public void SetCanMove(bool canMove)
     {
         _canMove = canMove;
@@ -30,8 +33,16 @@ public class PlayerMove : MonoBehaviour
     {
         if (!CanMove)
         {
+            _isMoving = false;
+            _playerRigidbody2D.velocity = Vector2.zero;
             return;
         }
-        _playerRigidbody2D.linearVelocity = _playerInputHandler.MoveDirection * _playerMoveSpeed;
+
+        Vector2 moveDirection = _playerInputHandler.MoveDirection;
+
+        // 이동 상태 설정
+        _isMoving = moveDirection != Vector2.zero;
+
+        _playerRigidbody2D.linearVelocity = moveDirection * _playerMoveSpeed;
     }
 }
