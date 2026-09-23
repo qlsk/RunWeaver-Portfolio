@@ -11,9 +11,13 @@ public class PlayerHealth : MonoBehaviour
     [Header("피격 무적 지속 시간")] [SerializeField]
     private float _invincibilityDuration = 1f;
 
+    private Rigidbody2D _playerRigidbody2D;
+
     private PlayerMove _playerMove;
     private PlayerFire _playerFire;
     private Dash _dash;
+
+    private bool _isDead = false;
 
     private bool _canTakeDamage = true;
 
@@ -26,6 +30,8 @@ public class PlayerHealth : MonoBehaviour
     {
         _currentHealth = _maxHealth;
 
+        // 사망 시 움직임을 멈추기 위해 가져옴
+        _playerRigidbody2D = GetComponent<Rigidbody2D>();
         // 사망 시 비활성화 할 Component
         _playerMove = GetComponent<PlayerMove>();
         _playerFire = GetComponent<PlayerFire>();
@@ -75,8 +81,12 @@ public class PlayerHealth : MonoBehaviour
     // 사망
     public void Death()
     {
+        if (_isDead) return;
+
+        _playerRigidbody2D.linearVelocity = Vector2.zero;
         _playerMove.enabled = false;
         _playerFire.enabled = false;
         _dash.enabled = false;
+        _isDead = true;
     }
 }

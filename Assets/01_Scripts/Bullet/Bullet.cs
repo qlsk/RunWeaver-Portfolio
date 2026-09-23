@@ -26,7 +26,12 @@ public class Bullet : MonoBehaviour
         transform.Translate(_bulletSpeed * Time.deltaTime * _targetDirection);
     }
 
-    /*
-     * TODO: 데미지 처리
-     */
+    // Test용 현재는 모든 총알이 Player에게 데미지
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Player")
+        {
+            collision.GetComponent<PlayerHealth>().TakeDamage(_bulletDamage);
+        }
+    }
 }
