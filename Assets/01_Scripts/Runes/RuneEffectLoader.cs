@@ -18,12 +18,25 @@ public class RuneEffectLoader : MonoBehaviour
     [Header("References")]
     [SerializeField] private RuneEffectDatabase _runeEffectDatabase;
 
+    private bool _isDownloadSuccess;
+
     private string _runeEffectCsv;
 
     private IEnumerator Start()
     {
         yield return StartCoroutine(DownloadCsv(_runeEffectCsvUrl));
-        IReadOnlyList<RuneEffect> runeEffects = ParseCsv(_runeEffectCsv);
+        if (!_isDownloadSuccess)
+        {
+            Debug.LogError($"{nameof(_runeEffectCsvUrl)} 다운로드에 실패했습니다.");
+            yield break;
+        }
+
+        if (!TryParseCsv(_runeEffectCsv, out IReadOnlyList<RuneEffect> runeEffects))
+        {
+            Debug.LogError($"룬 효과 CSV 파싱에 실패했습니다.");
+            yield break;
+        }
+
         _runeEffectDatabase.Initialize(runeEffects);
     }
 
@@ -39,44 +52,56 @@ public class RuneEffectLoader : MonoBehaviour
         }
 
         _runeEffectCsv = request.downloadHandler.text;
-        Debug.Log("Rune effect CSV download successful.");
+        Debug.Log("룬 효과 CSV 다운로드에 성공했습니다.");
+        _isDownloadSuccess = true;
     }
 
-    private IReadOnlyList<RuneEffect> ParseCsv(string csv)
+    private bool TryParseCsv(string csv, out IReadOnlyList<RuneEffect> runeEffects)
     {
-        List<RuneEffect> runeEffects = new();
-        using StringReader reader = new(csv.TrimStart('\uFEFF'));
-        using CsvReader csvReader = new(reader, CultureInfo.InvariantCulture);
-        if (!csvReader.Read())
-        {
-            Debug.LogError("The CSV does not have a header.");
-            return Array.Empty<RuneEffect>();
-        }
+        runeEffects = new List<RuneEffect>();
+        List<RuneEffect> parse = new();
 
-        csvReader.ReadHeader();
-        while (csvReader.Read())
+        try
         {
-            RuneEffectCsvHeader row = csvReader.GetRecord<RuneEffectCsvHeader>();
-
-            if (!Enum.TryParse(row.RuneEffectCategory, out RuneEffectCategory runeEffectCategory))
+            using StringReader reader = new(csv.TrimStart('\uFEFF'));
+            using CsvReader csvReader = new(reader, CultureInfo.InvariantCulture);
+            if (!csvReader.Read())
             {
-                Debug.LogError($"The string for the rune category with id {row.Id} is invalid.");
-                return Array.Empty<RuneEffect>();
+                Debug.LogError("CSV가 헤더를 가지고 있지 않습니다.");
+                return false;
             }
 
-            string iconPath = RuneEffectLoadPath + row.IconPath;
-            Sprite icon = Resources.Load<Sprite>(iconPath);
-            if (icon == null)
+            csvReader.ReadHeader();
+            while (csvReader.Read())
             {
-                Debug.LogError($"The icon for the rune category with id {row.Id} is invalid.");
-                return Array.Empty<RuneEffect>();
+                RuneEffectCsvHeader row = csvReader.GetRecord<RuneEffectCsvHeader>();
+
+                if (!Enum.TryParse(row.RuneEffectCategory, out RuneEffectCategory runeEffectCategory))
+                {
+                    Debug.LogError($"{row.Id}의 룬 효과 카테고리가 유효하지 않습니다.");
+                    return false;
+                }
+
+                string iconPath = RuneEffectLoadPath + row.IconPath;
+                Sprite icon = Resources.Load<Sprite>(iconPath);
+                if (icon == null)
+                {
+                    Debug.LogError($"{row.Id}의 룬 효과 아이콘 경로가 유효하지 않습니다.");
+                    return false;
+                }
+
+                parse.Add(new RuneEffect(row.Id, row.RuneWord, row.EnglishName, row.DisplayName, runeEffectCategory,
+                    row.Description, icon));
             }
 
-            runeEffects.Add(new RuneEffect(row.Id, row.RuneWord, row.EnglishName, row.DisplayName, runeEffectCategory,
-                row.Description, icon));
+            Debug.Log($"룬 효과 {parse.Count}개를 로드했습니다.");
+            runeEffects = parse;
+            return true;
         }
-
-        Debug.Log($"Loaded {runeEffects.Count} rune effects.");
-        return runeEffects;
+        catch (CsvHelperException e)
+        {
+            Debug.LogError($"CSV 파싱 실패: {e.Message}");
+            return false;
+        }
     }
 }
