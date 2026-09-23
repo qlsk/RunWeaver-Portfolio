@@ -3,31 +3,29 @@ using System;
 
 public class PlayerInputHandler : MonoBehaviour
 {
-    // player move key binding
-    [SerializeField] private KeyCode _playerMoveUpKeyCode = KeyCode.W;
-    [SerializeField] private KeyCode _playerMoveDownKeyCode = KeyCode.S;
-    [SerializeField] private KeyCode _playerMoveLeftKeyCode = KeyCode.A;
-    [SerializeField] private KeyCode _playerMoveRightKeyCode = KeyCode.D;
-
     // key binding
+    [Header("룬 도감 오픈 키")]
     [SerializeField] private KeyCode _playerOpenRuneBookKeyCode = KeyCode.Tab;
+    [Header("대시 키")]
     [SerializeField] private KeyCode _playerDashKeyCode = KeyCode.Space;
+    [Header("스킬 1 키")]
     [SerializeField] private KeyCode _playerSkill1KeyCode = KeyCode.Q;
+    [Header("스킬 2 키")]
     [SerializeField] private KeyCode _playerSkill2KeyCode = KeyCode.E;
 
     // Event Handler
-    public event EventHandler DashPressed;
-    public event EventHandler Skill1Pressed;
-    public event EventHandler Skill2Pressed;
-    public event EventHandler OpenRuneBookPressed;
+    public event Action DashPressed;
+    public event Action Skill1Pressed;
+    public event Action Skill2Pressed;
+    public event Action OpenRuneBookPressed;
 
     // 마우스 position
     private Vector2 _mousePosition;
     public Vector2 MousePosition => _mousePosition;
 
     // player move input (위 아래 왼쪽 오른쪽)
-    private Vector2 _moveInput;
-    public Vector2 MoveInput => _moveInput;
+    private Vector2 _moveDirection;
+    public Vector2 MoveDirection => _moveDirection;
 
     private KeyCode _currentPlayerKeyCode;
 
@@ -37,36 +35,36 @@ public class PlayerInputHandler : MonoBehaviour
         if (Input.GetKeyDown(_playerDashKeyCode))
         {
             // Dash 사용
-            DashPressed?.Invoke(this, EventArgs.Empty);
+            DashPressed?.Invoke();
         }
 
         // skill 1 key 입력 시
         if (Input.GetKeyDown(_playerSkill1KeyCode))
         {
             // 스킬 1 사용
-            Skill1Pressed?.Invoke(this, EventArgs.Empty);
+            Skill1Pressed?.Invoke();
         }
 
         // skill 2 key 입력 시
         if (Input.GetKeyDown(_playerSkill2KeyCode))
         {
             // 스킬 2 사용
-            Skill2Pressed?.Invoke(this, EventArgs.Empty);
+            Skill2Pressed?.Invoke();
         }
 
         // open rune book key 입력 시
         if (Input.GetKeyDown(_playerOpenRuneBookKeyCode))
         {
             // 룬 도감 오픈
-            OpenRuneBookPressed?.Invoke(this, EventArgs.Empty);
+            OpenRuneBookPressed?.Invoke();
         }
 
         // 마우스 position 갱신
         _mousePosition = Input.mousePosition;
 
         // player move input 갱신
-        float horizontal = Input.GetAxis("Horizontal"); // 좌 우
-        float vertical = Input.GetAxis("Vertical"); // 상 하
-        _moveInput = new Vector2(horizontal, vertical).normalized;
+        float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
+        float vertical = Input.GetAxisRaw("Vertical"); // 상 하
+        _moveDirection = new Vector2(horizontal, vertical).normalized;
     }
 }

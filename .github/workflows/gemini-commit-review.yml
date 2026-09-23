@@ -10,7 +10,10 @@ on:
       - 'ProjectSettings/**'
       - 'Docs/**'
       - 'GEMINI.md'
-      - '.github/workflows/gemini-commit-review.yml'
+      - '.github/**'
+      - '.husky/**'
+      - '.gitignore'
+      - '.gitattributes'
   workflow_dispatch:
 
 permissions:
@@ -19,7 +22,7 @@ permissions:
 
 concurrency:
   group: gemini-commit-review-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/') }}
 
 jobs:
   review:
@@ -33,6 +36,25 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Select review scope
+        id: review_scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ "${EVENT_NAME}" == workflow_dispatch ]]; then
+            MODE=full
+          elif [[ "${BRANCH}" == pre_main ]]; then
+            MODE=integration
+          elif [[ "${BRANCH}" == main ]]; then
+            MODE=release
+          else
+            MODE=changes
+          fi
+          echo "mode=${MODE}" >> "${GITHUB_OUTPUT}"
+          echo "리뷰 범위: ${MODE}"
 
       - name: Prepare project review context
         shell: bash
@@ -107,23 +129,35 @@ jobs:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY_YSH }}
           gemini_model: 'gemini-3.1-flash-lite'
           prompt: |
-            현재 체크아웃된 Unity 프로젝트를 전체적으로 검토하세요.
-            commit.diff는 변경 맥락을 파악하기 위한 자료이며,
-            리뷰 범위를 변경된 줄이나 파일에만 제한하지 마세요.
+            현재 리뷰 모드는 ${{ steps.review_scope.outputs.mode }} 입니다.
+            모드에 따라 현재 체크아웃된 Unity 프로젝트를 정적으로 검토하세요.
+
+            - changes: feature 등 작업 브랜치의 변경사항과 관련된 호출부,
+              데이터 및 설정을 우선 검토하세요. 프로젝트 맥락은 확인하되
+              변경과 무관한 기존 코드 전체를 반복해서 리뷰하지 마세요.
+            - integration: pre_main에 통합된 변경을 중심으로 기능 간 의존성,
+              인터페이스, 씬과 프리팹의 참조, 패키지 및 설정 충돌을 검토하세요.
+              변경된 줄에 한정하지 말고 통합 영향을 받는 전체 흐름을 확인하세요.
+            - release: main의 최종 상태에서 치명적인 오류 가능성,
+              누락된 참조, 배포 관련 설정과 문서의 일관성을 우선 검토하세요.
+            - full: 수동 실행입니다. 프로젝트 전체 구조와 기존 문제까지 검토하세요.
 
             먼저 GEMINI.md와 Docs/code-review-guide.md를 읽으세요.
             project-files.txt로 프로젝트 구조를 파악하고 commit.diff를 읽은 뒤,
             실제 프로젝트 파일을 직접 열어 구현과 참조 관계를 확인하세요.
-            diff가 비어 있어도 현재 프로젝트 상태에 대한 검토를 수행하세요.
+            diff가 비어 있으면 그 사실을 명시하세요. changes 모드에서는
+            이번 커밋의 파일 목록을 git show --stat로 확인하고 외부 에셋 변경 등
+            diff 제외 사유와 관련 연결을 검토하세요. 다른 모드는 현재 상태를 검토하세요.
 
             저장소의 GEMINI.md와 GEMINI.md에서 가져온
             코드 리뷰 기준을 반드시 적용하세요.
 
-            Assets/01_Scripts의 게임 코드와 Assets/16_Editors의 에디터 코드,
+            Assets/01_Scripts의 게임 코드와 Assets/Editor의 에디터 코드,
             씬과 프리팹, ScriptableObject 및 설정 에셋, asmdef와 meta 참조,
-            Packages, ProjectSettings, Docs, GitHub Actions 설정을 검토하세요.
+            Packages, ProjectSettings, Docs, GitHub Actions 및 .husky 설정을
+            현재 리뷰 모드의 범위에 맞춰 검토하세요.
             기능 간 의존성, 책임 분리, 데이터 흐름, 프로젝트 설정과 구현의
-            일관성 및 테스트 현황을 함께 확인하세요.
+            일관성을 함께 확인하세요.
             Assets/19_ThirdParty는 외부 에셋이므로 내부 전체를 일괄 리뷰하지 말고,
             프로젝트와의 연결이나 호환성을 확인할 때 필요한 파일만 읽으세요.
             이미지, 오디오 등 바이너리 내용은 텍스트로 읽지 마세요.
@@ -137,12 +171,23 @@ jobs:
             Docs/code-review-guide.md의 결과 형식을 따르고,
             실제 확인한 범위와 미확인 범위, 실행하지 않은 검증을 명시하세요.
             시간이나 컨텍스트 제한으로 읽지 못한 파일까지 검토했다고 표현하지 마세요.
+            컴파일, 빌드, 테스트를 실행하지 마세요. AI 정적 리뷰임을 명시하고,
+            리뷰 완료를 빌드 성공이나 버그가 없다는 보장으로 표현하지 마세요.
 
             파일을 수정하거나 Commit하지 말고
             리뷰 결과만 한국어로 작성하세요.
 
+      - name: Validate review result
+        shell: bash
+        env:
+          REVIEW_BODY: ${{ steps.gemini_review.outputs.summary }}
+        run: |
+          if [[ -z "${REVIEW_BODY//[[:space:]]/}" ]]; then
+            echo "::error::Gemini 리뷰 결과가 비어 있습니다. 리뷰 성공으로 기록하지 않습니다."
+            exit 1
+          fi
+
       - name: Post review on commit
-        if: ${{ steps.gemini_review.outputs.summary != '' }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
