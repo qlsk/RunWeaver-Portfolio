@@ -48,7 +48,7 @@ GameObject:
   - component: {fileID: 5863673722175249506}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -140,7 +140,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
-  _playerInputHandler: {fileID: 5863673722175249506}
   _dash: {fileID: 1796876364397183347}
   _playerMoveSpeed: 5
 --- !u!114 &340774800492513042
@@ -173,6 +172,7 @@ MonoBehaviour:
   _playerInputHandler: {fileID: 5863673722175249506}
   _dashDuration: 1
   _dashPower: 5
+  _dashCooldown: 3
 --- !u!50 &5141058915935371194
 Rigidbody2D:
   serializedVersion: 5
