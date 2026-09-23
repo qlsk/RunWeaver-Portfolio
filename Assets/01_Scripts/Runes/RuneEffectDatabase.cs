@@ -18,6 +18,16 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
             }
         }
 
-        Debug.Log($"Initialized {_database.Count} rune effects.");
+        Debug.Log($"룬 효과 데이터베이스를 초기화했습니다.");
+    }
+
+    public IReadOnlyList<RuneEffect> GetAll()
+    {
+        return new List<RuneEffect>(_database.Values);
+    }
+
+    public bool TryGetById(string id, out RuneEffect runeEffect)
+    {
+        return _database.TryGetValue(id, out runeEffect);
     }
 }
