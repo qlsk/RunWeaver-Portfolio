@@ -4,8 +4,11 @@ using UnityEngine;
 public class Dash : MonoBehaviour
 {
     [SerializeField] private PlayerInputHandler _playerInputHandler;
+    [Header("Dash 지속 시간")]
     [SerializeField] private float _dashDuration = 1f;
+    [Header("Dash 파워")]
     [SerializeField] private float _dashPower = 5f;
+    [Header("Dash 쿨타임")]
     [SerializeField] private float _dashCooldown = 3f;
     private Rigidbody2D _playerRigidbody2D;
     private PlayerMove _playerMove;
