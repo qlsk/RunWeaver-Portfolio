@@ -17,7 +17,7 @@
         _quantity += quantity;
     }
 
-    public bool DcreaseQuantity(int quantity)
+    public bool DecreaseQuantity(int quantity)
     {
         if (quantity > _quantity) return false;
         _quantity -= quantity;

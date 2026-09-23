@@ -65,7 +65,7 @@ public class RuneStoneInventory : MonoBehaviour
 
         foreach (char rune in runeWord)
         {
-            _inventory[rune].DcreaseQuantity(1);
+            _inventory[rune].DecreaseQuantity(1);
         }
         OnInventoryChanged?.Invoke();
         return true;
