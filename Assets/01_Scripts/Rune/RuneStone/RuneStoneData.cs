@@ -4,16 +4,16 @@ public class RuneStoneData
 {
     private string _id;
     private char _runeCharacter;
-    private Sprite _runeStoneSprite;
+    private Sprite _icon;
 
     public string Id => _id;
     public char RuneCharacter => _runeCharacter;
-    public Sprite RuneStoneSprite => _runeStoneSprite;
+    public Sprite Icon => _icon;
 
-    public RuneStoneData(string id, char runeCharacter, Sprite runeStoneSprite)
+    public RuneStoneData(string id, char runeCharacter, Sprite icon)
     {
         _id = id;
         _runeCharacter = runeCharacter;
-        _runeStoneSprite = runeStoneSprite;
+        _icon = icon;
     }
 }
