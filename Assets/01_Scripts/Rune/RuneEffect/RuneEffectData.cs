@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class RuneEffect
+public class RuneEffectData
 {
     private string _id;
     private string _runeWord;
@@ -18,7 +18,7 @@ public class RuneEffect
     public string Description => _description;
     public Sprite Icon => _icon;
 
-    public RuneEffect(string id, string runeWord, string englishName, string displayName, RuneEffectCategory category,
+    public RuneEffectData(string id, string runeWord, string englishName, string displayName, RuneEffectCategory category,
         string description, Sprite icon)
     {
         _id = id;

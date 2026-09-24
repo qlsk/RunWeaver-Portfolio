@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class RuneStone
+public class RuneStoneData
 {
     private string _id;
     private char _runeCharacter;
@@ -10,7 +10,7 @@ public class RuneStone
     public char RuneCharacter => _runeCharacter;
     public Sprite RuneStoneSprite => _runeStoneSprite;
 
-    public RuneStone(string id, char runeCharacter, Sprite runeStoneSprite)
+    public RuneStoneData(string id, char runeCharacter, Sprite runeStoneSprite)
     {
         _id = id;
         _runeCharacter = runeCharacter;

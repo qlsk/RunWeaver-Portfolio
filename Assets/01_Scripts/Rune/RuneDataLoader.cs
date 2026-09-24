@@ -81,10 +81,10 @@ public class RuneDataLoader : MonoBehaviour
     }
 
     private bool TryCreateRuneStoneList(IReadOnlyList<RuneStoneCsvHeader> runeStoneCsvRows,
-        out IReadOnlyList<RuneStone> runeStoneList)
+        out IReadOnlyList<RuneStoneData> runeStoneList)
     {
-        runeStoneList = new List<RuneStone>();
-        List<RuneStone> runeStones = new();
+        runeStoneList = new List<RuneStoneData>();
+        List<RuneStoneData> runeStones = new();
         Sprite[] icons = Resources.LoadAll<Sprite>(RuneStoneLoadPath);
         foreach (RuneStoneCsvHeader row in runeStoneCsvRows)
         {
@@ -102,7 +102,7 @@ public class RuneDataLoader : MonoBehaviour
                 return false;
             }
 
-            runeStones.Add(new RuneStone(row.Id, row.RuneCharacter, runeStoneIcon));
+            runeStones.Add(new RuneStoneData(row.Id, row.RuneCharacter, runeStoneIcon));
         }
 
         runeStoneList = runeStones;
@@ -132,7 +132,7 @@ public class RuneDataLoader : MonoBehaviour
             yield break;
         }
 
-        if (!TryCreateRuneStoneList(runeStoneCsvRows, out IReadOnlyList<RuneStone> runeStoneList))
+        if (!TryCreateRuneStoneList(runeStoneCsvRows, out IReadOnlyList<RuneStoneData> runeStoneList))
         {
             Debug.LogError("룬석 리스트 생성에 실패했습니다.");
             yield break;
@@ -142,10 +142,10 @@ public class RuneDataLoader : MonoBehaviour
     }
 
     private bool TryCreateRuneEffectList(IReadOnlyList<RuneEffectCsvHeader> runeEffectCsvRows,
-        out IReadOnlyList<RuneEffect> runeEffectList)
+        out IReadOnlyList<RuneEffectData> runeEffectList)
     {
-        runeEffectList = new List<RuneEffect>();
-        List<RuneEffect> runeEffects = new();
+        runeEffectList = new List<RuneEffectData>();
+        List<RuneEffectData> runeEffects = new();
         foreach (RuneEffectCsvHeader row in runeEffectCsvRows)
         {
             if (!Enum.TryParse(row.RuneEffectCategory, out RuneEffectCategory runeEffectCategory))
@@ -162,7 +162,7 @@ public class RuneDataLoader : MonoBehaviour
                 return false;
             }
 
-            runeEffects.Add(new RuneEffect(row.Id, row.RuneWord, row.EnglishName, row.DisplayName, runeEffectCategory,
+            runeEffects.Add(new RuneEffectData(row.Id, row.RuneWord, row.EnglishName, row.DisplayName, runeEffectCategory,
                 row.Description, icon));
         }
 
@@ -193,7 +193,7 @@ public class RuneDataLoader : MonoBehaviour
             yield break;
         }
 
-        if (!TryCreateRuneEffectList(runeEffectCsvRows, out IReadOnlyList<RuneEffect> runeEffectList))
+        if (!TryCreateRuneEffectList(runeEffectCsvRows, out IReadOnlyList<RuneEffectData> runeEffectList))
         {
             Debug.LogError("룬 효과 리스트 생성에 실패했습니다.");
             yield break;
