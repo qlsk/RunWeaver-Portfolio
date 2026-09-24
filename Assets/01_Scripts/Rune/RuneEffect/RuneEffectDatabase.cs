@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
@@ -7,6 +8,9 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
     private Dictionary<string, RuneEffectData> _database = new();
     private IReadOnlyList<RuneEffectData> _effects = new List<RuneEffectData>();
 
+    public bool IsInitialized => _isInitialized;
+
+    // TODO: 오류 발생 시 초기화 실패 처리
     public void Initialize(IReadOnlyList<RuneEffectData> effects)
     {
         if (_isInitialized) return;
@@ -32,5 +36,11 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
     public bool TryGetById(string id, out RuneEffectData runeEffectData)
     {
         return _database.TryGetValue(id, out runeEffectData);
+    }
+
+    public bool TryGetByCategory(RuneEffectCategory category, out IReadOnlyList<RuneEffectData> runeEffectData)
+    {
+        runeEffectData = _database.Values.Where(data => data.Category == category).ToList();
+        return runeEffectData.Count > 0;
     }
 }
