@@ -4,16 +4,16 @@ using UnityEngine;
 public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
 {
     private bool _isInitialized = false;
-    private Dictionary<string, RuneStone> _databaseById = new();
-    private Dictionary<char, RuneStone> _databaseByRuneCharacter = new();
-    private IReadOnlyList<RuneStone> _runeStones = new List<RuneStone>();
+    private Dictionary<string, RuneStoneData> _databaseById = new();
+    private Dictionary<char, RuneStoneData> _databaseByRuneCharacter = new();
+    private IReadOnlyList<RuneStoneData> _runeStones = new List<RuneStoneData>();
 
-    public void Initialize(IReadOnlyList<RuneStone> stones)
+    public void Initialize(IReadOnlyList<RuneStoneData> stones)
     {
         if (_isInitialized) return;
         _databaseById.Clear();
         _databaseByRuneCharacter.Clear();
-        foreach (RuneStone stone in stones)
+        foreach (RuneStoneData stone in stones)
         {
             if (_databaseById.ContainsKey(stone.Id))
             {
@@ -31,23 +31,23 @@ public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
             _databaseByRuneCharacter[stone.RuneCharacter] = stone;
         }
 
-        _runeStones = new List<RuneStone>(_databaseById.Values);
+        _runeStones = new List<RuneStoneData>(_databaseById.Values);
         _isInitialized = true;
         Debug.Log($"룬석 데이터베이스를 초기화했습니다.");
     }
 
-    public IReadOnlyList<RuneStone> GetAll()
+    public IReadOnlyList<RuneStoneData> GetAll()
     {
         return _runeStones;
     }
 
-    public bool TryGetById(string id, out RuneStone runeStone)
+    public bool TryGetById(string id, out RuneStoneData runeStoneData)
     {
-        return _databaseById.TryGetValue(id, out runeStone);
+        return _databaseById.TryGetValue(id, out runeStoneData);
     }
 
-    public bool TryGetByRuneCharacter(char runeCharacter, out RuneStone runeStone)
+    public bool TryGetByRuneCharacter(char runeCharacter, out RuneStoneData runeStoneData)
     {
-        return _databaseByRuneCharacter.TryGetValue(runeCharacter, out runeStone);
+        return _databaseByRuneCharacter.TryGetValue(runeCharacter, out runeStoneData);
     }
 }

@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using CsvHelper;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class RuneDataLoader : MonoBehaviour
 {
@@ -30,63 +26,17 @@ public class RuneDataLoader : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(LoadRuneStones());
-        StartCoroutine(LoadRuneEffects());
+        StartCoroutine(LoadRuneStonesData());
+        StartCoroutine(LoadRuneEffectsData());
     }
 
-    private IEnumerator DownloadCsv(string url, Action<string> onSuccess)
+    private bool TryCreateRuneStoneList(IReadOnlyList<RuneStoneDataCsvHeader> runeStoneCsvRows,
+        out IReadOnlyList<RuneStoneData> runeStoneList)
     {
-        using var request = UnityWebRequest.Get(url);
-        yield return request.SendWebRequest();
-
-        if (request.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log(request.error);
-            yield break;
-        }
-
-        onSuccess(request.downloadHandler.text);
-    }
-
-    private bool TryParseCsv<T>(string csv, out IReadOnlyList<T> parseResult)
-    {
-        parseResult = new List<T>();
-
-        try
-        {
-            using StringReader reader = new(csv.TrimStart('\uFEFF'));
-            using CsvReader csvReader = new(reader, CultureInfo.InvariantCulture);
-            if (!csvReader.Read())
-            {
-                Debug.LogError("CSV가 헤더를 가지고 있지 않습니다.");
-                return false;
-            }
-
-            csvReader.ReadHeader();
-
-            List<T> csvRows = new();
-            while (csvReader.Read())
-            {
-                csvRows.Add(csvReader.GetRecord<T>());
-            }
-
-            parseResult = csvRows;
-            return true;
-        }
-        catch (CsvHelperException e)
-        {
-            Debug.LogError($"CSV 파싱 실패: {e.Message}");
-            return false;
-        }
-    }
-
-    private bool TryCreateRuneStoneList(IReadOnlyList<RuneStoneCsvHeader> runeStoneCsvRows,
-        out IReadOnlyList<RuneStone> runeStoneList)
-    {
-        runeStoneList = new List<RuneStone>();
-        List<RuneStone> runeStones = new();
+        runeStoneList = new List<RuneStoneData>();
+        List<RuneStoneData> runeStones = new();
         Sprite[] icons = Resources.LoadAll<Sprite>(RuneStoneLoadPath);
-        foreach (RuneStoneCsvHeader row in runeStoneCsvRows)
+        foreach (RuneStoneDataCsvHeader row in runeStoneCsvRows)
         {
             Sprite runeStoneIcon = null;
             foreach (Sprite icon in icons)
@@ -98,59 +48,44 @@ public class RuneDataLoader : MonoBehaviour
 
             if (runeStoneIcon == null)
             {
-                Debug.LogError($"{row.Id}의 룬석 아이콘 경로가 유효하지 않습니다.");
+                Debug.LogError($"Rune stone '{row.Id}': icon '{row.IconName}' was not found in '{RuneStoneLoadPath}'.");
                 return false;
             }
 
-            runeStones.Add(new RuneStone(row.Id, row.RuneCharacter, runeStoneIcon));
+            runeStones.Add(new RuneStoneData(row.Id, row.RuneCharacter, runeStoneIcon));
         }
 
         runeStoneList = runeStones;
-        Debug.Log($"룬석 {runeStones.Count}개를 로드했습니다.");
+        Debug.Log($"Loaded {runeStones.Count} rune stones.");
         return true;
     }
 
-    private IEnumerator LoadRuneStones()
+    private IEnumerator LoadRuneStonesData()
     {
-        Action<string> onSuccess = csv =>
+        yield return StartCoroutine(CsvLoader.DownloadCsv(_runeStoneCsvUrl, csv => _runeStoneCsv = csv));
+        if (string.IsNullOrWhiteSpace(_runeStoneCsv))
         {
-            _runeStoneCsv = csv;
-            _isRuneStoneCsvDownloadSuccess = true;
-        };
-
-        yield return StartCoroutine(DownloadCsv(_runeStoneCsvUrl, onSuccess));
-        if (!_isRuneStoneCsvDownloadSuccess)
-        {
-            Debug.LogError($"{nameof(_runeStoneCsvUrl)} 다운로드에 실패했습니다.");
+            Debug.LogError("Failed to download the rune stone CSV, or its content is empty.");
             yield break;
         }
-        Debug.Log("룬석 CSV 다운로드에 성공했습니다.");
+        Debug.Log("Rune stone CSV downloaded successfully.");
 
-        if (!TryParseCsv(_runeStoneCsv, out IReadOnlyList<RuneStoneCsvHeader> runeStoneCsvRows))
-        {
-            Debug.LogError($"룬석 CSV 파싱에 실패했습니다.");
-            yield break;
-        }
+        if (!CsvLoader.TryParseCsv(_runeStoneCsv, out IReadOnlyList<RuneStoneDataCsvHeader> rows)) yield break;
+        if (!TryCreateRuneStoneList(rows, out IReadOnlyList<RuneStoneData> runeStonesData)) yield break;
 
-        if (!TryCreateRuneStoneList(runeStoneCsvRows, out IReadOnlyList<RuneStone> runeStoneList))
-        {
-            Debug.LogError("룬석 리스트 생성에 실패했습니다.");
-            yield break;
-        }
-
-        _runeStoneDatabase.Initialize(runeStoneList);
+        _runeStoneDatabase.Initialize(runeStonesData);
     }
 
-    private bool TryCreateRuneEffectList(IReadOnlyList<RuneEffectCsvHeader> runeEffectCsvRows,
-        out IReadOnlyList<RuneEffect> runeEffectList)
+    private bool TryCreateRuneEffectList(IReadOnlyList<RuneEffectDataCsvHeader> runeEffectCsvRows,
+        out IReadOnlyList<RuneEffectData> runeEffectList)
     {
-        runeEffectList = new List<RuneEffect>();
-        List<RuneEffect> runeEffects = new();
-        foreach (RuneEffectCsvHeader row in runeEffectCsvRows)
+        runeEffectList = new List<RuneEffectData>();
+        List<RuneEffectData> runeEffects = new();
+        foreach (RuneEffectDataCsvHeader row in runeEffectCsvRows)
         {
             if (!Enum.TryParse(row.RuneEffectCategory, out RuneEffectCategory runeEffectCategory))
             {
-                Debug.LogError($"{row.Id}의 룬 효과 카테고리가 유효하지 않습니다.");
+                Debug.LogError($"Rune effect '{row.Id}': invalid category '{row.RuneEffectCategory}'.");
                 return false;
             }
 
@@ -158,47 +93,33 @@ public class RuneDataLoader : MonoBehaviour
             Sprite icon = Resources.Load<Sprite>(iconName);
             if (icon == null)
             {
-                Debug.LogError($"{row.Id}의 룬 효과 아이콘 경로가 유효하지 않습니다.");
+                Debug.LogError($"Rune effect '{row.Id}': icon was not found at '{iconName}'.");
                 return false;
             }
 
-            runeEffects.Add(new RuneEffect(row.Id, row.RuneWord, row.EnglishName, row.DisplayName, runeEffectCategory,
+            runeEffects.Add(new RuneEffectData(row.Id, row.RuneWord, row.EnglishName, row.DisplayName,
+                runeEffectCategory,
                 row.Description, icon));
         }
 
         runeEffectList = runeEffects;
-        Debug.Log($"룬 효과 {runeEffects.Count}개를 로드했습니다.");
+        Debug.Log($"Loaded {runeEffects.Count} rune effects.");
         return true;
     }
 
-    private IEnumerator LoadRuneEffects()
+    private IEnumerator LoadRuneEffectsData()
     {
-        Action<string> onSuccess = csv =>
+        yield return StartCoroutine(CsvLoader.DownloadCsv(_runeEffectCsvUrl, csv => _runeEffectCsv = csv));
+        if (string.IsNullOrWhiteSpace(_runeEffectCsv))
         {
-            _runeEffectCsv = csv;
-            _isRuneEffectCsvDownloadSuccess = true;
-        };
-
-        yield return StartCoroutine(DownloadCsv(_runeEffectCsvUrl, onSuccess));
-        if (!_isRuneEffectCsvDownloadSuccess)
-        {
-            Debug.LogError($"{nameof(_runeEffectCsvUrl)} 다운로드에 실패했습니다.");
+            Debug.LogError("Failed to download the rune effect CSV, or its content is empty.");
             yield break;
         }
-        Debug.Log("룬 효과 CSV 다운로드에 성공했습니다.");
+        Debug.Log("Rune effect CSV downloaded successfully.");
 
-        if (!TryParseCsv(_runeEffectCsv, out IReadOnlyList<RuneEffectCsvHeader> runeEffectCsvRows))
-        {
-            Debug.LogError($"룬 효과 CSV 파싱에 실패했습니다.");
-            yield break;
-        }
+        if (!CsvLoader.TryParseCsv(_runeEffectCsv, out IReadOnlyList<RuneEffectDataCsvHeader> rows)) yield break;
+        if (!TryCreateRuneEffectList(rows, out IReadOnlyList<RuneEffectData> runeEffectsData)) yield break;
 
-        if (!TryCreateRuneEffectList(runeEffectCsvRows, out IReadOnlyList<RuneEffect> runeEffectList))
-        {
-            Debug.LogError("룬 효과 리스트 생성에 실패했습니다.");
-            yield break;
-        }
-
-        _runeEffectDatabase.Initialize(runeEffectList);
+        _runeEffectDatabase.Initialize(runeEffectsData);
     }
 }
