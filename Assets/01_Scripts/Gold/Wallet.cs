@@ -19,7 +19,7 @@ public class Wallet
             throw new ArgumentNullException(nameof(goldData), "Gold data is required.");
         }
         _goldData = goldData;
-        _balance = 0;
+        _balance = 1000;
     }
 
     public void AddGold(int amount)
