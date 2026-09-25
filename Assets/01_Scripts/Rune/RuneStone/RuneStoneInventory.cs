@@ -18,7 +18,7 @@ public class RuneStoneInventory : MonoBehaviour
 
         if (!_inventory.ContainsKey(runeCharacter))
         {
-            if (!RuneStoneDatabase.Instance.TryGetByRuneCharacter(runeCharacter, out RuneStone runeStone))
+            if (!RuneStoneDatabase.Instance.TryGetByRuneCharacter(runeCharacter, out RuneStoneData runeStone))
             {
                 Debug.LogError($"{runeCharacter}는 유효하지 않은 룬 문자입니다.");
                 return false;
