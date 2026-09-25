@@ -59,8 +59,7 @@ public class ResourceInventory
         {
             if (cost.Amount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(cost), cost.Amount,
-                    "Cost cannot be negative.");
+                throw new ArgumentOutOfRangeException(nameof(cost), cost.Amount, "Cost cannot be negative.");
             }
             costSums.TryAdd(cost.ResourceId, 0);
             costSums[cost.ResourceId] += cost.Amount;
