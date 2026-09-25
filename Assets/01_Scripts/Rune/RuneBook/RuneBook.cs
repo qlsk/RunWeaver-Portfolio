@@ -16,28 +16,25 @@ public class RuneBook
     {
         if (database == null)
         {
-            throw new ArgumentNullException(nameof(database), "룬 도감 생성 실패: 전달받은 룬 효과 데이터베이스가 없거나 이미 파괴되었습니다.");
+            throw new ArgumentNullException(nameof(database), "Rune effect database is missing or destroyed.");
         }
         _database = database;
         _isInitialized = false;
     }
 
-    public bool TryInitialize()
+    public void Initialize()
     {
         if (_isInitialized)
         {
-            Debug.LogError("룬 도감 초기화 실패: 이미 초기화되어 있습니다.");
-            return false;
+            throw new InvalidOperationException("Rune book is already initialized.");
         }
         if (_database == null)
         {
-            Debug.LogError("룬 도감 초기화 실패: 룬 효과 데이터베이스 인스턴스가 없습니다.");
-            return false;
+            throw new InvalidOperationException("Rune effect database is missing.");
         }
         if (!_database.IsInitialized)
         {
-            Debug.LogError("룬 도감 초기화 실패: 룬 효과 데이터베이스가 아직 초기화되지 않았습니다.");
-            return false;
+            throw new InvalidOperationException("Rune effect database is not initialized.");
         }
         Dictionary<string, RuneWord> runeWords = new();
         foreach (RuneEffectData data in _database.GetAll())
@@ -48,100 +45,75 @@ public class RuneBook
         _runeWords = runeWords;
         _isInitialized = true;
         RuneBookChanged?.Invoke();
-        return true;
     }
 
-    public bool RevealCategory(RuneEffectCategory category)
+    public void RevealCategory(RuneEffectCategory category)
     {
         if (!_isInitialized)
         {
-            Debug.LogError($"'{category}' 카테고리 공개 실패: 룬 도감이 아직 초기화되지 않았습니다.");
-            return false;
+            throw new InvalidOperationException("Rune book is not initialized.");
         }
         if (!_database.TryGetByCategory(category, out IReadOnlyList<RuneEffectData> runeEffectData))
         {
-            Debug.LogError(
-                $"'{category}' 카테고리 공개 실패: 데이터베이스에 해당 카테고리의 룬 효과가 없습니다.");
-            return false;
+            throw new ArgumentException($"No rune effects in category: {category}", nameof(category));
         }
         foreach (RuneEffectData data in runeEffectData)
         {
             if (!_runeWords.TryGetValue(data.Id, out RuneWord runeWord))
             {
-                Debug.LogError(
-                    $"'{category}' 카테고리 공개 실패: 룬 도감에 룬 효과 '{data.Id}'의 항목이 없습니다.");
-                return false;
+                throw new InvalidOperationException($"Rune book entry not found: {data.Id}");
             }
-            runeWord.TryReveal(RuneWordRevealLevel.Listed);
+            if (runeWord.IsRevealed) continue;
+            runeWord.Reveal(RuneWordRevealLevel.Listed);
         }
         RuneBookChanged?.Invoke();
-        return true;
     }
 
-    public bool RevealDetails(string runeEffectId)
+    public void RevealDetails(string runeEffectId)
     {
         if (!_isInitialized)
         {
-            Debug.LogError(
-                $"룬 효과 '{runeEffectId}'의 상세 정보 공개 실패: 룬 도감이 아직 초기화되지 않았습니다.");
-            return false;
+            throw new InvalidOperationException("Rune book is not initialized.");
         }
         if (!_runeWords.TryGetValue(runeEffectId, out RuneWord runeWord))
         {
-            Debug.LogError(
-                $"룬 효과 '{runeEffectId}'의 상세 정보 공개 실패: 룬 도감에 해당 항목이 없습니다.");
-            return false;
+            throw new ArgumentException($"Rune book entry not found: {runeEffectId}",
+                nameof(runeEffectId));
         }
-        if (!runeWord.TryReveal(RuneWordRevealLevel.Detailed))
-        {
-            Debug.LogError(
-                $"룬 효과 '{runeEffectId}'의 상세 정보 공개 실패: 현재 공개 단계 '{runeWord.RevealLevel}'에서 상세 공개 단계로 변경할 수 없습니다.");
-            return false;
-        }
+        runeWord.Reveal(RuneWordRevealLevel.Detailed);
         RuneBookChanged?.Invoke();
-        return true;
     }
 
     public bool IsRevealed(string runeEffectId)
     {
         if (!_isInitialized)
         {
-            Debug.LogError(
-                $"룬 효과 '{runeEffectId}'의 공개 여부 확인 실패: 룬 도감이 아직 초기화되지 않았습니다.");
-            return false;
+            throw new InvalidOperationException("Rune book is not initialized.");
         }
         if (!_runeWords.TryGetValue(runeEffectId, out RuneWord runeWord))
         {
-            Debug.LogError(
-                $"룬 효과 '{runeEffectId}'의 공개 여부 확인 실패: 룬 도감에 해당 항목이 없습니다.");
-            return false;
+            throw new ArgumentException($"Rune book entry not found: {runeEffectId}",
+                nameof(runeEffectId));
         }
         return runeWord.IsRevealed;
     }
 
-    public bool TryGetWord(string runeEffectId, out RuneWordInfo info)
+    public RuneWordInfo GetWord(string runeEffectId)
     {
-        info = null;
         if (!_isInitialized)
         {
-            Debug.LogError(
-                $"룬 도감 항목 '{runeEffectId}' 조회 실패: 룬 도감이 아직 초기화되지 않았습니다.");
-            return false;
+            throw new InvalidOperationException("Rune book is not initialized.");
         }
         if (!_database.TryGetById(runeEffectId, out RuneEffectData data))
         {
-            Debug.LogError(
-                $"룬 도감 항목 '{runeEffectId}' 조회 실패: 데이터베이스에 해당 룬 효과가 없습니다.");
-            return false;
+            throw new ArgumentException($"Rune effect not found in database: {runeEffectId}",
+                nameof(runeEffectId));
         }
         if (!_runeWords.TryGetValue(runeEffectId, out RuneWord runeWord))
         {
-            Debug.LogError(
-                $"룬 도감 항목 '{runeEffectId}' 조회 실패: 도감에 해당 항목의 공개 상태가 없습니다.");
-            return false;
+            throw new InvalidOperationException($"Rune reveal state not found: {runeEffectId}");
         }
-        info = new RuneWordInfo(data, runeWord.RevealLevel);
-        return true;
+        return new RuneWordInfo(data, runeWord.RevealLevel);
     }
 
     public IReadOnlyList<RuneWordInfo> GetAll()
@@ -152,9 +124,7 @@ public class RuneBook
         {
             if (!_database.TryGetById(word.RuneEffectId, out RuneEffectData data))
             {
-                Debug.LogError(
-                    $"룬 도감 전체 목록 조회 실패: 데이터베이스에 룬 효과 '{word.RuneEffectId}'가 없습니다.");
-                return Array.Empty<RuneWordInfo>();
+                throw new InvalidOperationException($"Rune effect not found in database: {word.RuneEffectId}");
             }
             RuneWordInfo info = new(data, word.RevealLevel);
             infos.Add(info);
@@ -166,14 +136,11 @@ public class RuneBook
     {
         if (!_isInitialized) return Array.Empty<RuneWordInfo>();
         List<RuneWordInfo> infos = new();
-        foreach (RuneWord word in _runeWords.Values)
+        foreach (RuneWord word in _runeWords.Values.Where(word => word.IsRevealed))
         {
-            if (!word.IsRevealed) continue;
             if (!_database.TryGetById(word.RuneEffectId, out RuneEffectData data))
             {
-                Debug.LogError(
-                    $"공개된 룬 도감 목록 조회 실패: 데이터베이스에 룬 효과 '{word.RuneEffectId}'가 없습니다.");
-                return Array.Empty<RuneWordInfo>();
+                throw new InvalidOperationException($"Rune effect not found in database: {word.RuneEffectId}");
             }
             RuneWordInfo info = new(data, word.RevealLevel);
             infos.Add(info);
