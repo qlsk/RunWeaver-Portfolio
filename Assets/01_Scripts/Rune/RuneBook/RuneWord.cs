@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using System;
 
 public class RuneWord
 {
@@ -15,24 +15,25 @@ public class RuneWord
         _revealLevel = RuneWordRevealLevel.Hidden;
     }
 
-    public bool TryReveal(RuneWordRevealLevel targetLevel)
+    public void Reveal(RuneWordRevealLevel targetLevel)
     {
+        if (!Enum.IsDefined(typeof(RuneWordRevealLevel), targetLevel))
+        {
+            throw new ArgumentOutOfRangeException(nameof(targetLevel), targetLevel,
+                $"Invalid reveal level for rune: {_runeEffectId}");
+        }
         if (_revealLevel == targetLevel)
         {
-            Debug.LogWarning($"룬 효과 '{_runeEffectId}'의 공개 단계 변경 실패: 이미 '{targetLevel}' 단계입니다.");
-            return false;
+            throw new InvalidOperationException($"Already at reveal level '{targetLevel}': {_runeEffectId}");
         }
         if (_revealLevel == RuneWordRevealLevel.Hidden && targetLevel == RuneWordRevealLevel.Detailed)
         {
-            Debug.LogWarning($"룬 효과 '{_runeEffectId}'의 상세 정보 공개 실패: 숨겨진 상태입니다. 먼저 목록에 공개해야 합니다.");
-            return false;
+            throw new InvalidOperationException($"List the rune before revealing details: {_runeEffectId}");
         }
         if ((int)_revealLevel > (int)targetLevel)
         {
-            Debug.LogWarning($"룬 효과 '{_runeEffectId}'의 공개 단계 변경 실패: '{_revealLevel}'에서 '{targetLevel}'로 단계를 낮출 수 없습니다.");
-            return false;
+            throw new InvalidOperationException($"Cannot lower reveal level: {_runeEffectId} ({_revealLevel} → {targetLevel})");
         }
         _revealLevel = targetLevel;
-        return true;
     }
 }
