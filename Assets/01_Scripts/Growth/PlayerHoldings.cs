@@ -8,4 +8,14 @@
     public Wallet ExpeditionWallet => _expeditionWallet;
     public ResourceInventory StoredResources => _storedResources;
     public ResourceInventory ExpeditionResources => _expeditionResources;
+
+    public PlayerHoldings(
+        Wallet expeditionWallet,
+        ResourceInventory storedResources,
+        ResourceInventory expeditionResources)
+    {
+        _expeditionWallet = expeditionWallet;
+        _storedResources = storedResources;
+        _expeditionResources = expeditionResources;
+    }
 }
