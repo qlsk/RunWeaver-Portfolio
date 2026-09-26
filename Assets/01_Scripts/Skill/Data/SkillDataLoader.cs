@@ -87,13 +87,13 @@ public class SkillDataLoader : MonoBehaviour
     }
 
     private bool TryCreateSkillNodeList(IReadOnlyList<SkillNodeDataCsvHeader> rows,
-        out IReadOnlyList<SkillNodeData> skillNodesData)
+        out IReadOnlyList<SkillNodeDefinition> skillNodesData)
     {
-        skillNodesData = new List<SkillNodeData>();
-        List<SkillNodeData> skillNodes = new();
+        skillNodesData = new List<SkillNodeDefinition>();
+        List<SkillNodeDefinition> skillNodes = new();
         foreach (SkillNodeDataCsvHeader row in rows)
         {
-            skillNodes.Add(new SkillNodeData(row.Id, row.DisplayName, row.Description, row.SkillId,
+            skillNodes.Add(new SkillNodeDefinition(row.Id, row.DisplayName, row.Description, row.SkillId,
                 row.PrerequisiteNodeId, row.MaxLevel, row.UpgradeCost));
         }
 

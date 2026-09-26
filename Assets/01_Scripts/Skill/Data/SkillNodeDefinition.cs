@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class SkillNodeData
+public class SkillNodeDefinition
 {
     [SerializeField] private string _id;
     [SerializeField] private string _displayName;
@@ -19,7 +19,7 @@ public class SkillNodeData
     public int MaxLevel => _maxLevel;
     public int UpgradeCost => _upgradeCost;
 
-    public SkillNodeData(string id, string displayName, string description, string skillId,
+    public SkillNodeDefinition(string id, string displayName, string description, string skillId,
         string prerequisiteNodeId, int maxLevel, int upgradeCost)
     {
         _id = id;
