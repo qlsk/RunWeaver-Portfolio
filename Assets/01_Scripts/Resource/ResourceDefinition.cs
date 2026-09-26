@@ -1,4 +1,4 @@
-﻿public class ResourceData
+﻿public class ResourceDefinition
 {
     string _id;
     string _displayName;
@@ -8,7 +8,7 @@
     public string DisplayName => _displayName;
     public string Description => _description;
 
-    public ResourceData(string id, string displayName, string description)
+    public ResourceDefinition(string id, string displayName, string description)
     {
         _id = id;
         _displayName = displayName;

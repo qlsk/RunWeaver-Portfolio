@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 public class ResourceInventory
 {
-    private Dictionary<string, ResourceData> _resources;
+    private Dictionary<string, ResourceDefinition> _resources;
     private Dictionary<string, int> _quantities;
 
     public event Action QuantitiesChanged;
 
-    public ResourceInventory(IReadOnlyList<ResourceData> resources)
+    public ResourceInventory(IReadOnlyList<ResourceDefinition> resources)
     {
-        _resources = new Dictionary<string, ResourceData>();
+        _resources = new Dictionary<string, ResourceDefinition>();
         _quantities = new Dictionary<string, int>();
-        foreach (ResourceData resource in resources)
+        foreach (ResourceDefinition resource in resources)
         {
             if (!_resources.TryAdd(resource.Id, resource) || !_quantities.TryAdd(resource.Id, 0))
             {
