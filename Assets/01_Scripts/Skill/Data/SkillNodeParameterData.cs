@@ -1,9 +1,12 @@
-﻿public class SkillNodeParameterData
+﻿using UnityEngine;
+
+[System.Serializable]
+public class SkillNodeParameterData
 {
-    private string _nodeId;
-    private int _level;
-    private ParameterType _parameterType;
-    private float _value;
+    [SerializeField] private string _nodeId;
+    [SerializeField] private int _level;
+    [SerializeField] private ParameterType _parameterType;
+    [SerializeField] private float _value;
 
     public string NodeId => _nodeId;
     public int Level => _level;

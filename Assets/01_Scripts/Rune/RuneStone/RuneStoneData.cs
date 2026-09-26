@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public class RuneStoneData
 {
-    private string _id;
-    private char _runeCharacter;
-    private Sprite _icon;
+    [SerializeField] private string _id;
+    [SerializeField] private char _runeCharacter;
+    [SerializeField] private Sprite _icon;
 
     public string Id => _id;
     public char RuneCharacter => _runeCharacter;

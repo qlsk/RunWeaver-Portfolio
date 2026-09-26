@@ -1,12 +1,15 @@
-﻿public class SkillNodeData
+﻿using UnityEngine;
+
+[System.Serializable]
+public class SkillNodeData
 {
-    private string _id;
-    private string _displayName;
-    private string _description;
-    private string _skillId;
-    private string _prerequisiteNodeId;
-    private int _maxLevel;
-    private int _upgradeCost;
+    [SerializeField] private string _id;
+    [SerializeField] private string _displayName;
+    [SerializeField] private string _description;
+    [SerializeField] private string _skillId;
+    [SerializeField] private string _prerequisiteNodeId;
+    [SerializeField] private int _maxLevel;
+    [SerializeField] private int _upgradeCost;
 
     public string Id => _id;
     public string DisplayName => _displayName;
