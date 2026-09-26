@@ -180,6 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneStoneDatabase
   _isDontDestroyOnLoad: 1
+  _runeStones: []
 --- !u!4 &339114792
 Transform:
   m_ObjectHideFlags: 0
@@ -225,6 +226,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillDatabase
   _isDontDestroyOnLoad: 1
+  _skills: []
+  _skillNodes: []
+  _skillNodeParameters: []
 --- !u!4 &411893719
 Transform:
   m_ObjectHideFlags: 0
@@ -249,7 +253,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1605264712}
-  - component: {fileID: 1605264711}
+  - component: {fileID: 1605264713}
   m_Layer: 0
   m_Name: RuneDataLoader
   m_TagString: Untagged
@@ -257,22 +261,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1605264711
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1605264710}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fca855ad7e34cbabae3c53224a10154, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneDataLoader
-  _runeStoneCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=1083085027&single=true&output=csv
-  _runeEffectCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=0&single=true&output=csv
-  _runeStoneDatabase: {fileID: 339114791}
-  _runeEffectDatabase: {fileID: 1747934393}
 --- !u!4 &1605264712
 Transform:
   m_ObjectHideFlags: 0
@@ -288,6 +276,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1605264713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605264710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fca855ad7e34cbabae3c53224a10154, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneDataLoader
+  _runeStoneCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=1083085027&single=true&output=csv
+  _runeEffectCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=0&single=true&output=csv
+  _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
+  _runeStoneDatabase: {fileID: 339114791}
+  _runeEffectDatabase: {fileID: 1747934393}
 --- !u!1 &1747934392
 GameObject:
   m_ObjectHideFlags: 0
@@ -318,6 +323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneEffectDatabase
   _isDontDestroyOnLoad: 1
+  _effects: []
 --- !u!4 &1747934394
 Transform:
   m_ObjectHideFlags: 0

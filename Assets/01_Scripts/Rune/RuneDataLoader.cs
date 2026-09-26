@@ -15,6 +15,7 @@ public class RuneDataLoader : MonoBehaviour
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=0&single=true&output=csv";
 
     [Header("References")]
+    [SerializeField] private RuneStoneIconCatalog _runeStoneIconCatalog;
     [SerializeField] private RuneStoneDatabase _runeStoneDatabase;
     [SerializeField] private RuneEffectDatabase _runeEffectDatabase;
 
@@ -35,24 +36,10 @@ public class RuneDataLoader : MonoBehaviour
     {
         runeStoneList = new List<RuneStoneData>();
         List<RuneStoneData> runeStones = new();
-        Sprite[] icons = Resources.LoadAll<Sprite>(RuneStoneLoadPath);
         foreach (RuneStoneDataCsvHeader row in runeStoneCsvRows)
         {
-            Sprite runeStoneIcon = null;
-            foreach (Sprite icon in icons)
-            {
-                if (icon.name != row.IconName) continue;
-                runeStoneIcon = icon;
-                break;
-            }
-
-            if (runeStoneIcon == null)
-            {
-                Debug.LogError($"Rune stone '{row.Id}': icon '{row.IconName}' was not found in '{RuneStoneLoadPath}'.");
-                return false;
-            }
-
-            runeStones.Add(new RuneStoneData(row.Id, row.RuneCharacter, runeStoneIcon));
+            Sprite icon = _runeStoneIconCatalog.GetIcon(row.Id).Icon;
+            runeStones.Add(new RuneStoneData(row.Id, row.RuneCharacter, icon));
         }
 
         runeStoneList = runeStones;
