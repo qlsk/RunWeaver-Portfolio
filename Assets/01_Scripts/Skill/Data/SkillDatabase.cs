@@ -7,15 +7,15 @@ public class SkillDatabase : Singleton<SkillDatabase>
     private bool _isInitialized = false;
 
     private Dictionary<string, SkillData> _skillDatabase = new();
-    private Dictionary<string, SkillNodeData> _skillNodeDatabase = new();
+    private Dictionary<string, SkillNodeDefinition> _skillNodeDatabase = new();
     private Dictionary<(string NodeId, int Level, ParameterType Parameter), SkillNodeParameterData>
         _skillNodeParameterDatabase = new();
 
     [SerializeField] private List<SkillData> _skills = new();
-    [SerializeField] private List<SkillNodeData> _skillNodes = new();
+    [SerializeField] private List<SkillNodeDefinition> _skillNodes = new();
     [SerializeField] private List<SkillNodeParameterData> _skillNodeParameters = new();
 
-    public void Initialize(IReadOnlyList<SkillData> skills, IReadOnlyList<SkillNodeData> skillNodes,
+    public void Initialize(IReadOnlyList<SkillData> skills, IReadOnlyList<SkillNodeDefinition> skillNodes,
         IReadOnlyList<SkillNodeParameterData> skillNodeParameters)
     {
         if (_isInitialized) return;
@@ -32,7 +32,7 @@ public class SkillDatabase : Singleton<SkillDatabase>
             }
         }
 
-        foreach (SkillNodeData skillNode in skillNodes)
+        foreach (SkillNodeDefinition skillNode in skillNodes)
         {
             if (!_skillDatabase.ContainsKey(skillNode.SkillId))
             {
@@ -63,7 +63,7 @@ public class SkillDatabase : Singleton<SkillDatabase>
         }
 
         _skills = new List<SkillData>(_skillDatabase.Values);
-        _skillNodes = new List<SkillNodeData>(_skillNodeDatabase.Values);
+        _skillNodes = new List<SkillNodeDefinition>(_skillNodeDatabase.Values);
         _skillNodeParameters = new List<SkillNodeParameterData>(_skillNodeParameterDatabase.Values);
 
         _isInitialized = true;
@@ -75,12 +75,12 @@ public class SkillDatabase : Singleton<SkillDatabase>
         return _skillDatabase.TryGetValue(id, out skillData);
     }
 
-    public bool TryGetSkillNodeById(string id, out SkillNodeData nodeData)
+    public bool TryGetSkillNodeById(string id, out SkillNodeDefinition nodeDefinition)
     {
-        return _skillNodeDatabase.TryGetValue(id, out nodeData);
+        return _skillNodeDatabase.TryGetValue(id, out nodeDefinition);
     }
 
-    public bool TryGetSkillNodesBySkillId(string skillId, out SkillNodeData[] nodeData)
+    public bool TryGetSkillNodesBySkillId(string skillId, out SkillNodeDefinition[] nodeData)
     {
         nodeData = _skillNodeDatabase.Values.Where(v => v.SkillId == skillId).ToArray();
         return nodeData.Length != 0;
