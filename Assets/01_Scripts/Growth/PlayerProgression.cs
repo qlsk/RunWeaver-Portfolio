@@ -13,12 +13,9 @@ public class PlayerProgression
 
     public PlayerProgression(GameDefinitionSet definitions)
     {
-        Wallet expeditionWallet = new(definitions.Gold);
-        ResourceInventory storedResources = new(definitions.Resources);
-        ResourceInventory expeditionResources = new(definitions.Resources);
-
         _skillTree = new SkillTree(definitions.SkillNodes);
         _researchTree = new ResearchTree(definitions.Researches);
-        _holdings = new PlayerHoldings(expeditionWallet, storedResources, expeditionResources);
+        // TODO: PlayerHoldings 생성 시 로드된 연구 재료 세이브 데이터 주입
+        _holdings = new PlayerHoldings(definitions.Resources);
     }
 }
