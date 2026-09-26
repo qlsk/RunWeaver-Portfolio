@@ -11,9 +11,9 @@ public class SkillDatabase : Singleton<SkillDatabase>
     private Dictionary<(string NodeId, int Level, ParameterType Parameter), SkillNodeParameterData>
         _skillNodeParameterDatabase = new();
 
-    private IReadOnlyList<SkillData> _skills = new List<SkillData>();
-    private IReadOnlyList<SkillNodeData> _skillNodes = new List<SkillNodeData>();
-    private IReadOnlyList<SkillNodeParameterData> _skillNodeParameters = new List<SkillNodeParameterData>();
+    [SerializeField] private List<SkillData> _skills = new();
+    [SerializeField] private List<SkillNodeData> _skillNodes = new();
+    [SerializeField] private List<SkillNodeParameterData> _skillNodeParameters = new();
 
     public void Initialize(IReadOnlyList<SkillData> skills, IReadOnlyList<SkillNodeData> skillNodes,
         IReadOnlyList<SkillNodeParameterData> skillNodeParameters)

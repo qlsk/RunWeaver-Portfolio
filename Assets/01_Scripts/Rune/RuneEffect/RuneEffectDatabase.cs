@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
 {
-    private bool _isInitialized = false;
+    private bool _isInitialized;
     private Dictionary<string, RuneEffectData> _database = new();
-    private IReadOnlyList<RuneEffectData> _effects = new List<RuneEffectData>();
+    [SerializeField] private List<RuneEffectData> _effects = new();
 
     public bool IsInitialized => _isInitialized;
 
@@ -25,7 +25,7 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
 
         _effects = new List<RuneEffectData>(_database.Values);
         _isInitialized = true;
-        Debug.Log($"룬 효과 데이터베이스를 초기화했습니다.");
+        Debug.Log($"Initialized {_effects.Count} rune effects");
     }
 
     public IReadOnlyList<RuneEffectData> GetAll()

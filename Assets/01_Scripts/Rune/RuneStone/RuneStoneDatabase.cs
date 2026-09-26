@@ -6,13 +6,14 @@ public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
     private bool _isInitialized = false;
     private Dictionary<string, RuneStoneData> _databaseById = new();
     private Dictionary<char, RuneStoneData> _databaseByRuneCharacter = new();
-    private IReadOnlyList<RuneStoneData> _runeStones = new List<RuneStoneData>();
+    [SerializeField] private List<RuneStoneData> _runeStones = new();
 
     public void Initialize(IReadOnlyList<RuneStoneData> stones)
     {
         if (_isInitialized) return;
         _databaseById.Clear();
         _databaseByRuneCharacter.Clear();
+        _runeStones.Clear();
         foreach (RuneStoneData stone in stones)
         {
             if (_databaseById.ContainsKey(stone.Id))

@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public class SkillData
 {
-    private string _id;
-    private string _displayName;
-    private string _description;
-    private Sprite _icon;
+    [SerializeField] private string _id;
+    [SerializeField] private string _displayName;
+    [SerializeField] private string _description;
+    [SerializeField] private Sprite _icon;
 
     public string Id => _id;
     public string DisplayName => _displayName;
