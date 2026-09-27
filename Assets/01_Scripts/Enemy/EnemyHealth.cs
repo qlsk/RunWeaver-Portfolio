@@ -5,7 +5,7 @@ public class EnemyHealth : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
 
-    private float _currentHealth;
+    [SerializeField] private float _currentHealth;
 
     private float _maxHealth;
 
