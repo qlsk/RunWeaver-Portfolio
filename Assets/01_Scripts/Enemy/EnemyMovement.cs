@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemyMovemont : MonoBehaviour
+public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private EnemyTargetDetector _targetDetector;
