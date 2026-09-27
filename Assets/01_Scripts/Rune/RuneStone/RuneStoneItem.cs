@@ -1,14 +1,14 @@
 ﻿public class RuneStoneItem
 {
-    private RuneStoneData _runeStoneData;
+    private RuneStoneDefinition _runeStoneDefinition;
     private int _quantity;
 
-    public RuneStoneData RuneStoneData => _runeStoneData;
+    public RuneStoneDefinition RuneStoneDefinition => _runeStoneDefinition;
     public int Quantity => _quantity;
 
-    public RuneStoneItem(RuneStoneData runeStoneData, int quantity)
+    public RuneStoneItem(RuneStoneDefinition runeStoneDefinition, int quantity)
     {
-        _runeStoneData = runeStoneData;
+        _runeStoneDefinition = runeStoneDefinition;
         _quantity = quantity;
     }
 

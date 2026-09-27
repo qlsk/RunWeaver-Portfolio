@@ -1,53 +1,67 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
 {
-    private bool _isInitialized = false;
-    private Dictionary<string, RuneStoneData> _databaseById = new();
-    private Dictionary<char, RuneStoneData> _databaseByRuneCharacter = new();
-    private IReadOnlyList<RuneStoneData> _runeStones = new List<RuneStoneData>();
+    [Header("References")]
+    [SerializeField] private RuneDefinitionLoader _loader;
 
-    public void Initialize(IReadOnlyList<RuneStoneData> stones)
+    [Header("Data")]
+    [SerializeField] private List<RuneStoneDefinition> _runeStones;
+
+    private Dictionary<string, RuneStoneDefinition> _runeStonesById;
+    private Dictionary<char, RuneStoneDefinition> _runeStonesByRuneCharacter;
+
+    private bool _databaseReady;
+
+    public bool DatabaseReady => _databaseReady;
+
+    public async UniTask Initialize()
     {
-        if (_isInitialized) return;
-        _databaseById.Clear();
-        _databaseByRuneCharacter.Clear();
-        foreach (RuneStoneData stone in stones)
+        IReadOnlyList<RuneStoneDefinition> loadedRuneStones = await _loader.LoadRuneStoneDefinitions();
+
+        List<RuneStoneDefinition> runeStones = new(loadedRuneStones.Count);
+        Dictionary<string, RuneStoneDefinition> runeStonesById = new(loadedRuneStones.Count);
+        Dictionary<char, RuneStoneDefinition> runeStonesByRuneCharacter = new(loadedRuneStones.Count);
+
+        foreach (RuneStoneDefinition runeStone in loadedRuneStones)
         {
-            if (_databaseById.ContainsKey(stone.Id))
+            if (runeStonesById.ContainsKey(runeStone.Id))
             {
-                Debug.LogError($"중복된 룬 아이디입니다: {stone.Id}");
-                continue;
+                throw new InvalidOperationException("Duplicate rune stone id: " + runeStone.Id);
             }
-
-            if (_databaseByRuneCharacter.ContainsKey(stone.RuneCharacter))
+            if (runeStonesByRuneCharacter.ContainsKey(runeStone.RuneCharacter))
             {
-                Debug.LogError($"중복된 룬 문자입니다: {stone.RuneCharacter}");
-                continue;
+                throw new InvalidOperationException("Duplicate rune stone character id: " + runeStone.RuneCharacter);
             }
-
-            _databaseById[stone.Id] = stone;
-            _databaseByRuneCharacter[stone.RuneCharacter] = stone;
+            runeStones.Add(runeStone);
+            runeStonesById.TryAdd(runeStone.Id, runeStone);
+            runeStonesByRuneCharacter.TryAdd(runeStone.RuneCharacter, runeStone);
         }
 
-        _runeStones = new List<RuneStoneData>(_databaseById.Values);
-        _isInitialized = true;
-        Debug.Log($"룬석 데이터베이스를 초기화했습니다.");
+        _runeStones = runeStones;
+        _runeStonesById = runeStonesById;
+        _runeStonesByRuneCharacter = runeStonesByRuneCharacter;
+
+        _databaseReady = true;
+        Debug.Log($"Loaded {runeStones.Count} rune stones.");
     }
 
-    public IReadOnlyList<RuneStoneData> GetAll()
+    public IReadOnlyList<RuneStoneDefinition> GetAll()
     {
-        return _runeStones;
+        return !_databaseReady ? null : _runeStones;
     }
 
-    public bool TryGetById(string id, out RuneStoneData runeStoneData)
+    public bool TryGetById(string id, out RuneStoneDefinition runeStoneDefinition)
     {
-        return _databaseById.TryGetValue(id, out runeStoneData);
+        return _runeStonesById.TryGetValue(id, out runeStoneDefinition);
     }
 
-    public bool TryGetByRuneCharacter(char runeCharacter, out RuneStoneData runeStoneData)
+    public bool TryGetByRuneCharacter(char runeCharacter, out RuneStoneDefinition runeStoneDefinition)
     {
-        return _databaseByRuneCharacter.TryGetValue(runeCharacter, out runeStoneData);
+        return _runeStonesByRuneCharacter.TryGetValue(runeCharacter, out runeStoneDefinition);
     }
 }

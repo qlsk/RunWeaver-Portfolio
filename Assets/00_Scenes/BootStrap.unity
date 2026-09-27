@@ -119,37 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &238020043
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 238020044}
-  m_Layer: 0
-  m_Name: ------------------------------
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &238020044
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 238020043}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &339114790
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,6 +149,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneStoneDatabase
   _isDontDestroyOnLoad: 1
+  _loader: {fileID: 1605264713}
+  _runeStones: []
 --- !u!4 &339114792
 Transform:
   m_ObjectHideFlags: 0
@@ -187,6 +158,61 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 339114790}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &396347374
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 396347376}
+  - component: {fileID: 396347375}
+  m_Layer: 0
+  m_Name: GameBootstrap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &396347375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396347374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a09538a4ba5240fb8f3cb3bcd7c6304d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameBootstrap
+  _gold: {fileID: 11400000, guid: 1b913da2351634c4f8b58164eacf2871, type: 2}
+  _resources:
+  - {fileID: 11400000, guid: 667dd032be2f5e046a8b248fd683f140, type: 2}
+  - {fileID: 11400000, guid: 0dfdee0b555979f448f077d2aef9a090, type: 2}
+  - {fileID: 11400000, guid: 2fa5709e1392e3c4e9bcf159e476b8cb, type: 2}
+  - {fileID: 11400000, guid: 68ef1510db0d9eb4a8d47396e540fc8a, type: 2}
+  _session: {fileID: 2146478412}
+  _runeStoneDatabase: {fileID: 339114791}
+  _runeEffectDatabase: {fileID: 1747934393}
+  _skillDatabase: {fileID: 411893718}
+  _researchDatabase: {fileID: 1010768197}
+--- !u!4 &396347376
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396347374}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -225,6 +251,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillDatabase
   _isDontDestroyOnLoad: 1
+  _loader: {fileID: 2115894714}
+  _skills: []
+  _skillNodes: []
+  _skillNodeParameters: []
 --- !u!4 &411893719
 Transform:
   m_ObjectHideFlags: 0
@@ -240,6 +270,135 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &691381583
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 691381584}
+  m_Layer: 0
+  m_Name: DataLoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &691381584
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691381583}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1605264712}
+  - {fileID: 2115894715}
+  - {fileID: 1452890888}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1010768196
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1010768198}
+  - component: {fileID: 1010768197}
+  m_Layer: 0
+  m_Name: ResearchDatabase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1010768197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010768196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01e2cea0b1f74d3d859b891e7d4566ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResearchDatabase
+  _isDontDestroyOnLoad: 1
+  _loader: {fileID: 1452890887}
+  _researchNodes: []
+--- !u!4 &1010768198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010768196}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1452890886
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1452890888}
+  - component: {fileID: 1452890887}
+  m_Layer: 0
+  m_Name: ResearchDefinitionLoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1452890887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452890886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68a24ce2fde44c4481a272b48f75a9a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResearchDefinitionLoader
+  _researchNodeCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=584732176
+  _researchPrerequisiteCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=1157822266
+  _researchCostCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=218911871
+  _researchEffectCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=1216300861
+--- !u!4 &1452890888
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452890886}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 691381584}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1605264710
 GameObject:
   m_ObjectHideFlags: 0
@@ -249,7 +408,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1605264712}
-  - component: {fileID: 1605264711}
+  - component: {fileID: 1605264713}
   m_Layer: 0
   m_Name: RuneDataLoader
   m_TagString: Untagged
@@ -257,7 +416,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1605264711
+--- !u!4 &1605264712
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605264710}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 691381584}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1605264713
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -271,23 +445,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RuneDataLoader
   _runeStoneCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=1083085027&single=true&output=csv
   _runeEffectCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=0&single=true&output=csv
-  _runeStoneDatabase: {fileID: 339114791}
-  _runeEffectDatabase: {fileID: 1747934393}
---- !u!4 &1605264712
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1605264710}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
 --- !u!1 &1747934392
 GameObject:
   m_ObjectHideFlags: 0
@@ -318,6 +476,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneEffectDatabase
   _isDontDestroyOnLoad: 1
+  _loader: {fileID: 1605264713}
+  _runeEffects: []
 --- !u!4 &1747934394
 Transform:
   m_ObjectHideFlags: 0
@@ -365,7 +525,6 @@ MonoBehaviour:
   _skillCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=453944318&single=true&output=csv
   _skillNodeCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=1195616475&single=true&output=csv
   _skillNodeParameterCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vR9F5MSLHEOJg7A8euPIs8WimRo-nZ9S7YwK5yHixCZMNlnPSUysFEyxwX9ZUw92XTNw127RO24LYVm/pub?gid=945734435&single=true&output=csv
-  _skillDatabase: {fileID: 411893718}
 --- !u!4 &2115894715
 Transform:
   m_ObjectHideFlags: 0
@@ -373,6 +532,51 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2115894713}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 691381584}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2146478411
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2146478413}
+  - component: {fileID: 2146478412}
+  m_Layer: 0
+  m_Name: GameSession
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2146478412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146478411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fe3870dc29d46f2bf55906fe41a4f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameSession
+  _isDontDestroyOnLoad: 1
+--- !u!4 &2146478413
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146478411}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -385,9 +589,10 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 396347376}
+  - {fileID: 2146478413}
   - {fileID: 339114792}
   - {fileID: 1747934394}
   - {fileID: 411893719}
-  - {fileID: 238020044}
-  - {fileID: 1605264712}
-  - {fileID: 2115894715}
+  - {fileID: 1010768198}
+  - {fileID: 691381584}

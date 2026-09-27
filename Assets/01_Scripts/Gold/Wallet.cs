@@ -6,19 +6,19 @@ using UnityEngine;
 /// </summary>
 public class Wallet
 {
-    private GoldData _goldData;
+    private GoldDefinitionSO _goldDefinition;
     private int _balance;
 
     public int Balance => _balance;
     public event Action<int> BalanceChanged;
 
-    public Wallet(GoldData goldData)
+    public Wallet(GoldDefinitionSO goldDefinition)
     {
-        if (goldData == null)
+        if (goldDefinition == null)
         {
-            throw new ArgumentNullException(nameof(goldData), "Gold data is required.");
+            throw new ArgumentNullException(nameof(goldDefinition), "Gold data is required.");
         }
-        _goldData = goldData;
+        _goldDefinition = goldDefinition;
         _balance = 1000;
     }
 

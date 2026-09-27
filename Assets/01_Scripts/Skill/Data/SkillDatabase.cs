@@ -1,94 +1,110 @@
-﻿using System.Collections.Generic;
+using System;
+using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class SkillDatabase : Singleton<SkillDatabase>
 {
-    private bool _isInitialized = false;
+    [Header("References")]
+    [SerializeField] private SkillDefinitionLoader _loader;
 
-    private Dictionary<string, SkillData> _skillDatabase = new();
-    private Dictionary<string, SkillNodeData> _skillNodeDatabase = new();
-    private Dictionary<(string NodeId, int Level, ParameterType Parameter), SkillNodeParameterData>
-        _skillNodeParameterDatabase = new();
+    [Header("Data")]
+    [SerializeField] private List<SkillDefinition> _skills = new();
+    [SerializeField] private List<SkillNodeDefinition> _skillNodes = new();
+    [SerializeField] private List<SkillNodeParameterDefinition> _skillNodeParameters = new();
 
-    private IReadOnlyList<SkillData> _skills = new List<SkillData>();
-    private IReadOnlyList<SkillNodeData> _skillNodes = new List<SkillNodeData>();
-    private IReadOnlyList<SkillNodeParameterData> _skillNodeParameters = new List<SkillNodeParameterData>();
+    private bool _databaseReady;
 
-    public void Initialize(IReadOnlyList<SkillData> skills, IReadOnlyList<SkillNodeData> skillNodes,
-        IReadOnlyList<SkillNodeParameterData> skillNodeParameters)
+    private Dictionary<string, SkillDefinition> _skillDatabase;
+    private Dictionary<string, SkillNodeDefinition> _skillNodeDatabase;
+    private Dictionary<(string NodeId, int Level, ParameterType Parameter), SkillNodeParameterDefinition>
+        _skillNodeParameterDatabase;
+
+    public bool DatabaseReady => _databaseReady;
+
+    public IReadOnlyList<SkillDefinition> Skills => _skills;
+    public IReadOnlyList<SkillNodeDefinition> SkillNodes => _skillNodes;
+    public IReadOnlyList<SkillNodeParameterDefinition> SkillNodeParameters => _skillNodeParameters;
+
+    public async UniTask Initialize()
     {
-        if (_isInitialized) return;
+        IReadOnlyList<SkillDefinition> skills = await _loader.LoadSkillDefinitions();
+        IReadOnlyList<SkillNodeDefinition> skillNodes = await _loader.LoadSkillNodeDefinitions();
+        IReadOnlyList<SkillNodeParameterDefinition> skillNodeParameters =
+            await _loader.LoadSkillNodeParameterDefinitions();
 
-        _skillDatabase.Clear();
-        _skillNodeDatabase.Clear();
-        _skillNodeParameterDatabase.Clear();
+        Dictionary<string, SkillDefinition> skillDatabase = new(skills.Count);
+        Dictionary<string, SkillNodeDefinition> skillNodeDatabase = new(skillNodes.Count);
+        Dictionary<(string NodeId, int Level, ParameterType Parameter), SkillNodeParameterDefinition>
+            skillNodeParameterDatabase = new(skillNodeParameters.Count);
 
-        foreach (SkillData skill in skills)
+        foreach (SkillDefinition skill in skills)
         {
-            if (!_skillDatabase.TryAdd(skill.Id, skill))
+            if (!skillDatabase.TryAdd(skill.Id, skill))
             {
-                Debug.LogError($"Duplicate skill id: {skill.Id}");
+                throw new InvalidOperationException($"Duplicate skill id: {skill.Id}");
             }
         }
 
-        foreach (SkillNodeData skillNode in skillNodes)
+        foreach (SkillNodeDefinition skillNode in skillNodes)
         {
-            if (!_skillDatabase.ContainsKey(skillNode.SkillId))
+            if (!skillDatabase.ContainsKey(skillNode.SkillId))
             {
-                Debug.LogError($"The skill id: {skillNode.SkillId} does not exist");
-                continue;
+                throw new InvalidOperationException($"The skill id: {skillNode.SkillId} does not exist");
             }
 
-            if (!_skillNodeDatabase.TryAdd(skillNode.Id, skillNode))
+            if (!skillNodeDatabase.TryAdd(skillNode.Id, skillNode))
             {
-                Debug.LogError($"Duplicate skill node id: {skillNode.Id}");
+                throw new InvalidOperationException($"Duplicate skill node id: {skillNode.Id}");
             }
         }
 
-        foreach (SkillNodeParameterData skillNodeParameter in skillNodeParameters)
+        foreach (SkillNodeParameterDefinition skillNodeParameter in skillNodeParameters)
         {
-            if (!_skillNodeDatabase.ContainsKey(skillNodeParameter.NodeId))
+            if (!skillNodeDatabase.ContainsKey(skillNodeParameter.NodeId))
             {
-                Debug.LogError($"The skill node id: {skillNodeParameter.NodeId} does not exist");
-                continue;
+                throw new InvalidOperationException($"The skill node id: {skillNodeParameter.NodeId} does not exist");
             }
 
             (string NodeId, int Level, ParameterType Parameter) key = (skillNodeParameter.NodeId,
                 skillNodeParameter.Level, skillNodeParameter.ParameterType);
-            if (!_skillNodeParameterDatabase.TryAdd(key, skillNodeParameter))
+            if (!skillNodeParameterDatabase.TryAdd(key, skillNodeParameter))
             {
-                Debug.LogError($"Duplicate skill node parameter key: {key}");
+                throw new InvalidOperationException($"Duplicate skill node parameter key: {key}");
             }
         }
 
-        _skills = new List<SkillData>(_skillDatabase.Values);
-        _skillNodes = new List<SkillNodeData>(_skillNodeDatabase.Values);
-        _skillNodeParameters = new List<SkillNodeParameterData>(_skillNodeParameterDatabase.Values);
+        _skills = new List<SkillDefinition>(skillDatabase.Values);
+        _skillNodes = new List<SkillNodeDefinition>(skillNodeDatabase.Values);
+        _skillNodeParameters = new List<SkillNodeParameterDefinition>(skillNodeParameterDatabase.Values);
 
-        _isInitialized = true;
-        Debug.Log($"SkillDatabase initialization complete");
+        _skillDatabase = skillDatabase;
+        _skillNodeDatabase = skillNodeDatabase;
+        _skillNodeParameterDatabase = skillNodeParameterDatabase;
+        _databaseReady = true;
+        Debug.Log("Skill database initialized.");
     }
 
-    public bool TryGetSkillById(string id, out SkillData skillData)
+    public bool TryGetSkillById(string id, out SkillDefinition skillDefinition)
     {
-        return _skillDatabase.TryGetValue(id, out skillData);
+        return _skillDatabase.TryGetValue(id, out skillDefinition);
     }
 
-    public bool TryGetSkillNodeById(string id, out SkillNodeData nodeData)
+    public bool TryGetSkillNodeById(string id, out SkillNodeDefinition nodeDefinition)
     {
-        return _skillNodeDatabase.TryGetValue(id, out nodeData);
+        return _skillNodeDatabase.TryGetValue(id, out nodeDefinition);
     }
 
-    public bool TryGetSkillNodesBySkillId(string skillId, out SkillNodeData[] nodeData)
+    public bool TryGetSkillNodesBySkillId(string skillId, out SkillNodeDefinition[] nodeData)
     {
         nodeData = _skillNodeDatabase.Values.Where(v => v.SkillId == skillId).ToArray();
         return nodeData.Length != 0;
     }
 
     public bool TryGetSkillNodeParameterByNodeId(string id, int level, ParameterType parameterType,
-        out SkillNodeParameterData nodeParameterData)
+        out SkillNodeParameterDefinition nodeParameterDefinition)
     {
-        return _skillNodeParameterDatabase.TryGetValue((id, level, parameterType), out nodeParameterData);
+        return _skillNodeParameterDatabase.TryGetValue((id, level, parameterType), out nodeParameterDefinition);
     }
 }

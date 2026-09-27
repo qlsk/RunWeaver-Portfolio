@@ -1,46 +1,61 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
+using System;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
 {
-    private bool _isInitialized = false;
-    private Dictionary<string, RuneEffectData> _database = new();
-    private IReadOnlyList<RuneEffectData> _effects = new List<RuneEffectData>();
+    [Header("References")]
+    [SerializeField] private RuneDefinitionLoader _loader;
 
-    public bool IsInitialized => _isInitialized;
+    [Header("Data")]
+    [SerializeField] private List<RuneEffectDefinition> _runeEffects;
 
-    // TODO: 오류 발생 시 초기화 실패 처리
-    public void Initialize(IReadOnlyList<RuneEffectData> effects)
+    private Dictionary<string, RuneEffectDefinition> _runeEffectsById;
+
+    private bool _databaseReady;
+
+    public bool DatabaseReady => _databaseReady;
+
+    public async UniTask Initialize()
     {
-        if (_isInitialized) return;
-        _database.Clear();
-        foreach (RuneEffectData effect in effects)
+        IReadOnlyList<RuneEffectDefinition> loadedRuneEffects = await _loader.LoadRuneEffectDefinitions();
+
+        List<RuneEffectDefinition> runeEffects = new(loadedRuneEffects.Count);
+        Dictionary<string, RuneEffectDefinition> runeEffectsById = new(loadedRuneEffects.Count);
+
+        foreach (RuneEffectDefinition runeEffect in loadedRuneEffects)
         {
-            if (!_database.TryAdd(effect.Id, effect))
+            if (runeEffectsById.ContainsKey(runeEffect.Id))
             {
-                Debug.LogError($"Duplicate effect id: {effect.Id}");
+                throw new InvalidOperationException("Duplicate rune effect id: " + runeEffect.Id);
             }
+            runeEffects.Add(runeEffect);
+            runeEffectsById.TryAdd(runeEffect.Id, runeEffect);
         }
 
-        _effects = new List<RuneEffectData>(_database.Values);
-        _isInitialized = true;
-        Debug.Log($"룬 효과 데이터베이스를 초기화했습니다.");
+        _runeEffects = runeEffects;
+        _runeEffectsById = runeEffectsById;
+
+        _databaseReady = true;
+        Debug.Log($"Loaded {runeEffects.Count} rune effects.");
     }
 
-    public IReadOnlyList<RuneEffectData> GetAll()
+    public IReadOnlyList<RuneEffectDefinition> GetAll()
     {
-        return _effects;
+        return !_databaseReady ? null : _runeEffects;
     }
 
-    public bool TryGetById(string id, out RuneEffectData runeEffectData)
+    public bool TryGetById(string id, out RuneEffectDefinition runeEffectDefinition)
     {
-        return _database.TryGetValue(id, out runeEffectData);
+        return _runeEffectsById.TryGetValue(id, out runeEffectDefinition);
     }
 
-    public bool TryGetByCategory(RuneEffectCategory category, out IReadOnlyList<RuneEffectData> runeEffectData)
+    public bool TryGetByCategory(RuneEffectCategory category, out IReadOnlyList<RuneEffectDefinition> runeEffectData)
     {
-        runeEffectData = _database.Values.Where(data => data.Category == category).ToList();
+        runeEffectData = _runeEffectsById.Values.Where(data => data.Category == category).ToList();
         return runeEffectData.Count > 0;
     }
 }
