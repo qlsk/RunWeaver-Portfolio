@@ -6,7 +6,7 @@ public class ProgressSceneBinder : MonoBehaviour
     private GameSession _session;
     private PlayerProgression _boundProgress;
 
-    private void OnEnable()
+    private void Start()
     {
         _session = GameSession.Instance;
         if (_session == null)
@@ -21,7 +21,7 @@ public class ProgressSceneBinder : MonoBehaviour
         _session.ProgressReplaced += Bind;
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         if (_session != null)
         {

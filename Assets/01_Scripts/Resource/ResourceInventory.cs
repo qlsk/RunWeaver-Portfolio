@@ -3,21 +3,32 @@ using System.Collections.Generic;
 
 public class ResourceInventory
 {
-    private Dictionary<string, ResourceDefinitionSO> _resources;
     private Dictionary<string, int> _quantities;
 
     public event Action QuantitiesChanged;
 
     public ResourceInventory(IReadOnlyList<ResourceDefinitionSO> resources)
     {
-        _resources = new Dictionary<string, ResourceDefinitionSO>();
+        if (resources == null)
+        {
+            throw new ArgumentNullException(nameof(resources));
+        }
         _quantities = new Dictionary<string, int>();
         foreach (ResourceDefinitionSO resource in resources)
         {
-            if (!_resources.TryAdd(resource.Id, resource) || !_quantities.TryAdd(resource.Id, 0))
+            if (resource == null)
             {
-                throw new InvalidOperationException($"Duplicate resource ID: {resource.Id}");
+                throw new ArgumentException("Resources cannot contain null elements.", nameof(resources));
             }
+            if (string.IsNullOrWhiteSpace(resource.Id))
+            {
+                throw new ArgumentException("A resource ID cannot be null, empty, or whitespace.", nameof(resources));
+            }
+            if (!_quantities.ContainsKey(resource.Id))
+            {
+                throw new ArgumentException($"Duplicate resource ID: {resource.Id}", nameof(resources));
+            }
+            _quantities.Add(resource.Id, 0);
         }
     }
 
@@ -27,7 +38,7 @@ public class ResourceInventory
         {
             throw new ArgumentException("Resource ID is required.", nameof(resourceId));
         }
-        if (!_resources.ContainsKey(resourceId))
+        if (!_quantities.ContainsKey(resourceId))
         {
             throw new KeyNotFoundException($"Resource not found: {resourceId}");
         }
