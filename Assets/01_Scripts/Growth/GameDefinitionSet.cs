@@ -8,19 +8,19 @@ public class GameDefinitionSet
 {
     private IReadOnlyList<SkillNodeDefinition> _skillNodes;
     private IReadOnlyList<ResearchNodeDefinition> _researches;
-    private GoldDefinition _gold;
-    private IReadOnlyList<ResourceDefinition> _resources;
+    private GoldDefinitionSO _gold;
+    private IReadOnlyList<ResourceDefinitionSO> _resources;
 
     public IReadOnlyList<SkillNodeDefinition> SkillNodes => _skillNodes;
     public IReadOnlyList<ResearchNodeDefinition> Researches => _researches;
-    public GoldDefinition Gold => _gold;
-    public IReadOnlyList<ResourceDefinition> Resources => _resources;
+    public GoldDefinitionSO Gold => _gold;
+    public IReadOnlyList<ResourceDefinitionSO> Resources => _resources;
 
     public GameDefinitionSet(
         IReadOnlyList<SkillNodeDefinition> skillNodes,
         IReadOnlyList<ResearchNodeDefinition> researches,
-        GoldDefinition gold,
-        IReadOnlyList<ResourceDefinition> resources)
+        GoldDefinitionSO gold,
+        IReadOnlyList<ResourceDefinitionSO> resources)
     {
         _skillNodes = skillNodes ?? throw new ArgumentNullException(nameof(skillNodes));
         _researches = researches ?? throw new ArgumentNullException(nameof(researches));

@@ -14,7 +14,7 @@ public class PlayerHoldings
     public bool IsOnExpedition => _isOnExpedition;
     public event Action ExpeditionChanged;
 
-    public PlayerHoldings(IReadOnlyList<ResourceDefinition> resources)
+    public PlayerHoldings(IReadOnlyList<ResourceDefinitionSO> resources)
     {
         if (resources == null)
         {
@@ -23,7 +23,7 @@ public class PlayerHoldings
         _storedResources = new ResourceInventory(resources);
     }
 
-    public void AttachExpedition(Wallet wallet, ResourceInventory resources)
+    public void AttachExpeditionData(Wallet wallet, ResourceInventory resources)
     {
         if (wallet == null)
         {
@@ -47,7 +47,7 @@ public class PlayerHoldings
         ExpeditionChanged?.Invoke();
     }
 
-    public void DetachExpedition()
+    public void DetachExpeditionData()
     {
         if (!IsOnExpedition) return;
         _expeditionWallet = null;

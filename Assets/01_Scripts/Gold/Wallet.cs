@@ -6,13 +6,13 @@ using UnityEngine;
 /// </summary>
 public class Wallet
 {
-    private GoldDefinition _goldDefinition;
+    private GoldDefinitionSO _goldDefinition;
     private int _balance;
 
     public int Balance => _balance;
     public event Action<int> BalanceChanged;
 
-    public Wallet(GoldDefinition goldDefinition)
+    public Wallet(GoldDefinitionSO goldDefinition)
     {
         if (goldDefinition == null)
         {
