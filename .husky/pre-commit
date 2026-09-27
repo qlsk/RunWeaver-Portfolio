@@ -52,7 +52,18 @@ echo "Whitespace check passed."
 echo ""
 echo "[2/2] Checking C# formatting..."
 
-if ! dotnet format \
+if [ -f "2d-team07.sln" ]; then
+    SOLUTION="2d-team07.sln"
+elif [ -f "2d-team07.slnx" ]; then
+    SOLUTION="2d-team07.slnx"
+else
+    echo "솔루션 파일이 없습니다. Unity에서 프로젝트 파일을 재생성해주세요."
+    exit 1
+fi
+
+echo "Selected solution: $SOLUTION"
+
+if ! dotnet format "$SOLUTION" \
     --verify-no-changes \
     --severity info \
     --include $CS_FILES; then
@@ -62,7 +73,7 @@ if ! dotnet format \
     echo ""
     echo "다음 명령으로 자동 포맷할 수 있습니다:"
     echo ""
-    echo "  dotnet format --include $SCRIPT_DIR"
+    echo "  dotnet format \"$SOLUTION\" --include \"$SCRIPT_DIR\""
     echo ""
     echo "수정된 파일을 다시 stage한 뒤 커밋해주세요."
     exit 1
