@@ -24,7 +24,7 @@ public class ResourceInventory
             {
                 throw new ArgumentException("A resource ID cannot be null, empty, or whitespace.", nameof(resources));
             }
-            if (!_quantities.ContainsKey(resource.Id))
+            if (_quantities.ContainsKey(resource.Id))
             {
                 throw new ArgumentException($"Duplicate resource ID: {resource.Id}", nameof(resources));
             }
