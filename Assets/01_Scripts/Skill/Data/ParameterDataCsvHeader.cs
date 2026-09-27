@@ -1,4 +1,4 @@
-﻿public class SkillNodeParameterDataCsvHeader
+﻿public class SkillNodeParameterCsvHeader
 {
     public string NodeId { get; set; }
     public int Level { get; set; }

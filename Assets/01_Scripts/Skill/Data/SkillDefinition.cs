@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class SkillData
+public class SkillDefinition
 {
     [SerializeField] private string _id;
     [SerializeField] private string _displayName;
@@ -13,7 +13,7 @@ public class SkillData
     public string Description => _description;
     public Sprite Icon => _icon;
 
-    public SkillData(string id, string displayName, string description, Sprite icon)
+    public SkillDefinition(string id, string displayName, string description, Sprite icon)
     {
         _id = id;
         _displayName = displayName;

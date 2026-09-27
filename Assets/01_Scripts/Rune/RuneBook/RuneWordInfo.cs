@@ -22,15 +22,15 @@ public class RuneWordInfo
     public bool IsRevealed => _isRevealed;
     public bool AreDetailsRevealed => _areDetailsRevealed;
 
-    public RuneWordInfo(RuneEffectData data, RuneWordRevealLevel revealLevel)
+    public RuneWordInfo(RuneEffectDefinition definition, RuneWordRevealLevel revealLevel)
     {
-        _runeEffectId = data.Id;
-        _category = data.Category;
+        _runeEffectId = definition.Id;
+        _category = definition.Category;
         _revealLevel = revealLevel;
-        _displayName = data.DisplayName;
-        _runeWord = data.RuneWord;
-        _description = data.Description;
-        _icon = data.Icon;
+        _displayName = definition.DisplayName;
+        _runeWord = definition.RuneWord;
+        _description = definition.Description;
+        _icon = definition.Icon;
         _isRevealed = revealLevel != RuneWordRevealLevel.Hidden;
         _areDetailsRevealed = revealLevel == RuneWordRevealLevel.Detailed;
     }

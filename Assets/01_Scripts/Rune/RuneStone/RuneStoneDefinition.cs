@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class RuneStoneData
+public class RuneStoneDefinition
 {
     [SerializeField] private string _id;
     [SerializeField] private char _runeCharacter;
@@ -11,7 +11,7 @@ public class RuneStoneData
     public char RuneCharacter => _runeCharacter;
     public Sprite Icon => _icon;
 
-    public RuneStoneData(string id, char runeCharacter, Sprite icon)
+    public RuneStoneDefinition(string id, char runeCharacter, Sprite icon)
     {
         _id = id;
         _runeCharacter = runeCharacter;

@@ -32,12 +32,12 @@ public class RuneBook
         {
             throw new InvalidOperationException("Rune effect database is missing.");
         }
-        if (!_database.IsInitialized)
+        if (!_database.DatabaseReady)
         {
             throw new InvalidOperationException("Rune effect database is not initialized.");
         }
         Dictionary<string, RuneWord> runeWords = new();
-        foreach (RuneEffectData data in _database.GetAll())
+        foreach (RuneEffectDefinition data in _database.GetAll())
         {
             RuneWord runeWord = new(data.Id);
             runeWords[data.Id] = runeWord;
@@ -53,11 +53,11 @@ public class RuneBook
         {
             throw new InvalidOperationException("Rune book is not initialized.");
         }
-        if (!_database.TryGetByCategory(category, out IReadOnlyList<RuneEffectData> runeEffectData))
+        if (!_database.TryGetByCategory(category, out IReadOnlyList<RuneEffectDefinition> runeEffectData))
         {
             throw new ArgumentException($"No rune effects in category: {category}", nameof(category));
         }
-        foreach (RuneEffectData data in runeEffectData)
+        foreach (RuneEffectDefinition data in runeEffectData)
         {
             if (!_runeWords.TryGetValue(data.Id, out RuneWord runeWord))
             {
@@ -104,7 +104,7 @@ public class RuneBook
         {
             throw new InvalidOperationException("Rune book is not initialized.");
         }
-        if (!_database.TryGetById(runeEffectId, out RuneEffectData data))
+        if (!_database.TryGetById(runeEffectId, out RuneEffectDefinition data))
         {
             throw new ArgumentException($"Rune effect not found in database: {runeEffectId}",
                 nameof(runeEffectId));
@@ -122,7 +122,7 @@ public class RuneBook
         List<RuneWordInfo> infos = new();
         foreach (RuneWord word in _runeWords.Values)
         {
-            if (!_database.TryGetById(word.RuneEffectId, out RuneEffectData data))
+            if (!_database.TryGetById(word.RuneEffectId, out RuneEffectDefinition data))
             {
                 throw new InvalidOperationException($"Rune effect not found in database: {word.RuneEffectId}");
             }
@@ -138,7 +138,7 @@ public class RuneBook
         List<RuneWordInfo> infos = new();
         foreach (RuneWord word in _runeWords.Values.Where(word => word.IsRevealed))
         {
-            if (!_database.TryGetById(word.RuneEffectId, out RuneEffectData data))
+            if (!_database.TryGetById(word.RuneEffectId, out RuneEffectDefinition data))
             {
                 throw new InvalidOperationException($"Rune effect not found in database: {word.RuneEffectId}");
             }

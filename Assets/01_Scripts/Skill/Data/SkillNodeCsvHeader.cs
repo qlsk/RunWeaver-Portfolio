@@ -1,4 +1,4 @@
-﻿public class SkillNodeDataCsvHeader
+﻿public class SkillNodeCsvHeader
 {
     public string Id { get; set; }
     public string DisplayName { get; set; }

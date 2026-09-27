@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class SkillNodeParameterData
+public class SkillNodeParameterDefinition
 {
     [SerializeField] private string _nodeId;
     [SerializeField] private int _level;
@@ -13,7 +13,7 @@ public class SkillNodeParameterData
     public ParameterType ParameterType => _parameterType;
     public float Value => _value;
 
-    public SkillNodeParameterData(string nodeId, int level, ParameterType parameterType, float value)
+    public SkillNodeParameterDefinition(string nodeId, int level, ParameterType parameterType, float value)
     {
         _nodeId = nodeId;
         _level = level;

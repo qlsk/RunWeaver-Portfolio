@@ -1,4 +1,4 @@
-﻿public class RuneEffectDataCsvHeader
+﻿public class RuneEffectCsvHeader
 {
     public string Id { get; set; }
     public string RuneWord { get; set; }

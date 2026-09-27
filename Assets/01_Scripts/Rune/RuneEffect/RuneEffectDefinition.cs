@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class RuneEffectData
+public class RuneEffectDefinition
 {
     [SerializeField] private string _id;
     [SerializeField] private string _runeWord;
@@ -19,7 +19,7 @@ public class RuneEffectData
     public string Description => _description;
     public Sprite Icon => _icon;
 
-    public RuneEffectData(string id, string runeWord, string englishName, string displayName,
+    public RuneEffectDefinition(string id, string runeWord, string englishName, string displayName,
         RuneEffectCategory category, string description, Sprite icon)
     {
         _id = id;
