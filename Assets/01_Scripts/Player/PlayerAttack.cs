@@ -19,7 +19,7 @@ public class PlayerAttack : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
 
     // 마탄 쿨타이머
-    private float _bulletFireCoolTimer = 0f;
+    private float _bulletFireCoolTimer;
     private int _currentAmmo;
     private bool _isReloading;
     private float _reloadTimer;
@@ -28,6 +28,7 @@ public class PlayerAttack : MonoBehaviour
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
         _currentAmmo = _magazineSize;
+        _bulletFireCoolTimer = _bulletFireRate;
     }
 
     private void Update()
@@ -66,10 +67,11 @@ public class PlayerAttack : MonoBehaviour
         Vector2 targetPosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
 
         // 총구 -> 마우스 방향
-        Vector2 targetDirection = (targetPosition - (Vector2)transform.position).normalized;
+        Vector2 targetDirection = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
 
+        float bulletRoationZ = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg;
         // 총알 생성
-        Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position, transform.rotation);
+        Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position, Quaternion.Euler(0, 0, bulletRoationZ));
 
         // 총알에게 발사 방향 전달
         bullet.Initialize(targetDirection);
