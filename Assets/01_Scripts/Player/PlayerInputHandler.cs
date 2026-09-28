@@ -12,6 +12,8 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private KeyCode _playerSkill1KeyCode = KeyCode.Q;
     [Header("스킬 2 키")]
     [SerializeField] private KeyCode _playerSkill2KeyCode = KeyCode.E;
+    [Header("재장전 키")]
+    [SerializeField] private KeyCode _playerReloadKeyCode = KeyCode.R;
 
     // Event Handler
     public event Action DashPressed;
@@ -22,6 +24,11 @@ public class PlayerInputHandler : MonoBehaviour
     // 마우스 position
     private Vector2 _mousePosition;
     public Vector2 MousePosition => _mousePosition;
+
+    // 마우스 왼쪽 버튼을 누르고 있는지 확인
+    public bool IsAttackHeld => Input.GetMouseButton(0);
+
+    public bool IsReloadPressed => Input.GetKeyDown(_playerReloadKeyCode);
 
     // player move input (위 아래 왼쪽 오른쪽)
     private Vector2 _moveDirection;

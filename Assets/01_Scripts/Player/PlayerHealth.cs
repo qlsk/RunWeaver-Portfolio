@@ -14,7 +14,7 @@ public class PlayerHealth : MonoBehaviour
     private Rigidbody2D _playerRigidbody2D;
 
     private PlayerMove _playerMove;
-    private PlayerFire _playerFire;
+    private PlayerAttack _playerAttack;
     private Dash _dash;
 
     private bool _isDead = false;
@@ -34,7 +34,7 @@ public class PlayerHealth : MonoBehaviour
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         // 사망 시 비활성화 할 Component
         _playerMove = GetComponent<PlayerMove>();
-        _playerFire = GetComponent<PlayerFire>();
+        _playerAttack = GetComponent<PlayerAttack>();
         _dash = GetComponent<Dash>();
     }
 
@@ -85,7 +85,7 @@ public class PlayerHealth : MonoBehaviour
 
         _playerRigidbody2D.linearVelocity = Vector2.zero;
         _playerMove.enabled = false;
-        _playerFire.enabled = false;
+        _playerAttack.enabled = false;
         _dash.enabled = false;
         _isDead = true;
     }
