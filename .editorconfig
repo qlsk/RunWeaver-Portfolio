@@ -2,7 +2,6 @@
 
 [*]
 charset = utf-8
-end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
@@ -78,15 +77,13 @@ csharp_style_namespace_declarations = file_scoped:suggestion
 # ↓
 # SomeType value = new();
 
-csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
-
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 
 
 # ============================================================
 # Braces
-# Allman Style
+# Opening braces on new lines
 # ============================================================
 
 csharp_new_line_before_open_brace = all
@@ -94,7 +91,7 @@ csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 
-csharp_prefer_braces = true:suggestion
+csharp_prefer_braces = true:none
 
 
 # ============================================================
@@ -136,7 +133,7 @@ csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_after_semicolon_in_for_statement = true
 
 csharp_space_around_binary_operators = before_and_after
-csharp_space_around_declaration_statements = do_not_ignore
+csharp_space_around_declaration_statements = false
 
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_before_comma = false
@@ -197,8 +194,6 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 # if (value is SomeType)
 # 형태보다 null 검사 자체가 목적이면 is null / is not null 선호
 
-csharp_style_prefer_null_check_over_type_check = true:suggestion
-
 # value ?? throw ...
 csharp_style_throw_expression = true:suggestion
 
@@ -242,8 +237,6 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 
 csharp_style_prefer_not_pattern = true:suggestion
-csharp_style_prefer_extended_property_pattern = true:suggestion
-
 csharp_style_prefer_switch_expression = true:suggestion
 
 

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using UnityEngine;
 
 public class GameSession : Singleton<GameSession>
 {
@@ -12,13 +13,19 @@ public class GameSession : Singleton<GameSession>
 
     public void Initialize(GameDefinitionSet definitions)
     {
-        if (_isReady) throw new InvalidOperationException("GameSession already initialized");
-        if (definitions == null) throw new ArgumentNullException(nameof(definitions));
+        if (_isReady)
+        {
+            throw new InvalidOperationException("GameSession already initialized");
+        }
+        if (definitions == null)
+        {
+            throw new ArgumentNullException(nameof(definitions));
+        }
         PlayerProgression progression = new(definitions);
         _definitions = definitions;
         _current = progression;
         _isReady = true;
-        ProgressReplaced?.Invoke(progression);
+        NotifyProgressReplaced(progression);
     }
 
     public void StartNewGame()
@@ -26,6 +33,24 @@ public class GameSession : Singleton<GameSession>
         if (!_isReady) throw new InvalidOperationException("GameSession is not ready");
         PlayerProgression progression = new(_definitions);
         _current = progression;
-        ProgressReplaced?.Invoke(progression);
+        NotifyProgressReplaced(progression);
+    }
+
+    private void NotifyProgressReplaced(PlayerProgression progression)
+    {
+        Delegate[] subscribers = ProgressReplaced?.GetInvocationList();
+        if (subscribers == null) return;
+
+        foreach (Delegate subscriber in subscribers)
+        {
+            try
+            {
+                ((Action<PlayerProgression>)subscriber)(progression);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception, this);
+            }
+        }
     }
 }
