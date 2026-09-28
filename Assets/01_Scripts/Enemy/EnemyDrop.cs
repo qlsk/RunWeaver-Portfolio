@@ -8,7 +8,7 @@ public class EnemyDrop : MonoBehaviour
     private EnemyHealth _enemyHealth;
 
     [SerializeField] private int _minQuantity = 0;
-    [SerializeField] private int _maxQuantity = 3;
+    [SerializeField] private int _maxQuantity = 1;
     [SerializeField] private RunePickup runePrefab;
     private List<RuneStoneDefinition> _runeStones = new List<RuneStoneDefinition>();
 
