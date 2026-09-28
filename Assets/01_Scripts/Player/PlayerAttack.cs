@@ -19,7 +19,7 @@ public class PlayerAttack : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
 
     // 마탄 쿨타이머
-    private float _bulletFireCoolTimer = 0f;
+    private float _bulletFireCoolTimer;
     private int _currentAmmo;
     private bool _isReloading;
     private float _reloadTimer;
@@ -28,6 +28,7 @@ public class PlayerAttack : MonoBehaviour
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
         _currentAmmo = _magazineSize;
+        _bulletFireCoolTimer = _bulletFireRate;
     }
 
     private void Update()
