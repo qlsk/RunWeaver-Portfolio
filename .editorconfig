@@ -1,482 +1,103 @@
-﻿root = true
-
-[*]
-charset = utf-8
-insert_final_newline = true
-trim_trailing_whitespace = true
-
+root = true
 
 [*.cs]
 
-# ============================================================
-# 기본 포맷
-# ============================================================
-
-indent_style = space
-indent_size = 4
-tab_width = 4
-
-
-# ============================================================
-# using
-# ============================================================
-
-dotnet_sort_system_directives_first = true
-dotnet_separate_import_directive_groups = false
-csharp_using_directive_placement = outside_namespace:warning
-
-
-# ============================================================
-# 접근 제한자
-# ============================================================
-
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
-
-
-# ============================================================
-# this.
-# ============================================================
-
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_event = false:suggestion
-
-
-# ============================================================
-# 기본 타입 키워드
-# int 대신 System.Int32 등을 사용하지 않음
-# ============================================================
-
-dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
-dotnet_style_predefined_type_for_member_access = true:suggestion
-
-
-# ============================================================
-# var
-# 타입이 명확한 경우에만 var 사용
-# ============================================================
-
-csharp_style_var_for_built_in_types = false:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = false:suggestion
-
-
-# ============================================================
-# Namespace
-# ============================================================
-
-csharp_style_namespace_declarations = file_scoped:suggestion
-
-
-# ============================================================
-# 객체 생성
-# ============================================================
-
-# SomeType value = new SomeType();
-# ↓
-# SomeType value = new();
-
-dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-
-
-# ============================================================
-# Braces
-# Opening braces on new lines
-# ============================================================
-
-csharp_new_line_before_open_brace = all
-csharp_new_line_before_else = true
-csharp_new_line_before_catch = true
-csharp_new_line_before_finally = true
-
-csharp_prefer_braces = true:none
-
-
-# ============================================================
-# 줄바꿈
-# ============================================================
-
-csharp_new_line_before_members_in_object_initializers = true
-csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_between_query_expression_clauses = true
-
-# 여러 줄 표현식에서는 연산자를 다음 줄 시작에 배치
-# value
-#     && otherValue
-
-dotnet_style_operator_placement_when_wrapping = beginning_of_line
-
-
-# ============================================================
-# Indentation
-# ============================================================
-
-csharp_indent_block_contents = true
-csharp_indent_braces = false
-csharp_indent_case_contents = true
-csharp_indent_case_contents_when_block = true
-csharp_indent_switch_labels = true
-csharp_indent_labels = one_less_than_current
-
-
-# ============================================================
-# Spacing
-# ============================================================
-
-csharp_space_after_cast = false
-csharp_space_after_colon_in_inheritance_clause = true
-csharp_space_after_comma = true
-csharp_space_after_dot = false
-csharp_space_after_keywords_in_control_flow_statements = true
-csharp_space_after_semicolon_in_for_statement = true
-
-csharp_space_around_binary_operators = before_and_after
-csharp_space_around_declaration_statements = false
-
-csharp_space_before_colon_in_inheritance_clause = true
-csharp_space_before_comma = false
-csharp_space_before_dot = false
-csharp_space_before_open_square_brackets = false
-csharp_space_before_semicolon_in_for_statement = false
-
-csharp_space_between_empty_square_brackets = false
-
-csharp_space_between_method_call_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis = false
-csharp_space_between_method_call_parameter_list_parentheses = false
-
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_declaration_name_and_open_parenthesis = false
-csharp_space_between_method_declaration_parameter_list_parentheses = false
-
-csharp_space_between_parentheses = false
-csharp_space_between_square_brackets = false
-
-
-# ============================================================
-# 괄호
-# 명확성을 위해 이항 연산에서 괄호 사용
-# ============================================================
-
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary
-
-
-# ============================================================
-# Null 처리
-# ============================================================
-
-# value != null ? value : fallback
-# ↓
-# value ?? fallback
-
-dotnet_style_coalesce_expression = true:suggestion
-
-# if (target != null)
-#     target.Execute();
-#
-# ↓
-#
-# target?.Execute();
-
-dotnet_style_null_propagation = true:suggestion
-
-# ReferenceEquals(value, null)
-# ↓
-# value is null
-
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-
-# if (value is SomeType)
-# 형태보다 null 검사 자체가 목적이면 is null / is not null 선호
-
-# value ?? throw ...
-csharp_style_throw_expression = true:suggestion
-
-
-# ============================================================
-# 표현식 단순화
-# ============================================================
-
-dotnet_style_prefer_compound_assignment = true:suggestion
-dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
-dotnet_style_prefer_simplified_interpolation = true:suggestion
-
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-
-csharp_prefer_simple_default_expression = true:suggestion
-
-# Delegate null 검사
-#
-# if (OnChanged != null)
-#     OnChanged();
-#
-# ↓
-#
-# OnChanged?.Invoke();
-
-csharp_style_conditional_delegate_call = true:suggestion
-
-# out 변수는 가능한 호출 위치에서 선언
-csharp_style_inlined_variable_declaration = true:suggestion
-
-
-# ============================================================
-# Pattern Matching
-# ============================================================
-
-csharp_style_prefer_pattern_matching = true:suggestion
-
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-csharp_style_prefer_not_pattern = true:suggestion
-csharp_style_prefer_switch_expression = true:suggestion
-
-
-# ============================================================
-# Local Function
-# ============================================================
-
-csharp_prefer_static_local_function = true:suggestion
-
-
-# ============================================================
-# Expression-bodied members
-#
-# 프로퍼티/Accessor는 => 허용
-# 일반 메서드는 블록 형태 선호
-# ============================================================
-
-csharp_style_expression_bodied_properties = true:suggestion
-csharp_style_expression_bodied_indexers = true:suggestion
-csharp_style_expression_bodied_accessors = true:suggestion
-csharp_style_expression_bodied_lambdas = true:suggestion
-
-csharp_style_expression_bodied_methods = false:suggestion
-csharp_style_expression_bodied_constructors = false:suggestion
-csharp_style_expression_bodied_operators = false:suggestion
-csharp_style_expression_bodied_local_functions = false:suggestion
-
-
-# ============================================================
-# Modifier 순서
-# ============================================================
-
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
-
-
-# ============================================================
-# Unity 주의
-# ============================================================
-
-# Microsoft .NET 스타일에서는 다음 옵션도 권장할 수 있지만,
-# Unity의 [SerializeField] 필드는 코드상 재할당이 없어도
-# Unity Serializer가 값을 주입하기 때문에 전역 적용하지 않음.
-#
-# dotnet_style_readonly_field = true:suggestion
-#
-# Inspector에서 직렬화할 backing field를 유지해야 하는 경우가 있으므로
-# auto-property 강제 역시 전역 적용하지 않음.
-#
-# dotnet_style_prefer_auto_properties = true:suggestion
-
-
-# ============================================================
-# 명명 규칙
-# ============================================================
-
-
-# ------------------------------------------------------------
-# Namespace: PascalCase
-# ------------------------------------------------------------
-
+# 기본 코드 스타일 진단은 끄고 이름 규칙만 검사
+dotnet_analyzer_diagnostic.category-Style.severity = none
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Namespaces: PascalCase
 dotnet_naming_rule.namespaces_should_be_pascal_case.symbols = namespaces
 dotnet_naming_rule.namespaces_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.namespaces_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.namespaces.applicable_kinds = namespace
 
-
-# ------------------------------------------------------------
-# Interface: IPascalCase
-# ------------------------------------------------------------
-
+# Interfaces: IPascalCase
 dotnet_naming_rule.interfaces_should_be_prefixed.symbols = interfaces
 dotnet_naming_rule.interfaces_should_be_prefixed.style = interface_style
 dotnet_naming_rule.interfaces_should_be_prefixed.severity = warning
-
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
-
 dotnet_naming_style.interface_style.required_prefix = I
 dotnet_naming_style.interface_style.capitalization = pascal_case
 
-
-# ------------------------------------------------------------
-# Types: PascalCase
-# Class / Struct / Enum / Delegate
-# ------------------------------------------------------------
-
+# Classes, structs, enums, and delegates: PascalCase
 dotnet_naming_rule.types_should_be_pascal_case.symbols = types
 dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.types_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
 
-
-# ------------------------------------------------------------
-# Method / Property / Event: PascalCase
-# 접근 제한자와 관계없이 적용
-# ------------------------------------------------------------
-
+# Methods, properties, and events: PascalCase
 dotnet_naming_rule.members_should_be_pascal_case.symbols = members
 dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.members_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.members.applicable_kinds = method, property, event
 dotnet_naming_symbols.members.applicable_accessibilities = *
 
-
-# ------------------------------------------------------------
-# Local Function: PascalCase
-# ------------------------------------------------------------
-
+# Local functions: PascalCase
 dotnet_naming_rule.local_functions_should_be_pascal_case.symbols = local_functions
 dotnet_naming_rule.local_functions_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.local_functions_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.local_functions.applicable_kinds = local_function
 
-
-# ------------------------------------------------------------
-# Public / Protected Fields: PascalCase
-# 가능하면 public field 자체는 최소화
-# ------------------------------------------------------------
-
+# Public / protected fields: PascalCase
 dotnet_naming_rule.visible_fields_should_be_pascal_case.symbols = visible_fields
 dotnet_naming_rule.visible_fields_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.visible_fields_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.visible_fields.applicable_kinds = field
 dotnet_naming_symbols.visible_fields.applicable_accessibilities = public, protected, protected_internal
 
-
-# ------------------------------------------------------------
-# Private / Internal instance fields: _camelCase
-#
-# static 필드는 아래의 더 구체적인 s_ 규칙이 우선함.
-# ------------------------------------------------------------
-
+# Private / internal instance fields: _camelCase
 dotnet_naming_rule.private_internal_fields_should_be_underscore.symbols = private_internal_fields
 dotnet_naming_rule.private_internal_fields_should_be_underscore.style = underscore_camel_case
 dotnet_naming_rule.private_internal_fields_should_be_underscore.severity = warning
-
 dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
 dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal, private_protected
 
-
-# ------------------------------------------------------------
-# Private / Internal static fields: s_camelCase
-# ------------------------------------------------------------
-
+# Private / internal static fields: s_camelCase
 dotnet_naming_rule.private_internal_static_fields_should_have_s_prefix.symbols = private_internal_static_fields
 dotnet_naming_rule.private_internal_static_fields_should_have_s_prefix.style = static_field_style
 dotnet_naming_rule.private_internal_static_fields_should_have_s_prefix.severity = warning
-
 dotnet_naming_symbols.private_internal_static_fields.applicable_kinds = field
 dotnet_naming_symbols.private_internal_static_fields.applicable_accessibilities = private, internal, private_protected
 dotnet_naming_symbols.private_internal_static_fields.required_modifiers = static
 
-
-# ------------------------------------------------------------
 # Constants: PascalCase
-# Field / Local 모두 적용
-# ------------------------------------------------------------
-
 dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
 dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.constants.applicable_kinds = field, local
 dotnet_naming_symbols.constants.required_modifiers = const
-
-
-# ------------------------------------------------------------
-# Private / Internal const field와 static 규칙 충돌 방지
-#
-# const는 암묵적으로 static으로 취급되므로,
-#
-# private const int MaxCount = 10;
-#
-# 가 s_maxCount로 판정되지 않도록 별도 규칙 추가.
-# ------------------------------------------------------------
 
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.symbols = non_public_constants
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.severity = warning
-
 dotnet_naming_symbols.non_public_constants.applicable_kinds = field
 dotnet_naming_symbols.non_public_constants.applicable_accessibilities = private, internal, private_protected
 dotnet_naming_symbols.non_public_constants.required_modifiers = const
 
-
-# ------------------------------------------------------------
-# Parameters: camelCase
-# ------------------------------------------------------------
-
+# Parameters and local variables: camelCase
 dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameters
 dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case
 dotnet_naming_rule.parameters_should_be_camel_case.severity = warning
-
 dotnet_naming_symbols.parameters.applicable_kinds = parameter
-
-
-# ------------------------------------------------------------
-# Local Variables: camelCase
-# const local은 위의 더 구체적인 PascalCase 규칙이 우선함.
-# ------------------------------------------------------------
 
 dotnet_naming_rule.locals_should_be_camel_case.symbols = locals
 dotnet_naming_rule.locals_should_be_camel_case.style = camel_case
 dotnet_naming_rule.locals_should_be_camel_case.severity = warning
-
 dotnet_naming_symbols.locals.applicable_kinds = local
 
-
-# ------------------------------------------------------------
-# Generic Type Parameters: T / TSomething
-# ------------------------------------------------------------
-
+# Generic type parameters: T / TSomething
 dotnet_naming_rule.type_parameters_should_have_t_prefix.symbols = type_parameters
 dotnet_naming_rule.type_parameters_should_have_t_prefix.style = type_parameter_style
 dotnet_naming_rule.type_parameters_should_have_t_prefix.severity = warning
-
 dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
 
-dotnet_naming_style.type_parameter_style.required_prefix = T
-dotnet_naming_style.type_parameter_style.capitalization = pascal_case
-
-
-# ============================================================
-# Naming Styles
-# ============================================================
-
-# PascalCase
+# Naming styles
 dotnet_naming_style.pascal_case.capitalization = pascal_case
-
-# camelCase
 dotnet_naming_style.camel_case.capitalization = camel_case
-
-# _camelCase
 dotnet_naming_style.underscore_camel_case.required_prefix = _
 dotnet_naming_style.underscore_camel_case.capitalization = camel_case
-
-# s_camelCase
 dotnet_naming_style.static_field_style.required_prefix = s_
 dotnet_naming_style.static_field_style.capitalization = camel_case
+dotnet_naming_style.type_parameter_style.required_prefix = T
+dotnet_naming_style.type_parameter_style.capitalization = pascal_case
