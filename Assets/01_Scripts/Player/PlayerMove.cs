@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
-    [SerializeField] private Dash _dash;
-    [SerializeField] private float _playerMoveSpeed = 5f;
+    private Dash _dash;
+    private readonly float _playerMoveSpeed = 5f;
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
 
@@ -22,6 +22,7 @@ public class PlayerMove : MonoBehaviour
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerInputHandler = GetComponent<PlayerInputHandler>();
+        _dash = GetComponent<Dash>();
     }
 
     private void FixedUpdate()
