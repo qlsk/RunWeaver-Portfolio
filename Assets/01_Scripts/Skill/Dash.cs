@@ -32,6 +32,8 @@ public class Dash : MonoBehaviour
     private void OnDisable()
     {
         _playerInputHandler.DashPressed -= DoDash;
+        _isDashing = false;
+        _canDash = true;
     }
 
     private void DoDash()
