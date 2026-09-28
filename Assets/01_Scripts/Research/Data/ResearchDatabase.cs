@@ -16,7 +16,8 @@ public class ResearchDatabase : Singleton<ResearchDatabase>
     private bool _databaseReady;
 
     public bool DatabaseReady => _databaseReady;
-    public IReadOnlyList<ResearchNodeDefinition> ResearchNodes => _researchNodes;
+    public IReadOnlyList<ResearchNodeDefinition> ResearchNodes =>
+        _databaseReady ? _researchNodes : Array.Empty<ResearchNodeDefinition>();
 
     public async UniTask Initialize()
     {
@@ -71,13 +72,23 @@ public class ResearchDatabase : Singleton<ResearchDatabase>
         visited.Add(node.Id);
     }
 
+    public void ResetInitialization()
+    {
+        _databaseReady = false;
+        _researchNodes?.Clear();
+        _researchNodesById?.Clear();
+    }
+
     public bool TryGetResearchNodeById(string id, out ResearchNodeDefinition nodeDefinition)
     {
-        return _researchNodesById.TryGetValue(id, out nodeDefinition);
+        nodeDefinition = null;
+        return _databaseReady && _researchNodesById.TryGetValue(id, out nodeDefinition);
     }
 
     public bool TryGetResearchNodesByRootId(string rootId, out ResearchNodeDefinition[] nodes)
     {
+        nodes = Array.Empty<ResearchNodeDefinition>();
+        if (!_databaseReady) return false;
         nodes = _researchNodesById.Values.Where(node => node.RootId == rootId).ToArray();
         return nodes.Length != 0;
     }
