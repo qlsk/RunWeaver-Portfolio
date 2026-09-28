@@ -1,8 +1,10 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
+
+// ReSharper disable All
 
 public class GameBootstrap : MonoBehaviour
 {
@@ -17,25 +19,67 @@ public class GameBootstrap : MonoBehaviour
     [SerializeField] private SkillDatabase _skillDatabase;
     [SerializeField] private ResearchDatabase _researchDatabase;
 
+    private BootstrapState _state;
+    private BootstrapStage _currentStage;
+    private BootstrapStage _failedStage;
+
+    public BootstrapState State => _state;
+    public BootstrapStage FailedStage => _failedStage;
+
     private void Start()
     {
-        BootStrap().Forget();
+        InitializeAsync().Forget();
     }
 
-    private async UniTask BootStrap()
+    public async UniTask InitializeAsync()
     {
-        ValidateReferences();
-        if (_session.IsReady)
+        if (_state == BootstrapState.Initializing)
         {
-            return;
+            throw new InvalidOperationException($"{nameof(GameBootstrap)} is already initializing.");
         }
-        await _runeStoneDatabase.Initialize();
-        await _runeEffectDatabase.Initialize();
-        await _skillDatabase.Initialize();
-        await _researchDatabase.Initialize();
-        GameDefinitionSet definitionSet =
-            new(_skillDatabase.SkillNodes, _researchDatabase.ResearchNodes, _gold, _resources);
-        _session.Initialize(definitionSet);
+
+        try
+        {
+            _state = BootstrapState.Initializing;
+            _currentStage = BootstrapStage.ReferenceValidation;
+            _failedStage = BootstrapStage.None;
+            ValidateReferences();
+
+            if (_session.IsReady)
+            {
+                _state = BootstrapState.Ready;
+                return;
+            }
+
+            _currentStage = BootstrapStage.RuneStoneDatabase;
+            await _runeStoneDatabase.Initialize();
+
+            _currentStage = BootstrapStage.RuneEffectDatabase;
+            await _runeEffectDatabase.Initialize();
+
+            _currentStage = BootstrapStage.SkillDatabase;
+            await _skillDatabase.Initialize();
+
+            _currentStage = BootstrapStage.ResearchDatabase;
+            await _researchDatabase.Initialize();
+
+            _currentStage = BootstrapStage.DefinitionSet;
+            GameDefinitionSet definitionSet =
+                new(_skillDatabase.SkillNodes, _researchDatabase.ResearchNodes, _gold, _resources);
+
+            _currentStage = BootstrapStage.GameSession;
+            _session.Initialize(definitionSet);
+
+            _state = BootstrapState.Ready;
+        }
+        catch (Exception exception)
+        {
+            _failedStage = _currentStage;
+            _state = BootstrapState.Failed;
+            Debug.LogError($"Bootstrap failed on {_failedStage}: {exception.Message}, {exception.StackTrace}");
+            ResetDatabases();
+            throw;
+        }
     }
 
     private void ValidateReferences()
@@ -47,6 +91,14 @@ public class GameBootstrap : MonoBehaviour
         Check(_runeEffectDatabase, nameof(_runeEffectDatabase));
         Check(_skillDatabase, nameof(_skillDatabase));
         Check(_researchDatabase, nameof(_researchDatabase));
+    }
+
+    private void ResetDatabases()
+    {
+        _runeStoneDatabase?.ResetInitialization();
+        _runeEffectDatabase?.ResetInitialization();
+        _skillDatabase?.ResetInitialization();
+        _researchDatabase?.ResetInitialization();
     }
 
     private static void Check(Object target, string name)
