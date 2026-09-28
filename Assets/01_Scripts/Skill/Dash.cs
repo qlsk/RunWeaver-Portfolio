@@ -15,12 +15,12 @@ public class Dash : MonoBehaviour
     private PlayerHealth _playerHealth;
 
     private bool _isDashing = false;
+    public bool IsDashing => _isDashing;
     private bool _canDash = true;
 
     private void Start()
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
-        _playerMove = GetComponent<PlayerMove>();
         _playerHealth = GetComponent<PlayerHealth>();
     }
 
@@ -31,7 +31,23 @@ public class Dash : MonoBehaviour
 
     private void OnDisable()
     {
-        _playerInputHandler.DashPressed -= DoDash;
+        if (_playerInputHandler != null)
+        {
+            _playerInputHandler.DashPressed -= DoDash;
+        }
+
+        StopAllCoroutines();
+
+        if (_playerHealth != null)
+        {
+            _playerHealth.SetDashInvincibility(false);
+        }
+
+        if (_isDashing && _playerRigidbody2D != null)
+        {
+            _playerRigidbody2D.linearVelocity = Vector2.zero;
+        }
+
         _isDashing = false;
         _canDash = true;
     }
@@ -49,8 +65,6 @@ public class Dash : MonoBehaviour
 
         // dash 중 무적
         _playerHealth.SetDashInvincibility(true);
-        // dahs 중 조작 불가능
-        _playerMove.SetCanMove(false);
         // dash 목표 지점 설정 (이동 방향)
         Vector2 dashDirection = _playerInputHandler.MoveDirection;
 
@@ -63,7 +77,6 @@ public class Dash : MonoBehaviour
         // dash 무적 끝
         _playerHealth.SetDashInvincibility(false);
         // dash 후 조작 가능
-        _playerMove.SetCanMove(true);
         _isDashing = false;
 
         // dash 쿨타임
