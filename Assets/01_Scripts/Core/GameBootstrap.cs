@@ -1,8 +1,8 @@
-﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class GameBootstrap : MonoBehaviour
 {
@@ -24,7 +24,8 @@ public class GameBootstrap : MonoBehaviour
 
     private async UniTask BootStrap()
     {
-        if (GameSession.Instance.IsReady)
+        ValidateReferences();
+        if (_session.IsReady)
         {
             return;
         }
@@ -35,5 +36,40 @@ public class GameBootstrap : MonoBehaviour
         GameDefinitionSet definitionSet =
             new(_skillDatabase.SkillNodes, _researchDatabase.ResearchNodes, _gold, _resources);
         _session.Initialize(definitionSet);
+    }
+
+    private void ValidateReferences()
+    {
+        Check(_gold, nameof(_gold));
+        Check(_resources, nameof(_resources));
+        Check(_session, nameof(_session));
+        Check(_runeStoneDatabase, nameof(_runeStoneDatabase));
+        Check(_runeEffectDatabase, nameof(_runeEffectDatabase));
+        Check(_skillDatabase, nameof(_skillDatabase));
+        Check(_researchDatabase, nameof(_researchDatabase));
+    }
+
+    private static void Check(Object target, string name)
+    {
+        if (target == null)
+        {
+            throw new MissingReferenceException(name);
+        }
+    }
+
+    private static void Check<T>(IReadOnlyList<T> targets, string name) where T : Object
+    {
+        if (targets == null)
+        {
+            throw new MissingReferenceException(name);
+        }
+
+        for (int i = 0; i < targets.Count; i++)
+        {
+            if (targets[i] == null)
+            {
+                throw new MissingReferenceException($"{name}[{i}]");
+            }
+        }
     }
 }
