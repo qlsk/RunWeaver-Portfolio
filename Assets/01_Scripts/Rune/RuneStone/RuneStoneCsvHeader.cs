@@ -1,0 +1,5 @@
+﻿public class RuneStoneCsvHeader
+{
+    public string Id { get; set; }
+    public char RuneCharacter { get; set; }
+}
