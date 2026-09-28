@@ -5,9 +5,9 @@ public class Dash : MonoBehaviour
 {
     [SerializeField] private PlayerInputHandler _playerInputHandler;
     [Header("Dash 지속 시간")]
-    [SerializeField] private float _dashDuration = 1f;
+    [SerializeField] private float _dashDuration = 0.2f;
     [Header("Dash 파워")]
-    [SerializeField] private float _dashPower = 5f;
+    [SerializeField] private float _dashPower = 10f;
     [Header("Dash 쿨타임")]
     [SerializeField] private float _dashCooldown = 3f;
     private Rigidbody2D _playerRigidbody2D;
@@ -46,7 +46,7 @@ public class Dash : MonoBehaviour
         _canDash = false;
 
         // dash 중 무적
-        _playerHealth.SetCanTakeDamage(false);
+        _playerHealth.SetDashInvincibility(true);
         // dahs 중 조작 불가능
         _playerMove.SetCanMove(false);
         // dash 목표 지점 설정 (이동 방향)
@@ -59,7 +59,7 @@ public class Dash : MonoBehaviour
         yield return new WaitForSeconds(_dashDuration);
 
         // dash 무적 끝
-        _playerHealth.SetCanTakeDamage(true);
+        _playerHealth.SetDashInvincibility(false);
         // dash 후 조작 가능
         _playerMove.SetCanMove(true);
         _isDashing = false;

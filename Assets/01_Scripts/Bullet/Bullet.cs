@@ -4,6 +4,8 @@ public class Bullet : MonoBehaviour
 {
     /*
      * TODO: Object Pooling
+     * 생명 주기 - 생성, 발사, 충돌, 최대 사거리 도달
+     * 생성 발사 충돌 or 최대 사거리 도달
      */
     [Header("마탄 속도")][SerializeField] private float _bulletSpeed = 5f;
     [Header("마탄 데미지")][SerializeField] private float _bulletDamage = 10f;

@@ -3,13 +3,15 @@ using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("최대 체력")] [SerializeField] private float _maxHealth = 100f;
+    [Header("최대 체력")]
+    [SerializeField] private float _maxHealth = 100f;
     public float MaxHealth => _maxHealth;
-    [Header("현재 체력")] [SerializeField] private float _currentHealth;
+    [Header("현재 체력")]
+    [SerializeField] private float _currentHealth;
     public float CurrentHealth => _currentHealth;
 
-    [Header("피격 무적 지속 시간")] [SerializeField]
-    private float _invincibilityDuration = 1f;
+    [Header("피격 무적 지속 시간")]
+    [SerializeField] private float _invincibilityDuration = 1f;
 
     private Rigidbody2D _playerRigidbody2D;
 
@@ -19,12 +21,21 @@ public class PlayerHealth : MonoBehaviour
 
     private bool _isDead = false;
 
-    private bool _canTakeDamage = true;
+    private bool _dashInvincibility = false;
 
-    public void SetCanTakeDamage(bool canTakeDamage)
+    public void SetDashInvincibility(bool invincibility)
     {
-        _canTakeDamage = canTakeDamage;
+        _dashInvincibility = invincibility;
     }
+
+    private bool _hitInvincibility = false;
+
+    // private bool _canTakeDamage = true;
+    //
+    // public void SetCanTakeDamage(bool canTakeDamage)
+    // {
+    //     _canTakeDamage = canTakeDamage;
+    // }
 
     private void Start()
     {
@@ -41,14 +52,13 @@ public class PlayerHealth : MonoBehaviour
     // 피격
     public void TakeDamage(float damage)
     {
-        if (!_canTakeDamage) return;
-        StartCoroutine("TakeDamageCoroutine", damage);
+        if (_hitInvincibility || _dashInvincibility) return;
+        StartCoroutine(TakeDamageCoroutine(damage));
     }
 
     private IEnumerator TakeDamageCoroutine(float damage)
     {
-        // 피격 무적 시간 동안 데미지 처리 금지
-        SetCanTakeDamage(false);
+        _hitInvincibility = true;
 
         if (_currentHealth - damage <= 0f)
         {
@@ -61,9 +71,8 @@ public class PlayerHealth : MonoBehaviour
         }
 
         yield return new WaitForSeconds(_invincibilityDuration);
-        SetCanTakeDamage(true);
+        _hitInvincibility = false;
     }
-
 
     // 체력 회복
     public void Heal(float healAmount)
