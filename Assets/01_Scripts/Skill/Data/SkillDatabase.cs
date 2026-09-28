@@ -1,7 +1,7 @@
 using System;
-using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class SkillDatabase : Singleton<SkillDatabase>
@@ -23,9 +23,12 @@ public class SkillDatabase : Singleton<SkillDatabase>
 
     public bool DatabaseReady => _databaseReady;
 
-    public IReadOnlyList<SkillDefinition> Skills => _skills;
-    public IReadOnlyList<SkillNodeDefinition> SkillNodes => _skillNodes;
-    public IReadOnlyList<SkillNodeParameterDefinition> SkillNodeParameters => _skillNodeParameters;
+    public IReadOnlyList<SkillDefinition> Skills =>
+        _databaseReady ? _skills : Array.Empty<SkillDefinition>();
+    public IReadOnlyList<SkillNodeDefinition> SkillNodes =>
+        _databaseReady ? _skillNodes : Array.Empty<SkillNodeDefinition>();
+    public IReadOnlyList<SkillNodeParameterDefinition> SkillNodeParameters =>
+        _databaseReady ? _skillNodeParameters : Array.Empty<SkillNodeParameterDefinition>();
 
     public async UniTask Initialize()
     {
@@ -86,18 +89,33 @@ public class SkillDatabase : Singleton<SkillDatabase>
         Debug.Log("Skill database initialized.");
     }
 
+    public void ResetInitialization()
+    {
+        _databaseReady = false;
+        _skills?.Clear();
+        _skillNodes?.Clear();
+        _skillNodeParameters?.Clear();
+        _skillDatabase?.Clear();
+        _skillNodeDatabase?.Clear();
+        _skillNodeParameterDatabase?.Clear();
+    }
+
     public bool TryGetSkillById(string id, out SkillDefinition skillDefinition)
     {
-        return _skillDatabase.TryGetValue(id, out skillDefinition);
+        skillDefinition = null;
+        return _databaseReady && _skillDatabase.TryGetValue(id, out skillDefinition);
     }
 
     public bool TryGetSkillNodeById(string id, out SkillNodeDefinition nodeDefinition)
     {
-        return _skillNodeDatabase.TryGetValue(id, out nodeDefinition);
+        nodeDefinition = null;
+        return _databaseReady && _skillNodeDatabase.TryGetValue(id, out nodeDefinition);
     }
 
     public bool TryGetSkillNodesBySkillId(string skillId, out SkillNodeDefinition[] nodeData)
     {
+        nodeData = Array.Empty<SkillNodeDefinition>();
+        if (!_databaseReady) return false;
         nodeData = _skillNodeDatabase.Values.Where(v => v.SkillId == skillId).ToArray();
         return nodeData.Length != 0;
     }
@@ -105,6 +123,8 @@ public class SkillDatabase : Singleton<SkillDatabase>
     public bool TryGetSkillNodeParameterByNodeId(string id, int level, ParameterType parameterType,
         out SkillNodeParameterDefinition nodeParameterDefinition)
     {
-        return _skillNodeParameterDatabase.TryGetValue((id, level, parameterType), out nodeParameterDefinition);
+        nodeParameterDefinition = null;
+        return _databaseReady &&
+               _skillNodeParameterDatabase.TryGetValue((id, level, parameterType), out nodeParameterDefinition);
     }
 }

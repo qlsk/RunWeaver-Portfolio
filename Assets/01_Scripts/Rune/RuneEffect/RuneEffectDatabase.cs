@@ -1,6 +1,6 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -43,6 +43,13 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
         Debug.Log($"Loaded {runeEffects.Count} rune effects.");
     }
 
+    public void ResetInitialization()
+    {
+        _databaseReady = false;
+        _runeEffects?.Clear();
+        _runeEffectsById?.Clear();
+    }
+
     public IReadOnlyList<RuneEffectDefinition> GetAll()
     {
         return !_databaseReady ? null : _runeEffects;
@@ -50,11 +57,14 @@ public class RuneEffectDatabase : Singleton<RuneEffectDatabase>
 
     public bool TryGetById(string id, out RuneEffectDefinition runeEffectDefinition)
     {
-        return _runeEffectsById.TryGetValue(id, out runeEffectDefinition);
+        runeEffectDefinition = null;
+        return _databaseReady && _runeEffectsById.TryGetValue(id, out runeEffectDefinition);
     }
 
     public bool TryGetByCategory(RuneEffectCategory category, out IReadOnlyList<RuneEffectDefinition> runeEffectData)
     {
+        runeEffectData = Array.Empty<RuneEffectDefinition>();
+        if (!_databaseReady) return false;
         runeEffectData = _runeEffectsById.Values.Where(data => data.Category == category).ToList();
         return runeEffectData.Count > 0;
     }

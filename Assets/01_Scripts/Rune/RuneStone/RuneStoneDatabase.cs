@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
 {
@@ -50,6 +51,14 @@ public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
         Debug.Log($"Loaded {runeStones.Count} rune stones.");
     }
 
+    public void ResetInitialization()
+    {
+        _databaseReady = false;
+        _runeStones?.Clear();
+        _runeStonesById?.Clear();
+        _runeStonesByRuneCharacter?.Clear();
+    }
+
     public IReadOnlyList<RuneStoneDefinition> GetAll()
     {
         return !_databaseReady ? null : _runeStones;
@@ -57,11 +66,13 @@ public class RuneStoneDatabase : Singleton<RuneStoneDatabase>
 
     public bool TryGetById(string id, out RuneStoneDefinition runeStoneDefinition)
     {
-        return _runeStonesById.TryGetValue(id, out runeStoneDefinition);
+        runeStoneDefinition = null;
+        return _databaseReady && _runeStonesById.TryGetValue(id, out runeStoneDefinition);
     }
 
     public bool TryGetByRuneCharacter(char runeCharacter, out RuneStoneDefinition runeStoneDefinition)
     {
-        return _runeStonesByRuneCharacter.TryGetValue(runeCharacter, out runeStoneDefinition);
+        runeStoneDefinition = null;
+        return _databaseReady && _runeStonesByRuneCharacter.TryGetValue(runeCharacter, out runeStoneDefinition);
     }
 }

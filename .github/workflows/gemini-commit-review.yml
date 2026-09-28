@@ -148,7 +148,7 @@ jobs:
             exit 1
           fi
 
-      - name: Post review on pull request
+      - name: Submit pull request review comment
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -169,9 +169,10 @@ jobs:
           검토 커밋: ${HEAD_SHA}
 
           ${REVIEW_BODY}" \
-            '{body: $body}' > comment.json
+            --arg commit_id "${HEAD_SHA}" \
+            '{body: $body, commit_id: $commit_id, event: "COMMENT"}' > review.json
 
           gh api \
             --method POST \
-            "/repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            --input comment.json
+            "/repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+            --input review.json
