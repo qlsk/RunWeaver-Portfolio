@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 public class ResourceInventory
 {
-    private Dictionary<string, int> _quantities;
+    private readonly Dictionary<string, int> _quantities;
 
     public event Action QuantitiesChanged;
 
@@ -24,11 +24,10 @@ public class ResourceInventory
             {
                 throw new ArgumentException("A resource ID cannot be null, empty, or whitespace.", nameof(resources));
             }
-            if (_quantities.ContainsKey(resource.Id))
+            if (!_quantities.TryAdd(resource.Id, 0))
             {
                 throw new ArgumentException($"Duplicate resource ID: {resource.Id}", nameof(resources));
             }
-            _quantities.Add(resource.Id, 0);
         }
     }
 
@@ -38,11 +37,42 @@ public class ResourceInventory
         {
             throw new ArgumentException("Resource ID is required.", nameof(resourceId));
         }
-        if (!_quantities.ContainsKey(resourceId))
+        if (!_quantities.TryGetValue(resourceId, out int quantity))
         {
             throw new KeyNotFoundException($"Resource not found: {resourceId}");
         }
-        return _quantities[resourceId];
+        return quantity;
+    }
+
+    public IReadOnlyDictionary<string, int> GetSnapshot()
+    {
+        return new Dictionary<string, int>(_quantities);
+    }
+
+    public void AddResources(IReadOnlyDictionary<string, int> amounts)
+    {
+        IReadOnlyDictionary<string, int> amountsCopy = new Dictionary<string, int>(amounts);
+        foreach ((string resourceId, int amount) in amountsCopy)
+        {
+            if (string.IsNullOrWhiteSpace(resourceId))
+            {
+                throw new ArgumentException("Resource ID cannot be null, empty, or whitespace.", nameof(amounts));
+            }
+            if (!_quantities.ContainsKey(resourceId))
+            {
+                throw new KeyNotFoundException($"Resource not found: {resourceId}");
+            }
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), amount, $"Amount must be positive: {resourceId}");
+            }
+            _ = checked(_quantities[resourceId] + amount);
+        }
+        foreach ((string resourceId, int amount) in amountsCopy)
+        {
+            _quantities[resourceId] += amount;
+        }
+        SafeEventNotifier.Notify(QuantitiesChanged);
     }
 
     public void AddResource(string resourceId, int amount)
@@ -60,7 +90,7 @@ public class ResourceInventory
             throw new ArgumentOutOfRangeException(nameof(amount), amount, "Amount must be positive.");
         }
         _quantities[resourceId] += amount;
-        QuantitiesChanged?.Invoke();
+        SafeEventNotifier.Notify(QuantitiesChanged);
     }
 
     public bool TrySpend(IReadOnlyList<ResourceCost> costs)
@@ -87,7 +117,7 @@ public class ResourceInventory
         {
             _quantities[resourceId] -= cost;
         }
-        QuantitiesChanged?.Invoke();
+        SafeEventNotifier.Notify(QuantitiesChanged);
         return true;
     }
 }
