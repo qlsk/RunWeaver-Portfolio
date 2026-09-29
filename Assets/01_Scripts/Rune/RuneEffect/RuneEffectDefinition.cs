@@ -21,8 +21,14 @@ public class RuneEffectDefinition
     public Sprite Icon => _icon;
     public bool CanOverlap => _canOverlap;
 
-    public RuneEffectDefinition(string id, string runeWord, string englishName, string displayName,
-        RuneEffectCategory category, string description, Sprite icon, bool canOverlap)
+    public RuneEffectDefinition(string id,
+        string runeWord,
+        string englishName,
+        string displayName,
+        RuneEffectCategory category,
+        string description,
+        Sprite icon,
+        bool canOverlap)
     {
         _id = id;
         _runeWord = runeWord;
