@@ -19,7 +19,8 @@ public class SurvivalMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 더미 플레이어 사망 이벤트 구독
+        // 정적 이벤트 중복 구독 방지
+        DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
         DummyPlayer.OnDummyPlayerDied += HandlePlayerDied;
 
         NotifyProgressUpdated();
@@ -27,6 +28,11 @@ public class SurvivalMission : MissionBase
     }
 
     private void OnDisable()
+    {
+        DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
+    }
+
+    private void OnDestroy()
     {
         DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
     }
@@ -69,12 +75,14 @@ public class SurvivalMission : MissionBase
 
     public override float GetProgressRatio()
     {
+        if (IsFailed) return 0f;
         if (survivalDuration <= 0f) return 1f;
         return Mathf.Clamp01(1f - (currentTimer / survivalDuration));
     }
 
     public override string GetProgressText()
     {
+        if (IsFailed) return "생존 실패 (플레이어 사망)";
         return $"생존 남은 시간: {Mathf.CeilToInt(currentTimer)}초 (생존 중)";
     }
 }

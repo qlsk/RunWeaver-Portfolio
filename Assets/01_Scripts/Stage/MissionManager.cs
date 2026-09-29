@@ -48,11 +48,28 @@ public class MissionManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        UnsubscribeCurrentMission();
+    }
+
+    private void UnsubscribeCurrentMission()
+    {
+        if (currentMission != null)
+        {
+            currentMission.OnMissionCompleted -= HandleMissionCompleted;
+            currentMission.OnMissionFailed -= HandleMissionFailed;
+            currentMission.OnMissionProgressUpdated -= HandleMissionProgressUpdated;
+        }
+    }
+
     /// <summary>
     /// 지정된 activeMissionType에 맞는 MissionBase 구현체를 준비하고 초기화합니다.
     /// </summary>
     public void SetupActiveMission()
     {
+        UnsubscribeCurrentMission();
+
         if (currentMission == null)
         {
             var existingMissions = GetComponents<MissionBase>();
