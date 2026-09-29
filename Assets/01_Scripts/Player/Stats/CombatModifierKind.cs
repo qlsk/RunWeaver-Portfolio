@@ -1,5 +1,6 @@
 public enum CombatModifierKind
 {
     Flat,
-    Rate
+    Percent,
+    Multiplier
 }
