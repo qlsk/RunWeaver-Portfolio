@@ -8,7 +8,7 @@ public class PlayerAttack : MonoBehaviour
     [Header("마탄 쿨타임")]
     [SerializeField] private float _bulletFireRate = 1f;
     [Header("탄창 크기")]
-    [SerializeField] private int _magazineSize = 4;
+    [SerializeField] private int _magazineSize = 10;
     [Header("재장전 시간")]
     [SerializeField] private float _reloadTime = 2f;
     [Header("마탄 프리팹")]
