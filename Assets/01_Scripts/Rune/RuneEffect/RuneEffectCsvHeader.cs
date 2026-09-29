@@ -7,4 +7,5 @@
     public string RuneEffectCategory { get; set; }
     public string Description { get; set; }
     public string IconName { get; set; }
+    public string CanOverlap { get; set; }
 }

@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   _bulletFireRate: 0.2
-  _magazineSize: 4
+  _magazineSize: 10
   _reloadTime: 1
   _bulletPrefab: {fileID: 1808444329942870919, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
   _firePosition: {fileID: 2639883728027744658}
@@ -191,6 +191,7 @@ MonoBehaviour:
   _playerDashKeyCode: 32
   _playerSkill1KeyCode: 113
   _playerSkill2KeyCode: 101
+  _playerReloadKeyCode: 114
 --- !u!114 &8110420657988907431
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,7 +206,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   _maxHealth: 100
   _currentHealth: 0
-  _invincibilityDuration: 1
+  _invincibilityDuration: 0.5
 --- !u!50 &5141058915935371194
 Rigidbody2D:
   serializedVersion: 5

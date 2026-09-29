@@ -10,6 +10,7 @@ public class EnemyHealth : MonoBehaviour
     private float _maxHealth;
 
     private bool _isDead = false;
+    public bool IsDead => _isDead;
 
     public event Action OnDamaged;
     public event Action OnDeath;
@@ -22,24 +23,25 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        if (_isDead) return;
+        ApplyDamage(damage);
+    }
 
-        _currentHealth -= damage;
+    public float ApplyDamage(float damage)
+    {
+        if (_isDead || damage <= 0f) return 0f;
+        float actualDamage = Mathf.Min(damage, Mathf.Max(0f, _currentHealth));
+        _currentHealth -= actualDamage;
+        bool killed = _currentHealth <= 0f;
+        if (killed) _isDead = true;
 
         OnDamaged?.Invoke();
 
-        if (_currentHealth <= 0)
+        if (killed)
         {
-            Die();
+            OnDeath?.Invoke();
+            Destroy(gameObject);
         }
+        return actualDamage;
     }
 
-    private void Die()
-    {
-        if (_isDead) return;
-
-        _isDead = true;
-        OnDeath?.Invoke();
-        Destroy(gameObject);
-    }
 }

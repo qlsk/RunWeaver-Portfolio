@@ -6,6 +6,8 @@ public class RunePickup : MonoBehaviour
     [SerializeField] private char _runeCharacter;
     [SerializeField, Min(1)] private int _quantity = 1;
 
+    private GameObject _player;
+    [SerializeField] private float _moveSpeed = 5f;
     private SpriteRenderer _spriteRenderer;
 
     private bool _isBeingPickedUp;
@@ -13,6 +15,9 @@ public class RunePickup : MonoBehaviour
 
     public char RuneCharacter => _runeCharacter;
     public int Quantity => _quantity;
+
+    [SerializeField] private float _pickupTime = 3f;
+    private float _pickupCoolTimer = 0;
 
     public void Initialize(char runeCharacter, int quantity, Sprite runeIcon)
     {
@@ -64,5 +69,28 @@ public class RunePickup : MonoBehaviour
         if (_isCollected) return;
 
         _isBeingPickedUp = false;
+    }
+
+    private void Start()
+    {
+        _player = GameObject.FindGameObjectWithTag("Player");
+    }
+
+    private void Update()
+    {
+        _pickupCoolTimer += Time.deltaTime;
+        if (_pickupCoolTimer >= _pickupTime)
+        {
+            FollowPlayer();
+        }
+    }
+
+    private void FollowPlayer()
+    {
+        if (_player == null) return;
+
+        Vector2 direction = _player.transform.position - transform.position;
+        direction.Normalize();
+        transform.Translate(_moveSpeed * Time.deltaTime * direction);
     }
 }
