@@ -318,6 +318,67 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAcquire
   _runeStoneInventory: {fileID: 42451153}
+--- !u!114 &136836585 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5863673722175249506, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+--- !u!114 &136836586 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1796876364397183347, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Dash
+--- !u!114 &136836587 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 340774800492513042, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
+--- !u!114 &136836588 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2179557753070468687, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 869455812298708977}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+--- !u!114 &136836591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67f0a745d82b42199e6364b1a78d915f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLifecycle
+  _disableOnDeath:
+  - {fileID: 136836588}
+  - {fileID: 136836587}
+  - {fileID: 136836586}
+  - {fileID: 136836585}
 --- !u!1 &158822667
 GameObject:
   m_ObjectHideFlags: 0
@@ -1054,7 +1115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyContactAttack
   _damage: 20
-  _attackCooldown: 2
+  _attackCooldown: 0.5
 --- !u!114 &1313729125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1178,6 +1239,10 @@ PrefabInstance:
       propertyPath: _bulletFireRate
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1796876364397183347, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _dashPower
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1229,6 +1294,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       insertIndex: -1
       addedObject: {fileID: 136836581}
+    - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 136836591}
   m_SourcePrefab: {fileID: 100100000, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -16,7 +16,6 @@
     TriggerWindowSeconds, // 발동 조건을 충족할 수 있는 시간(초)
     ShieldCapacityBonus, // 보호막 흡수량 증가량
     DurationBonusSeconds, // 지속 시간 증가량(초)
-    ReflectedDamageRatio, // 반사 피해량 비율
     BurstRadius, // 폭발 반경
     KnockbackDistance, // 넉백 거리
     MovementSpeedBonus, // 이동 속도 증가량
@@ -24,5 +23,6 @@
     MaxHealthHealRatio, // 최대 체력 대비 회복량 비율
     CurrentCastCooldownReduction, // 현재 시전의 재사용 대기시간 감소량
     WaveDamageRatio, // 파동 피해량 비율
-    WaveRadius // 파동 반경
+    WaveRadius, // 파동 반경
+    RechargeTimeReduction // 충전 시간 감소량
 }
