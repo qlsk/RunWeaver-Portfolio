@@ -80,8 +80,12 @@ public class RuneBook
             throw new ArgumentException($"Rune book entry not found: {runeEffectId}",
                 nameof(runeEffectId));
         }
+        if (runeWord.RevealLevel == RuneWordRevealLevel.Detailed)
+        {
+            return;
+        }
         runeWord.Reveal(RuneWordRevealLevel.Detailed);
-        RuneBookChanged?.Invoke();
+        SafeEventNotifier.Notify(RuneBookChanged);
     }
 
     public bool IsRevealed(string runeEffectId)

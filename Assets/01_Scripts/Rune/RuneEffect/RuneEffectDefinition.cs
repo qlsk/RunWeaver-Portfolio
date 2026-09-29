@@ -10,6 +10,7 @@ public class RuneEffectDefinition
     [SerializeField] private RuneEffectCategory _category;
     [SerializeField] private string _description;
     [SerializeField] private Sprite _icon;
+    [SerializeField] private bool _canOverlap;
 
     public string Id => _id;
     public string RuneWord => _runeWord;
@@ -18,9 +19,10 @@ public class RuneEffectDefinition
     public RuneEffectCategory Category => _category;
     public string Description => _description;
     public Sprite Icon => _icon;
+    public bool CanOverlap => _canOverlap;
 
     public RuneEffectDefinition(string id, string runeWord, string englishName, string displayName,
-        RuneEffectCategory category, string description, Sprite icon)
+        RuneEffectCategory category, string description, Sprite icon, bool canOverlap)
     {
         _id = id;
         _runeWord = runeWord;
@@ -29,5 +31,6 @@ public class RuneEffectDefinition
         _category = category;
         _description = description;
         _icon = icon;
+        _canOverlap = canOverlap;
     }
 }
