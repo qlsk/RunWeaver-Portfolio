@@ -49,7 +49,7 @@ public class Dash : MonoBehaviour
         _playerHealth.SetCanTakeDamage(false);
         // dahs 중 조작 불가능
         _playerMove.SetCanMove(false);
-        // dash 목표 지점 설정 (마우스 방향)
+        // dash 목표 지점 설정 (이동 방향)
         Vector2 dashDirection = _playerInputHandler.MoveDirection;
 
         // dash 수행

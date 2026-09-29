@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -41,6 +42,10 @@ public class RuneDefinitionLoader : MonoBehaviour
         List<RuneEffectDefinition> runeEffects = new();
         foreach (RuneEffectCsvHeader row in parsedRows)
         {
+            if (string.IsNullOrWhiteSpace(row.RuneWord))
+            {
+                throw new InvalidDataException($"Rune word of {row.Id} is empty");
+            }
             if (!Enum.TryParse(row.RuneEffectCategory, out RuneEffectCategory runeEffectCategory))
             {
                 throw new InvalidDataException($"Invalid rune effect category: {row.RuneEffectCategory}");
@@ -52,9 +57,13 @@ public class RuneDefinitionLoader : MonoBehaviour
             {
                 throw new InvalidDataException($"Invalid rune effect icon: {iconName}");
             }
+            if (!bool.TryParse(row.CanOverlap, out bool canOverlap))
+            {
+                throw new InvalidDataException($"Invalid rune effect canOverlap: {row.CanOverlap}");
+            }
 
             runeEffects.Add(new RuneEffectDefinition(row.Id, row.RuneWord, row.EnglishName, row.DisplayName,
-                runeEffectCategory, row.Description, icon));
+                runeEffectCategory, row.Description, icon, canOverlap));
         }
         Debug.Log($"Loaded {runeEffects.Count} rune effects.");
         return runeEffects;

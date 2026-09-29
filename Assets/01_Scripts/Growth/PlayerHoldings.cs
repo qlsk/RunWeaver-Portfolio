@@ -44,7 +44,7 @@ public class PlayerHoldings
         _expeditionWallet = wallet;
         _expeditionResources = resources;
         _isOnExpedition = true;
-        ExpeditionChanged?.Invoke();
+        SafeEventNotifier.Notify(ExpeditionChanged);
     }
 
     public void DetachExpeditionData()
@@ -53,6 +53,6 @@ public class PlayerHoldings
         _expeditionWallet = null;
         _expeditionResources = null;
         _isOnExpedition = false;
-        ExpeditionChanged?.Invoke();
+        SafeEventNotifier.Notify(ExpeditionChanged);
     }
 }

@@ -23,7 +23,7 @@ public class Bullet : MonoBehaviour
 
     private void BulletMove()
     {
-        transform.Translate(_bulletSpeed * Time.deltaTime * _targetDirection);
+        transform.Translate(_bulletSpeed * Time.deltaTime * _targetDirection, Space.World);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

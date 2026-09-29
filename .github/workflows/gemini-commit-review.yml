@@ -1,9 +1,8 @@
-﻿name: Gemini Commit Review
+name: Gemini PR Review
 
 on:
-  push:
-    branches:
-      - '**'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
     paths:
       - 'Assets/**'
       - 'Packages/**'
@@ -14,19 +13,23 @@ on:
       - '.husky/**'
       - '.gitignore'
       - '.gitattributes'
-  workflow_dispatch:
 
 permissions:
-  actions: read
-  contents: write
+  contents: read
+  pull-requests: write
 
 concurrency:
-  group: gemini-commit-review-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/') }}
+  group: gemini-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
     name: Review Unity project
+    # Fork PRs cannot use the repository's Gemini secret. Review ready, same-repo PRs only.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft &&
+      (github.event.action != 'edited' || github.event.changes.base != null)
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -34,6 +37,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -41,14 +45,11 @@ jobs:
         id: review_scope
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          BRANCH: ${{ github.ref_name }}
+          BASE_BRANCH: ${{ github.base_ref }}
         run: |
-          if [[ "${EVENT_NAME}" == workflow_dispatch ]]; then
-            MODE=full
-          elif [[ "${BRANCH}" == pre_main ]]; then
+          if [[ "${BASE_BRANCH}" == pre_main ]]; then
             MODE=integration
-          elif [[ "${BRANCH}" == main ]]; then
+          elif [[ "${BASE_BRANCH}" == main ]]; then
             MODE=release
           else
             MODE=changes
@@ -59,60 +60,18 @@ jobs:
       - name: Prepare project review context
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           REVIEW_PATHS=(. ':(exclude)Assets/19_ThirdParty/**')
           git ls-files -- "${REVIEW_PATHS[@]}" > project-files.txt
 
-          LAST_REVIEWED_SHA="$(
-            gh api \
-              "/repos/${REPOSITORY}/actions/workflows/gemini-commit-review.yml/runs?branch=${BRANCH}&status=success&per_page=100" \
-              | jq -r \
-                --arg current "${COMMIT_SHA}" \
-                '(.workflow_runs | map(select(.head_sha != $current))[0].head_sha) // empty'
-          )"
-
-          if [[ -n "${LAST_REVIEWED_SHA}" ]] \
-            && git cat-file -e "${LAST_REVIEWED_SHA}^{commit}" 2>/dev/null \
-            && git merge-base --is-ancestor "${LAST_REVIEWED_SHA}" "${COMMIT_SHA}"; then
-            echo "마지막으로 리뷰에 성공한 ${LAST_REVIEWED_SHA}부터 변경사항을 비교합니다."
-            git diff \
-              --no-ext-diff \
-              --unified=80 \
-              "${LAST_REVIEWED_SHA}" \
-              "${COMMIT_SHA}" \
-              -- "${REVIEW_PATHS[@]}" > commit.diff
-          elif [[ -n "${BEFORE_SHA}" ]] \
-            && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null \
-            && git merge-base --is-ancestor "${BEFORE_SHA}" "${COMMIT_SHA}"; then
-            echo "이전 리뷰 성공 기록이 없어 이번 푸시 전체를 비교합니다."
-            git diff \
-              --no-ext-diff \
-              --unified=80 \
-              "${BEFORE_SHA}" \
-              "${COMMIT_SHA}" \
-              -- "${REVIEW_PATHS[@]}" > commit.diff
-          elif git rev-parse "${COMMIT_SHA}^" > /dev/null 2>&1; then
-            echo "이전 리뷰 성공 기록이 없어 직전 커밋부터 변경사항을 비교합니다."
-            git diff \
-              --no-ext-diff \
-              --unified=80 \
-              "${COMMIT_SHA}^" \
-              "${COMMIT_SHA}" \
-              -- "${REVIEW_PATHS[@]}" > commit.diff
-          else
-            echo "이전 커밋이 없어 현재 커밋 전체를 리뷰합니다."
-            git show \
-              --format= \
-              --no-ext-diff \
-              --unified=80 \
-              "${COMMIT_SHA}" \
-              -- "${REVIEW_PATHS[@]}" > commit.diff
-          fi
+          # Three-dot diff includes every PR commit and excludes base-only changes.
+          git diff --no-ext-diff --unified=80 \
+            "${BASE_SHA}...${HEAD_SHA}" \
+            -- "${REVIEW_PATHS[@]}" > commit.diff
+          git diff --no-ext-diff --name-status \
+            "${BASE_SHA}...${HEAD_SHA}" > pr-files.txt
 
           if [[ ! -s commit.diff ]]; then
             echo "비교할 자체 프로젝트 변경사항이 없어 현재 프로젝트 상태를 검토합니다."
@@ -132,21 +91,23 @@ jobs:
             현재 리뷰 모드는 ${{ steps.review_scope.outputs.mode }} 입니다.
             모드에 따라 현재 체크아웃된 Unity 프로젝트를 정적으로 검토하세요.
 
-            - changes: feature 등 작업 브랜치의 변경사항과 관련된 호출부,
+            - changes: PR 변경사항과 관련된 호출부,
               데이터 및 설정을 우선 검토하세요. 프로젝트 맥락은 확인하되
               변경과 무관한 기존 코드 전체를 반복해서 리뷰하지 마세요.
-            - integration: pre_main에 통합된 변경을 중심으로 기능 간 의존성,
+            - integration: pre_main으로 통합할 PR 변경을 중심으로 기능 간 의존성,
               인터페이스, 씬과 프리팹의 참조, 패키지 및 설정 충돌을 검토하세요.
               변경된 줄에 한정하지 말고 통합 영향을 받는 전체 흐름을 확인하세요.
-            - release: main의 최종 상태에서 치명적인 오류 가능성,
+            - release: main에 반영할 PR에서 치명적인 오류 가능성,
               누락된 참조, 배포 관련 설정과 문서의 일관성을 우선 검토하세요.
-            - full: 수동 실행입니다. 프로젝트 전체 구조와 기존 문제까지 검토하세요.
 
             먼저 GEMINI.md와 Docs/code-review-guide.md를 읽으세요.
-            project-files.txt로 프로젝트 구조를 파악하고 commit.diff를 읽은 뒤,
+            project-files.txt로 프로젝트 구조를 파악하고 pr-files.txt와 commit.diff를 읽은 뒤,
             실제 프로젝트 파일을 직접 열어 구현과 참조 관계를 확인하세요.
+            commit.diff는 대상 브랜치와 PR 브랜치의 공통 조상부터 PR HEAD까지의
+            누적 변경입니다. 체크아웃된 코드는 PR HEAD이며 실제 병합 결과가 아닙니다.
+            통합 영향을 확인할 때는 git show로 대상 브랜치의 관련 구현도 확인하세요.
             diff가 비어 있으면 그 사실을 명시하세요. changes 모드에서는
-            이번 커밋의 파일 목록을 git show --stat로 확인하고 외부 에셋 변경 등
+            PR의 파일 목록을 pr-files.txt로 확인하고 외부 에셋 변경 등
             diff 제외 사유와 관련 연결을 검토하세요. 다른 모드는 현재 상태를 검토하세요.
 
             저장소의 GEMINI.md와 GEMINI.md에서 가져온
@@ -187,21 +148,31 @@ jobs:
             exit 1
           fi
 
-      - name: Post review on commit
+      - name: Submit pull request review comment
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REVIEW_BODY: ${{ steps.gemini_review.outputs.summary }}
           REPOSITORY: ${{ github.repository }}
-          COMMIT_SHA: ${{ github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          CURRENT_HEAD=$(gh api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
+          if [[ "${CURRENT_HEAD}" != "${HEAD_SHA}" ]]; then
+            echo "PR에 새 커밋이 추가되어 이전 커밋의 리뷰 게시를 건너뜁니다."
+            exit 0
+          fi
+
           jq -n \
-            --arg body "## Gemini Commit Review
+            --arg body "## Gemini PR Review
+
+          검토 커밋: ${HEAD_SHA}
 
           ${REVIEW_BODY}" \
-            '{body: $body}' > comment.json
+            --arg commit_id "${HEAD_SHA}" \
+            '{body: $body, commit_id: $commit_id, event: "COMMENT"}' > review.json
 
           gh api \
             --method POST \
-            "/repos/${REPOSITORY}/commits/${COMMIT_SHA}/comments" \
-            --input comment.json
+            "/repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+            --input review.json

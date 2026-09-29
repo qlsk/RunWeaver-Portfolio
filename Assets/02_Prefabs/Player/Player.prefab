@@ -153,8 +153,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerFire
-  _bulletFireRate: 1
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
+  _bulletFireRate: 0.2
+  _magazineSize: 4
+  _reloadTime: 1
   _bulletPrefab: {fileID: 1808444329942870919, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
   _firePosition: {fileID: 2639883728027744658}
 --- !u!114 &1796876364397183347
