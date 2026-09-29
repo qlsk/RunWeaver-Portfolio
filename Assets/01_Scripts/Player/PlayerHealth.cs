@@ -12,7 +12,7 @@ public class PlayerHealth : MonoBehaviour
     public float CurrentHealth => _currentHealth;
 
     [Header("피격 무적 지속 시간")]
-    [SerializeField] private float _invincibilityDuration = 1f;
+    [SerializeField] private float _invincibilityDuration = 0.5f;
 
     public event Action Died;
 
@@ -43,7 +43,7 @@ public class PlayerHealth : MonoBehaviour
     // 피격
     public void TakeDamage(float damage)
     {
-        if(_isDead || damage <= 0f) return;
+        if (_isDead || damage <= 0f) return;
         if (_hitInvincibility || _dashInvincibility) return;
         StartCoroutine(TakeDamageCoroutine(damage));
     }
