@@ -28,7 +28,7 @@ public class RuneStoneInventory : MonoBehaviour
         }
 
         _inventory[runeCharacter].IncreaseQuantity(quantity);
-        OnInventoryChanged?.Invoke();
+        SafeEventNotifier.Notify(OnInventoryChanged);
         return true;
     }
 
@@ -67,7 +67,7 @@ public class RuneStoneInventory : MonoBehaviour
         {
             _inventory[rune].DecreaseQuantity(1);
         }
-        OnInventoryChanged?.Invoke();
+        SafeEventNotifier.Notify(OnInventoryChanged);
         return true;
     }
 }
