@@ -65,8 +65,18 @@ public class Dash : MonoBehaviour
 
         // dash 중 무적
         _playerHealth.SetDashInvincibility(true);
+        
+        Vector2 dashDirection;
+        
         // dash 목표 지점 설정 (이동 방향)
-        Vector2 dashDirection = _playerInputHandler.MoveDirection;
+        if (_playerInputHandler.MoveDirection == Vector2.zero)
+        {
+            dashDirection = _playerInputHandler.LastDirection;
+        }
+        else
+        {
+            dashDirection = _playerInputHandler.MoveDirection;
+        }
 
         // dash 수행
         _playerRigidbody2D.linearVelocity = dashDirection * _dashPower;

@@ -36,6 +36,9 @@ public class PlayerInputHandler : MonoBehaviour
 
     private KeyCode _currentPlayerKeyCode;
 
+    private Vector2 _lastDirection = new Vector2(1f, 0f);
+    public Vector2 LastDirection => _lastDirection;
+
     private void Update()
     {
         // 마우스 position 갱신
@@ -45,6 +48,10 @@ public class PlayerInputHandler : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
         float vertical = Input.GetAxisRaw("Vertical"); // 상 하
         _moveDirection = new Vector2(horizontal, vertical).normalized;
+        if (_moveDirection != Vector2.zero)
+        {
+            _lastDirection = _moveDirection;
+        }
 
         // Dash key 입력 시
         if (Input.GetKeyDown(_playerDashKeyCode))
