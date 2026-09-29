@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-public class RuneLoadout
+// ReSharper disable All
+
+public class RuneLoadout : IDisposable
 {
     private const int BasicElementSlotIndex = 0;
     private const int ElementRuneEffectSlotIndex = 1;
@@ -11,18 +14,69 @@ public class RuneLoadout
     private readonly RuneEffectDatabase _effectDatabase;
     private readonly RuneStoneInventory _stoneInventory;
     private readonly RuneBook _runeBook;
+    private readonly ResearchTree _researchTree;
+    private IReadOnlyList<ResearchNodeDefinition> _researchDefinitions;
+    private bool _disposed;
 
     public int ActiveSlotCount => _activeSlotCount;
     public event Action LoadoutChanged;
 
-    public RuneLoadout(RuneEffectDatabase effectDatabase, RuneStoneInventory stoneInventory, RuneBook runeBook)
+    public RuneLoadout(RuneEffectDatabase effectDatabase,
+        RuneStoneInventory stoneInventory,
+        RuneBook runeBook,
+        ResearchTree researchTree,
+        IReadOnlyList<ResearchNodeDefinition> researchDefinitions)
     {
-        _effectDatabase = effectDatabase ?? throw new ArgumentNullException(nameof(effectDatabase));
-        _stoneInventory = stoneInventory ?? throw new ArgumentNullException(nameof(stoneInventory));
-        _runeBook = runeBook ?? throw new ArgumentNullException(nameof(runeBook));
+        if (effectDatabase == null)
+        {
+            throw new ArgumentNullException(nameof(effectDatabase));
+        }
+
+        if (stoneInventory == null)
+        {
+            throw new ArgumentNullException(nameof(stoneInventory));
+        }
+
+        if (runeBook == null)
+        {
+            throw new ArgumentNullException(nameof(runeBook));
+        }
+
+        if (researchTree == null)
+        {
+            throw new ArgumentNullException(nameof(researchTree));
+        }
+
+        if (researchDefinitions == null)
+        {
+            throw new ArgumentNullException(nameof(researchDefinitions));
+        }
+
+        int slotIncreaseNodeCount = 0;
+        foreach (ResearchNodeDefinition node in researchDefinitions)
+        {
+            if (node.Effects.Exists(effect => effect.Type == ResearchEffectType.IncreaseRuneActivationLimit))
+            {
+                slotIncreaseNodeCount++;
+            }
+        }
+
+        if (slotIncreaseNodeCount > 3)
+        {
+            throw new ArgumentException("Rune slot research would exceed the 5-slot limit.",
+                nameof(researchDefinitions));
+        }
+
+        _effectDatabase = effectDatabase;
+        _stoneInventory = stoneInventory;
+        _runeBook = runeBook;
+        _researchTree = researchTree;
+        _researchDefinitions = researchDefinitions;
 
         _equippedEffectIds = new string[5];
         _activeSlotCount = 2;
+        RefreshActiveSlotCount();
+        _researchTree.NodeActivated += OnResearchNodeActivated;
     }
 
     public string GetEquippedEffectId(int slotIndex)
@@ -80,6 +134,7 @@ public class RuneLoadout
             return false;
         }
         _equippedEffectIds[slotIndex] = effectId;
+        _runeBook.RevealDetails(effectId);
         SafeEventNotifier.Notify(LoadoutChanged);
         return true;
     }
@@ -117,5 +172,41 @@ public class RuneLoadout
         }
         _activeSlotCount = count;
         SafeEventNotifier.Notify(LoadoutChanged);
+    }
+
+    public void RefreshActiveSlotCount()
+    {
+        int effectCount = 2;
+        foreach (ResearchNodeDefinition node in _researchDefinitions)
+        {
+            if (!_researchTree.GetNodeIsActivated(node.Id))
+            {
+                continue;
+            }
+            if (node.Effects.Exists(x => x.Type == ResearchEffectType.IncreaseRuneActivationLimit))
+            {
+                effectCount += 1;
+            }
+        }
+        if (effectCount != _activeSlotCount)
+        {
+            SetActiveSlotCount(effectCount);
+        }
+    }
+
+    private void OnResearchNodeActivated(string nodeId)
+    {
+        RefreshActiveSlotCount();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _researchTree.NodeActivated -= OnResearchNodeActivated;
+        _disposed = true;
     }
 }
