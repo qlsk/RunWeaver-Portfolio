@@ -8,5 +8,7 @@ public enum RunEndReason
     /// <summary>안전하게 귀환</summary>
     Returned,
     /// <summary>급하게 탈출</summary>
-    Escaped
+    Escaped,
+    /// <summary>제한 시간 초과</summary>
+    TimeOver
 }

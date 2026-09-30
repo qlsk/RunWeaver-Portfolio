@@ -29,6 +29,8 @@ public class EndingResultView : MonoBehaviour
         "You danced with the Spirit of Flame and were reduced to a handful of ashes!";
     [SerializeField, TextArea] private string _returnedText = "You chose to return safely.";
     [SerializeField, TextArea] private string _escapedText = "You made a hasty escape.";
+    [SerializeField, TextArea] private string _timeOverText =
+        "Time ran out, and the depths swallowed you whole!";
 
     [Header("칸의 부모")]
     [SerializeField] private Transform _activatedRuneContainer;
@@ -210,6 +212,7 @@ public class EndingResultView : MonoBehaviour
         {
             RunEndReason.Returned => _returnedText,
             RunEndReason.Escaped => _escapedText,
+            RunEndReason.TimeOver => _timeOverText,
             _ => _diedText
         };
     }

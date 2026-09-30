@@ -111,12 +111,35 @@ public class FakeRuneBookDataSource : RuneBookDataSource
     private readonly string[] _equippedEntryIds = new string[SlotLimit];
     private int _activeSlotCount;
     private int _nextCategoryIndex;
+    private bool _isInitialized;
 
     public override int MaxSlotCount => SlotLimit;
-    public override int ActiveSlotCount => _activeSlotCount;
+
+    public override int ActiveSlotCount
+    {
+        get
+        {
+            EnsureInitialized();
+            return _activeSlotCount;
+        }
+    }
 
     private void Awake()
     {
+        EnsureInitialized();
+    }
+
+    /// <summary>
+    /// 룬북 UI가 이 컴포넌트의 Awake보다 먼저 데이터를 요청할 수 있으므로, 처음 요청될 때 데이터를 준비한다.
+    /// </summary>
+    private void EnsureInitialized()
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        _isInitialized = true;
         _activeSlotCount = Mathf.Clamp(_startActiveSlotCount, MinActiveSlotCount, SlotLimit);
 
         foreach ((string id, char runeCharacter) in s_runeStoneTable)
@@ -167,6 +190,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     public override IReadOnlyList<RuneBookEntryData> GetEntries()
     {
+        EnsureInitialized();
         List<RuneBookEntryData> entries = new(_entries.Count);
         foreach (FakeEntry entry in _entries)
         {
@@ -179,6 +203,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     public override IReadOnlyList<RuneStoneStackData> GetOwnedRuneStones()
     {
+        EnsureInitialized();
         List<RuneStoneStackData> runeStones = new();
         foreach ((string id, char runeCharacter) in s_runeStoneTable)
         {
@@ -194,11 +219,13 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     public override string GetEquippedEntryId(int slotIndex)
     {
+        EnsureInitialized();
         return IsActiveSlot(slotIndex) ? _equippedEntryIds[slotIndex] : null;
     }
 
     public override bool CanEquip(int slotIndex, string entryId)
     {
+        EnsureInitialized();
         if (!IsActiveSlot(slotIndex))
         {
             return false;
@@ -252,6 +279,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     public override bool CanUnequip(int slotIndex)
     {
+        EnsureInitialized();
         return IsActiveSlot(slotIndex) && !string.IsNullOrEmpty(_equippedEntryIds[slotIndex]);
     }
 

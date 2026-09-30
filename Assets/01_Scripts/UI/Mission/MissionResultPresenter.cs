@@ -4,6 +4,8 @@ using UnityEngine;
 /// 미션 성공/실패 시 결과 패널을 보여준다.
 /// 성공: 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃)
 /// 실패: 실패 패널 연출 (천천히 페이드 인 → 3초) 후 EndingUI 표시
+/// 스테이지 제한 시간이 끝나도(StageStatusSource.TimeExpired) 실패 연출을 보여준다.
+/// (현재는 연출만 연결. 실제 미션 실패 처리는 팀원 구현 후 연결 예정)
 ///
 /// MissionManager의 현재 미션은 MissionManager.Start에서 만들어지므로,
 /// 첫 진행 이벤트(OnMissionProgressChanged)가 왔을 때 미션의 성공/실패 이벤트를 구독한다.
@@ -16,6 +18,9 @@ public class MissionResultPresenter : MonoBehaviour
 
     [Tooltip("실패 연출이 끝나면 켤 결과 화면. 꺼진 상태로 씬에 배치한다.")]
     [SerializeField] private GameObject _endingUI;
+
+    [Tooltip("제한 시간이 끝나면(TimeExpired) 실패 연출을 보여준다. 비워두면 시간 초과를 처리하지 않는다.")]
+    [SerializeField] private StageStatusSource _stageSource;
 
     private MissionManager _missionManager;
     private MissionBase _subscribedMission;
@@ -47,6 +52,11 @@ public class MissionResultPresenter : MonoBehaviour
             _failedPanel.Finished += HandleFailedPanelFinished;
         }
 
+        if (_stageSource != null)
+        {
+            _stageSource.TimeExpired += ShowFailure;
+        }
+
         _missionManager = MissionManager.Instance;
         if (_missionManager == null)
         {
@@ -62,6 +72,11 @@ public class MissionResultPresenter : MonoBehaviour
         if (_failedPanel != null)
         {
             _failedPanel.Finished -= HandleFailedPanelFinished;
+        }
+
+        if (_stageSource != null)
+        {
+            _stageSource.TimeExpired -= ShowFailure;
         }
 
         if (_missionManager != null)

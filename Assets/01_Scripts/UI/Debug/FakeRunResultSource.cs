@@ -3,6 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// [테스트 전용] 결과창을 확인하기 위한 가짜 결과 데이터. 인스펙터에서 값을 바꿔 확인할 수 있다.
+/// 스테이지 제한 시간이 끝나면(TimeExpired) 종료 사유를 TimeOver로 바꿔 전달한다.
+/// (다음 스테이지 입장 시 인스펙터의 종료 사유로 되돌아간다)
 /// </summary>
 public class FakeRunResultSource : RunResultSource
 {
@@ -19,6 +21,29 @@ public class FakeRunResultSource : RunResultSource
     [SerializeField] private int _mercury = 35;
     [SerializeField] private int _aetherCrystal = 8;
 
+    [Header("시간 초과 감지 (비워두면 사용 안 함)")]
+    [SerializeField] private StageStatusSource _stageSource;
+
+    private bool _isTimeOver;
+
+    private void OnEnable()
+    {
+        if (_stageSource != null)
+        {
+            _stageSource.TimeExpired += HandleTimeExpired;
+            _stageSource.StageEntered += HandleStageEntered;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_stageSource != null)
+        {
+            _stageSource.TimeExpired -= HandleTimeExpired;
+            _stageSource.StageEntered -= HandleStageEntered;
+        }
+    }
+
     public override RunResultData GetResult()
     {
         List<ResourceAmountData> researchResources = new()
@@ -29,6 +54,17 @@ public class FakeRunResultSource : RunResultSource
             new ResourceAmountData("aether_crystal", null, _aetherCrystal)
         };
 
-        return new RunResultData(_survivalSeconds, _maxDepth, _totalDamage, _killCount, _endReason, researchResources);
+        RunEndReason endReason = _isTimeOver ? RunEndReason.TimeOver : _endReason;
+        return new RunResultData(_survivalSeconds, _maxDepth, _totalDamage, _killCount, endReason, researchResources);
+    }
+
+    private void HandleTimeExpired()
+    {
+        _isTimeOver = true;
+    }
+
+    private void HandleStageEntered(int depth, string stageName)
+    {
+        _isTimeOver = false;
     }
 }
