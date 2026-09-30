@@ -71,7 +71,7 @@ public class PlayerAttack : MonoBehaviour
         Vector2 targetPosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
 
         // 총구 -> 마우스 방향
-        Vector2 targetDirection = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
+        Vector2 targetDirection = (targetPosition - (Vector2)transform.position).normalized;
 
         float bulletRoationZ = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg;
         // 총알 생성
