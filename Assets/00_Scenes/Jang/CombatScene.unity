@@ -366,6 +366,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerArm
   _arm: {fileID: 951199344}
   _offsetY: 0.03
+  _offsetX: 0.09
 --- !u!114 &180515092
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -379,7 +380,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBulletPosition
   _playerBulletPosition: {fileID: 415770931}
-  _offsetX: 0.3
 --- !u!1 &183798087
 GameObject:
   m_ObjectHideFlags: 0
@@ -878,7 +878,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1313729117
 SpriteRenderer:
   serializedVersion: 2
