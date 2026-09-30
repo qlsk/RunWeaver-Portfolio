@@ -379,6 +379,18 @@ MonoBehaviour:
   - {fileID: 136836587}
   - {fileID: 136836586}
   - {fileID: 136836585}
+--- !u!114 &136836597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136836570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 459165040bd748cdb3556046797fd63e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneEffectPipeline
 --- !u!1 &158822667
 GameObject:
   m_ObjectHideFlags: 0
@@ -1297,6 +1309,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       insertIndex: -1
       addedObject: {fileID: 136836591}
+    - targetCorrespondingSourceObject: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 136836597}
   m_SourcePrefab: {fileID: 100100000, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
