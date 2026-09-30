@@ -132,7 +132,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -157,6 +157,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2233211792818805624}
+  - component: {fileID: 4209253632465796800}
   m_Layer: 5
   m_Name: Right
   m_TagString: Untagged
@@ -201,7 +202,7 @@ GameObject:
   - component: {fileID: 910237122064476413}
   - component: {fileID: 3545175869613993331}
   m_Layer: 5
-  m_Name: ReStartBtn
+  m_Name: DeactivateRuneButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -371,7 +372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -601,7 +602,7 @@ GameObject:
   - component: {fileID: 1306604561309475784}
   - component: {fileID: 4060279903384226427}
   m_Layer: 5
-  m_Name: LobbyBtn
+  m_Name: ActiveRuneButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -726,7 +727,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3184207988375853244
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1125,7 +1126,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8944481597648949636
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1286,7 +1287,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1837,6 +1838,8 @@ GameObject:
   - component: {fileID: 6828873519741967105}
   - component: {fileID: 770158570169486156}
   - component: {fileID: 7916518011829424921}
+  - component: {fileID: 4298714803222458535}
+  - component: {fileID: 1060728514500890385}
   m_Layer: 5
   m_Name: RuneBookBlackPanel
   m_TagString: Untagged
@@ -2372,7 +2375,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6059019920346037520
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3067,7 +3070,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -5963,3 +5966,58 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4682912215512777851, guid: bca4ed052f642ea489889aec74bc74b5, type: 3}
   m_PrefabInstance: {fileID: 9056468999664384279}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4298714803222458535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4600345579477514441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a84ad5cd024fc2b08459dbca7e67e0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneBookPresenter
+  _dataSource: {fileID: 0}
+  _entrySlotContainer: {fileID: 5542748969315580439}
+  _activatedSlotContainer: {fileID: 4483254944007194535}
+  _detailView: {fileID: 4209253632465796800}
+  _activateButton: {fileID: 4060279903384226427}
+  _deactivateButton: {fileID: 3545175869613993331}
+  _ownedRuneStoneList: {fileID: 1060728514500890385}
+--- !u!114 &1060728514500890385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4600345579477514441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e7532eeb790c557bf5b4f20c305f565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OwnedRuneStoneListView
+  _listPanel: {fileID: 1749976854720473546}
+  _openButton: {fileID: 3931764635052204103}
+  _closeButton: {fileID: 7621916876506671512}
+  _isOpenedOnStart: 1
+  _content: {fileID: 7227264146741480910}
+  _itemPrefab: {fileID: 3839822490011376269, guid: 62fe715ba1b1e204d9231cc3f9a4a694, type: 3}
+--- !u!114 &4209253632465796800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 788208713907791809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21a02e5891be1e2519056fc4d80095df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneDetailView
+  _symbolSlot: {fileID: 0}
+  _runeWordText: {fileID: 788903289946568247}
+  _nameText: {fileID: 9047441427652761700}
+  _descriptionText: {fileID: 5947163324564902154}
+  _unknownText: ???
+  _noSelectionName: Select a rune
