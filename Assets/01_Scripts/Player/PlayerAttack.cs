@@ -1,111 +1,72 @@
-using System.IO;
+using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    /*
-     * TODO: Object Pooling
-     */
-    [Header("마탄 쿨타임")]
-    [SerializeField] private float _bulletFireRate = 1f;
-    [Header("탄창 크기")]
-    [SerializeField] private int _magazineSize = 10;
-    [Header("재장전 시간")]
-    [SerializeField] private float _reloadTime = 2f;
-    [Header("마탄 프리팹")]
-    [SerializeField] private Bullet _bulletPrefab;
-    [Header("총구 위치")]
-    [SerializeField] private GameObject _firePosition;
-    [Header("기본 탄환 능력치")]
-    [SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [Header("참조")]
+    [LabelText("탄환 프리팹")][SerializeField] private Bullet _bulletPrefab;
+    [LabelText("발사 위치")][SerializeField] private GameObject _firePosition;
+
+    [Header("설정 값")]
+    [LabelText("발사 쿨타임")][SerializeField] private float _bulletFireRate = 1f;
+    [LabelText("탄환 공격력")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [LabelText("탄환 속도")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [LabelText("탄환 사거리")][SerializeField, Min(0f)] private float _bulletRange = 10f;
+
+    [SerializeField] private ElementType _mainElement;
 
     private PlayerInputHandler _playerInputHandler;
-
-    // 마탄 쿨타이머
+    private Camera _camera;
     private float _bulletFireCoolTimer;
-    private int _currentAmmo;
-    private bool _isReloading;
-    private float _reloadTimer;
 
-    public void Start()
+    public ElementType MainElement => _mainElement;
+
+    /// <summary>공격에 필요한 참조를 확인하고 첫 발사를 준비한다.</summary>
+    private void Start()
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
-        _currentAmmo = _magazineSize;
+        _camera = Camera.main;
+        if (_playerInputHandler == null || _camera == null || _bulletPrefab == null || _firePosition == null)
+            throw new MissingReferenceException(
+                "PlayerAttack requires input, a main camera, a bullet prefab and a fire position.");
+
         _bulletFireCoolTimer = _bulletFireRate;
     }
 
+    /// <summary>발사 대기 시간을 갱신하고 공격 입력이 유지되면 발사한다.</summary>
     private void Update()
     {
         _bulletFireCoolTimer += Time.deltaTime;
-
-        if (_isReloading)
-        {
-            _reloadTimer += Time.deltaTime;
-            if (_reloadTimer < _reloadTime) return;
-
-            _currentAmmo = _magazineSize;
-            _isReloading = false;
-        }
-
-        if (_playerInputHandler.IsReloadPressed || _currentAmmo == 0)
-        {
-            Reload();
-        }
-
-        if (_isReloading) return;
-
-        // 마우스 왼쪽 버튼을 누르고 있고 마탄 쿨타임이 다 지났다면
-        if (_playerInputHandler.IsAttackHeld && _bulletFireCoolTimer >= _bulletFireRate)
-        {
+        if (_playerInputHandler.IsAttackHeld)
             Fire();
-        }
     }
 
+    /// <summary>발사 간격에 맞춰 마우스 방향으로 주력 원소를 가진 탄환을 발사한다.</summary>
     public void Fire()
     {
-        if (_isReloading || _currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate) return;
+        if (_bulletFireCoolTimer < _bulletFireRate)
+            return;
 
-        // 마우스 Screen 좌표 -> World 좌표
-        Vector2 targetPosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 targetPosition = _camera.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 direction = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
+        if (direction == Vector2.zero)
+            return;
 
-        // 총구 -> 마우스 방향
-        Vector2 targetDirection = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
-
-        float bulletRoationZ = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg;
-        // 총알 생성
+        float rotationZ = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position,
-            Quaternion.Euler(0, 0, bulletRoationZ));
+            Quaternion.Euler(0f, 0f, rotationZ));
+        bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _mainElement);
 
-        // 이 발사의 기본 능력치. Power/Speed/Range 보정은 Initialize 전에 반영한다.
-        var stats = new BulletStats
-        {
-            Damage = _bulletDamage,
-            Speed = _bulletSpeed,
-            Range = _bulletRange
-        };
-        // 현재는 아래 생성자에서 룬을 직접 지정한다. 장착 룬 자동 해석은 아직 연결되지 않았다.
-        // 장착 시스템 연결 시 해당 시스템이 만든 Config로 교체한다.
-        var effects = new BulletEffectConfig(
-            endEffect: BulletEndEffect.Orbit,
-            pierce: true,
-            seek: true,
-            reverse: true
-        );
-        // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
-        bullet.Initialize(stats, effects, transform, targetDirection);
-
-        _currentAmmo--;
-        // 발사 간격을 마지막 발사 시점부터 측정
         _bulletFireCoolTimer = 0f;
     }
 
-    public void Reload()
+    /// <summary>앞으로 발사할 탄환의 주력 원소를 변경한다.</summary>
+    public void SetMainElement(ElementType element)
     {
-        if (_isReloading || _currentAmmo >= _magazineSize) return;
+        if (!Enum.IsDefined(typeof(ElementType), element))
+            throw new ArgumentOutOfRangeException(nameof(element));
 
-        _isReloading = true;
-        _reloadTimer = 0f;
+        _mainElement = element;
     }
 }

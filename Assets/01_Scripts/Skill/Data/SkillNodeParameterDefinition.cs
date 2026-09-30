@@ -13,7 +13,11 @@ public class SkillNodeParameterDefinition
     public ParameterType ParameterType => _parameterType;
     public float Value => _value;
 
-    public SkillNodeParameterDefinition(string nodeId, int level, ParameterType parameterType, float value)
+    public SkillNodeParameterDefinition(
+        string nodeId,
+        int level,
+        ParameterType parameterType,
+        float value)
     {
         _nodeId = nodeId;
         _level = level;

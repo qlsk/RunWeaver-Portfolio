@@ -7,5 +7,7 @@ public enum BootstrapStage
     SkillDatabase,
     ResearchDatabase,
     DefinitionSet,
-    GameSession
+    GameSession,
+    RuneBookPreparation,
+    RuneDependencyConfiguration
 }
