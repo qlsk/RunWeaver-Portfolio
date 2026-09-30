@@ -30,8 +30,12 @@ public class AltarDefenseMission : MissionBase
         }
         else
         {
+            // 중복 구독 방지
+            targetAltar.OnAltarDestroyed -= HandleAltarDestroyed;
             targetAltar.OnAltarDestroyed += HandleAltarDestroyed;
+            targetAltar.OnHealthChanged -= HandleAltarHealthChanged;
             targetAltar.OnHealthChanged += HandleAltarHealthChanged;
+
             Debug.Log($"[AltarDefenseMission] 제단 방어 미션 시작: 제단 체력 {targetAltar.CurrentHealth}/{targetAltar.MaxHealth}, 목표 시간 {defenseDuration}초");
         }
 
@@ -39,6 +43,16 @@ public class AltarDefenseMission : MissionBase
     }
 
     private void OnDisable()
+    {
+        UnsubscribeAltarEvents();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeAltarEvents();
+    }
+
+    private void UnsubscribeAltarEvents()
     {
         if (targetAltar != null)
         {
@@ -65,7 +79,7 @@ public class AltarDefenseMission : MissionBase
             if (currentTimer <= 0f)
             {
                 currentTimer = 0f;
-                // 시간이 다 되었을 때 제단이 살아있으면 성공!
+                // 시간이 다 되었을 때 제단이 파괴되지 않았다면 성공!
                 if (targetAltar != null && !targetAltar.IsDestroyed)
                 {
                     CompleteMission();
@@ -87,12 +101,20 @@ public class AltarDefenseMission : MissionBase
 
     public override float GetProgressRatio()
     {
+        // 제단이 파괴되었거나 미션이 실패한 경우 0% 반환 (피드백 반영)
+        if (IsFailed || (targetAltar != null && targetAltar.IsDestroyed)) return 0f;
         if (defenseDuration <= 0f) return 1f;
+
         return Mathf.Clamp01(1f - (currentTimer / defenseDuration));
     }
 
     public override string GetProgressText()
     {
+        if (IsFailed || (targetAltar != null && targetAltar.IsDestroyed))
+        {
+            return "제단 방어 실패 (제단 파괴됨)";
+        }
+
         string altarInfo = targetAltar != null ? $"제단 HP: {Mathf.CeilToInt(targetAltar.CurrentHealth)}" : "제단 없음";
         return $"제단 방어 남은 시간: {Mathf.CeilToInt(currentTimer)}초 | {altarInfo}";
     }
