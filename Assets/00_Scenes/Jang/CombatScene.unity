@@ -1152,6 +1152,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -5061926888099938501, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 922c88cb69f147c408bc4740b195fcdb, type: 2}
+    - target: {fileID: 2551697017257419659, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _offsetX
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 2551697017257419659, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _offsetY
+      value: 0.05
+      objectReference: {fileID: 0}
     - target: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1160,6 +1172,14 @@ PrefabInstance:
       propertyPath: _runeStoneInventory
       value: 
       objectReference: {fileID: 42451153}
+    - target: {fileID: 4353578317361503239, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.137
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353578317361503239, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.006
+      objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.39
@@ -1199,6 +1219,14 @@ PrefabInstance:
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8026872993754127545, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _offsetX
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8026872993754127545, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _offsetY
+      value: 0.05
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
