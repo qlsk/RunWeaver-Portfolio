@@ -632,7 +632,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &761737269
 SpriteRenderer:
   serializedVersion: 2
@@ -841,6 +841,7 @@ MonoBehaviour:
   _runeEffectDatabase: {fileID: 1320659391}
   _skillDatabase: {fileID: 183798088}
   _researchDatabase: {fileID: 1010764932}
+  _runeStoneInventory: {fileID: 42451153}
 --- !u!4 &951670900
 Transform:
   m_ObjectHideFlags: 0
@@ -920,6 +921,8 @@ GameObject:
   - component: {fileID: 1313729122}
   - component: {fileID: 1313729123}
   - component: {fileID: 1313729125}
+  - component: {fileID: 1313729127}
+  - component: {fileID: 1313729126}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -977,7 +980,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -995,7 +998,7 @@ Transform:
   m_GameObject: {fileID: 1313729116}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.61, y: 0.76, z: 0}
+  m_LocalPosition: {x: 5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1027,6 +1030,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 7a69d66de2c99684ab32ef7c65b206ac, type: 2}
   _targetDetector: {fileID: 1313729119}
+  _enemyMove: 0
 --- !u!114 &1313729121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1143,6 +1147,32 @@ MonoBehaviour:
   _minQuantity: 0
   _maxQuantity: 3
   runePrefab: {fileID: 7604851959272145055, guid: af0ce2a398dee2b40a34d0a87efd6eff, type: 3}
+--- !u!114 &1313729126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1313729116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c743b84d919a46c7a5d4e936d847c4fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Burn
+--- !u!114 &1313729127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1313729116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16df6d7935d94a57b34e03b3b43ed77c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enemy
+  _enemyHealth: {fileID: 1313729121}
+  _burn: {fileID: 1313729126}
 --- !u!1 &1320659390
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,6 +1278,14 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 340774800492513042, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _bulletSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 340774800492513042, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _bulletPrefab
+      value: 
+      objectReference: {fileID: -366077479794701219, guid: 5869fc16855d2d449b0c753f4340d1e5, type: 3}
+    - target: {fileID: 340774800492513042, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: _bulletFireRate
       value: 1
       objectReference: {fileID: 0}
@@ -1261,11 +1299,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.32
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.07
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.z
