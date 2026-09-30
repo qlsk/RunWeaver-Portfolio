@@ -23,11 +23,9 @@ public class PlayerArm : MonoBehaviour
 
         Vector2 direction = mousePosition - (Vector2)_origin;
 
-        _arm.SetActive(_playerInputHandler.MoveDirection != Vector2.zero);
 
         if (_playerInputHandler.MoveDirection.x > 0f)
         {
-            _arm.transform.position = _origin + new Vector3(_offsetX, _offsetY, 0f);
             _armSpriteRenderer.flipX = true;
             _arm.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
             if (mousePosition.x > transform.position.x)
@@ -54,6 +52,22 @@ public class PlayerArm : MonoBehaviour
             else
             {
                 _armSpriteRenderer.flipY = false;
+                _arm.transform.position = _origin + new Vector3(-_offsetX, _offsetY, 0f);
+            }
+        }
+        else
+        {
+            _arm.transform.position = _origin;
+            _armSpriteRenderer.flipX = true;
+            _arm.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+            if (mousePosition.x > transform.position.x)
+            {
+                _armSpriteRenderer.flipY = false;
+                _arm.transform.position = _origin + new Vector3(_offsetX, _offsetY, 0f);
+            }
+            else
+            {
+                _armSpriteRenderer.flipY = true;
                 _arm.transform.position = _origin + new Vector3(-_offsetX, _offsetY, 0f);
             }
         }
