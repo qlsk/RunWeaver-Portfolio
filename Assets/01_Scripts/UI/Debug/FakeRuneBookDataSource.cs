@@ -8,6 +8,11 @@ using UnityEngine;
 /// 룬 효과 22종과 룬석 21종은 Rune Weaver Database를 기준으로 하며, 장착 규칙은 RuneLoadout을 따른다.
 /// 룬 워드는 DB 값 대신 영문명을 룬 문자로 옮겨 만든다.
 ///
+/// 장착 규칙 (기획 확정안, 팀원 RuneLoadout 반영 전까지 테스트용으로 먼저 적용)
+/// - 1번 칸: 메인 원소 전용. 시작 시 무료로 장착되어 있으며 교체만 가능하고 비울 수 없다.
+/// - 2~5번 칸: 원소/비원소 모두 가능. 단 서브 원소는 2~5번 칸 전체에서 1개만.
+/// - 상호 배타: Return, Fix, Orbit은 서로 함께 장착할 수 없다. (룬 상호작용 문서 23장)
+///
 /// 테스트 키
 /// 1: 모든 룬석 추가
 /// 2: 다음 카테고리 공개 (Behaviour → Control → Special)
@@ -18,11 +23,13 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 {
     private const int SlotLimit = 5;
     private const int MinActiveSlotCount = 2;
-    private const int ElementSlotCount = 2;
+    private const int MainElementSlotIndex = 0;
 
     [Header("시작 상태")]
     [SerializeField, Range(MinActiveSlotCount, SlotLimit)] private int _startActiveSlotCount = MinActiveSlotCount;
     [SerializeField, Min(0)] private int _startRuneStoneQuantity = 3;
+    [Tooltip("게임 시작 시 무료로 1번 칸에 장착되는 메인 원소 (rune_fire, rune_water, rune_earth, rune_wind)")]
+    [SerializeField] private string _startMainElementId = "rune_fire";
 
     [Header("아이콘 (비워두면 프리팹의 기본 이미지 사용)")]
     [SerializeField] private RuneStoneIconCatalog _runeStoneIconCatalog;
@@ -83,6 +90,14 @@ public class FakeRuneBookDataSource : RuneBookDataSource
             ("rune_echo", "Echo", RuneEffectCategory.Special, true,
                 "After an elemental reaction occurs, the same reaction triggers once more after a delay.")
         };
+
+    /// <summary>
+    /// 서로 함께 장착할 수 없는 룬 묶음. 같은 묶음 안의 서로 다른 룬은 동시에 장착할 수 없다.
+    /// </summary>
+    private static readonly string[][] s_exclusiveGroups =
+    {
+        new[] { "rune_return", "rune_fix", "rune_orbit" }
+    };
 
     private static readonly (string Id, char RuneCharacter)[] s_runeStoneTable =
     {
@@ -166,6 +181,8 @@ public class FakeRuneBookDataSource : RuneBookDataSource
             });
         }
 
+        EquipStartMainElement();
+
         Debug.Log($"[FakeRuneBookDataSource] 테스트 데이터 준비 완료. " +
                   $"{_addRuneStonesKey}: 룬석 추가, {_revealNextCategoryKey}: 카테고리 공개, {_expandSlotKey}: 활성 칸 확장");
     }
@@ -247,10 +264,22 @@ public class FakeRuneBookDataSource : RuneBookDataSource
             return false;
         }
 
-        // RuneLoadout 규칙: 1~2번째 칸은 원소 룬 전용, 나머지 칸은 원소 외 룬 전용
-        bool isElementSlot = slotIndex < ElementSlotCount;
         bool isElementEntry = entry.Category == RuneEffectCategory.Element;
-        if (isElementSlot != isElementEntry)
+
+        // 1번 칸은 메인 원소 전용
+        if (slotIndex == MainElementSlotIndex && !isElementEntry)
+        {
+            return false;
+        }
+
+        // 서브 원소는 2~5번 칸 전체에서 1개만 (같은 칸의 교체는 허용)
+        if (slotIndex != MainElementSlotIndex && isElementEntry && HasSubElementExcept(slotIndex))
+        {
+            return false;
+        }
+
+        // Return, Fix, Orbit 등 상호 배타 룬은 다른 칸에 있으면 장착 불가 (같은 칸의 교체는 허용)
+        if (HasExclusiveConflict(slotIndex, entryId))
         {
             return false;
         }
@@ -280,7 +309,9 @@ public class FakeRuneBookDataSource : RuneBookDataSource
     public override bool CanUnequip(int slotIndex)
     {
         EnsureInitialized();
-        return IsActiveSlot(slotIndex) && !string.IsNullOrEmpty(_equippedEntryIds[slotIndex]);
+        // 1번 칸(메인 원소)은 교체만 가능하고 비울 수 없다.
+        return IsActiveSlot(slotIndex) && slotIndex != MainElementSlotIndex
+                                       && !string.IsNullOrEmpty(_equippedEntryIds[slotIndex]);
     }
 
     public override bool TryUnequip(int slotIndex)
@@ -375,6 +406,76 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         }
 
         Debug.LogWarning("[FakeRuneBookDataSource] 테스트 메뉴는 플레이 모드에서만 사용할 수 있습니다.");
+        return false;
+    }
+
+    private void EquipStartMainElement()
+    {
+        FakeEntry mainElement = FindEntry(_startMainElementId);
+        if (mainElement == null || mainElement.Category != RuneEffectCategory.Element)
+        {
+            Debug.LogWarning($"[FakeRuneBookDataSource] 시작 메인 원소 '{_startMainElementId}'를 찾지 못해 첫 원소 룬을 사용합니다.", this);
+            mainElement = _entries.Find(entry => entry.Category == RuneEffectCategory.Element);
+        }
+
+        if (mainElement == null)
+        {
+            return;
+        }
+
+        // 시작 메인 원소는 무료로 지급되므로 룬석을 소모하지 않는다.
+        _equippedEntryIds[MainElementSlotIndex] = mainElement.Id;
+        mainElement.RevealLevel = RuneWordRevealLevel.Detailed;
+    }
+
+    private bool HasSubElementExcept(int slotIndex)
+    {
+        for (int i = 0; i < _activeSlotCount; i++)
+        {
+            if (i == MainElementSlotIndex || i == slotIndex)
+            {
+                continue;
+            }
+
+            FakeEntry equipped = FindEntry(_equippedEntryIds[i]);
+            if (equipped != null && equipped.Category == RuneEffectCategory.Element)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasExclusiveConflict(int slotIndex, string entryId)
+    {
+        for (int i = 0; i < _activeSlotCount; i++)
+        {
+            string equippedId = _equippedEntryIds[i];
+            if (i == slotIndex || string.IsNullOrEmpty(equippedId) || equippedId == entryId)
+            {
+                continue;
+            }
+
+            if (AreMutuallyExclusive(entryId, equippedId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool AreMutuallyExclusive(string entryIdA, string entryIdB)
+    {
+        foreach (string[] group in s_exclusiveGroups)
+        {
+            if (Array.IndexOf(group, entryIdA) >= 0 && Array.IndexOf(group, entryIdB) >= 0)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
