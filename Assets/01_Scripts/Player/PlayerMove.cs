@@ -7,16 +7,7 @@ public class PlayerMove : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
 
-    private bool _canMove = true;
-    public bool CanMove => _canMove;
-
-    private bool _isMoving = false;
-    public bool IsMoving => _isMoving;
-
-    public void SetCanMove(bool canMove)
-    {
-        _canMove = canMove;
-    }
+    public bool IsMoving => _playerRigidbody2D != null && _playerRigidbody2D.linearVelocity.sqrMagnitude > 0.0001f;
 
     private void Start()
     {
@@ -32,16 +23,12 @@ public class PlayerMove : MonoBehaviour
 
     private void Move()
     {
-        if (!CanMove)
+        if (_dash.IsDashing)
         {
-            _isMoving = false;
             return;
         }
 
         Vector2 moveDirection = _playerInputHandler.MoveDirection;
-
-        // 이동 상태 설정
-        _isMoving = moveDirection != Vector2.zero;
 
         _playerRigidbody2D.linearVelocity = moveDirection * _playerMoveSpeed;
     }
