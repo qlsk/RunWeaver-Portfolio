@@ -5,14 +5,17 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("참조")]
-    [LabelText("탄환 프리팹")][SerializeField] private Bullet _bulletPrefab;
-    [LabelText("발사 위치")][SerializeField] private GameObject _firePosition;
+    [LabelText("탄환 프리팹")] [SerializeField] private Bullet _bulletPrefab;
+    [LabelText("발사 위치")] [SerializeField] private GameObject _firePosition;
 
     [Header("설정 값")]
-    [LabelText("발사 쿨타임")][SerializeField] private float _bulletFireRate = 1f;
-    [LabelText("탄환 공격력")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [LabelText("탄환 속도")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [LabelText("탄환 사거리")][SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [LabelText("발사 쿨타임")] [SerializeField] private float _bulletFireRate = 1f;
+    [LabelText("탄환 공격력")] [SerializeField, Min(0f)]
+    private float _bulletDamage = 10f;
+    [LabelText("탄환 속도")] [SerializeField, Min(0.01f)]
+    private float _bulletSpeed = 5f;
+    [LabelText("탄환 사거리")] [SerializeField, Min(0f)]
+    private float _bulletRange = 10f;
 
     [SerializeField] private ElementType _mainElement;
 
@@ -55,7 +58,7 @@ public class PlayerAttack : MonoBehaviour
 
         float rotationZ = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position,
-            Quaternion.Euler(0f, 0f, rotationZ));
+            Quaternion.Euler(0f, 45f, rotationZ));
         bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _mainElement);
 
         _bulletFireCoolTimer = 0f;

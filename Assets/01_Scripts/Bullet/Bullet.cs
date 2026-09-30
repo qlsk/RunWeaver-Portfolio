@@ -45,17 +45,18 @@ public class Bullet : MonoBehaviour
         if (!_initialized)
             return;
 
-        var enemy = collision.GetComponentInParent<EnemyHealth>();
-        if (enemy == null || enemy.IsDead || !enemy.isActiveAndEnabled)
+        var enemyHealth = collision.GetComponentInParent<EnemyHealth>();
+        var enemy = collision.GetComponent<Enemy>();
+        if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
             return;
 
         // Destroy가 처리되기 전 중복 충돌로 피해가 반복되는 것을 막는다.
         _initialized = false;
-        enemy.ApplyDamage(_damage);
+        enemyHealth.TakeDamage(_damage);
 
         if (_mainElement == ElementType.Fire)
         {
-            // TODO: 몬스터에게 지속 피해를 입힌다.
+            enemy.Burn.Activate(_damage);
         }
         Destroy(gameObject);
     }
