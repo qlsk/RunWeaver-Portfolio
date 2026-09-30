@@ -14,7 +14,7 @@ public class PlayerBulletPosition : MonoBehaviour
     private void Update()
     {
         _origin = transform.position;
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 mousePosition = _playerInputHandler.MousePosition;
         _playerBulletPosition.transform.position =
             (Vector2)_origin + (mousePosition - (Vector2)transform.position).normalized;
     }

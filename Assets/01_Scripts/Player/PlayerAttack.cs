@@ -78,7 +78,7 @@ public class PlayerAttack : MonoBehaviour
         if (_isReloading || _currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate) return;
 
         // 마우스 Screen 좌표 -> World 좌표
-        Vector2 targetPosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 targetPosition = _playerInputHandler.MousePosition;
 
         // 총구 -> 마우스 방향
         Vector2 targetDirection = (targetPosition - (Vector2)transform.position).normalized;

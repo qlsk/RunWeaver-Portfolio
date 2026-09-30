@@ -19,7 +19,7 @@ public class PlayerArm : MonoBehaviour
     {
         _origin = gameObject.transform.position;
 
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 mousePosition = _playerInputHandler.MousePosition;
 
         Vector2 direction = mousePosition - (Vector2)_origin;
 
