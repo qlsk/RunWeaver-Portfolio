@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// MissionManager의 미션 진행 상황을 HUD 미션 두루마리에 표시한다.
+/// MissionManager의 현재 미션 진행 상황을 HUD 미션 두루마리에 표시한다.
+/// 층마다 새 미션이 시작되므로(OnMissionInitialized) 그때마다 새 미션의 진행 이벤트로 구독을 옮긴다.
 /// 씬에 MissionManager가 없으면 아무것도 하지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -10,6 +11,7 @@ public class MissionHudBinder : MonoBehaviour
     [SerializeField] private MissionScrollView _view;
 
     private MissionManager _missionManager;
+    private MissionBase _subscribedMission;
 
     private void Start()
     {
@@ -20,12 +22,13 @@ public class MissionHudBinder : MonoBehaviour
             return;
         }
 
-        _missionManager.OnMissionProgressChanged += HandleMissionProgressChanged;
+        _missionManager.OnMissionInitialized += HandleMissionInitialized;
 
+        // MissionManager.Start가 먼저 실행되어 이미 미션이 있으면 바로 연결한다.
         MissionBase currentMission = _missionManager.GetCurrentMission();
         if (currentMission != null)
         {
-            _view.SetMission(GetTitle(currentMission), currentMission.GetProgressText());
+            HandleMissionInitialized(currentMission);
         }
     }
 
@@ -33,13 +36,45 @@ public class MissionHudBinder : MonoBehaviour
     {
         if (_missionManager != null)
         {
-            _missionManager.OnMissionProgressChanged -= HandleMissionProgressChanged;
+            _missionManager.OnMissionInitialized -= HandleMissionInitialized;
+        }
+
+        SubscribeMission(null);
+    }
+
+    private void HandleMissionInitialized(MissionBase mission)
+    {
+        SubscribeMission(mission);
+
+        if (mission != null)
+        {
+            _view.SetMission(GetTitle(mission), mission.GetProgressText());
         }
     }
 
-    private void HandleMissionProgressChanged(float progressRatio, string progressText)
+    private void SubscribeMission(MissionBase mission)
     {
-        _view.SetMission(GetTitle(_missionManager.GetCurrentMission()), progressText);
+        if (_subscribedMission == mission)
+        {
+            return;
+        }
+
+        if (_subscribedMission != null)
+        {
+            _subscribedMission.OnMissionProgressUpdated -= HandleMissionProgressUpdated;
+        }
+
+        _subscribedMission = mission;
+
+        if (_subscribedMission != null)
+        {
+            _subscribedMission.OnMissionProgressUpdated += HandleMissionProgressUpdated;
+        }
+    }
+
+    private void HandleMissionProgressUpdated(float progressRatio, string progressText)
+    {
+        _view.SetMission(GetTitle(_subscribedMission), progressText);
     }
 
     private static string GetTitle(MissionBase mission)

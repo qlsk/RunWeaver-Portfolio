@@ -7,8 +7,8 @@ using UnityEngine;
 /// 스테이지 제한 시간이 끝나도(StageStatusSource.TimeExpired) 실패 연출을 보여준다.
 /// (현재는 연출만 연결. 실제 미션 실패 처리는 팀원 구현 후 연결 예정)
 ///
-/// MissionManager의 현재 미션은 MissionManager.Start에서 만들어지므로,
-/// 첫 진행 이벤트(OnMissionProgressChanged)가 왔을 때 미션의 성공/실패 이벤트를 구독한다.
+/// 층마다 새 미션이 시작되므로(MissionManager.OnMissionInitialized) 그때마다 새 미션의 성공/실패 이벤트로 구독을 옮긴다.
+/// 새 미션이 시작되면 성공 연출을 다시 보여줄 수 있다. (실패는 결과창으로 넘어가므로 한 번만)
 /// </summary>
 [DisallowMultipleComponent]
 public class MissionResultPresenter : MonoBehaviour
@@ -25,6 +25,7 @@ public class MissionResultPresenter : MonoBehaviour
     private MissionManager _missionManager;
     private MissionBase _subscribedMission;
     private bool _hasShownResult;
+    private bool _hasShownFailure;
 
     private void Awake()
     {
@@ -63,7 +64,9 @@ public class MissionResultPresenter : MonoBehaviour
             return;
         }
 
-        _missionManager.OnMissionProgressChanged += HandleMissionProgressChanged;
+        _missionManager.OnMissionInitialized += HandleMissionInitialized;
+
+        // MissionManager.Start가 먼저 실행되어 이미 미션이 있으면 바로 연결한다.
         SubscribeMission(_missionManager.GetCurrentMission());
     }
 
@@ -81,7 +84,7 @@ public class MissionResultPresenter : MonoBehaviour
 
         if (_missionManager != null)
         {
-            _missionManager.OnMissionProgressChanged -= HandleMissionProgressChanged;
+            _missionManager.OnMissionInitialized -= HandleMissionInitialized;
         }
 
         SubscribeMission(null);
@@ -106,6 +109,7 @@ public class MissionResultPresenter : MonoBehaviour
         }
 
         _hasShownResult = true;
+        _hasShownFailure = true;
         _failedPanel.Play();
     }
 
@@ -115,6 +119,7 @@ public class MissionResultPresenter : MonoBehaviour
     public void ResetForTest()
     {
         _hasShownResult = false;
+        _hasShownFailure = false;
 
         if (_successPanel != null)
         {
@@ -132,9 +137,15 @@ public class MissionResultPresenter : MonoBehaviour
         }
     }
 
-    private void HandleMissionProgressChanged(float progressRatio, string progressText)
+    private void HandleMissionInitialized(MissionBase mission)
     {
-        SubscribeMission(_missionManager.GetCurrentMission());
+        SubscribeMission(mission);
+
+        // 새 미션이 시작되면 성공 연출을 다시 보여줄 수 있게 한다. 실패 후에는 결과창으로 넘어가므로 그대로 둔다.
+        if (!_hasShownFailure)
+        {
+            _hasShownResult = false;
+        }
     }
 
     private void SubscribeMission(MissionBase mission)
