@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
@@ -8,10 +7,27 @@ public class PlayerAttack : MonoBehaviour
      */
     [Header("마탄 쿨타임")]
     [SerializeField] private float _bulletFireRate = 1f;
+    // 마탄 쿨타이머(탄 하나 하나의 쿨 타임)
+    private float _bulletFireCoolTimer;
+    public float BulletFireCoolTimer => _bulletFireCoolTimer;
+
     [Header("탄창 크기")]
     [SerializeField] private int _magazineSize = 10;
+    public int MagazineSize => _magazineSize;
+    // 현재 탄 수
+    private int _currentAmmo;
+    public int CurrentAmmo => _currentAmmo;
+
     [Header("재장전 시간")]
     [SerializeField] private float _reloadTime = 2f;
+    // 재장전 여부
+    private bool _isReloading;
+    public bool IsReloading => _isReloading;
+
+    // 재장전 진행도
+    private float _reloadTimer;
+    public float ReloadTimer => _reloadTimer;
+
     [Header("마탄 프리팹")]
     [SerializeField] private Bullet _bulletPrefab;
     [Header("총구 위치")]
@@ -22,12 +38,6 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField, Min(0f)] private float _bulletRange = 10f;
 
     private PlayerInputHandler _playerInputHandler;
-
-    // 마탄 쿨타이머
-    private float _bulletFireCoolTimer;
-    private int _currentAmmo;
-    private bool _isReloading;
-    private float _reloadTimer;
 
     public void Start()
     {
