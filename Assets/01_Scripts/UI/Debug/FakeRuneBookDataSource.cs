@@ -272,6 +272,11 @@ public class FakeRuneBookDataSource : RuneBookDataSource
     [ContextMenu("Test/Add Rune Stones")]
     private void AddRuneStonesFromMenu()
     {
+        if (!IsPlayingForMenu())
+        {
+            return;
+        }
+
         AddAllRuneStones(_addRuneStoneQuantity);
     }
 
@@ -289,6 +294,11 @@ public class FakeRuneBookDataSource : RuneBookDataSource
     [ContextMenu("Test/Reveal Next Category")]
     private void RevealNextCategory()
     {
+        if (!IsPlayingForMenu())
+        {
+            return;
+        }
+
         if (_nextCategoryIndex >= s_categoryRevealOrder.Length)
         {
             Debug.Log("[FakeRuneBookDataSource] 모든 카테고리가 이미 공개되었습니다.");
@@ -313,6 +323,11 @@ public class FakeRuneBookDataSource : RuneBookDataSource
     [ContextMenu("Test/Expand Active Slot")]
     private void ExpandActiveSlot()
     {
+        if (!IsPlayingForMenu())
+        {
+            return;
+        }
+
         if (_activeSlotCount >= SlotLimit)
         {
             Debug.Log($"[FakeRuneBookDataSource] 활성 칸이 이미 최대({SlotLimit}칸)입니다.");
@@ -322,6 +337,17 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         _activeSlotCount++;
         Debug.Log($"[FakeRuneBookDataSource] 활성 칸 확장: {_activeSlotCount}칸");
         NotifyChanged();
+    }
+
+    private static bool IsPlayingForMenu()
+    {
+        if (Application.isPlaying)
+        {
+            return true;
+        }
+
+        Debug.LogWarning("[FakeRuneBookDataSource] 테스트 메뉴는 플레이 모드에서만 사용할 수 있습니다.");
+        return false;
     }
 
     private bool IsActiveSlot(int slotIndex)

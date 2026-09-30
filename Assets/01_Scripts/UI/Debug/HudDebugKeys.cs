@@ -7,6 +7,7 @@ using UnityEngine;
 ///
 /// 테스트 키
 /// 4: 체력 감소 / 5: 체력 회복 / 8: 미션 진행 +1
+/// 9: 미션 성공 연출 / 0: 미션 실패 연출 (누를 때마다 처음부터 다시 재생)
 /// </summary>
 public class HudDebugKeys : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class HudDebugKeys : MonoBehaviour
     [SerializeField] private MissionScrollView _missionView;
     [SerializeField, Min(1)] private int _missionTarget = 5;
     [SerializeField] private KeyCode _missionProgressKey = KeyCode.Alpha8;
+
+    [Header("미션 결과")]
+    [SerializeField] private MissionResultPresenter _missionResult;
+    [SerializeField] private KeyCode _missionSuccessKey = KeyCode.Alpha9;
+    [SerializeField] private KeyCode _missionFailKey = KeyCode.Alpha0;
 
     private int _missionProgress;
 
@@ -44,6 +50,18 @@ public class HudDebugKeys : MonoBehaviour
         {
             _missionProgress = _missionProgress >= _missionTarget ? 0 : _missionProgress + 1;
             ShowMission();
+        }
+
+        if (Input.GetKeyDown(_missionSuccessKey) && _missionResult != null)
+        {
+            _missionResult.ResetForTest();
+            _missionResult.ShowSuccess();
+        }
+
+        if (Input.GetKeyDown(_missionFailKey) && _missionResult != null)
+        {
+            _missionResult.ResetForTest();
+            _missionResult.ShowFailure();
         }
     }
 

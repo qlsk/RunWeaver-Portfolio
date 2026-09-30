@@ -48,6 +48,8 @@ GameObject:
   - component: {fileID: 8110420657988907431}
   - component: {fileID: 5141058915935371194}
   - component: {fileID: 5787910676664630094}
+  - component: {fileID: 5000901869329216964}
+  - component: {fileID: 5932498905831329072}
   m_Layer: 0
   m_Name: Player_Sung
   m_TagString: Player
@@ -154,11 +156,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  _bulletFireRate: 0.2
+  _bulletFireRate: 1
   _magazineSize: 10
-  _reloadTime: 1
+  _reloadTime: 2
   _bulletPrefab: {fileID: 1808444329942870919, guid: ec434d07ffa8e6c45aa77bbacc0238a0, type: 3}
   _firePosition: {fileID: 2639883728027744658}
+  _bulletDamage: 10
+  _bulletSpeed: 5
+  _bulletRange: 10
 --- !u!114 &1796876364397183347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,7 +178,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dash
   _playerInputHandler: {fileID: 5863673722175249506}
   _dashDuration: 0.2
-  _dashPower: 10
+  _dashPower: 15
   _dashCooldown: 3
 --- !u!114 &5863673722175249506
 MonoBehaviour:
@@ -271,3 +276,33 @@ CapsuleCollider2D:
   m_Offset: {x: -0.10551274, y: -0.11490822}
   m_Size: {x: 0.679435, y: 1.2907839}
   m_Direction: 0
+--- !u!114 &5000901869329216964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f300a2c72735e4aa899e98ec52eeb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAcquire
+  _runeStoneInventory: {fileID: 0}
+--- !u!114 &5932498905831329072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67f0a745d82b42199e6364b1a78d915f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLifecycle
+  _disableOnDeath:
+  - {fileID: 2179557753070468687}
+  - {fileID: 340774800492513042}
+  - {fileID: 1796876364397183347}
+  - {fileID: 5863673722175249506}
