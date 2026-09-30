@@ -20,7 +20,8 @@ public class EnemyKillMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 더미 몬스터 이벤트 구독
+        // 정적 이벤트 중복 구독 방지: 기존 등록을 해제한 후 재구독
+        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
         DummyEnemy.OnEnemyDied += HandleEnemyDied;
 
         NotifyProgressUpdated();
@@ -31,9 +32,13 @@ public class EnemyKillMission : MissionBase
         DummyEnemy.OnEnemyDied -= HandleEnemyDied;
     }
 
+    private void OnDestroy()
+    {
+        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+    }
+
     public override void UpdateMission(float deltaTime)
     {
-        // 처치 미션은 타이머 연산이 기본적으로 필요 없음
     }
 
     private void HandleEnemyDied(DummyEnemy enemy)

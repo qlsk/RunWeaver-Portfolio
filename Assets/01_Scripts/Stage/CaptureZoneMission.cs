@@ -38,6 +38,7 @@ public class CaptureZoneMission : MissionBase
 
         if (targetZone != null)
         {
+            targetZone.OnPlayerPresenceChanged -= HandlePlayerPresenceChanged;
             targetZone.OnPlayerPresenceChanged += HandlePlayerPresenceChanged;
             isPlayerInZone = targetZone.IsPlayerInside;
             Debug.Log($"[CaptureZoneMission] 점령 구역 연결 완료: {targetZone.name}, 목표 시간 {targetCaptureTime}초");
@@ -51,6 +52,16 @@ public class CaptureZoneMission : MissionBase
     }
 
     private void OnDisable()
+    {
+        UnsubscribeZone();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeZone();
+    }
+
+    private void UnsubscribeZone()
     {
         if (targetZone != null)
         {

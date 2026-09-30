@@ -96,7 +96,7 @@ public class StageInfoPanelUI : MonoBehaviour
     /// </summary>
     public void SetStageInfo(string depth, string stageName, string element, string dangerLevel, string monsterInfo)
     {
-        if (string.IsNullOrWhiteSpace(depth)) depth = "Depth 2";
+        if (string.IsNullOrWhiteSpace(depth)) depth = "Depth 5";
         if (string.IsNullOrWhiteSpace(stageName)) stageName = "Blazing Corridor";
         if (string.IsNullOrWhiteSpace(element)) element = "Fire Element";
         if (string.IsNullOrWhiteSpace(dangerLevel)) dangerLevel = "Danger ★★★☆☆";
