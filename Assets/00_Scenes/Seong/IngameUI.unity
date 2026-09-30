@@ -1769,6 +1769,21 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6828873519741967105, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
   m_PrefabInstance: {fileID: 4374619475766663489}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4261298719248684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389550042156545050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72a55e5956cd960ac893859e33762f90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneBookPauseController
+  _behavioursToDisable:
+  - {fileID: 4141768048627595091}
+  - {fileID: 1212836148595067071}
 --- !u!114 &329078829269333988 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4298714803222458535, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
@@ -1780,6 +1795,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a84ad5cd024fc2b08459dbca7e67e0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookPresenter
+--- !u!4 &408186829976680505
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459166633331316803}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &459166633331316803
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 408186829976680505}
+  - component: {fileID: 3076549653253389512}
+  - component: {fileID: 806778476706367263}
+  m_Layer: 0
+  m_Name: HudTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &531965303030852634
 GameObject:
   m_ObjectHideFlags: 0
@@ -1797,6 +1845,80 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &806778476706367263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459166633331316803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d25e5c3dddf5810193155ac747de56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HudDebugKeys
+  _playerHealth: {fileID: 3068680430781695594}
+  _healthStep: 10
+  _damageKey: 52
+  _healKey: 53
+  _missionView: {fileID: 1972000490740398784}
+  _missionTarget: 5
+  _missionProgressKey: 56
+--- !u!114 &1212836148595067071 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 340774800492513042, guid: b01a38f4681cc1043bf6dad6260226b3, type: 3}
+  m_PrefabInstance: {fileID: 639200024}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
+--- !u!1 &1389550042156545050
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2240439854702175636}
+  - component: {fileID: 3405396358825736848}
+  - component: {fileID: 4261298719248684}
+  m_Layer: 0
+  m_Name: RuneBookController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1972000490740398784 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 694226923462059087, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
+  m_PrefabInstance: {fileID: 8290876633665580328}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 419d73021b6eb75987888ca1e4cd3839, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissionScrollView
+--- !u!4 &2240439854702175636
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389550042156545050}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2812837267619758184
 Transform:
   m_ObjectHideFlags: 0
@@ -1812,6 +1934,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3068680430781695594 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8110420657988907431, guid: b01a38f4681cc1043bf6dad6260226b3, type: 3}
+  m_PrefabInstance: {fileID: 639200024}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+--- !u!114 &3076549653253389512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459166633331316803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11795f6f2b8fe501ac203b47c161820, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FakeAmmoStatusSource
+  _magazineSize: 10
+  _reloadTime: 2
+  _fireKey: 54
+  _reloadKey: 55
 --- !u!114 &3405396358825736848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1827,9 +1976,7 @@ MonoBehaviour:
   _inputHandler: {fileID: 4141768048627595091}
   _presenter: {fileID: 329078829269333988}
   _pauseController: {fileID: 4261298719248684}
-  _closeKeys:
-  - 9
-  - 27
+  _closeKeys: 090000001b000000
 --- !u!114 &4109104213795511234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2738,6 +2885,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 356920814322493212, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
+      propertyPath: _playerHealth
+      value: 
+      objectReference: {fileID: 3068680430781695594}
     - target: {fileID: 471356573561871105, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2790,6 +2941,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1803208778394288043, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
+      propertyPath: _source
+      value: 
+      objectReference: {fileID: 3076549653253389512}
     - target: {fileID: 2769375659420627256, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2950,6 +3105,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4012271089150096659, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
+      propertyPath: _dataSource
+      value: 
+      objectReference: {fileID: 4109104213795511234}
     - target: {fileID: 4829887810278970683, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -3012,14 +3171,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7522439175517615960, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7883063198077961471, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7883063198077961471, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
-      propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -3027,65 +3178,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
---- !u!1 &1389550042156545050
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2240439854702175636}
-  - component: {fileID: 3405396358825736848}
-  - component: {fileID: 4261298719248684}
-  m_Layer: 0
-  m_Name: RuneBookController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2240439854702175636
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1389550042156545050}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4261298719248684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1389550042156545050}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72a55e5956cd960ac893859e33762f90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneBookPauseController
-  _behavioursToDisable:
-  - {fileID: 4141768048627595091}
-  - {fileID: 1212836148595067071}
---- !u!114 &1212836148595067071 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 340774800492513042, guid: b01a38f4681cc1043bf6dad6260226b3, type: 3}
-  m_PrefabInstance: {fileID: 639200024}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -3099,3 +3191,4 @@ SceneRoots:
   - {fileID: 639200024}
   - {fileID: 2812837267619758184}
   - {fileID: 2240439854702175636}
+  - {fileID: 408186829976680505}
