@@ -21,6 +21,15 @@ public class MissionResultPresenter : MonoBehaviour
     private MissionBase _subscribedMission;
     private bool _hasShownResult;
 
+    private void Awake()
+    {
+        // 씬에 켜진 상태로 저장되어 있어도 결과 화면은 꺼진 상태로 시작한다.
+        if (_endingUI != null)
+        {
+            _endingUI.SetActive(false);
+        }
+    }
+
     private void Start()
     {
         if (_successPanel == null || _failedPanel == null)
