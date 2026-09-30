@@ -34,11 +34,19 @@ public class SoulCollectMission : MissionBase
             Debug.Log($"[SoulCollectMission] 영혼 수집 구역 연결 완료: {harvestZone.name}");
         }
 
+        // 정적 이벤트 중복 구독 방지
+        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
         DummyEnemy.OnEnemyDied += HandleEnemyDied;
+
         NotifyProgressUpdated();
     }
 
     private void OnDisable()
+    {
+        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+    }
+
+    private void OnDestroy()
     {
         DummyEnemy.OnEnemyDied -= HandleEnemyDied;
     }
@@ -69,7 +77,6 @@ public class SoulCollectMission : MissionBase
         }
         else
         {
-            // 구역이 설정되지 않은 경우 fallback
             AddSoul(1);
         }
     }
