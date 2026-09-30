@@ -105,6 +105,7 @@ public class PlayerAttack : MonoBehaviour
         );
         // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
         bullet.Initialize(stats, effects, transform, targetDirection);
+        bullet.PlayCastEffect(_firePosition.transform.position);
 
         _currentAmmo--;
         // 발사 간격을 마지막 발사 시점부터 측정

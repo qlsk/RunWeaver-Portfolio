@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    [Header("총구 발사 이펙트")]
+    [SerializeField] private ParticleSystem _castEffectPrefab;
+    [SerializeField, Min(0.01f)] private float _castEffectScale = 1f;
+    [SerializeField, Min(0.1f)] private float _castEffectLifetime = 3f;
+
     [Header("룬 시스템 연결")]
     [SerializeField] private GameObject _trapPrefab;
     [SerializeField] private LayerMask _enemyLayers = ~0;
@@ -25,6 +30,21 @@ public class Bullet : MonoBehaviour
     public event Action<EnemyHealth> ChainRequested;
     public Transform Owner => _owner;
     public BulletPhase Phase => _runtime == null ? BulletPhase.Ended : _runtime.Phase;
+
+    // 탄환과 분리해 생성하므로 발사 당시 총구 위치에 남는다.
+    public void PlayCastEffect(Vector3 muzzlePosition)
+    {
+        if (_castEffectPrefab == null) return;
+
+        // 패키지의 전방(+Z)을 Bullet의 진행 방향(+X)에 맞춘다.
+        Quaternion rotation = transform.rotation * Quaternion.Euler(0f, 90f, 0f);
+        ParticleSystem effect = Instantiate(_castEffectPrefab, muzzlePosition, rotation);
+        effect.transform.localScale *= _castEffectScale;
+        effect.gameObject.SetActive(true);
+        effect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        effect.Play(true);
+        Destroy(effect.gameObject, _castEffectLifetime);
+    }
 
     // 능력치, 룬 설정, 소유자 방향을 받아서 발사 준비, 탄환별 상태와 충돌 기록, 이전 이벤트 연결 초기화
     public void Initialize(BulletStats stats, BulletEffectConfig effects, Transform owner, Vector2 direction)
