@@ -750,6 +750,7 @@ MonoBehaviour:
   _runeEffectDatabase: {fileID: 1320659391}
   _skillDatabase: {fileID: 183798088}
   _researchDatabase: {fileID: 1010764932}
+  _runeStoneInventory: {fileID: 42451153}
 --- !u!4 &951670900
 Transform:
   m_ObjectHideFlags: 0
@@ -936,6 +937,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 7a69d66de2c99684ab32ef7c65b206ac, type: 2}
   _targetDetector: {fileID: 1313729119}
+  _enemyMove: 0
 --- !u!114 &1313729121
 MonoBehaviour:
   m_ObjectHideFlags: 0

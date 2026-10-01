@@ -5,17 +5,14 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("참조")]
-    [LabelText("탄환 프리팹")] [SerializeField] private Bullet _bulletPrefab;
-    [LabelText("발사 위치")] [SerializeField] private GameObject _firePosition;
+    [LabelText("탄환 프리팹")][SerializeField] private Bullet _bulletPrefab;
+    [LabelText("발사 위치")][SerializeField] private GameObject _firePosition;
 
     [Header("설정 값")]
-    [LabelText("발사 쿨타임")] [SerializeField] private float _bulletFireRate = 1f;
-    [LabelText("탄환 공격력")] [SerializeField, Min(0f)]
-    private float _bulletDamage = 10f;
-    [LabelText("탄환 속도")] [SerializeField, Min(0.01f)]
-    private float _bulletSpeed = 5f;
-    [LabelText("탄환 사거리")] [SerializeField, Min(0f)]
-    private float _bulletRange = 10f;
+    [LabelText("발사 쿨타임")][SerializeField] private float _bulletFireRate = 1f;
+    [LabelText("탄환 공격력")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [LabelText("탄환 속도")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [LabelText("탄환 사거리")][SerializeField, Min(0f)] private float _bulletRange = 10f;
 
     [SerializeField] private ElementType _mainElement;
 
@@ -65,7 +62,6 @@ public class PlayerAttack : MonoBehaviour
         // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
         bullet.PlayCastEffect(_firePosition.transform.position);
 
-        _currentAmmo--;
         // 발사 간격을 마지막 발사 시점부터 측정
         _bulletFireCoolTimer = 0f;
     }
