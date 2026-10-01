@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// MissionManager의 현재 미션 진행 상황을 HUD 미션 두루마리에 표시한다.
 /// 층마다 새 미션이 시작되므로(OnMissionInitialized) 그때마다 새 미션의 진행 이벤트로 구독을 옮긴다.
+/// 미션의 진행 문구는 한글이라 TMP 폰트로 표시할 수 없으므로 MissionHudText로 영문 문구를 만든다.
 /// 씬에 MissionManager가 없으면 아무것도 하지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -48,7 +49,7 @@ public class MissionHudBinder : MonoBehaviour
 
         if (mission != null)
         {
-            _view.SetMission(GetTitle(mission), mission.GetProgressText());
+            _view.SetMission(GetTitle(mission), MissionHudText.GetProgressText(mission));
         }
     }
 
@@ -74,7 +75,7 @@ public class MissionHudBinder : MonoBehaviour
 
     private void HandleMissionProgressUpdated(float progressRatio, string progressText)
     {
-        _view.SetMission(GetTitle(_subscribedMission), progressText);
+        _view.SetMission(GetTitle(_subscribedMission), MissionHudText.GetProgressText(_subscribedMission));
     }
 
     private static string GetTitle(MissionBase mission)
