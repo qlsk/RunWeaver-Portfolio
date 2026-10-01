@@ -15,15 +15,15 @@ public class EnemyDrop : MonoBehaviour
     private void Start()
     {
         _enemyHealth = GetComponent<EnemyHealth>();
-        _enemyHealth.OnDeath += Drop;
+        EnemyHealth.OnDeath += Drop;
     }
 
     private void OnDestroy()
     {
-        if (_enemyHealth != null) _enemyHealth.OnDeath -= Drop;
+        if (_enemyHealth != null) EnemyHealth.OnDeath -= Drop;
     }
 
-    private void Drop()
+    private void Drop(EnemyHealth health)
     {
         if (runePrefab == null) return;
 

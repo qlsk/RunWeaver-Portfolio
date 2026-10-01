@@ -2,75 +2,74 @@ using UnityEngine;
 
 public class SurvivalMission : MissionBase
 {
-    [Header("생존 목표 시간 (초)")]
-    [SerializeField] private float survivalDuration = 10f;
+    [Header("생존 미션 설정")]
+    [SerializeField] private float survivalDuration = 10f; // 목표 생존 시간 (초)
 
-    private float elapsed;
+    private float _currentTimer;
+    private int lastLoggedSecond = -1;
 
     public float SurvivalDuration => survivalDuration;
-    public float Elapsed => elapsed;
-    public float Remaining => Mathf.Max(0f, survivalDuration - elapsed);
-
-#if UNITY_EDITOR
-    [Header("테스트 편의 (에디터 전용)")]
-    [SerializeField] private KeyCode testFailKey = KeyCode.L;
-#endif
-    private int lastNotifiedSecond = -1;
+    public float CurrentTimer => _currentTimer;
 
     public override void Initialize()
     {
-        elapsed = 0f;
+        _currentTimer = 0f;
+        lastLoggedSecond = -1;
         IsCompleted = false;
         IsFailed = false;
-        lastNotifiedSecond = -1;
 
         DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
         DummyPlayer.OnDummyPlayerDied += HandlePlayerDied;
 
-        NotifyProgressUpdated();
+        Debug.Log($"[SurvivalMission] 생존 미션 시작! 목표 시간: {survivalDuration}초");
     }
 
     public override void UpdateMission(float deltaTime)
     {
         if (IsCompleted || IsFailed) return;
 
-#if UNITY_EDITOR
-        if (Input.GetKeyDown(testFailKey)) { HandlePlayerDied(); return; }
-#endif
+        _currentTimer += deltaTime;
 
-        elapsed += deltaTime;
-
-        int sec = Mathf.CeilToInt(Remaining);
-        if (sec != lastNotifiedSecond)
+        // 1초 단위 디버그 로그 출력 (클리어 검증용)
+        int currentSecond = Mathf.FloorToInt(_currentTimer);
+        if (currentSecond > lastLoggedSecond && currentSecond <= (int)survivalDuration)
         {
-            lastNotifiedSecond = sec;
-            NotifyProgressUpdated();
+            lastLoggedSecond = currentSecond;
+            float progressPercent = (_currentTimer / survivalDuration) * 100f;
+            Debug.Log($"[SurvivalMission] 생존 진행 중... {currentSecond}s / {survivalDuration:F0}s ({progressPercent:F0}%)");
         }
 
-        if (elapsed >= survivalDuration)
+        // 목표 생존 시간 달성 시 클리어
+        if (_currentTimer >= survivalDuration)
         {
-            elapsed = survivalDuration;
-            NotifyProgressUpdated();   // 마지막 100% 상태를 UI에 확실히 전달
+            Debug.Log($"[SurvivalMission] ★ 목표 생존 시간({survivalDuration}초) 달성! 미션 클리어");
             CompleteMission();
         }
     }
 
-    public void HandlePlayerDied()
+    private void HandlePlayerDied()
     {
         if (IsCompleted || IsFailed) return;
+
+        Debug.Log("[SurvivalMission] 플레이어 사망으로 인한 미션 실패!");
         FailMission();
+    }
+
+    private void OnDisable()
+    {
+        DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
     }
 
     public override float GetProgressRatio()
     {
-        if (IsFailed) return 0f;
         if (survivalDuration <= 0f) return 1f;
-        return Mathf.Clamp01(elapsed / survivalDuration);
+        return Mathf.Clamp01(_currentTimer / survivalDuration);
     }
 
     public override string GetProgressText()
     {
-        if (IsFailed) return "생존 실패 (플레이어 사망)";
-        return $"생존 남은 시간: {Mathf.CeilToInt(Remaining)}초";
+        if (IsFailed) return "플레이어 사망!";
+        if (IsCompleted) return "생존 성공!";
+        return $"생존 시간: {Mathf.Min(_currentTimer, survivalDuration):F1}s / {survivalDuration:F0}s";
     }
 }
