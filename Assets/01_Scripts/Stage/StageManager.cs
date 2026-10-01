@@ -104,6 +104,16 @@ public class StageManager : MonoBehaviour
                 Destroy(enemy.gameObject);
             }
         }
+
+        // 실제 몬스터(EnemyHealth)도 함께 제거한다.
+        EnemyHealth[] realEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (var enemy in realEnemies)
+        {
+            if (enemy != null)
+            {
+                Destroy(enemy.gameObject);
+            }
+        }
     }
 
     private void ResetPlayerPosition()

@@ -4,6 +4,8 @@ using UnityEngine;
 /// MissionManager의 현재 미션 진행 상황을 HUD 미션 두루마리에 표시한다.
 /// 층마다 새 미션이 시작되므로(OnMissionInitialized) 그때마다 새 미션의 진행 이벤트로 구독을 옮긴다.
 /// 미션의 진행 문구는 한글이라 TMP 폰트로 표시할 수 없으므로 MissionHudText로 영문 문구를 만든다.
+/// 생존·제단 방어 미션은 남은 시간이 바뀌어도 진행 이벤트를 보내지 않고, 미션 완료/실패 때도 이벤트가 없어
+/// 매 프레임 문구를 만들어 바뀌었을 때만 갱신한다.
 /// 씬에 MissionManager가 없으면 아무것도 하지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -13,6 +15,8 @@ public class MissionHudBinder : MonoBehaviour
 
     private MissionManager _missionManager;
     private MissionBase _subscribedMission;
+    private string _lastProgressText;
+    private MissionBase _lastShownMission;
 
     private void Start()
     {
@@ -33,6 +37,14 @@ public class MissionHudBinder : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (_subscribedMission != null)
+        {
+            RefreshView();
+        }
+    }
+
     private void OnDestroy()
     {
         if (_missionManager != null)
@@ -49,7 +61,8 @@ public class MissionHudBinder : MonoBehaviour
 
         if (mission != null)
         {
-            _view.SetMission(GetTitle(mission), MissionHudText.GetProgressText(mission));
+            _lastProgressText = null;
+            RefreshView();
         }
     }
 
@@ -75,7 +88,29 @@ public class MissionHudBinder : MonoBehaviour
 
     private void HandleMissionProgressUpdated(float progressRatio, string progressText)
     {
-        _view.SetMission(GetTitle(_subscribedMission), MissionHudText.GetProgressText(_subscribedMission));
+        RefreshView();
+    }
+
+    private void RefreshView()
+    {
+        string progressText = MissionHudText.GetProgressText(_subscribedMission);
+        if (progressText == _lastProgressText)
+        {
+            return;
+        }
+
+        // 같은 미션의 남은 시간이나 점령률처럼 계속 바뀌는 값만 바뀐 경우에는 말아 둔 두루마리를 펼치지 않는다.
+        bool isTimerTick = _subscribedMission == _lastShownMission && IsContinuouslyUpdating(_subscribedMission);
+
+        _lastProgressText = progressText;
+        _lastShownMission = _subscribedMission;
+        _view.SetMission(GetTitle(_subscribedMission), progressText, !isTimerTick);
+    }
+
+    private static bool IsContinuouslyUpdating(MissionBase mission)
+    {
+        return mission is SurvivalMission or AltarDefenseMission or CaptureZoneMission
+            && !mission.IsCompleted && !mission.IsFailed;
     }
 
     private static string GetTitle(MissionBase mission)

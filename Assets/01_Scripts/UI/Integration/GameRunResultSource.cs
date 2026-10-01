@@ -5,10 +5,9 @@ using UnityEngine;
 /// 실제 게임 데이터로 결과창(EndingUI) 값을 만든다.
 /// - 생존 시간: 이 컴포넌트가 시작된 뒤 플레이어가 죽을 때까지 (결과창을 연 시점까지)
 /// - 최고 심도: GameStageStatusSource가 기록한 값
-/// - 처치 수: EnemyDeathTracker
+/// - 처치 수, 총 피해량: EnemyDeathTracker
 /// - 종료 사유: 플레이어가 죽었으면 Died, 시간 초과를 받았으면 TimeOver
 /// - 연구 자원: 원정 자원(ExpeditionResources)
-/// 총 피해량은 피해량 이벤트가 아직 없어 0으로 표시한다.
 /// </summary>
 public class GameRunResultSource : RunResultSource
 {
@@ -55,11 +54,12 @@ public class GameRunResultSource : RunResultSource
         float endTime = _endTime >= 0f ? _endTime : Time.time;
         int maxDepth = _stageSource != null ? Mathf.Max(1, _stageSource.MaxDepth) : 1;
         int killCount = _deathTracker != null ? _deathTracker.KillCount : 0;
+        int totalDamage = _deathTracker != null ? Mathf.RoundToInt(_deathTracker.TotalDamage) : 0;
 
         bool isDead = _playerHealth != null && _playerHealth.IsDead;
         RunEndReason endReason = _isTimeOver && !isDead ? RunEndReason.TimeOver : RunEndReason.Died;
 
-        return new RunResultData(endTime - _startTime, maxDepth, 0, killCount, endReason, GetResearchResources());
+        return new RunResultData(endTime - _startTime, maxDepth, totalDamage, killCount, endReason, GetResearchResources());
     }
 
     private void HandlePlayerDied()

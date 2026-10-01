@@ -44,7 +44,8 @@ public class MissionScrollView : MonoBehaviour
         }
     }
 
-    public void SetMission(string title, string progress)
+    /// <param name="allowAutoExpand">false면 내용이 바뀌어도 말린 두루마리를 펼치지 않는다. (남은 시간처럼 자주 바뀌는 값)</param>
+    public void SetMission(string title, string progress, bool allowAutoExpand = true)
     {
         bool hasChanged = title != _shownTitle || progress != _shownProgress;
         _shownTitle = title;
@@ -60,7 +61,7 @@ public class MissionScrollView : MonoBehaviour
             _progressText.text = progress;
         }
 
-        if (hasChanged && _isAutoExpandOnProgress && !_isRolledDown)
+        if (hasChanged && allowAutoExpand && _isAutoExpandOnProgress && !_isRolledDown)
         {
             RollDown();
         }

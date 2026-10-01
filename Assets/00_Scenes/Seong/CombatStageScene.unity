@@ -348,7 +348,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c169190e51e89934f993f46ed3f29fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawner
-  stageGenerator: {fileID: 0}
+  stageGenerator: {fileID: 1987654321}
   currentStageDepth: 1
   defaultEnemyPrefab: {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
   spawnEffectPrefab: {fileID: 0}
@@ -811,9 +811,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db6caafa157d6d24fbbb1db7037cb846, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MissionManager
-  captureZonePrefab: {fileID: 0}
-  defenseAltarPrefab: {fileID: 0}
-  soulHarvestZonePrefab: {fileID: 0}
+  captureZonePrefab: {fileID: 4182323702741259518, guid: 0f798387cbf3c4a42909484d2ac678e8, type: 3}
+  defenseAltarPrefab: {fileID: 6042031307549014131, guid: b3ca6905047fb8642b1759ad70406f8e, type: 3}
+  soulHarvestZonePrefab: {fileID: 6800633804430475103, guid: 21d558cc8862ddf459f7dde8d9bd6ba3, type: 3}
   missionObjectSpawnPosition: {x: 0, y: 0, z: 0}
 --- !u!4 &307671942
 Transform:
@@ -874,6 +874,7 @@ GameObject:
   m_Component:
   - component: {fileID: 363528010}
   - component: {fileID: 363528009}
+  - component: {fileID: 1987654321}
   m_Layer: 0
   m_Name: StageManager
   m_TagString: Untagged
@@ -4069,7 +4070,7 @@ Transform:
   m_GameObject: {fileID: 1873639912}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -4212,6 +4213,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1950051923}
   m_CullTransparentMesh: 1
+--- !u!114 &1987654321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 363528008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efdf66421e01d5e49891e87d152b0f49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageGenerator
+  config: {fileID: 11400000, guid: ff10c0e0caa7c9b43b4ea0471faab3a9, type: 2}
 --- !u!1001 &2066277654
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4433,7 +4447,6 @@ GameObject:
   - component: {fileID: 7084094975176446167}
   - component: {fileID: 7097088682787474019}
   - component: {fileID: 5017721887018420292}
-  - component: {fileID: 5967428164980129238}
   - component: {fileID: 6881413524586715513}
   - component: {fileID: 3366663457877962215}
   - component: {fileID: 4963754494014822406}
@@ -5514,7 +5527,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 080325134d7a4b339c09a7bfcddee631, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathTracker
-  _scanInterval: 0.25
 --- !u!4 &5434363257504237404
 Transform:
   m_ObjectHideFlags: 0
@@ -5545,19 +5557,6 @@ MonoBehaviour:
   target: {fileID: 0}
   smoothSpeed: 8
   offset: {x: 0, y: 0, z: -10}
---- !u!114 &5967428164980129238
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1775942381751885190}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 972d2d22ec2e467da1fcb1efa03a3f32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyKillMissionBridge
-  _tracker: {fileID: 5017721887018420292}
 --- !u!114 &6773246749242817190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5599,7 +5598,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAmmoStatusSource
   _playerAttack: {fileID: 1798216230345836903}
-  _reloadTime: 2
 --- !u!114 &7097088682787474019
 MonoBehaviour:
   m_ObjectHideFlags: 0
