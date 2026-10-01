@@ -7,6 +7,7 @@ public class AltarDefenseMission : MissionBase
     private float currentTimer = 0f;
     private int lastLoggedSecond = -1;
     private DefenseAltar targetAltar;
+    private bool hasAltarBeenRegistered = false;
 
     public float DefenseDuration => defenseDuration;
     public float CurrentTimer => currentTimer;
@@ -17,6 +18,10 @@ public class AltarDefenseMission : MissionBase
     public void SetTargetAltar(DefenseAltar altar)
     {
         targetAltar = altar;
+        if (targetAltar != null)
+        {
+            hasAltarBeenRegistered = true;
+        }
     }
 
     public override void Initialize()
@@ -32,18 +37,39 @@ public class AltarDefenseMission : MissionBase
             targetAltar = FindAnyObjectByType<DefenseAltar>();
         }
 
+        if (targetAltar != null)
+        {
+            hasAltarBeenRegistered = true;
+        }
+
         DefenseAltar.OnAltarDestroyed -= HandleAltarDestroyed;
         DefenseAltar.OnAltarDestroyed += HandleAltarDestroyed;
 
-        Debug.Log($"[AltarDefenseMission] 제단 방어 미션 시작! {defenseDuration}초 동안 제단을 수호하세요.");
+        Debug.Log($"[AltarDefenseMission] 제단 방어 미션 시작! {defenseDuration}초 동안 제단을 수호하세요. (제단 등록 상태: {hasAltarBeenRegistered})");
     }
 
     public override void UpdateMission(float deltaTime)
     {
         if (IsCompleted || IsFailed) return;
 
-        // 제단 파괴 유무 검사
-        if (targetAltar == null || targetAltar.IsDestroyed)
+        // 1. 아직 제단이 등록되지 않았거나 지연 생성 중인 경우 재탐색 (바로 실패시키지 않고 대기)
+        if (!hasAltarBeenRegistered || targetAltar == null)
+        {
+            targetAltar = FindAnyObjectByType<DefenseAltar>();
+            if (targetAltar != null)
+            {
+                hasAltarBeenRegistered = true;
+                Debug.Log($"[AltarDefenseMission] 제단 오브젝트 탐색/등록 완료: {targetAltar.name}");
+            }
+            else
+            {
+                // 아직 씬에 제단이 스폰되지 않았으므로 다음 프레임까지 대기
+                return;
+            }
+        }
+
+        // 2. 제단이 정상 등록된 상태에서 체력이 0이 되어 파괴된 경우에만 실패 처리
+        if (targetAltar.IsDestroyed)
         {
             HandleAltarDestroyed();
             return;
