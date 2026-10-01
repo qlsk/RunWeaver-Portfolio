@@ -99,15 +99,23 @@ public class MissionManager : MonoBehaviour
                 break;
 
             case MissionType.AltarDefense:
+                DefenseAltar spawnedAltar = null;
                 if (defenseAltarPrefab != null)
                 {
                     spawnedMissionObject = Instantiate(defenseAltarPrefab, missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedAltar = spawnedMissionObject.GetComponent<DefenseAltar>();
                 }
                 else
                 {
                     Debug.LogWarning("[MissionManager] defenseAltarPrefab이 연결되지 않았습니다!");
                 }
-                currentMission = gameObject.AddComponent<AltarDefenseMission>();
+
+                var altarMission = gameObject.AddComponent<AltarDefenseMission>();
+                if (spawnedAltar != null)
+                {
+                    altarMission.SetTargetAltar(spawnedAltar); // 생성된 신규 제단 직접 주입
+                }
+                currentMission = altarMission;
                 break;
 
             case MissionType.Survival:
