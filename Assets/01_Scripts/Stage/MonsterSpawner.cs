@@ -21,6 +21,7 @@ public class MonsterSpawner : MonoBehaviour
     private StageRuntimeData currentStageData;
     private readonly List<GameObject> activeMonsters = new List<GameObject>();
     private Coroutine currentSpawnCoroutine;
+    private MissionManager missionManager;
 
     private void OnEnable()
     {
@@ -47,7 +48,37 @@ public class MonsterSpawner : MonoBehaviour
             stageGenerator = FindAnyObjectByType<StageGenerator>();
         }
 
+        // 미션을 클리어하면 더 이상 몬스터를 생성하지 않는다. (다음 스테이지 진입 시 RestartSpawner로 재개)
+        missionManager = MissionManager.Instance;
+        if (missionManager != null)
+        {
+            missionManager.OnMissionCompleted += HandleMissionCompleted;
+        }
+
         InitAndStartSpawning(currentStageDepth);
+    }
+
+    private void OnDestroy()
+    {
+        if (missionManager != null)
+        {
+            missionManager.OnMissionCompleted -= HandleMissionCompleted;
+        }
+    }
+
+    private void HandleMissionCompleted(MissionBase mission)
+    {
+        StopSpawning();
+    }
+
+    /// <summary>
+    /// 스폰 루틴과 이펙트 대기 중인 스폰까지 모두 멈춘다. 이미 나와 있는 몬스터는 그대로 둔다.
+    /// </summary>
+    public void StopSpawning()
+    {
+        StopAllCoroutines();
+        currentSpawnCoroutine = null;
+        Debug.Log("[MonsterSpawner] 미션 클리어 - 몬스터 생성 중지");
     }
 
     /// <summary>
@@ -57,10 +88,9 @@ public class MonsterSpawner : MonoBehaviour
     {
         currentStageDepth = newDepth;
 
-        if (currentSpawnCoroutine != null)
-        {
-            StopCoroutine(currentSpawnCoroutine);
-        }
+        // 이펙트 대기 중인 스폰까지 함께 멈춘다.
+        StopAllCoroutines();
+        currentSpawnCoroutine = null;
 
         activeMonsters.RemoveAll(m => m == null);
         foreach (var enemy in activeMonsters)

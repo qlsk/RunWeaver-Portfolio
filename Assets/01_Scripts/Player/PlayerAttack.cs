@@ -21,6 +21,7 @@ public class PlayerAttack : MonoBehaviour
 
     [Header("재장전 시간")]
     [SerializeField] private float _reloadTime = 2f;
+    public float ReloadTime => _reloadTime;
     // 재장전 여부
     private bool _isReloading;
     public bool IsReloading => _isReloading;
