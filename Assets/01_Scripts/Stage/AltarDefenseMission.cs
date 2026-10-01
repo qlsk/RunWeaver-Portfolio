@@ -11,6 +11,14 @@ public class AltarDefenseMission : MissionBase
     public float DefenseDuration => defenseDuration;
     public float CurrentTimer => currentTimer;
 
+    /// <summary>
+    /// MissionManager에서 생성된 신규 제단 오브젝트를 직접 전달받습니다.
+    /// </summary>
+    public void SetTargetAltar(DefenseAltar altar)
+    {
+        targetAltar = altar;
+    }
+
     public override void Initialize()
     {
         currentTimer = 0f;
@@ -18,7 +26,11 @@ public class AltarDefenseMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        targetAltar = FindAnyObjectByType<DefenseAltar>();
+        // 직접 전달받지 않은 경우에만 폴백으로 씬 전체 탐색
+        if (targetAltar == null)
+        {
+            targetAltar = FindAnyObjectByType<DefenseAltar>();
+        }
 
         DefenseAltar.OnAltarDestroyed -= HandleAltarDestroyed;
         DefenseAltar.OnAltarDestroyed += HandleAltarDestroyed;
@@ -30,6 +42,7 @@ public class AltarDefenseMission : MissionBase
     {
         if (IsCompleted || IsFailed) return;
 
+        // 제단 파괴 유무 검사
         if (targetAltar == null || targetAltar.IsDestroyed)
         {
             HandleAltarDestroyed();
@@ -38,7 +51,7 @@ public class AltarDefenseMission : MissionBase
 
         currentTimer += deltaTime;
 
-        // 1초 단위 디버그 로그 및 제단 HP 상태 출력 (클리어 검증용)
+        // 1초 단위 디버그 로그 및 제단 HP 상태 출력
         int currentSecond = Mathf.FloorToInt(currentTimer);
         if (currentSecond > lastLoggedSecond && currentSecond <= (int)defenseDuration)
         {
@@ -46,9 +59,19 @@ public class AltarDefenseMission : MissionBase
             Debug.Log($"[AltarDefenseMission] 제단 방어 진행 중... {currentSecond}s / {defenseDuration:F0}s | 제단 HP: {targetAltar.CurrentHp}/{targetAltar.MaxHp}");
         }
 
+        // 20초 생존 달성 시 처리
         if (currentTimer >= defenseDuration)
         {
             Debug.Log($"[AltarDefenseMission] ★ 제단 방어 성공({defenseDuration}초 생존)! 미션 클리어");
+
+            DefenseAltar.OnAltarDestroyed -= HandleAltarDestroyed;
+
+            if (targetAltar != null)
+            {
+                Destroy(targetAltar.gameObject);
+                targetAltar = null;
+            }
+
             CompleteMission();
         }
     }
