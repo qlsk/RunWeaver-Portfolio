@@ -4,22 +4,31 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
-
-    [SerializeField] private float _currentHealth;
+    [SerializeField] private float _currentHealth = 10f;
 
     private float _maxHealth;
-
     private bool _isDead = false;
+
     public bool IsDead => _isDead;
+    public float CurrentHealth => _currentHealth;
+    public float MaxHealth => _maxHealth;
+    public EnemyDataSO EnemyData => _enemyData; // 스포너가 읽어갈 수 있도록 프로퍼티 제공
 
     public event Action OnDamaged;
     public static event Action<EnemyHealth> OnDeath;
-    // 실제로 깎인 체력만큼 전달한다. (결과창 총 피해량 집계용)
     public static event Action<EnemyHealth, float> OnDamageDealt;
 
     private void Start()
     {
-        _maxHealth = _enemyData.Stat.MaxHealth;
+        if (_enemyData != null && _enemyData.Stat != null)
+        {
+            _maxHealth = _enemyData.Stat.MaxHealth;
+        }
+        else
+        {
+            _maxHealth = _currentHealth > 0f ? _currentHealth : 10f;
+        }
+
         _currentHealth = _maxHealth;
     }
 
@@ -46,5 +55,4 @@ public class EnemyHealth : MonoBehaviour
         }
         return actualDamage;
     }
-
 }
