@@ -205,6 +205,7 @@ GameObject:
   - component: {fileID: 73682303}
   - component: {fileID: 73682305}
   - component: {fileID: 73682304}
+  - component: {fileID: 2319724388333390735}
   m_Layer: 0
   m_Name: ShieldUpgradeNode_03
   m_TagString: Untagged
@@ -493,6 +494,7 @@ GameObject:
   - component: {fileID: 131131684}
   - component: {fileID: 131131686}
   - component: {fileID: 131131685}
+  - component: {fileID: 5475270654777870840}
   m_Layer: 0
   m_Name: DashNode_03
   m_TagString: Untagged
@@ -727,7 +729,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1833901292}
   - {fileID: 1231759854}
   - {fileID: 1449625335}
   m_Father: {fileID: 0}
@@ -748,6 +749,7 @@ GameObject:
   - component: {fileID: 289933100}
   - component: {fileID: 289933102}
   - component: {fileID: 289933101}
+  - component: {fileID: 5365749391392088512}
   m_Layer: 0
   m_Name: ItemImage (1)
   m_TagString: Untagged
@@ -825,6 +827,7 @@ GameObject:
   - component: {fileID: 324624088}
   - component: {fileID: 324624090}
   - component: {fileID: 324624089}
+  - component: {fileID: 5916497446257569881}
   m_Layer: 0
   m_Name: CleansUpgradeNode_05
   m_TagString: Untagged
@@ -901,6 +904,7 @@ GameObject:
   - component: {fileID: 349097697}
   - component: {fileID: 349097699}
   - component: {fileID: 349097698}
+  - component: {fileID: 5182513832886728665}
   m_Layer: 0
   m_Name: ShieldUpgradeNode_04
   m_TagString: Untagged
@@ -977,6 +981,7 @@ GameObject:
   - component: {fileID: 363493632}
   - component: {fileID: 363493634}
   - component: {fileID: 363493633}
+  - component: {fileID: 8842514861359412280}
   m_Layer: 0
   m_Name: AttackNode_03
   m_TagString: Untagged
@@ -1067,16 +1072,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 426624107}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1379111540}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 167}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 385, y: -333}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &426624109
@@ -1133,8 +1138,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -1190,6 +1195,7 @@ GameObject:
   - component: {fileID: 454886762}
   - component: {fileID: 454886764}
   - component: {fileID: 454886763}
+  - component: {fileID: 5477197318101497525}
   m_Layer: 0
   m_Name: CleansUpgradeNode_03
   m_TagString: Untagged
@@ -1528,6 +1534,7 @@ GameObject:
   - component: {fileID: 508127761}
   - component: {fileID: 508127763}
   - component: {fileID: 508127762}
+  - component: {fileID: 3741603982383516983}
   m_Layer: 0
   m_Name: AttackNode_o4
   m_TagString: Untagged
@@ -1758,6 +1765,7 @@ GameObject:
   - component: {fileID: 572922128}
   - component: {fileID: 572922130}
   - component: {fileID: 572922129}
+  - component: {fileID: 670576685538020777}
   m_Layer: 0
   m_Name: CleansUpgradeNode_02
   m_TagString: Untagged
@@ -1870,6 +1878,7 @@ GameObject:
   - component: {fileID: 724661335}
   - component: {fileID: 724661337}
   - component: {fileID: 724661336}
+  - component: {fileID: 545363681616962640}
   m_Layer: 0
   m_Name: AttackNode_05
   m_TagString: Untagged
@@ -1946,6 +1955,7 @@ GameObject:
   - component: {fileID: 732541951}
   - component: {fileID: 732541953}
   - component: {fileID: 732541952}
+  - component: {fileID: 645198181100374566}
   m_Layer: 0
   m_Name: ShieldUpgradeNode_02
   m_TagString: Untagged
@@ -2172,6 +2182,7 @@ GameObject:
   - component: {fileID: 789750899}
   - component: {fileID: 789750901}
   - component: {fileID: 789750900}
+  - component: {fileID: 8490539026135319669}
   m_Layer: 0
   m_Name: DashNode_01
   m_TagString: Untagged
@@ -2248,6 +2259,7 @@ GameObject:
   - component: {fileID: 843724683}
   - component: {fileID: 843724685}
   - component: {fileID: 843724684}
+  - component: {fileID: 2080241222855773941}
   m_Layer: 0
   m_Name: DashNode_02
   m_TagString: Untagged
@@ -2324,6 +2336,7 @@ GameObject:
   - component: {fileID: 859988063}
   - component: {fileID: 859988065}
   - component: {fileID: 859988064}
+  - component: {fileID: 3965875329656804758}
   m_Layer: 5
   m_Name: CleansMainNode
   m_TagString: Untagged
@@ -2516,6 +2529,7 @@ GameObject:
   - component: {fileID: 917421581}
   - component: {fileID: 917421583}
   - component: {fileID: 917421582}
+  - component: {fileID: 7674918311415852851}
   m_Layer: 0
   m_Name: AttackNode_02
   m_TagString: Untagged
@@ -2592,6 +2606,7 @@ GameObject:
   - component: {fileID: 975750024}
   - component: {fileID: 975750026}
   - component: {fileID: 975750025}
+  - component: {fileID: 5315389816265151663}
   m_Layer: 0
   m_Name: ShieldUpgradeNode_05
   m_TagString: Untagged
@@ -2779,6 +2794,7 @@ GameObject:
   - component: {fileID: 996005981}
   - component: {fileID: 996005983}
   - component: {fileID: 996005982}
+  - component: {fileID: 5234327459162675120}
   m_Layer: 5
   m_Name: DashMainNode
   m_TagString: Untagged
@@ -2860,6 +2876,7 @@ GameObject:
   - component: {fileID: 1016562408}
   - component: {fileID: 1016562410}
   - component: {fileID: 1016562409}
+  - component: {fileID: 2139119943687723724}
   m_Layer: 5
   m_Name: AttackMainNode
   m_TagString: Untagged
@@ -3174,6 +3191,7 @@ GameObject:
   - component: {fileID: 1242584572}
   - component: {fileID: 1242584574}
   - component: {fileID: 1242584573}
+  - component: {fileID: 5500666402170143951}
   m_Layer: 0
   m_Name: CleansUpgradeNode_04
   m_TagString: Untagged
@@ -3271,9 +3289,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1379111540}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2, y: 148}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 385, y: -363}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1249814773
@@ -3362,7 +3380,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -108.02637, y: 73.109375, z: -114.274414, w: -484.29688}
+  m_margin: {x: -108.02637, y: 73.109375, z: -114.274414, w: -181.12845}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3387,6 +3405,7 @@ GameObject:
   - component: {fileID: 1292644585}
   - component: {fileID: 1292644587}
   - component: {fileID: 1292644586}
+  - component: {fileID: 5086947095633979044}
   m_Layer: 0
   m_Name: ItemImage
   m_TagString: Untagged
@@ -3464,6 +3483,7 @@ GameObject:
   - component: {fileID: 1321012295}
   - component: {fileID: 1321012297}
   - component: {fileID: 1321012296}
+  - component: {fileID: 892723338049442008}
   m_Layer: 0
   m_Name: DashNode_05
   m_TagString: Untagged
@@ -3771,10 +3791,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1622831362}
-  - {fileID: 1249814772}
-  - {fileID: 426624108}
   - {fileID: 1403830046}
+  - {fileID: 1622831362}
+  - {fileID: 426624108}
+  - {fileID: 6390364617955584047}
+  - {fileID: 1249814772}
   - {fileID: 472651582}
   m_Father: {fileID: 1231759854}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3942,6 +3963,7 @@ GameObject:
   - component: {fileID: 1419458593}
   - component: {fileID: 1419458595}
   - component: {fileID: 1419458594}
+  - component: {fileID: 8085063174142371181}
   m_Layer: 0
   m_Name: NodeGuideCircle_0
   m_TagString: Untagged
@@ -3982,7 +4004,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -4017,6 +4039,7 @@ GameObject:
   - component: {fileID: 1446507244}
   - component: {fileID: 1446507246}
   - component: {fileID: 1446507245}
+  - component: {fileID: 968196408185819179}
   m_Layer: 0
   m_Name: AttackNode_01
   m_TagString: Untagged
@@ -4318,6 +4341,7 @@ GameObject:
   - component: {fileID: 1483527128}
   - component: {fileID: 1483527130}
   - component: {fileID: 1483527129}
+  - component: {fileID: 557380681191578132}
   m_Layer: 0
   m_Name: CleansUpgradeNode_01
   m_TagString: Untagged
@@ -4654,6 +4678,7 @@ GameObject:
   - component: {fileID: 1588545191}
   - component: {fileID: 1588545193}
   - component: {fileID: 1588545192}
+  - component: {fileID: 3956957380441106266}
   m_Layer: 0
   m_Name: DashNode_04
   m_TagString: Untagged
@@ -4751,9 +4776,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1379111540}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2, y: 247.7}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 385, y: -283}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1622831363
@@ -5248,81 +5273,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1830317715}
   m_CullTransparentMesh: 1
---- !u!1 &1833901291
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1833901292}
-  - component: {fileID: 1833901294}
-  - component: {fileID: 1833901293}
-  m_Layer: 5
-  m_Name: Image
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1833901292
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1833901291}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 268397813}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1833901293
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1833901291}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.89411765}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1833901294
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1833901291}
-  m_CullTransparentMesh: 1
 --- !u!1 &1859315774
 GameObject:
   m_ObjectHideFlags: 0
@@ -5507,6 +5457,7 @@ GameObject:
   - component: {fileID: 1918894011}
   - component: {fileID: 1918894013}
   - component: {fileID: 1918894012}
+  - component: {fileID: 8838681121152269347}
   m_Layer: 0
   m_Name: ShieldUpgradeNode_01
   m_TagString: Untagged
@@ -5583,6 +5534,7 @@ GameObject:
   - component: {fileID: 1926450408}
   - component: {fileID: 1926450410}
   - component: {fileID: 1926450409}
+  - component: {fileID: 1328320887535867595}
   m_Layer: 5
   m_Name: ShieldMainNode
   m_TagString: Untagged
@@ -6015,6 +5967,685 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145220775}
   m_CullTransparentMesh: 1
+--- !u!114 &545363681616962640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724661334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: attack_05
+  _mainNodeImage: {fileID: 1016562409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &557380681191578132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483527127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: cleanse_01
+  _mainNodeImage: {fileID: 859988064}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &645198181100374566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 732541950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: shield_02
+  _mainNodeImage: {fileID: 1926450409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &670576685538020777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 572922127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: cleanse_02
+  _mainNodeImage: {fileID: 859988064}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &892723338049442008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321012294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: dash_05
+  _mainNodeImage: {fileID: 996005982}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &968196408185819179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446507243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: attack_01
+  _mainNodeImage: {fileID: 1016562409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!4 &998638452777906691
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832804360746816839}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!222 &1050521141494289803
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5267461299025127992}
+  m_CullTransparentMesh: 1
+--- !u!114 &1328320887535867595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926450407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ae77d3a9723462fbc8ba5a6cbeb0c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillMainNodeView
+  _skillId: shield
+  _selectedScale: 1.08
+--- !u!1 &1832804360746816839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 998638452777906691}
+  - component: {fileID: 5809355792684156340}
+  - component: {fileID: 6668062526259002153}
+  - component: {fileID: 5305378733842821175}
+  m_Layer: 0
+  m_Name: SkillUpgradeController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2080241222855773941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 843724682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: dash_02
+  _mainNodeImage: {fileID: 996005982}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &2139119943687723724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1016562407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ae77d3a9723462fbc8ba5a6cbeb0c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillMainNodeView
+  _skillId: attack
+  _selectedScale: 1.08
+--- !u!114 &2319724388333390735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73682302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: shield_03
+  _mainNodeImage: {fileID: 1926450409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &3741603982383516983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508127760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: attack_04
+  _mainNodeImage: {fileID: 1016562409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &3956957380441106266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1588545190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: dash_04
+  _mainNodeImage: {fileID: 996005982}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &3965875329656804758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859988062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ae77d3a9723462fbc8ba5a6cbeb0c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillMainNodeView
+  _skillId: cleanse
+  _selectedScale: 1.08
+--- !u!114 &5086947095633979044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1292644584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60a4c859a9e8412fbe5b65b882f7daac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillCostRowView
+  _iconImage: {fileID: 1292644586}
+  _nameText: {fileID: 104328316}
+  _costText: {fileID: 2145220777}
+  _costFormat: Need {0} (Own {1})
+  _insufficientColor: {r: 0.95, g: 0.45, b: 0.4, a: 1}
+--- !u!114 &5182513832886728665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 349097696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: shield_04
+  _mainNodeImage: {fileID: 1926450409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &5234327459162675120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996005980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ae77d3a9723462fbc8ba5a6cbeb0c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillMainNodeView
+  _skillId: dash
+  _selectedScale: 1.08
+--- !u!1 &5267461299025127992
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6390364617955584047}
+  - component: {fileID: 1050521141494289803}
+  - component: {fileID: 5368430586848198545}
+  m_Layer: 0
+  m_Name: PrerequisiteText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &5305378733842821175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832804360746816839}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aba9ec74985145429f224004f6a3412c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameSessionSkillUpgradeSource
+  _upgradeResourceId: mercury
+  _resourceIcons: []
+--- !u!114 &5315389816265151663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 975750023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: shield_05
+  _mainNodeImage: {fileID: 1926450409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &5365749391392088512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 289933099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60a4c859a9e8412fbe5b65b882f7daac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillCostRowView
+  _iconImage: {fileID: 289933101}
+  _nameText: {fileID: 1343454314}
+  _costText: {fileID: 1859315776}
+  _costFormat: Need {0} (Own {1})
+  _insufficientColor: {r: 0.95, g: 0.45, b: 0.4, a: 1}
+--- !u!114 &5368430586848198545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5267461299025127992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: 'Requires: Condensed Mana Lv. 1'
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 702154658dacc004eb5d71f4b0e40ce3, type: 2}
+  m_sharedMaterial: {fileID: -3911257553802021231, guid: 702154658dacc004eb5d71f4b0e40ce3, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4285759730
+  m_fontColor: {r: 0.95, g: 0.5, b: 0.45, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 26
+  m_fontSizeBase: 26
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 1
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: -113.18555, y: 0, z: -136.46313, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5475270654777870840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 131131683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: dash_03
+  _mainNodeImage: {fileID: 996005982}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &5477197318101497525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 454886761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: cleanse_03
+  _mainNodeImage: {fileID: 859988064}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &5500666402170143951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242584571}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: cleanse_04
+  _mainNodeImage: {fileID: 859988064}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &5809355792684156340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832804360746816839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e9c95a08cc74c1684f73a669f02fb73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillUpgradePresenter
+  _dataSource: {fileID: 6668062526259002153}
+  _screenRoot: {fileID: 268397809}
+  _nodeContainer: {fileID: 1231759854}
+  _nameText: {fileID: 1622831363}
+  _levelText: {fileID: 426624109}
+  _prerequisiteText: {fileID: 5368430586848198545}
+  _descriptionText: {fileID: 1249814773}
+  _costPanel: {fileID: 472651581}
+  _upgradeButtonRoot: {fileID: 1403830046}
+  _closeButtonRoot: {fileID: 1489189675}
+  _closeKeys: 1b000000
+  _selectionCursor: {fileID: 8085063174142371181}
+  _includeMainNodesInNavigation: 1
+  _maxNavigationAngle: 60
+  _repeatDelay: 0.35
+  _repeatInterval: 0.12
+  _levelFormat: Max Lv. {0} / Current Lv. {1}
+  _prerequisiteFormat: 'Requires: {0} Lv. 1'
+  _upgradeLabel: Upgrade
+  _maxLevelLabel: MAX
+--- !u!114 &5916497446257569881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 324624087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: cleanse_05
+  _mainNodeImage: {fileID: 859988064}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!224 &6390364617955584047
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5267461299025127992}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1379111540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 385, y: -383}
+  m_SizeDelta: {x: 200, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6668062526259002153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832804360746816839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 119946b80373498097ef5b8b012b569c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FakeSkillUpgradeDataSource
+  _upgradeResourceId: mercury
+  _resourceIcons: []
+  _startQuantity: 20
+  _addQuantity: 20
+  _addResourceKey: 49
+  _resetKey: 50
+--- !u!114 &7674918311415852851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917421580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: attack_02
+  _mainNodeImage: {fileID: 1016562409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &8490539026135319669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 789750898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: dash_01
+  _mainNodeImage: {fileID: 996005982}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &8838681121152269347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918894010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: shield_01
+  _mainNodeImage: {fileID: 1926450409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &8842514861359412280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 363493631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd255455b34337b6cc014fe9f87a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillNodeView
+  _nodeId: attack_03
+  _mainNodeImage: {fileID: 1016562409}
+  _zeroLevelColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedColor: {r: 0.35, g: 0.35, b: 0.38, a: 1}
+  _selectedScale: 1.15
+--- !u!114 &8085063174142371181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419458592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67aff5c98e6949ae8c63483a1bc51e53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillSelectionCursor
+  _moveDuration: 0.25
+  _sizeMultiplier: 1.3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -6022,3 +6653,4 @@ SceneRoots:
   - {fileID: 1690322011}
   - {fileID: 268397813}
   - {fileID: 527176088}
+  - {fileID: 998638452777906691}
