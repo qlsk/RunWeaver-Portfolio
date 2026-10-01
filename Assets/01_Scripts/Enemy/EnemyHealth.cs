@@ -14,6 +14,8 @@ public class EnemyHealth : MonoBehaviour
 
     public event Action OnDamaged;
     public static event Action<EnemyHealth> OnDeath;
+    // 실제로 깎인 체력만큼 전달한다. (결과창 총 피해량 집계용)
+    public static event Action<EnemyHealth, float> OnDamageDealt;
 
     private void Start()
     {
@@ -35,6 +37,7 @@ public class EnemyHealth : MonoBehaviour
         if (killed) _isDead = true;
 
         OnDamaged?.Invoke();
+        OnDamageDealt?.Invoke(this, actualDamage);
 
         if (killed)
         {

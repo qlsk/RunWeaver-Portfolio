@@ -7,6 +7,7 @@ public class SurvivalMission : MissionBase
 
     private float _currentTimer;
     private int lastLoggedSecond = -1;
+    private PlayerHealth _playerHealth;
 
     public float SurvivalDuration => survivalDuration;
     public float CurrentTimer => _currentTimer;
@@ -20,6 +21,14 @@ public class SurvivalMission : MissionBase
 
         DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
         DummyPlayer.OnDummyPlayerDied += HandlePlayerDied;
+
+        // 실제 플레이어(PlayerHealth)가 죽어도 미션 실패로 처리한다.
+        UnsubscribePlayerHealth();
+        _playerHealth = FindAnyObjectByType<PlayerHealth>();
+        if (_playerHealth != null)
+        {
+            _playerHealth.Died += HandlePlayerDied;
+        }
 
         Debug.Log($"[SurvivalMission] 생존 미션 시작! 목표 시간: {survivalDuration}초");
     }
@@ -58,6 +67,16 @@ public class SurvivalMission : MissionBase
     private void OnDisable()
     {
         DummyPlayer.OnDummyPlayerDied -= HandlePlayerDied;
+        UnsubscribePlayerHealth();
+    }
+
+    private void UnsubscribePlayerHealth()
+    {
+        if (_playerHealth != null)
+        {
+            _playerHealth.Died -= HandlePlayerDied;
+            _playerHealth = null;
+        }
     }
 
     public override float GetProgressRatio()

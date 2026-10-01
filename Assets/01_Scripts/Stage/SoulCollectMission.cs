@@ -10,6 +10,9 @@ public class SoulCollectMission : MissionBase
     [SerializeField] private int targetSoulCount = 5;
     private int currentSoulCount = 0;
 
+    public int CurrentSoulCount => currentSoulCount;
+    public int TargetSoulCount => targetSoulCount;
+
     [Header("영혼 수집 구역 (비워두면 씬의 SoulHarvestZone 자동 탐색)")]
     [SerializeField] private SoulHarvestZone harvestZone;
 
