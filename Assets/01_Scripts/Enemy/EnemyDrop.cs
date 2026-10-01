@@ -15,16 +15,19 @@ public class EnemyDrop : MonoBehaviour
     private void Start()
     {
         _enemyHealth = GetComponent<EnemyHealth>();
-        _enemyHealth.OnDeath += Drop;
+        EnemyHealth.OnDeath += Drop;
     }
 
     private void OnDestroy()
     {
-        if (_enemyHealth != null) _enemyHealth.OnDeath -= Drop;
+        // 정적 이벤트이므로 EnemyHealth가 먼저 파괴되었더라도 항상 구독을 해제한다.
+        EnemyHealth.OnDeath -= Drop;
     }
 
-    private void Drop()
+    private void Drop(EnemyHealth health)
     {
+        // OnDeath는 모든 적이 공유하는 이벤트이므로, 자기 자신이 죽었을 때만 드롭한다.
+        if (health != _enemyHealth) return;
         if (runePrefab == null) return;
 
         var database = RuneStoneDatabase.Instance;
@@ -38,7 +41,8 @@ public class EnemyDrop : MonoBehaviour
         int index = UnityEngine.Random.Range(0, _runeStones.Count);
         char runeCharacter = _runeStones[index].RuneCharacter;
 
-        int quantity = UnityEngine.Random.Range(_minQuantity, _maxQuantity);
+        // int Random.Range는 최댓값을 포함하지 않으므로 +1 해서 _maxQuantity까지 나오게 한다.
+        int quantity = UnityEngine.Random.Range(_minQuantity, _maxQuantity + 1);
         if (quantity == 0) return;
 
         Sprite runeIcon = _runeStones[index].Icon;

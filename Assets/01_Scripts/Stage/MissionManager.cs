@@ -27,6 +27,8 @@ public class MissionManager : MonoBehaviour
     private GameObject spawnedMissionObject;
 
     public event Action<MissionBase> OnMissionInitialized;
+    // 현재 미션이 클리어되었을 때 (몬스터 스폰 중지 등에 사용)
+    public event Action<MissionBase> OnMissionCompleted;
 
     private void Awake()
     {
@@ -99,15 +101,23 @@ public class MissionManager : MonoBehaviour
                 break;
 
             case MissionType.AltarDefense:
+                DefenseAltar spawnedAltar = null;
                 if (defenseAltarPrefab != null)
                 {
                     spawnedMissionObject = Instantiate(defenseAltarPrefab, missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedAltar = spawnedMissionObject.GetComponent<DefenseAltar>();
                 }
                 else
                 {
                     Debug.LogWarning("[MissionManager] defenseAltarPrefab이 연결되지 않았습니다!");
                 }
-                currentMission = gameObject.AddComponent<AltarDefenseMission>();
+
+                var altarMission = gameObject.AddComponent<AltarDefenseMission>();
+                if (spawnedAltar != null)
+                {
+                    altarMission.SetTargetAltar(spawnedAltar); // 생성된 신규 제단 직접 주입
+                }
+                currentMission = altarMission;
                 break;
 
             case MissionType.Survival:
@@ -139,6 +149,7 @@ public class MissionManager : MonoBehaviour
     private void HandleMissionCompleted()
     {
         Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 포탈 생성 요청");
+        OnMissionCompleted?.Invoke(currentMission);
         if (StageManager.Instance != null)
         {
             StageManager.Instance.SpawnPortalAtCenter();

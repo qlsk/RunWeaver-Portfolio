@@ -13,23 +13,26 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject spawnEffectPrefab;
 
     [Header("스폰 거리 및 연출 설정")]
-    [SerializeField] private float minSpawnDistance = 4f;  // 플레이어 기준 최소 거리
-    [SerializeField] private float maxSpawnDistance = 7f;  // 플레이어 기준 최대 거리
-    [SerializeField] private float effectDuration = 1f;    // 스폰 이펙트 연출 시간
+    [SerializeField] private float minSpawnDistance = 4f; // 플레이어 기준 최소 거리
+    [SerializeField] private float maxSpawnDistance = 7f; // 플레이어 기준 최대 거리
+    [SerializeField] private float effectDuration = 1f; // 스폰 이펙트 연출 시간
 
     private Transform playerTransform;
     private StageRuntimeData currentStageData;
     private readonly List<GameObject> activeMonsters = new List<GameObject>();
     private Coroutine currentSpawnCoroutine;
+    private MissionManager missionManager;
 
     private void OnEnable()
     {
         DummyEnemy.OnEnemyDied += HandleEnemyDied;
+        EnemyHealth.OnDeath += HandleRealEnemyDied;
     }
 
     private void OnDisable()
     {
         DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+        EnemyHealth.OnDeath -= HandleRealEnemyDied;
     }
 
     private void Start()
@@ -45,7 +48,37 @@ public class MonsterSpawner : MonoBehaviour
             stageGenerator = FindAnyObjectByType<StageGenerator>();
         }
 
+        // 미션을 클리어하면 더 이상 몬스터를 생성하지 않는다. (다음 스테이지 진입 시 RestartSpawner로 재개)
+        missionManager = MissionManager.Instance;
+        if (missionManager != null)
+        {
+            missionManager.OnMissionCompleted += HandleMissionCompleted;
+        }
+
         InitAndStartSpawning(currentStageDepth);
+    }
+
+    private void OnDestroy()
+    {
+        if (missionManager != null)
+        {
+            missionManager.OnMissionCompleted -= HandleMissionCompleted;
+        }
+    }
+
+    private void HandleMissionCompleted(MissionBase mission)
+    {
+        StopSpawning();
+    }
+
+    /// <summary>
+    /// 스폰 루틴과 이펙트 대기 중인 스폰까지 모두 멈춘다. 이미 나와 있는 몬스터는 그대로 둔다.
+    /// </summary>
+    public void StopSpawning()
+    {
+        StopAllCoroutines();
+        currentSpawnCoroutine = null;
+        Debug.Log("[MonsterSpawner] 미션 클리어 - 몬스터 생성 중지");
     }
 
     /// <summary>
@@ -55,10 +88,9 @@ public class MonsterSpawner : MonoBehaviour
     {
         currentStageDepth = newDepth;
 
-        if (currentSpawnCoroutine != null)
-        {
-            StopCoroutine(currentSpawnCoroutine);
-        }
+        // 이펙트 대기 중인 스폰까지 함께 멈춘다.
+        StopAllCoroutines();
+        currentSpawnCoroutine = null;
 
         activeMonsters.RemoveAll(m => m == null);
         foreach (var enemy in activeMonsters)
@@ -85,7 +117,18 @@ public class MonsterSpawner : MonoBehaviour
         currentSpawnCoroutine = StartCoroutine(SpawnRoutine());
     }
 
+    // 더미 몬스터 사망 처리
     private void HandleEnemyDied(DummyEnemy enemy)
+    {
+        if (enemy != null && activeMonsters.Contains(enemy.gameObject))
+        {
+            activeMonsters.Remove(enemy.gameObject);
+        }
+        activeMonsters.RemoveAll(item => item == null);
+    }
+
+    // 실제 몬스터(EnemyHealth) 사망 처리
+    private void HandleRealEnemyDied(EnemyHealth enemy)
     {
         if (enemy != null && activeMonsters.Contains(enemy.gameObject))
         {
@@ -125,18 +168,18 @@ public class MonsterSpawner : MonoBehaviour
             if (activeMonsters.Count >= maxLimit) break;
 
             Vector3 spawnPos = GetRandomSpawnPosition();
-            GameObject targetPrefab = SelectMonsterPrefab();
+            GameObject targetPrefab = SelectMonsterPrefab(out bool isElite);
 
             if (targetPrefab != null)
             {
-                StartCoroutine(SpawnSingleMonsterWithEffect(spawnPos, targetPrefab));
+                StartCoroutine(SpawnSingleMonsterWithEffect(spawnPos, targetPrefab, isElite));
             }
 
             yield return new WaitForSeconds(0.15f);
         }
     }
 
-    private IEnumerator SpawnSingleMonsterWithEffect(Vector3 spawnPosition, GameObject prefabToSpawn)
+    private IEnumerator SpawnSingleMonsterWithEffect(Vector3 spawnPosition, GameObject prefabToSpawn, bool isElite)
     {
         if (spawnEffectPrefab != null)
         {
@@ -148,12 +191,20 @@ public class MonsterSpawner : MonoBehaviour
         if (prefabToSpawn != null)
         {
             GameObject enemyObj = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+
+            // 스테이지 시스템 메타 정보 부착 (엘리트 판정용)
+            StageEnemyInfo info = enemyObj.GetComponent<StageEnemyInfo>();
+            if (info == null) info = enemyObj.AddComponent<StageEnemyInfo>();
+            info.Setup(isElite);
+
             activeMonsters.Add(enemyObj);
         }
     }
 
-    private GameObject SelectMonsterPrefab()
+    private GameObject SelectMonsterPrefab(out bool isElite)
     {
+        isElite = false;
+
         if (currentStageData != null && currentStageData.selectedMonsters.Count > 0)
         {
             float randomVal = Random.value;
@@ -167,6 +218,7 @@ public class MonsterSpawner : MonoBehaviour
                     var data = currentStageData.selectedMonsters[i];
                     if (data != null && data.monsterPrefab != null)
                     {
+                        isElite = data.category == MonsterCategory.Special;
                         return data.monsterPrefab;
                     }
                 }

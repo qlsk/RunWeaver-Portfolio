@@ -10,8 +10,20 @@ public class SoulCollectMission : MissionBase
     [SerializeField] private int targetSoulCount = 5;
     private int currentSoulCount = 0;
 
+    public int CurrentSoulCount => currentSoulCount;
+    public int TargetSoulCount => targetSoulCount;
+
     [Header("영혼 수집 구역 (비워두면 씬의 SoulHarvestZone 자동 탐색)")]
     [SerializeField] private SoulHarvestZone harvestZone;
+
+    /// <summary>
+    /// MissionManager가 직전에 생성한 구역을 직접 연결합니다.
+    /// (Initialize 이전에 호출되어야 하며, 연결되면 자동 탐색을 건너뜁니다.)
+    /// </summary>
+    public void SetHarvestZone(SoulHarvestZone zone)
+    {
+        harvestZone = zone;
+    }
 
     public override void Initialize()
     {
@@ -19,7 +31,7 @@ public class SoulCollectMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 구역 자동 탐색
+        // 구역 자동 탐색 (직접 연결되지 않은 경우에만)
         if (harvestZone == null)
         {
             harvestZone = FindAnyObjectByType<SoulHarvestZone>();
@@ -35,27 +47,27 @@ public class SoulCollectMission : MissionBase
         }
 
         // 정적 이벤트 중복 구독 방지
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
-        DummyEnemy.OnEnemyDied += HandleEnemyDied;
+        EnemyHealth.OnDeath -= HandleEnemyDied;
+        EnemyHealth.OnDeath += HandleEnemyDied;
 
         NotifyProgressUpdated();
     }
 
     private void OnDisable()
     {
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+        EnemyHealth.OnDeath -= HandleEnemyDied;
     }
 
     private void OnDestroy()
     {
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+        EnemyHealth.OnDeath -= HandleEnemyDied;
     }
 
     public override void UpdateMission(float deltaTime)
     {
     }
 
-    private void HandleEnemyDied(DummyEnemy enemy)
+    private void HandleEnemyDied(EnemyHealth enemy)
     {
         if (IsCompleted || IsFailed) return;
         if (enemy == null) return;

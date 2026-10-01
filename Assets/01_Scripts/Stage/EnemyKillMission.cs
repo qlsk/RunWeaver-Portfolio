@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 미션 1: 적 처치 (일반 몬스터 및 엘리트 몬스터 지정 마릿수 처치)
+/// 실제 몬스터(EnemyHealth)와 더미(DummyEnemy) 사망 이벤트를 모두 구독합니다.
 /// </summary>
 public class EnemyKillMission : MissionBase
 {
@@ -9,9 +10,14 @@ public class EnemyKillMission : MissionBase
     [SerializeField] private int targetNormalKillCount = 5;
     private int currentNormalKillCount = 0;
 
-    [Header("엘리트 몬스터 목표 (0이면 일반 몬스터만 처치)")]
+    [Header("엘리트 몬스터 목표 (0이면 엘리트도 일반 처치로 집계)")]
     [SerializeField] private int targetEliteKillCount = 0;
     private int currentEliteKillCount = 0;
+
+    public int CurrentNormalKillCount => currentNormalKillCount;
+    public int TargetNormalKillCount => targetNormalKillCount;
+    public int CurrentEliteKillCount => currentEliteKillCount;
+    public int TargetEliteKillCount => targetEliteKillCount;
 
     public override void Initialize()
     {
@@ -20,28 +26,46 @@ public class EnemyKillMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 정적 이벤트 중복 구독 방지: 기존 등록을 해제한 후 재구독
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
-        DummyEnemy.OnEnemyDied += HandleEnemyDied;
+        // 정적 이벤트 중복 구독 방지: 해제 후 재구독
+        UnsubscribeEvents();
+        EnemyHealth.OnDeath += HandleEnemyDied;        // 실제 몬스터
+        DummyEnemy.OnEnemyDied += HandleDummyEnemyDied;    // 더미 (테스트용)
 
         NotifyProgressUpdated();
     }
 
+    private void UnsubscribeEvents()
+    {
+        EnemyHealth.OnDeath -= HandleEnemyDied;
+        DummyEnemy.OnEnemyDied -= HandleDummyEnemyDied;
+    }
+
     private void OnDisable()
     {
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+        UnsubscribeEvents();
     }
 
     private void OnDestroy()
     {
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
+        UnsubscribeEvents();
     }
 
     public override void UpdateMission(float deltaTime)
     {
     }
 
-    private void HandleEnemyDied(DummyEnemy enemy)
+    // 실제 몬스터 사망
+    private void HandleEnemyDied(EnemyHealth enemy)
+    {
+        if (IsCompleted || IsFailed) return;
+        if (enemy == null) return;
+
+        bool isElite = enemy.TryGetComponent(out StageEnemyInfo info) && info.IsElite;
+        AddKillCount(isElite, 1);
+    }
+
+    // 더미 몬스터 사망
+    private void HandleDummyEnemyDied(DummyEnemy enemy)
     {
         if (IsCompleted || IsFailed) return;
 
@@ -50,11 +74,13 @@ public class EnemyKillMission : MissionBase
     }
 
     /// <summary>
-    /// 외부(실제 EnemyHealth 또는 스포너)에서 처치를 전달받을 수 있는 공용 메서드
+    /// 처치를 집계하는 공용 메서드. 엘리트 목표가 0이면 엘리트도 일반 처치로 셉니다.
     /// </summary>
     public void AddKillCount(bool isElite, int amount = 1)
     {
         if (IsCompleted || IsFailed) return;
+
+        if (isElite && targetEliteKillCount <= 0) isElite = false;
 
         if (isElite)
         {
