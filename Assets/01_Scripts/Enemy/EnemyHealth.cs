@@ -13,7 +13,7 @@ public class EnemyHealth : MonoBehaviour
     public bool IsDead => _isDead;
 
     public event Action OnDamaged;
-    public event Action OnDeath;
+    public static event Action<EnemyHealth> OnDeath;
 
     private void Start()
     {
@@ -38,7 +38,7 @@ public class EnemyHealth : MonoBehaviour
 
         if (killed)
         {
-            OnDeath?.Invoke();
+            OnDeath?.Invoke(this);
             Destroy(gameObject);
         }
 
