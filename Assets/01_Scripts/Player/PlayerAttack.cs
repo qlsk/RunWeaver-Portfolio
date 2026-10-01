@@ -51,16 +51,22 @@ public class PlayerAttack : MonoBehaviour
         if (_bulletFireCoolTimer < _bulletFireRate)
             return;
 
-        Vector2 targetPosition = _camera.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 targetPosition = _playerInputHandler.MousePosition;
         Vector2 direction = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
         if (direction == Vector2.zero)
             return;
+        // 마우스 Screen 좌표 -> World 좌표
 
         float rotationZ = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position,
             Quaternion.Euler(0f, 45f, rotationZ));
         bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _mainElement);
 
+        // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
+        bullet.PlayCastEffect(_firePosition.transform.position);
+
+        _currentAmmo--;
+        // 발사 간격을 마지막 발사 시점부터 측정
         _bulletFireCoolTimer = 0f;
     }
 

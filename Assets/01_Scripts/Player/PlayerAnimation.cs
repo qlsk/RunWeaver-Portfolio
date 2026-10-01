@@ -18,7 +18,7 @@ public class PlayerAnimation : MonoBehaviour
     // mouseposition.x - transform.position.x > 0 이면 오른쪽 <0 이면 왼쪽 flip true : false
     private void Update()
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 mousePosition = _playerInputHandler.MousePosition;
         _animator.SetBool("isRunning", _playerInputHandler.MoveDirection != Vector2.zero);
 
         _spriteRenderer.flipX = mousePosition.x - transform.position.x > 0 ? true : false;

@@ -19,7 +19,7 @@ public class PlayerArm : MonoBehaviour
     {
         _origin = gameObject.transform.position;
 
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(_playerInputHandler.MousePosition);
+        Vector2 mousePosition = _playerInputHandler.MousePosition;
 
         Vector2 direction = mousePosition - (Vector2)_origin;
 
@@ -60,16 +60,7 @@ public class PlayerArm : MonoBehaviour
             _arm.transform.position = _origin;
             _armSpriteRenderer.flipX = true;
             _arm.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
-            if (mousePosition.x > transform.position.x)
-            {
-                _armSpriteRenderer.flipY = false;
-                _arm.transform.position = _origin + new Vector3(_offsetX, _offsetY, 0f);
-            }
-            else
-            {
-                _armSpriteRenderer.flipY = true;
-                _arm.transform.position = _origin + new Vector3(-_offsetX, _offsetY, 0f);
-            }
+            _armSpriteRenderer.flipY = mousePosition.x > transform.position.x ? false : true;
         }
     }
 }
