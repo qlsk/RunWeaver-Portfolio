@@ -42,7 +42,7 @@ public class PlayerInputHandler : MonoBehaviour
     private void Update()
     {
         // 마우스 position 갱신
-        _mousePosition = Input.mousePosition;
+        _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         // player move input 갱신
         float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
