@@ -42,6 +42,10 @@ public class PlayerBulletPosition : MonoBehaviour
 
     private void Update()
     {
+        Vector2 direction = _playerInputHandler.MousePosition - (Vector2)transform.position;
+        _playerBulletPosition.transform.rotation =
+            Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+
         if (_armSpriteRenderer != null)
         {
             Vector3 muzzlePosition = _muzzleLocalPosition;
