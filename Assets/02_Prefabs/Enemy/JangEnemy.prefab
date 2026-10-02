@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 6297487234345351951}
   - component: {fileID: 8589632753857092902}
   - component: {fileID: 3096053139321936895}
+  - component: {fileID: 1198183762916471408}
   - component: {fileID: -351535894501172995}
   m_Layer: 0
   m_Name: JangEnemy
@@ -225,7 +226,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &3096053139321936895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,6 +243,18 @@ MonoBehaviour:
   _maxQuantity: 3
   runePrefab: {fileID: 7604851959272145055, guid: af0ce2a398dee2b40a34d0a87efd6eff, type: 3}
   _amountOfGold: 10
+--- !u!114 &1198183762916471408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
 --- !u!95 &-351535894501172995
 Animator:
   serializedVersion: 7
