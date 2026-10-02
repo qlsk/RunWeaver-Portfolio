@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerAnimation : MonoBehaviour
 {
+    // private static readonly int s_isRunning = Animator.StringToHash("isRunning");
+
     private Animator _animator;
     private SpriteRenderer _spriteRenderer;
     private PlayerInputHandler _playerInputHandler;
@@ -15,12 +17,13 @@ public class PlayerAnimation : MonoBehaviour
         _arm = GetComponent<PlayerArm>();
     }
 
-    // mouseposition.x - transform.position.x > 0 이면 오른쪽 <0 이면 왼쪽 flip true : false
     private void Update()
     {
         Vector2 mousePosition = _playerInputHandler.MousePosition;
-        _animator.SetBool("isRunning", _playerInputHandler.MoveDirection != Vector2.zero);
+        // _animator.SetBool(s_isRunning, _playerInputHandler.MoveDirection != Vector2.zero);
 
-        _spriteRenderer.flipX = mousePosition.x - transform.position.x > 0 ? true : false;
+        // 기본 스프라이트가 왼쪽을 바라보고 있으므로, 마우스가 플레이어 기준 오른쪽에 위치하면 스프라이트를 뒤집는다.
+        bool isMouseOnPlayerRight = mousePosition.x - transform.position.x > 0;
+        _spriteRenderer.flipX = isMouseOnPlayerRight;
     }
 }

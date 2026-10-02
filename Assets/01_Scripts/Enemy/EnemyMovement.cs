@@ -5,6 +5,7 @@ public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private EnemyTargetDetector _targetDetector;
+    [SerializeField] private bool _enemyMove;
     private Rigidbody2D _enemyRigidbody2D;
 
     private void Awake()
@@ -14,6 +15,9 @@ public class EnemyMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!_enemyMove)
+            return;
+
         Transform target = _targetDetector.Target;
 
         if (target == null)
