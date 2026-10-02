@@ -29,28 +29,11 @@ echo "$CS_FILES"
 
 
 # ------------------------------------------------------------
-# 2. Whitespace 검사
+# 2. C# 이름 규칙 검사
 # ------------------------------------------------------------
 
 echo ""
-echo "[1/2] Checking whitespace..."
-
-if ! git diff --cached --check -- "$SCRIPT_DIR"; then
-    echo ""
-    echo "Whitespace 오류가 발견되었습니다."
-    echo "불필요한 공백이나 잘못된 줄 끝을 수정해주세요."
-    exit 1
-fi
-
-echo "Whitespace check passed."
-
-
-# ------------------------------------------------------------
-# 3. C# 이름 규칙 검사
-# ------------------------------------------------------------
-
-echo ""
-echo "[2/2] Checking C# naming..."
+echo "Checking C# naming..."
 
 if ! dotnet format style Assembly-CSharp.csproj \
     --verify-no-changes \

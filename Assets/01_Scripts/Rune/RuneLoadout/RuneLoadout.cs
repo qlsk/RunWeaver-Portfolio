@@ -199,6 +199,14 @@ public class RuneLoadout : IDisposable
         RefreshActiveSlotCount();
     }
 
+    public void ClearAll()
+    {
+        if (string.IsNullOrWhiteSpace(_equippedEffectIds[0]))
+            return;
+        Array.Clear(_equippedEffectIds, 0, _equippedEffectIds.Length);
+        SafeEventNotifier.Notify(LoadoutChanged);
+    }
+
     public void Dispose()
     {
         if (_disposed)

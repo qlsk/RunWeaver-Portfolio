@@ -11,6 +11,7 @@ public class RuneEffectDefinition
     [SerializeField] private string _description;
     [SerializeField] private Sprite _icon;
     [SerializeField] private bool _canOverlap;
+    [SerializeField] private RuneEffectExecutionSettings _executionSettings;
 
     public string Id => _id;
     public string RuneWord => _runeWord;
@@ -20,9 +21,17 @@ public class RuneEffectDefinition
     public string Description => _description;
     public Sprite Icon => _icon;
     public bool CanOverlap => _canOverlap;
+    public RuneEffectExecutionSettings ExecutionSettings => _executionSettings;
 
-    public RuneEffectDefinition(string id, string runeWord, string englishName, string displayName,
-        RuneEffectCategory category, string description, Sprite icon, bool canOverlap)
+    // TODO: 룬 효과 구현 시 룬 효과 실행 설정 로드 추가
+    public RuneEffectDefinition(string id,
+        string runeWord,
+        string englishName,
+        string displayName,
+        RuneEffectCategory category,
+        string description,
+        Sprite icon,
+        bool canOverlap)
     {
         _id = id;
         _runeWord = runeWord;

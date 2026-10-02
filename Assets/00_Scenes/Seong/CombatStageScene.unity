@@ -348,12 +348,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c169190e51e89934f993f46ed3f29fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawner
-  stageGenerator: {fileID: 1987654321}
-  currentStageDepth: 1
-  defaultEnemyPrefab: {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-  spawnEffectPrefab: {fileID: 0}
+  enemyPrefabs:
+  - {fileID: 8121630921212012013, guid: 8405a810edbafa140ad4fd0637ef6c71, type: 3}
+  baseBudget: 20
+  budgetPerDepth: 10
+  baseMaxMonsterCount: 15
+  monsterCountPerDepth: 5
+  spawnInterval: 0.5
+  tierGrowthMultiplier: 5
   minSpawnDistance: 4
   maxSpawnDistance: 8
+  spawnEffectPrefab: {fileID: 0}
   effectDuration: 1
 --- !u!4 &28388522
 Transform:
@@ -1176,6 +1181,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 573846424}
   m_CullTransparentMesh: 1
+--- !u!212 &685323213 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 227534212621198233, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 2066277654}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &709986234
 GameObject:
   m_ObjectHideFlags: 0
@@ -1723,6 +1733,7 @@ MonoBehaviour:
   _runeEffectDatabase: {fileID: 1320659391}
   _skillDatabase: {fileID: 183798088}
   _researchDatabase: {fileID: 1010764932}
+  _runeStoneInventory: {fileID: 42451153}
 --- !u!4 &951670900
 Transform:
   m_ObjectHideFlags: 0
@@ -4077,6 +4088,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1880740362 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 7120921233138825178, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+  m_PrefabInstance: {fileID: 2066277654}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1950051923
 GameObject:
   m_ObjectHideFlags: 0
@@ -4283,7 +4299,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8026872993754127545, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _playerRifle
+      value: 
+      objectReference: {fileID: 685323213}
+    - target: {fileID: 8026872993754127545, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _playerSupportArm
+      value: 
+      objectReference: {fileID: 1880740362}
+    m_RemovedComponents:
+    - {fileID: 0}
+    - {fileID: 2551697017257419659, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
