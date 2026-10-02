@@ -113,15 +113,8 @@ public class DummyEnemy : MonoBehaviour
 
             TakeDamage(damage);
 
-            // Bullet 컴포넌트가 있다면 총알의 정상 종료(적중) 루틴 호출, 없으면 파괴
-            if (obj.TryGetComponent(out Bullet bullet))
-            {
-                bullet.RequestEnd(Bullet.BulletEndReason.Hit);
-            }
-            else
-            {
-                Destroy(obj);
-            }
+            // 현재 Bullet의 적중 처리와 동일하게 탄환을 제거한다.
+            Destroy(obj);
         }
     }
 
