@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerAnimation : MonoBehaviour
 {
-    // private static readonly int s_isRunning = Animator.StringToHash("isRunning");
+    private static readonly int _isRunning = Animator.StringToHash("isRunning");
 
     private Animator _animator;
     private SpriteRenderer _spriteRenderer;
@@ -20,7 +20,7 @@ public class PlayerAnimation : MonoBehaviour
     private void Update()
     {
         Vector2 mousePosition = _playerInputHandler.MousePosition;
-        // _animator.SetBool(s_isRunning, _playerInputHandler.MoveDirection != Vector2.zero);
+        _animator.SetBool(_isRunning, _playerInputHandler.MoveDirection != Vector2.zero);
 
         // 기본 스프라이트가 왼쪽을 바라보고 있으므로, 마우스가 플레이어 기준 오른쪽에 위치하면 스프라이트를 뒤집는다.
         bool isMouseOnPlayerRight = mousePosition.x - transform.position.x > 0;
