@@ -147,12 +147,12 @@ TextureImporter:
       name: RangeEnemyMove_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 450
-        width: 444
-        height: 437
+        x: 10
+        y: 461
+        width: 430
+        height: 421
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -169,12 +169,12 @@ TextureImporter:
       name: RangeEnemyMove_1
       rect:
         serializedVersion: 2
-        x: 443
-        y: 453
-        width: 445
-        height: 432
+        x: 451
+        y: 461
+        width: 432
+        height: 421
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -191,12 +191,12 @@ TextureImporter:
       name: RangeEnemyMove_2
       rect:
         serializedVersion: 2
-        x: 893
-        y: 448
-        width: 435
-        height: 422
+        x: 897
+        y: 451
+        width: 422
+        height: 415
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -213,12 +213,12 @@ TextureImporter:
       name: RangeEnemyMove_3
       rect:
         serializedVersion: 2
-        x: 1330
-        y: 459
-        width: 444
-        height: 428
+        x: 1335
+        y: 464
+        width: 435
+        height: 418
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -235,12 +235,12 @@ TextureImporter:
       name: RangeEnemyMove_4
       rect:
         serializedVersion: 2
-        x: 0
-        y: 16
-        width: 446
-        height: 430
+        x: 7
+        y: 23
+        width: 433
+        height: 413
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -257,12 +257,12 @@ TextureImporter:
       name: RangeEnemyMove_5
       rect:
         serializedVersion: 2
-        x: 435
-        y: 304
-        width: 18
-        height: 21
+        x: 448
+        y: 18
+        width: 440
+        height: 427
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -279,12 +279,12 @@ TextureImporter:
       name: RangeEnemyMove_6
       rect:
         serializedVersion: 2
-        x: 444
-        y: 11
-        width: 1330
-        height: 441
+        x: 890
+        y: 14
+        width: 435
+        height: 423
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -297,11 +297,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: RangeEnemyMove_7
+      rect:
+        serializedVersion: 2
+        x: 1330
+        y: 14
+        width: 437
+        height: 431
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 897f8c0e1baa4a04ea44acba7bd39d6e
+      internalID: -853353560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2d1c6eb66bfaeae4296a2fb9e42cf00c
     internalID: 0
     vertices: []
     indices: 
@@ -309,7 +331,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       RangeEnemyMove_0: -4640381285476399091
       RangeEnemyMove_1: -5228881464060105578
@@ -318,6 +342,7 @@ TextureImporter:
       RangeEnemyMove_4: -9092895847867345144
       RangeEnemyMove_5: -3411460177625018177
       RangeEnemyMove_6: -8307442823306858710
+      RangeEnemyMove_7: -853353560
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
