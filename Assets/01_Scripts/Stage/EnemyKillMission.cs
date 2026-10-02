@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 미션 1: 적 처치 (일반 몬스터 및 엘리트 몬스터 지정 마릿수 처치)
-/// 실제 몬스터(EnemyHealth)와 더미(DummyEnemy) 사망 이벤트를 모두 구독합니다.
+/// EnemyHealth 사망 이벤트를 단일 수신합니다.
 /// </summary>
 public class EnemyKillMission : MissionBase
 {
@@ -26,10 +26,8 @@ public class EnemyKillMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 정적 이벤트 중복 구독 방지: 해제 후 재구독
         UnsubscribeEvents();
-        EnemyHealth.OnDeath += HandleEnemyDied;        // 실제 몬스터
-        DummyEnemy.OnEnemyDied += HandleDummyEnemyDied;    // 더미 (테스트용)
+        EnemyHealth.OnDeath += HandleEnemyDied;
 
         NotifyProgressUpdated();
     }
@@ -37,7 +35,6 @@ public class EnemyKillMission : MissionBase
     private void UnsubscribeEvents()
     {
         EnemyHealth.OnDeath -= HandleEnemyDied;
-        DummyEnemy.OnEnemyDied -= HandleDummyEnemyDied;
     }
 
     private void OnDisable()
@@ -54,28 +51,24 @@ public class EnemyKillMission : MissionBase
     {
     }
 
-    // 실제 몬스터 사망
     private void HandleEnemyDied(EnemyHealth enemy)
     {
         if (IsCompleted || IsFailed) return;
         if (enemy == null) return;
 
-        bool isElite = enemy.TryGetComponent(out StageEnemyInfo info) && info.IsElite;
+        bool isElite = false;
+        if (enemy.TryGetComponent(out StageEnemyInfo info))
+        {
+            isElite = info.IsElite;
+        }
+        else if (enemy.EnemyData != null && enemy.EnemyData.Info != null)
+        {
+            isElite = enemy.EnemyData.Info.Tier > 1;
+        }
+
         AddKillCount(isElite, 1);
     }
 
-    // 더미 몬스터 사망
-    private void HandleDummyEnemyDied(DummyEnemy enemy)
-    {
-        if (IsCompleted || IsFailed) return;
-
-        bool isElite = enemy != null && enemy.IsElite;
-        AddKillCount(isElite, 1);
-    }
-
-    /// <summary>
-    /// 처치를 집계하는 공용 메서드. 엘리트 목표가 0이면 엘리트도 일반 처치로 셉니다.
-    /// </summary>
     public void AddKillCount(bool isElite, int amount = 1)
     {
         if (IsCompleted || IsFailed) return;
@@ -95,7 +88,6 @@ public class EnemyKillMission : MissionBase
 
         NotifyProgressUpdated();
 
-        // 일반과 엘리트 목표를 모두 달성했는지 검사
         bool normalClear = currentNormalKillCount >= targetNormalKillCount;
         bool eliteClear = targetEliteKillCount <= 0 || currentEliteKillCount >= targetEliteKillCount;
 
@@ -111,7 +103,7 @@ public class EnemyKillMission : MissionBase
         if (totalTarget <= 0) return 1f;
 
         int totalCurrent = Mathf.Min(currentNormalKillCount, targetNormalKillCount)
-                         + Mathf.Min(currentEliteKillCount, targetEliteKillCount);
+            + Mathf.Min(currentEliteKillCount, targetEliteKillCount);
 
         return Mathf.Clamp01((float)totalCurrent / totalTarget);
     }
