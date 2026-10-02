@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 2179557753070468687}
   - component: {fileID: 340774800492513042}
   - component: {fileID: 1796876364397183347}
+  - component: {fileID: 1796876364397183348}
   - component: {fileID: 5863673722175249506}
   - component: {fileID: 8110420657988907431}
   - component: {fileID: 5141058915935371194}
@@ -185,6 +186,23 @@ MonoBehaviour:
   _dashDuration: 0.2
   _dashPower: 15
   _dashCooldown: 3
+--- !u!114 &1796876364397183348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40e78cad2ade4c6f90c66d936c09dc53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashAfterimage
+  _afterimagesEnabled: 1
+  _afterimageInterval: 0.01
+  _afterimageLifetime: 0.3
+  _afterimageColor: {r: 0.4, g: 0.8, b: 1, a: 0.45}
+  _afterimageSources: []
 --- !u!114 &5863673722175249506
 MonoBehaviour:
   m_ObjectHideFlags: 0
