@@ -1,0 +1,24 @@
+using UnityEngine;
+
+/// <summary>
+/// 상점 칸 하나에 진열된 품목. 가격은 진열될 때마다 정해진다.
+/// </summary>
+public class ShopOfferData
+{
+    public ShopOfferData(string id, string displayName, string description, Sprite icon, ShopItemType type, int price)
+    {
+        Id = id;
+        DisplayName = displayName;
+        Description = description;
+        Icon = icon;
+        Type = type;
+        Price = price;
+    }
+
+    public string Id { get; }
+    public string DisplayName { get; }
+    public string Description { get; }
+    public Sprite Icon { get; }
+    public ShopItemType Type { get; }
+    public int Price { get; }
+}
