@@ -11,6 +11,7 @@ public class EnemyDrop : MonoBehaviour
     [SerializeField] private int _maxQuantity = 1;
     [SerializeField] private RunePickup runePrefab;
     private List<RuneStoneDefinition> _runeStones = new List<RuneStoneDefinition>();
+    [SerializeField] private int _amountOfGold = 10;
 
     private void Start()
     {
@@ -28,6 +29,12 @@ public class EnemyDrop : MonoBehaviour
     {
         // OnDeath는 모든 적이 공유하는 이벤트이므로, 자기 자신이 죽었을 때만 드롭한다.
         if (health != _enemyHealth) return;
+        RuneDrop();
+        GoldDrop();
+    }
+
+    public void RuneDrop()
+    {
         if (runePrefab == null) return;
 
         var database = RuneStoneDatabase.Instance;
@@ -49,5 +56,17 @@ public class EnemyDrop : MonoBehaviour
 
         RunePickup pickup = Instantiate(runePrefab, transform.position, Quaternion.identity);
         pickup.Initialize(runeCharacter, quantity, runeIcon);
+    }
+
+    public void GoldDrop()
+    {
+        var session = GameSession.Instance;
+        if (session == null || !session.IsReady) return;
+        
+        var holdings = session.Current?.Holdings;
+        if (holdings == null || !holdings.IsOnExpedition) return;
+        if (_amountOfGold <= 0) return;
+        
+        holdings.ExpeditionWallet?.AddGold(_amountOfGold);
     }
 }
