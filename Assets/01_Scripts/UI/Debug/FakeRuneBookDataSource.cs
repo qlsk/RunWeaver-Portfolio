@@ -33,6 +33,8 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     [Header("아이콘 (비워두면 프리팹의 기본 이미지 사용)")]
     [SerializeField] private RuneStoneIconCatalog _runeStoneIconCatalog;
+    [SerializeField] private RuneEffectIconCatalog _runeEffectIconCatalog;
+    [Tooltip("카탈로그에 없는 룬 효과에 쓸 기본 아이콘")]
     [SerializeField] private Sprite _runeEffectIcon;
 
     [Header("테스트 키")]
@@ -212,7 +214,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         foreach (FakeEntry entry in _entries)
         {
             entries.Add(new RuneBookEntryData(entry.Id, entry.RuneWord, entry.EnglishName, entry.Description,
-                entry.Category, entry.RevealLevel, _runeEffectIcon));
+                entry.Category, entry.RevealLevel, FindRuneEffectIcon(entry.Id)));
         }
 
         return entries;
@@ -514,6 +516,25 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         foreach (char runeCharacter in runeWord)
         {
             _runeStoneQuantities[runeCharacter]--;
+        }
+    }
+
+    private Sprite FindRuneEffectIcon(string id)
+    {
+        if (_runeEffectIconCatalog == null)
+        {
+            return _runeEffectIcon;
+        }
+
+        try
+        {
+            Sprite icon = _runeEffectIconCatalog.GetIcon(id).Icon;
+            return icon != null ? icon : _runeEffectIcon;
+        }
+        catch (ArgumentException)
+        {
+            Debug.LogWarning($"[FakeRuneBookDataSource] 룬 효과 아이콘을 찾지 못했습니다: {id}");
+            return _runeEffectIcon;
         }
     }
 

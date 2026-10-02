@@ -53,6 +53,8 @@ public class EnemyHealth : MonoBehaviour
             OnDeath?.Invoke(this);
             Destroy(gameObject);
         }
+
+        Debug.Log($"HP reduced by {actualDamage}. Current HP: {_currentHealth}");
         return actualDamage;
     }
 }
