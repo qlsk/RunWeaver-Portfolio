@@ -24,12 +24,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2639883728027744658}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.441, y: -0.054, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.249, y: 0.114, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7746560776598131813}
+  m_Father: {fileID: 8408192967395980671}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4117483220137768412
 GameObject:
@@ -54,6 +54,7 @@ GameObject:
   - component: {fileID: 5932498905831329072}
   - component: {fileID: 7808976935776062243}
   - component: {fileID: 4121573060399259138}
+  - component: {fileID: 8800439020481767035}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -74,7 +75,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1376386325469124260}
   - {fileID: 4353578317361503239}
   - {fileID: 8408192967395980671}
   m_Father: {fileID: 0}
@@ -376,6 +376,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c628b8032c8d14ba9f6d3fec1f1839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimation
+--- !u!114 &8800439020481767035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589d1764c7e6b6d4ba84e80b31562728, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerBulletPosition
+  _playerBulletPosition: {fileID: 2639883728027744658}
+  _armSpriteRenderer: {fileID: 227534212621198233}
+  _offsetScale: 0.64
+  _originOffset: 0
 --- !u!1 &8620150176453649939
 GameObject:
   m_ObjectHideFlags: 0
@@ -405,7 +421,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1376386325469124260}
   m_Father: {fileID: 7746560776598131813}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &227534212621198233

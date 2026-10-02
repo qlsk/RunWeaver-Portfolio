@@ -1,210 +1,240 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MonsterSpawner : MonoBehaviour
 {
-    [Header("생성기 및 데이터 연동")]
-    [SerializeField] private StageGenerator stageGenerator;
-    [SerializeField] private int currentStageDepth = 1;
+    [Header("몬스터 프리팹 데이터베이스 (프리팹 직접 등록)")]
+    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
 
-    [Header("기본 더미 프리팹 (MonsterDataSO 프리팹 미설정 시 폴백용)")]
-    [SerializeField] private GameObject defaultEnemyPrefab;
+    [Header("예산(Budget) 스케일링 설정")]
+    [SerializeField] private int baseBudget = 20;             // Depth 1 기본 예산
+    [SerializeField] private int budgetPerDepth = 10;         // Depth당 추가 예산 (+10)
+
+    [Header("최대 마릿수(Count) 스케일링 설정")]
+    [SerializeField] private int baseMaxMonsterCount = 15;    // Depth 1 기본 최대 마릿수
+    [SerializeField] private int monsterCountPerDepth = 5;    // Depth당 추가 마릿수 (+5)
+
+    [Header("스폰 주기 및 티어 가속 계수")]
+    [SerializeField] private float spawnInterval = 0.5f;      // 리젠 감시 및 스폰 주기
+    [SerializeField] private float tierGrowthMultiplier = 5f; // 티어 가중치 가속 계수 (α)
+
+    [Header("스폰 거리 및 연출")]
+    [SerializeField] private float minSpawnDistance = 8f;     // 플레이어 기준 화면 밖 거리
+    [SerializeField] private float maxSpawnDistance = 12f;
     [SerializeField] private GameObject spawnEffectPrefab;
-
-    [Header("스폰 거리 및 연출 설정")]
-    [SerializeField] private float minSpawnDistance = 4f; // 플레이어 기준 최소 거리
-    [SerializeField] private float maxSpawnDistance = 7f; // 플레이어 기준 최대 거리
-    [SerializeField] private float effectDuration = 1f; // 스폰 이펙트 연출 시간
+    [SerializeField] private float effectDuration = 1f;
 
     private Transform playerTransform;
-    private StageRuntimeData currentStageData;
-    private readonly List<GameObject> activeMonsters = new List<GameObject>();
-    private Coroutine currentSpawnCoroutine;
+    private Coroutine spawnCoroutine;
+
+    // 프리팹 내부 데이터를 런타임에 캐싱하기 위한 내부 클래스
+    private class SpawnableEntry
+    {
+        public GameObject Prefab;
+        public EnemyDataSO Data;
+
+        public int MinDepth => Data != null && Data.Info != null ? Data.Info.MinDepth : 1;
+        public int Cost => Data != null && Data.Info != null ? Data.Info.Cost : 1;
+
+        public float GetCalculatedWeight(int depth, float multiplier)
+        {
+            if (Data != null && Data.Info != null)
+            {
+                return Data.Info.GetCalculatedWeight(depth, multiplier);
+            }
+            return 100f; // 기본 가중치
+        }
+    }
+
+    private readonly List<SpawnableEntry> spawnableEntries = new List<SpawnableEntry>();
+    private readonly Dictionary<EnemyHealth, int> activeMonsterCostMap = new Dictionary<EnemyHealth, int>();
+    private int currentActiveBudget = 0;
 
     private void OnEnable()
     {
-        DummyEnemy.OnEnemyDied += HandleEnemyDied;
-        EnemyHealth.OnDeath += HandleRealEnemyDied;
+        EnemyHealth.OnDeath += HandleEnemyDied;
     }
 
     private void OnDisable()
     {
-        DummyEnemy.OnEnemyDied -= HandleEnemyDied;
-        EnemyHealth.OnDeath -= HandleRealEnemyDied;
+        EnemyHealth.OnDeath -= HandleEnemyDied;
     }
 
     private void Start()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            playerTransform = playerObj.transform;
-        }
+        if (playerObj != null) playerTransform = playerObj.transform;
 
-        if (stageGenerator == null)
-        {
-            stageGenerator = FindAnyObjectByType<StageGenerator>();
-        }
+        CacheEnemyPrefabs();
 
-        InitAndStartSpawning(currentStageDepth);
+        int startDepth = StageManager.Instance != null ? StageManager.Instance.CurrentDepth : 1;
+        StartSpawning(startDepth);
     }
 
     /// <summary>
-    /// 다음 스테이지(Depth) 진입 시 스포너 데이터를 갱신하고 스폰 루틴을 재시작합니다.
+    /// 등록된 프리팹들로부터 EnemyDataSO 정보를 읽어와 캐싱합니다.
     /// </summary>
+    private void CacheEnemyPrefabs()
+    {
+        spawnableEntries.Clear();
+        foreach (var prefab in enemyPrefabs)
+        {
+            if (prefab == null) continue;
+
+            EnemyDataSO data = null;
+            if (prefab.TryGetComponent(out EnemyHealth health))
+            {
+                data = health.EnemyData;
+            }
+
+            spawnableEntries.Add(new SpawnableEntry
+            {
+                Prefab = prefab,
+                Data = data
+            });
+        }
+    }
+
     public void RestartSpawner(int newDepth)
     {
-        currentStageDepth = newDepth;
+        if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
 
-        if (currentSpawnCoroutine != null)
+        foreach (var pair in activeMonsterCostMap.ToList())
         {
-            StopCoroutine(currentSpawnCoroutine);
+            if (pair.Key != null && pair.Key.gameObject != null)
+            {
+                Destroy(pair.Key.gameObject);
+            }
         }
+        activeMonsterCostMap.Clear();
+        currentActiveBudget = 0;
 
-        activeMonsters.RemoveAll(m => m == null);
-        foreach (var enemy in activeMonsters)
-        {
-            if (enemy != null) Destroy(enemy);
-        }
-        activeMonsters.Clear();
-
-        InitAndStartSpawning(currentStageDepth);
+        CacheEnemyPrefabs();
+        StartSpawning(newDepth);
     }
 
-    private void InitAndStartSpawning(int depth)
+    private void StartSpawning(int depth)
     {
-        if (stageGenerator != null)
-        {
-            currentStageData = stageGenerator.GenerateStageData(depth);
-        }
-
-        if (currentStageData == null)
-        {
-            Debug.LogWarning("[MonsterSpawner] StageRuntimeData를 불러오지 못했습니다.");
-        }
-
-        currentSpawnCoroutine = StartCoroutine(SpawnRoutine());
+        spawnCoroutine = StartCoroutine(ContinuousSpawnRoutine(depth));
     }
 
-    // 더미 몬스터 사망 처리
-    private void HandleEnemyDied(DummyEnemy enemy)
+    public int GetMaxActiveBudget(int depth) => baseBudget + (depth - 1) * budgetPerDepth;
+    public int GetMaxMonsterCount(int depth) => baseMaxMonsterCount + (depth - 1) * monsterCountPerDepth;
+
+    private IEnumerator ContinuousSpawnRoutine(int depth)
     {
-        if (enemy != null && activeMonsters.Contains(enemy.gameObject))
-        {
-            activeMonsters.Remove(enemy.gameObject);
-        }
-        activeMonsters.RemoveAll(item => item == null);
-    }
-
-    // 실제 몬스터(EnemyHealth) 사망 처리
-    private void HandleRealEnemyDied(EnemyHealth enemy)
-    {
-        if (enemy != null && activeMonsters.Contains(enemy.gameObject))
-        {
-            activeMonsters.Remove(enemy.gameObject);
-        }
-        activeMonsters.RemoveAll(item => item == null);
-    }
-
-    private IEnumerator SpawnRoutine()
-    {
-        int initialCount = currentStageData != null ? currentStageData.initialSpawnCount : 8;
-        int maxActive = currentStageData != null ? currentStageData.maxActiveMonsters : 30;
-        float interval = currentStageData != null ? currentStageData.spawnInterval : 5f;
-        int batchCount = currentStageData != null ? currentStageData.spawnBatchCount : 5;
-
-        yield return SpawnBatch(initialCount, maxActive);
-
         while (true)
         {
-            yield return new WaitForSeconds(interval);
+            yield return new WaitForSeconds(spawnInterval);
 
-            activeMonsters.RemoveAll(item => item == null);
+            CleanStaleMonsters();
 
-            if (activeMonsters.Count < maxActive)
+            int maxBudget = GetMaxActiveBudget(depth);
+            int maxCount = GetMaxMonsterCount(depth);
+            int availableBudget = maxBudget - currentActiveBudget;
+
+            // 남은 예산이 있고, 화면 내 마릿수가 Depth 기준 상한 미만일 때 스폰 진행
+            while (availableBudget > 0 && activeMonsterCostMap.Count < maxCount)
             {
-                int spawnableCount = Mathf.Min(batchCount, maxActive - activeMonsters.Count);
-                yield return SpawnBatch(spawnableCount, maxActive);
+                // 1. 현재 Depth 조건을 만족하고, 남은 예산 이하 Cost를 가진 프리팹 필터링
+                var eligiblePool = spawnableEntries
+                    .Where(e => e.Prefab != null && e.MinDepth <= depth && e.Cost <= availableBudget)
+                    .ToList();
+
+                if (eligiblePool.Count == 0) break;
+
+                // 2. 티어 가속 공식 적용된 가중치 무작위 추첨
+                SpawnableEntry selectedEntry = SelectByTierWeight(eligiblePool, depth);
+                if (selectedEntry == null) break;
+
+                // 3. 스폰 및 예산 차감
+                SpawnMonster(selectedEntry);
+
+                currentActiveBudget += selectedEntry.Cost;
+                availableBudget -= selectedEntry.Cost;
+
+                yield return new WaitForSeconds(0.1f);
             }
         }
     }
 
-    private IEnumerator SpawnBatch(int count, int maxLimit)
+    private SpawnableEntry SelectByTierWeight(List<SpawnableEntry> pool, int depth)
     {
-        for (int i = 0; i < count; i++)
+        List<float> weights = pool
+            .Select(e => e.GetCalculatedWeight(depth, tierGrowthMultiplier))
+            .ToList();
+
+        float totalWeight = weights.Sum();
+        if (totalWeight <= 0f) return pool[0];
+
+        float randomPoint = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        for (int i = 0; i < pool.Count; i++)
         {
-            activeMonsters.RemoveAll(item => item == null);
-            if (activeMonsters.Count >= maxLimit) break;
-
-            Vector3 spawnPos = GetRandomSpawnPosition();
-            GameObject targetPrefab = SelectMonsterPrefab(out bool isElite);
-
-            if (targetPrefab != null)
+            cumulative += weights[i];
+            if (randomPoint <= cumulative)
             {
-                StartCoroutine(SpawnSingleMonsterWithEffect(spawnPos, targetPrefab, isElite));
+                return pool[i];
             }
-
-            yield return new WaitForSeconds(0.15f);
         }
+
+        return pool[0];
     }
 
-    private IEnumerator SpawnSingleMonsterWithEffect(Vector3 spawnPosition, GameObject prefabToSpawn, bool isElite)
+    private void SpawnMonster(SpawnableEntry entry)
     {
+        Vector3 spawnPos = GetRandomSpawnPosition();
+
         if (spawnEffectPrefab != null)
         {
-            GameObject fx = Instantiate(spawnEffectPrefab, spawnPosition, Quaternion.identity);
+            GameObject fx = Instantiate(spawnEffectPrefab, spawnPos, Quaternion.identity);
             Destroy(fx, effectDuration);
-            yield return new WaitForSeconds(effectDuration);
         }
 
-        if (prefabToSpawn != null)
+        GameObject enemyObj = Instantiate(entry.Prefab, spawnPos, Quaternion.identity);
+
+        if (enemyObj.TryGetComponent(out EnemyHealth health))
         {
-            GameObject enemyObj = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
-
-            // 스테이지 시스템 메타 정보 부착 (엘리트 판정용)
-            StageEnemyInfo info = enemyObj.GetComponent<StageEnemyInfo>();
-            if (info == null) info = enemyObj.AddComponent<StageEnemyInfo>();
-            info.Setup(isElite);
-
-            activeMonsters.Add(enemyObj);
+            activeMonsterCostMap[health] = entry.Cost;
         }
-    }
-
-    private GameObject SelectMonsterPrefab(out bool isElite)
-    {
-        isElite = false;
-
-        if (currentStageData != null && currentStageData.selectedMonsters.Count > 0)
+        else
         {
-            float randomVal = Random.value;
-            float cumulativeRatio = 0f;
-
-            for (int i = 0; i < currentStageData.selectedMonsters.Count; i++)
-            {
-                cumulativeRatio += currentStageData.monsterSpawnRatios[i];
-                if (randomVal <= cumulativeRatio)
-                {
-                    var data = currentStageData.selectedMonsters[i];
-                    if (data != null && data.monsterPrefab != null)
-                    {
-                        isElite = data.category == MonsterCategory.Special;
-                        return data.monsterPrefab;
-                    }
-                }
-            }
+            EnemyHealth addedHealth = enemyObj.AddComponent<EnemyHealth>();
+            activeMonsterCostMap[addedHealth] = entry.Cost;
         }
-
-        return defaultEnemyPrefab;
     }
 
     private Vector3 GetRandomSpawnPosition()
     {
-        if (playerTransform == null) return Vector3.zero;
-
+        Vector3 origin = playerTransform != null ? playerTransform.position : Vector3.zero;
         Vector2 randomDir = Random.insideUnitCircle.normalized;
-        float randomDist = Random.Range(minSpawnDistance, maxSpawnDistance);
+        float distance = Random.Range(minSpawnDistance, maxSpawnDistance);
 
-        return playerTransform.position + new Vector3(randomDir.x, randomDir.y, 0) * randomDist;
+        return origin + new Vector3(randomDir.x, randomDir.y, 0f) * distance;
+    }
+
+    private void CleanStaleMonsters()
+    {
+        List<EnemyHealth> staleKeys = activeMonsterCostMap.Keys
+            .Where(k => k == null || k.gameObject == null)
+            .ToList();
+
+        foreach (EnemyHealth stale in staleKeys)
+        {
+            currentActiveBudget = Mathf.Max(0, currentActiveBudget - activeMonsterCostMap[stale]);
+            activeMonsterCostMap.Remove(stale);
+        }
+    }
+
+    private void HandleEnemyDied(EnemyHealth enemy)
+    {
+        if (enemy != null && activeMonsterCostMap.TryGetValue(enemy, out int cost))
+        {
+            currentActiveBudget = Mathf.Max(0, currentActiveBudget - cost);
+            activeMonsterCostMap.Remove(enemy);
+        }
     }
 }

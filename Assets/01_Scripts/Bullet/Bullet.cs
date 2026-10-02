@@ -30,15 +30,24 @@ public class Bullet : MonoBehaviour
     public Transform Owner => _owner;
     public BulletPhase Phase => _runtime == null ? BulletPhase.Ended : _runtime.Phase;
 
-    // 탄환과 분리해 생성하므로 발사 당시 총구 위치에 남는다.
-    public void PlayCastEffect(Vector3 muzzlePosition)
+    public void PlayCastEffect(Transform muzzle)
     {
-        if (_castEffectPrefab == null) return;
+        if (_castEffectPrefab == null || muzzle == null) return;
 
-        // 패키지의 전방(+Z)을 Bullet의 진행 방향(+X)에 맞춘다.
-        Quaternion rotation = transform.rotation * Quaternion.Euler(0f, 90f, 0f);
-        ParticleSystem effect = Instantiate(_castEffectPrefab, muzzlePosition, rotation);
+        ParticleSystem effect = Instantiate(_castEffectPrefab, muzzle, false);
+        effect.transform.localPosition = Vector3.zero;
+        effect.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
         effect.transform.localScale *= _castEffectScale;
+
+        foreach (ParticleSystem particles in effect.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            var main = particles.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.stopAction = ParticleSystemStopAction.None;
+            var trails = particles.trails;
+            trails.worldSpace = false;
+        }
+
         effect.gameObject.SetActive(true);
         effect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         effect.Play(true);

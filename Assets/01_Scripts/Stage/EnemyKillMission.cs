@@ -14,6 +14,11 @@ public class EnemyKillMission : MissionBase
     [SerializeField] private int targetEliteKillCount = 0;
     private int currentEliteKillCount = 0;
 
+    public int CurrentNormalKillCount => currentNormalKillCount;
+    public int TargetNormalKillCount => targetNormalKillCount;
+    public int CurrentEliteKillCount => currentEliteKillCount;
+    public int TargetEliteKillCount => targetEliteKillCount;
+
     public override void Initialize()
     {
         currentNormalKillCount = 0;

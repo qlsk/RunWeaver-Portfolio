@@ -22,6 +22,8 @@ public class CaptureZoneMission : MissionBase
     private bool isPlayerInZone = false;
     private float lastLogTime = 0f;
 
+    public bool IsPlayerInZone => isPlayerInZone;
+
     public override void Initialize()
     {
         currentCaptureTime = 0f;

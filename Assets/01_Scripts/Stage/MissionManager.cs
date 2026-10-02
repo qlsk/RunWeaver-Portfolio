@@ -27,6 +27,8 @@ public class MissionManager : MonoBehaviour
     private GameObject spawnedMissionObject;
 
     public event Action<MissionBase> OnMissionInitialized;
+    // 현재 미션이 클리어되었을 때 (몬스터 스폰 중지 등에 사용)
+    public event Action<MissionBase> OnMissionCompleted;
 
     private void Awake()
     {
@@ -147,6 +149,7 @@ public class MissionManager : MonoBehaviour
     private void HandleMissionCompleted()
     {
         Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 포탈 생성 요청");
+        OnMissionCompleted?.Invoke(currentMission);
         if (StageManager.Instance != null)
         {
             StageManager.Instance.SpawnPortalAtCenter();

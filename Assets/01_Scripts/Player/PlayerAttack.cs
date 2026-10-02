@@ -2,6 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+[DefaultExecutionOrder(300)]
 public class PlayerAttack : MonoBehaviour
 {
     [Header("참조")]
@@ -15,6 +16,20 @@ public class PlayerAttack : MonoBehaviour
     [LabelText("탄환 사거리")][SerializeField, Min(0f)] private float _bulletRange = 10f;
 
     [SerializeField] private ElementType _mainElement;
+
+    [Header("탄창 및 재장전")]
+    [SerializeField] private int _magazineSize = 10;
+    [SerializeField] private float _reloadTime = 2f;
+    private int _currentAmmo;
+    private bool _isReloading;
+    private float _reloadTimer;
+
+    public int MagazineSize => _magazineSize;
+    public int CurrentAmmo => _currentAmmo;
+    public bool IsReloading => _isReloading;
+    public float ReloadTime => _reloadTime;
+    public float ReloadTimer => _reloadTimer;
+    public float BulletFireCoolTimer => _bulletFireCoolTimer;
 
     private PlayerInputHandler _playerInputHandler;
     private Camera _camera;
@@ -31,6 +46,7 @@ public class PlayerAttack : MonoBehaviour
             throw new MissingReferenceException(
                 "PlayerAttack requires input, a main camera, a bullet prefab and a fire position.");
 
+        _currentAmmo = _magazineSize;
         _bulletFireCoolTimer = _bulletFireRate;
     }
 
@@ -38,6 +54,20 @@ public class PlayerAttack : MonoBehaviour
     private void Update()
     {
         _bulletFireCoolTimer += Time.deltaTime;
+        if (_isReloading)
+        {
+            _reloadTimer += Time.deltaTime;
+            if (_reloadTimer < _reloadTime) return;
+
+            _currentAmmo = _magazineSize;
+            _isReloading = false;
+        }
+
+        if (_playerInputHandler.IsReloadPressed || _currentAmmo == 0)
+            Reload();
+
+        if (_isReloading) return;
+
         if (_playerInputHandler.IsAttackHeld)
             Fire();
     }
@@ -45,7 +75,7 @@ public class PlayerAttack : MonoBehaviour
     /// <summary>발사 간격에 맞춰 마우스 방향으로 주력 원소를 가진 탄환을 발사한다.</summary>
     public void Fire()
     {
-        if (_bulletFireCoolTimer < _bulletFireRate)
+        if (_isReloading || _currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate)
             return;
 
         Vector2 targetPosition = _playerInputHandler.MousePosition;
@@ -59,11 +89,20 @@ public class PlayerAttack : MonoBehaviour
             Quaternion.Euler(0f, 45f, rotationZ));
         bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _mainElement);
 
-        // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
-        bullet.PlayCastEffect(_firePosition.transform.position);
+        bullet.PlayCastEffect(_firePosition.transform);
+
+        _currentAmmo--;
 
         // 발사 간격을 마지막 발사 시점부터 측정
         _bulletFireCoolTimer = 0f;
+    }
+
+    public void Reload()
+    {
+        if (_isReloading || _currentAmmo >= _magazineSize) return;
+
+        _isReloading = true;
+        _reloadTimer = 0f;
     }
 
     /// <summary>앞으로 발사할 탄환의 주력 원소를 변경한다.</summary>
