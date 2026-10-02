@@ -5,18 +5,26 @@ public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private EnemyTargetDetector _targetDetector;
-    [SerializeField] private bool _enemyMove;
+    private bool _enemyMove = true;
     private Rigidbody2D _enemyRigidbody2D;
+    private EnemyDashAttack _dashAttack;
 
     private void Awake()
     {
         _enemyRigidbody2D = GetComponent<Rigidbody2D>();
+        _dashAttack = GetComponent<EnemyDashAttack>();
     }
 
     private void FixedUpdate()
     {
-        if (!_enemyMove)
+        if (_dashAttack != null && _dashAttack.IsDashActive)
             return;
+
+        if (!_enemyMove)
+        {
+            _enemyRigidbody2D.linearVelocity = Vector2.zero;
+            return;
+        }
 
         Transform target = _targetDetector.Target;
 
