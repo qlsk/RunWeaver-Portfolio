@@ -38,7 +38,7 @@ public class RuneDetailView : MonoBehaviour
         if (!entry.IsRevealed)
         {
             SetTexts(_unknownText, _unknownText, _unknownText);
-            ShowSymbol(RuneSymbolSlotState.Locked, null);
+            ShowSymbol(RuneSymbolSlotState.Locked, entry.Icon);
             return;
         }
 
@@ -51,7 +51,7 @@ public class RuneDetailView : MonoBehaviour
         }
         else
         {
-            ShowSymbol(RuneSymbolSlotState.Listed, null);
+            ShowSymbol(RuneSymbolSlotState.Listed, entry.Icon);
         }
     }
 

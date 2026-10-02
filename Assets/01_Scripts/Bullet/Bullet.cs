@@ -100,7 +100,7 @@ public class Bullet : MonoBehaviour
 
         if (_mainElement == ElementType.Fire)
         {
-            enemy.Burn.Activate(_damage);
+            enemy?.Burn.Activate(_damage);
         }
         Destroy(gameObject);
     }

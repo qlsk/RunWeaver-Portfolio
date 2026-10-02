@@ -173,4 +173,17 @@ public class MissionManager : MonoBehaviour
     }
 
     public MissionBase GetCurrentMission() => currentMission;
+    
+    /// <summary>
+    /// 포탈 생성 시점에 필드의 미션 오브젝트(제단, 점령구역 등)만 제거합니다.
+    /// </summary>
+    public void CleanupMissionObject()
+    {
+        if (spawnedMissionObject != null)
+        {
+            Destroy(spawnedMissionObject);
+            spawnedMissionObject = null;
+            Debug.Log("[MissionManager] 미션 오브젝트 제거 완료");
+        }
+    }
 }
