@@ -1,16 +1,16 @@
 using System;
 using UnityEngine;
 
-public class EnemyMovement : MonoBehaviour
+public class MeleeEnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
-    [SerializeField] private EnemyTargetDetector _targetDetector;
-    private bool _enemyMove = true;
+    private EnemyTargetDetector _targetDetector;
     private Rigidbody2D _enemyRigidbody2D;
     private EnemyDashAttack _dashAttack;
 
     private void Awake()
     {
+        _targetDetector = GetComponent<EnemyTargetDetector>();
         _enemyRigidbody2D = GetComponent<Rigidbody2D>();
         _dashAttack = GetComponent<EnemyDashAttack>();
     }
@@ -19,12 +19,6 @@ public class EnemyMovement : MonoBehaviour
     {
         if (_dashAttack != null && _dashAttack.IsDashActive)
             return;
-
-        if (!_enemyMove)
-        {
-            _enemyRigidbody2D.linearVelocity = Vector2.zero;
-            return;
-        }
 
         Transform target = _targetDetector.Target;
 

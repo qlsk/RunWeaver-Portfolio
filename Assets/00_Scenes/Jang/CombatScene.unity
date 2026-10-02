@@ -622,10 +622,10 @@ GameObject:
   - component: {fileID: 285306753}
   - component: {fileID: 285306751}
   - component: {fileID: 285306750}
-  - component: {fileID: 285306749}
   - component: {fileID: 285306748}
   - component: {fileID: 285306755}
   - component: {fileID: 285306754}
+  - component: {fileID: 285306756}
   m_Layer: 8
   m_Name: RangeEnemy
   m_TagString: Untagged
@@ -742,20 +742,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69f4d532d008c5846923170b5986c08b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
---- !u!114 &285306749
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 285306744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3261ea4481fe2fd4686052c443da02f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
-  _enemyData: {fileID: 11400000, guid: 7d08c7e2592c92b4792b28eb5c84fa7a, type: 2}
-  _targetDetector: {fileID: 285306748}
 --- !u!114 &285306750
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -871,6 +857,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4.3, y: 4.21}
   m_EdgeRadius: 0
+--- !u!114 &285306756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 285306744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d95a31a2044c45e99dba9b6998d5a4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangeEnemyMovement
+  _enemyData: {fileID: 11400000, guid: 7d08c7e2592c92b4792b28eb5c84fa7a, type: 2}
+  _minRange: 7
 --- !u!1 &323743780
 GameObject:
   m_ObjectHideFlags: 0
@@ -1364,7 +1364,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 7a69d66de2c99684ab32ef7c65b206ac, type: 2}
-  _targetDetector: {fileID: 1313729119}
 --- !u!114 &1313729121
 MonoBehaviour:
   m_ObjectHideFlags: 0
