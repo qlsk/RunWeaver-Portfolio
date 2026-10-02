@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: DefaultEnemyDataSO
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
   _stat:
-    _maxHealth: 50
-    _moveSpeed: 2
+    _maxHealth: 20
+    _moveSpeed: 1
   _info:
     _monsterType: 1
     _tier: 1
     _weight: 10
-    _minDepth: 0
+    _minDepth: 1
+    _cost: 1

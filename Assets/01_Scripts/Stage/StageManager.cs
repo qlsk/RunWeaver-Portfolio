@@ -2,7 +2,25 @@ using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
-    public static StageManager Instance { get; private set; }
+    private static StageManager instance;
+
+    public static StageManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindAnyObjectByType<StageManager>();
+                if (instance == null)
+                {
+                    GameObject go = new GameObject("StageManager");
+                    instance = go.AddComponent<StageManager>();
+                    Debug.Log("[StageManager] 씬에 StageManager가 없어 자동으로 생성하였습니다.");
+                }
+            }
+            return instance;
+        }
+    }
 
     [Header("스테이지 상태 정보")]
     [SerializeField] private int currentDepth = 1;
@@ -17,12 +35,12 @@ public class StageManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
+        if (instance == null)
         {
-            Instance = this;
+            instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else
+        else if (instance != this)
         {
             Destroy(gameObject);
         }
@@ -33,64 +51,38 @@ public class StageManager : MonoBehaviour
         StartStage(currentDepth);
     }
 
-    /// <summary>
-    /// ReturnConfirmPopupUI의 [계속 진행] 버튼 클릭 시 호출됩니다.
-    /// 씬 전환 없이 동일 맵에서 Depth를 +1 올리고 다음 미션을 실행합니다.
-    /// </summary>
     public void ProceedToNextStage()
     {
         currentDepth++;
-        Debug.Log($"[StageManager] ===== [계속 진행] 클릭 -> Depth {currentDepth} 진입 =====");
+        Debug.Log($"[StageManager] ===== Depth {currentDepth} 진입 =====");
 
-        // 1. 생성되어 있던 포탈 제거
         DespawnPortal();
-
-        // 2. 맵상의 남아있는 모든 적 제거
         ClearActiveEnemies();
-
-        // 3. 플레이어 위치 초기화
         ResetPlayerPosition();
-
-        // 4. 몬스터 스포너 난이도 및 스폰 주기 데이터 갱신
         UpdateMonsterSpawner();
-
-        // 5. 신규 무작위 미션 시작
         StartStage(currentDepth);
     }
 
-    public void SpawnPortalAtCenter()  
-    {  
-        if (activePortalInstance != null) return;  
-  
-        if (portalPrefab != null)  
-        {  
-            activePortalInstance = Instantiate(portalPrefab, portalSpawnPosition, Quaternion.identity);  
-            Debug.Log("[StageManager] 포탈이 생성되었습니다.");  
-        }  
-        else  
-        {  
-            Debug.LogWarning("[StageManager] portalPrefab이 인스펙터에 연결되지 않았습니다!");  
-        }  
+    public void SpawnPortalAtCenter()
+    {
+        if (activePortalInstance != null) return;
 
-        // ★ 1. 몬스터 추가 스폰 중지 ★
+        if (portalPrefab != null)
+        {
+            activePortalInstance = Instantiate(portalPrefab, portalSpawnPosition, Quaternion.identity);
+            Debug.Log("[StageManager] 포탈이 생성되었습니다.");
+        }
+        else
+        {
+            Debug.LogWarning("[StageManager] portalPrefab이 인스펙터에 연결되지 않았습니다!");
+        }
+
         StopMonsterSpawner();
-
-        // ★ 2. 맵에 남아있는 모든 몬스터 제거 (DummyEnemy & EnemyHealth) ★
         ClearActiveEnemies();
 
-        // ★ 3. 필드 미션 오브젝트(제단/구역 등) 파괴 ★
         if (MissionManager.Instance != null)
         {
             MissionManager.Instance.CleanupMissionObject();
-        }
-    }
-
-    private void StopMonsterSpawner()
-    {
-        MonsterSpawner spawner = FindAnyObjectByType<MonsterSpawner>();
-        if (spawner != null)
-        {
-            spawner.StopSpawning();
         }
     }
 
@@ -115,25 +107,21 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    private void StopMonsterSpawner()
+    {
+        MonsterSpawner spawner = MonsterSpawner.Instance != null ? MonsterSpawner.Instance : FindAnyObjectByType<MonsterSpawner>();
+        if (spawner != null)
+        {
+            spawner.StopSpawning();
+        }
+    }
+
     private void ClearActiveEnemies()
     {
-        DummyEnemy[] enemies = FindObjectsByType<DummyEnemy>(FindObjectsSortMode.None);
-        foreach (var enemy in enemies)
-        {
-            if (enemy != null)
-            {
-                Destroy(enemy.gameObject);
-            }
-        }
-
-        // 실제 몬스터(EnemyHealth)도 함께 제거한다.
         EnemyHealth[] realEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (var enemy in realEnemies)
         {
-            if (enemy != null)
-            {
-                Destroy(enemy.gameObject);
-            }
+            if (enemy != null) Destroy(enemy.gameObject);
         }
     }
 
@@ -148,19 +136,16 @@ public class StageManager : MonoBehaviour
 
     private void UpdateMonsterSpawner()
     {
-        MonsterSpawner spawner = FindAnyObjectByType<MonsterSpawner>();
+        MonsterSpawner spawner = MonsterSpawner.Instance != null ? MonsterSpawner.Instance : FindAnyObjectByType<MonsterSpawner>();
         if (spawner != null)
         {
             spawner.RestartSpawner(currentDepth);
         }
     }
 
-    /// <summary>
-    /// ReturnConfirmPopupUI의 [복귀] 버튼 클릭 시 호출됩니다.
-    /// </summary>
     public void ReturnToLobby()
     {
-        Debug.Log("[StageManager] ===== [복귀] 클릭 -> 로비(Stage 1)로 리셋 =====");
+        Debug.Log("[StageManager] ===== 로비(Stage 1)로 리셋 =====");
         currentDepth = 1;
         DespawnPortal();
         ClearActiveEnemies();
