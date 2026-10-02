@@ -237,4 +237,27 @@ public class MonsterSpawner : MonoBehaviour
             activeMonsterCostMap.Remove(enemy);
         }
     }
+    /// <summary>
+    /// 미션 클리어 시 더 이상 몬스터가 추가 스폰되지 않도록 스포너를 중지합니다.
+    /// </summary>
+    public void StopSpawning()
+    {
+        if (spawnCoroutine != null)
+        {
+            StopCoroutine(spawnCoroutine);
+            spawnCoroutine = null;
+        }
+
+        foreach (var pair in activeMonsterCostMap.ToList())
+        {
+            if (pair.Key != null && pair.Key.gameObject != null)
+            {
+                Destroy(pair.Key.gameObject);
+            }
+        }
+        activeMonsterCostMap.Clear();
+        currentActiveBudget = 0;
+
+        Debug.Log("[MonsterSpawner] 몬스터 스폰 루틴 중지 및 활성 몬스터 목록 정리 완료");
+    }
 }

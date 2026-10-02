@@ -348,12 +348,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c169190e51e89934f993f46ed3f29fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawner
-  stageGenerator: {fileID: 1987654321}
-  currentStageDepth: 1
-  defaultEnemyPrefab: {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-  spawnEffectPrefab: {fileID: 0}
+  enemyPrefabs:
+  - {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
+  baseBudget: 20
+  budgetPerDepth: 10
+  baseMaxMonsterCount: 15
+  monsterCountPerDepth: 5
+  spawnInterval: 5
+  tierGrowthMultiplier: 5
   minSpawnDistance: 4
   maxSpawnDistance: 8
+  spawnEffectPrefab: {fileID: 0}
   effectDuration: 1
 --- !u!4 &28388522
 Transform:
@@ -894,7 +899,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8a343809ae9140448c65190f0cc0cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
-  currentDepth: 1
+  currentDepth: 8
   portalPrefab: {fileID: 1999159252981218860, guid: 1e2eacc9f4c76324097e79e91f100141, type: 3}
   portalSpawnPosition: {x: 0, y: 0, z: 0}
 --- !u!4 &363528010
@@ -4234,6 +4239,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 340774800492513042, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: _bulletDamage
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 4117483220137768412, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_Name
       value: Player_Sung
@@ -4242,6 +4251,10 @@ PrefabInstance:
       propertyPath: _runeStoneInventory
       value: 
       objectReference: {fileID: 42451153}
+    - target: {fileID: 5787910676664630094, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

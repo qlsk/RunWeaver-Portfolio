@@ -171,6 +171,18 @@ public class MissionManager : MonoBehaviour
             spawnedMissionObject = null;
         }
     }
+    /// <summary>
+    /// 미션 클리어 시 맵상에 존재하던 미션 오브젝트(제단, 거점 구역, 영혼 수집 구역 등)를 제거합니다.
+    /// </summary>
+    public void CleanupMissionObject()
+    {
+        if (spawnedMissionObject != null)
+        {
+            Destroy(spawnedMissionObject);
+            spawnedMissionObject = null;
+            Debug.Log("[MissionManager] 미션 오브젝트 제거 완료");
+        }
+    }
 
     public MissionBase GetCurrentMission() => currentMission;
 }

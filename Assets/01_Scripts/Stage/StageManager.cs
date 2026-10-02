@@ -58,18 +58,39 @@ public class StageManager : MonoBehaviour
         StartStage(currentDepth);
     }
 
-    public void SpawnPortalAtCenter()
-    {
-        if (activePortalInstance != null) return;
+    public void SpawnPortalAtCenter()  
+    {  
+        if (activePortalInstance != null) return;  
+  
+        if (portalPrefab != null)  
+        {  
+            activePortalInstance = Instantiate(portalPrefab, portalSpawnPosition, Quaternion.identity);  
+            Debug.Log("[StageManager] 포탈이 생성되었습니다.");  
+        }  
+        else  
+        {  
+            Debug.LogWarning("[StageManager] portalPrefab이 인스펙터에 연결되지 않았습니다!");  
+        }  
 
-        if (portalPrefab != null)
+        // ★ 1. 몬스터 추가 스폰 중지 ★
+        StopMonsterSpawner();
+
+        // ★ 2. 맵에 남아있는 모든 몬스터 제거 (DummyEnemy & EnemyHealth) ★
+        ClearActiveEnemies();
+
+        // ★ 3. 필드 미션 오브젝트(제단/구역 등) 파괴 ★
+        if (MissionManager.Instance != null)
         {
-            activePortalInstance = Instantiate(portalPrefab, portalSpawnPosition, Quaternion.identity);
-            Debug.Log("[StageManager] 포탈이 생성되었습니다.");
+            MissionManager.Instance.CleanupMissionObject();
         }
-        else
+    }
+
+    private void StopMonsterSpawner()
+    {
+        MonsterSpawner spawner = FindAnyObjectByType<MonsterSpawner>();
+        if (spawner != null)
         {
-            Debug.LogWarning("[StageManager] portalPrefab이 인스펙터에 연결되지 않았습니다!");
+            spawner.StopSpawning();
         }
     }
 
