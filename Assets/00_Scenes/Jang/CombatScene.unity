@@ -540,6 +540,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &676115110 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
+  m_PrefabInstance: {fileID: 784410951}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &676115121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 676115110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
 --- !u!1 &761737267
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,7 +750,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
+      insertIndex: 9
+      addedObject: {fileID: 676115121}
   m_SourcePrefab: {fileID: 100100000, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
 --- !u!1 &932566643
 GameObject:
