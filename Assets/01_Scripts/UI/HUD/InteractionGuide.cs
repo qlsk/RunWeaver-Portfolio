@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,22 +12,43 @@ public class InteractionGuide : MonoBehaviour
     [SerializeField] private Image _interactionKey;
     [SerializeField] private TextMeshProUGUI _interactionName;
 
-    private void Update()
+    private InteractionGuideSource _currentTarget;
+
+    private void OnEnable()
     {
-        InteractionGuideSource source = _playerInteraction.FindNearbyTarget();
-        Refresh(source);
+        _playerInteraction.InteractionTargetChanged += OnTargetChanged;
+        OnTargetChanged(_playerInteraction.CurrentTarget);
     }
 
-    private void Refresh(InteractionGuideSource source)
+    private void OnDisable()
     {
-        if (source == null)
+        _playerInteraction.InteractionTargetChanged -= OnTargetChanged;
+        _currentTarget = null;
+        _interactionGuide.gameObject.SetActive(false);
+    }
+
+    private void LateUpdate()
+    {
+        Refresh();
+    }
+
+    private void OnTargetChanged(InteractionGuideSource target)
+    {
+        _currentTarget = target;
+        if (target != null)
+            _interactionName.text = target.InteractionName;
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        if (_currentTarget == null)
         {
             _interactionGuide.gameObject.SetActive(false);
             return;
         }
-
-        _interactionName.text = source.InteractionName;
-        Vector3 screenPoint = _camera.WorldToScreenPoint(source.GuidePoint.position);
+        _interactionName.text = _currentTarget.InteractionName;
+        Vector3 screenPoint = _camera.WorldToScreenPoint(_currentTarget.GuidePoint.position);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvas,
             screenPoint,
             _camera,

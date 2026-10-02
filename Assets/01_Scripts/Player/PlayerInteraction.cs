@@ -4,29 +4,43 @@ using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerInputHandler _playerInputHandler;
+
+    [Header("Settings")]
     [SerializeField] private float _interactionRange;
     [SerializeField] private LayerMask _interactableLayer;
 
-    private int CompareDistanceToPlayer(Collider2D x, Collider2D y)
+    public InteractionGuideSource CurrentTarget { get; private set; }
+
+    public event Action<InteractionGuideSource> InteractionTargetChanged;
+
+    public void Update()
     {
-        float xDistance = (x.transform.position - transform.position).sqrMagnitude;
-        float yDistance = (y.transform.position - transform.position).sqrMagnitude;
-        return xDistance.CompareTo(yDistance);
+        RefreshTarget();
     }
 
-    public InteractionGuideSource FindNearbyTarget()
+    private void RefreshTarget()
     {
         Collider2D[] interactableObjects =
             Physics2D.OverlapCircleAll(transform.position, _interactionRange, _interactableLayer);
-        if (interactableObjects.Length == 0)
-            return null;
-        Collider2D closestObject = interactableObjects[0];
-        for (int index = 1; index < interactableObjects.Length; index++)
+        InteractionGuideSource nearestSource = null;
+        float nearestDistance = float.PositiveInfinity;
+        foreach (Collider2D interactableObject in interactableObjects)
         {
-            if (CompareDistanceToPlayer(interactableObjects[index], closestObject) <= 0)
-                closestObject = interactableObjects[index];
+            var source = interactableObject.GetComponent<InteractionGuideSource>();
+            if (source == null || !source.isActiveAndEnabled)
+                continue;
+            float distance = (source.transform.position - transform.position).sqrMagnitude;
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestSource = source;
+            }
+            if (CurrentTarget == nearestSource)
+                return;
+            CurrentTarget = nearestSource;
+            InteractionTargetChanged?.Invoke(source);
         }
-        var source = closestObject.GetComponent<InteractionGuideSource>();
-        return source;
     }
 }
