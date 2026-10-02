@@ -7,21 +7,76 @@ if [ ! -f "$COMMIT_MSG_FILE" ]; then
     exit 1
 fi
 
-HEADER=$(sed -n '1p' "$COMMIT_MSG_FILE" | tr -d '\r')
-SEPARATOR=$(sed -n '2p' "$COMMIT_MSG_FILE" | tr -d '\r')
+# Validate a normalized copy without rewriting the user's message.
+CLEANUP=$(git config --get commit.cleanup || :)
+if [ -z "$CLEANUP" ] || [ "$CLEANUP" = default ]; then
+    if [ "${GIT_EDITOR:-}" = : ]; then
+        CLEANUP=whitespace
+    else
+        CLEANUP=strip
+    fi
+fi
+
+MESSAGE=$(sed 's/\r$//' "$COMMIT_MSG_FILE")
+case "$CLEANUP" in
+    strip)
+        MESSAGE=$(printf '%s\n' "$MESSAGE" | git stripspace --strip-comments) || exit 1
+        ;;
+    whitespace)
+        MESSAGE=$(printf '%s\n' "$MESSAGE" | git stripspace) || exit 1
+        ;;
+    scissors)
+        if [ "${GIT_EDITOR:-}" != : ]; then
+            COMMENT_PREFIX=$(git config --get core.commentString || git config --get core.commentChar || printf '#')
+            [ "$COMMENT_PREFIX" != auto ] || COMMENT_PREFIX='#'
+            MESSAGE=$(printf '%s\n' "$MESSAGE" | awk -v prefix="$COMMENT_PREFIX" '
+                $0 == prefix " ------------------------ >8 ------------------------" { exit }
+                { print }
+            ')
+        fi
+        MESSAGE=$(printf '%s\n' "$MESSAGE" | git stripspace) || exit 1
+        ;;
+    verbatim)
+        ;;
+    *)
+        echo "지원하지 않는 commit.cleanup 설정입니다: $CLEANUP"
+        exit 1
+        ;;
+esac
+
+HEADER=$(printf '%s\n' "$MESSAGE" | sed -n '1p')
+SEPARATOR=$(printf '%s\n' "$MESSAGE" | sed -n '2p')
 
 BODY=$(
-    sed -n '3,$p' "$COMMIT_MSG_FILE" |
-    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d'
+    printf '%s\n' "$MESSAGE" | sed -n '3,$p' |
+    sed '/^[[:space:]]*$/d'
 )
+
+# Accept Git's default merge message only while an actual merge is in progress.
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+    case "$HEADER" in
+        'Merge '?*) exit 0 ;;
+    esac
+fi
+
+# Revert can commit without REVERT_HEAD. Require the standard message and a real commit.
+if printf '%s\n' "$HEADER" | grep -Eq '^Revert ".+"$'; then
+    REVERTED_SHA=$(printf '%s\n' "$BODY" |
+        sed -nE 's/^This reverts commit ([0-9a-f]{40}|[0-9a-f]{64})[.,]$/\1/p' |
+        sed -n '1p')
+    if [ -z "$SEPARATOR" ] && [ -n "$REVERTED_SHA" ] &&
+        git cat-file -e "${REVERTED_SHA}^{commit}" 2>/dev/null; then
+        exit 0
+    fi
+fi
 
 # Conventional Commits
 # <type>[optional scope][!]: <description>
-PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|gameplay|asset|level|balance|ui|audio|vfx|anim|content)(\([a-zA-Z0-9._/-]+\))?!?: .+$'
+PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|gameplay|asset|level|balance|ui|audio|vfx|anim|content)(\([a-zA-Z0-9._/-]+\))?!?: .*[^[:space:]].*$'
 
 ERROR=0
 
-if ! echo "$HEADER" | grep -Eq "$PATTERN"; then
+if ! printf '%s\n' "$HEADER" | grep -Eq "$PATTERN"; then
     echo ""
     echo "잘못된 커밋 메시지 제목 형식입니다."
     ERROR=1
@@ -49,6 +104,12 @@ echo ""
 echo "  <type>[optional scope][!]: <description>"
 echo ""
 echo "  <detail>"
+echo ""
+echo "작성 예시:"
+echo ""
+echo "  feat(growth): 캐릭터 성장 기능 추가"
+echo ""
+echo "  경험치 누적과 레벨업 시 능력치 증가를 구현합니다."
 echo ""
 echo "기본 타입:"
 echo "  feat      새로운 기능"

@@ -1,0 +1,178 @@
+name: Gemini PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    paths:
+      - 'Assets/**'
+      - 'Packages/**'
+      - 'ProjectSettings/**'
+      - 'Docs/**'
+      - 'GEMINI.md'
+      - '.github/**'
+      - '.husky/**'
+      - '.gitignore'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: gemini-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review Unity project
+    # Fork PRs cannot use the repository's Gemini secret. Review ready, same-repo PRs only.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft &&
+      (github.event.action != 'edited' || github.event.changes.base != null)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Select review scope
+        id: review_scope
+        shell: bash
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          if [[ "${BASE_BRANCH}" == pre_main ]]; then
+            MODE=integration
+          elif [[ "${BASE_BRANCH}" == main ]]; then
+            MODE=release
+          else
+            MODE=changes
+          fi
+          echo "mode=${MODE}" >> "${GITHUB_OUTPUT}"
+          echo "리뷰 범위: ${MODE}"
+
+      - name: Prepare project review context
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          REVIEW_PATHS=(. ':(exclude)Assets/19_ThirdParty/**')
+          git ls-files -- "${REVIEW_PATHS[@]}" > project-files.txt
+
+          # Three-dot diff includes every PR commit and excludes base-only changes.
+          git diff --no-ext-diff --unified=80 \
+            "${BASE_SHA}...${HEAD_SHA}" \
+            -- "${REVIEW_PATHS[@]}" > commit.diff
+          git diff --no-ext-diff --name-status \
+            "${BASE_SHA}...${HEAD_SHA}" > pr-files.txt
+
+          if [[ ! -s commit.diff ]]; then
+            echo "비교할 자체 프로젝트 변경사항이 없어 현재 프로젝트 상태를 검토합니다."
+          fi
+
+      - name: Run Gemini review
+        id: gemini_review
+        uses: google-github-actions/run-gemini-cli@v0.1.22
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY_YSH }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY_YSH }}
+          gemini_model: 'gemini-3.1-flash-lite'
+          prompt: |
+            현재 리뷰 모드는 ${{ steps.review_scope.outputs.mode }} 입니다.
+            모드에 따라 현재 체크아웃된 Unity 프로젝트를 정적으로 검토하세요.
+
+            - changes: PR 변경사항과 관련된 호출부,
+              데이터 및 설정을 우선 검토하세요. 프로젝트 맥락은 확인하되
+              변경과 무관한 기존 코드 전체를 반복해서 리뷰하지 마세요.
+            - integration: pre_main으로 통합할 PR 변경을 중심으로 기능 간 의존성,
+              인터페이스, 씬과 프리팹의 참조, 패키지 및 설정 충돌을 검토하세요.
+              변경된 줄에 한정하지 말고 통합 영향을 받는 전체 흐름을 확인하세요.
+            - release: main에 반영할 PR에서 치명적인 오류 가능성,
+              누락된 참조, 배포 관련 설정과 문서의 일관성을 우선 검토하세요.
+
+            먼저 GEMINI.md와 Docs/code-review-guide.md를 읽으세요.
+            project-files.txt로 프로젝트 구조를 파악하고 pr-files.txt와 commit.diff를 읽은 뒤,
+            실제 프로젝트 파일을 직접 열어 구현과 참조 관계를 확인하세요.
+            commit.diff는 대상 브랜치와 PR 브랜치의 공통 조상부터 PR HEAD까지의
+            누적 변경입니다. 체크아웃된 코드는 PR HEAD이며 실제 병합 결과가 아닙니다.
+            통합 영향을 확인할 때는 git show로 대상 브랜치의 관련 구현도 확인하세요.
+            diff가 비어 있으면 그 사실을 명시하세요. changes 모드에서는
+            PR의 파일 목록을 pr-files.txt로 확인하고 외부 에셋 변경 등
+            diff 제외 사유와 관련 연결을 검토하세요. 다른 모드는 현재 상태를 검토하세요.
+
+            저장소의 GEMINI.md와 GEMINI.md에서 가져온
+            코드 리뷰 기준을 반드시 적용하세요.
+
+            Assets/01_Scripts의 게임 코드와 Assets/Editor의 에디터 코드,
+            씬과 프리팹, ScriptableObject 및 설정 에셋, asmdef와 meta 참조,
+            Packages, ProjectSettings, Docs, GitHub Actions 및 .husky 설정을
+            현재 리뷰 모드의 범위에 맞춰 검토하세요.
+            기능 간 의존성, 책임 분리, 데이터 흐름, 프로젝트 설정과 구현의
+            일관성을 함께 확인하세요.
+            Assets/19_ThirdParty는 외부 에셋이므로 내부 전체를 일괄 리뷰하지 말고,
+            프로젝트와의 연결이나 호환성을 확인할 때 필요한 파일만 읽으세요.
+            이미지, 오디오 등 바이너리 내용은 텍스트로 읽지 마세요.
+
+            코드의 버그, 예외 가능성, Unity 생명주기 문제,
+            성능 문제, 메모리 할당, 설계 및 가독성을 검토하세요.
+
+            변경으로 발생한 문제와 기존 프로젝트의 문제를 구분하고,
+            중요도, 파일 및 위치, 근거, 영향, 현실적인 수정안을 제시하세요.
+            근거가 약한 추측이나 과도한 리팩터링 제안은 피하세요.
+            Docs/code-review-guide.md의 결과 형식을 따르고,
+            실제 확인한 범위와 미확인 범위, 실행하지 않은 검증을 명시하세요.
+            시간이나 컨텍스트 제한으로 읽지 못한 파일까지 검토했다고 표현하지 마세요.
+            컴파일, 빌드, 테스트를 실행하지 마세요. AI 정적 리뷰임을 명시하고,
+            리뷰 완료를 빌드 성공이나 버그가 없다는 보장으로 표현하지 마세요.
+
+            파일을 수정하거나 Commit하지 말고
+            리뷰 결과만 한국어로 작성하세요.
+
+      - name: Validate review result
+        shell: bash
+        env:
+          REVIEW_BODY: ${{ steps.gemini_review.outputs.summary }}
+        run: |
+          if [[ -z "${REVIEW_BODY//[[:space:]]/}" ]]; then
+            echo "::error::Gemini 리뷰 결과가 비어 있습니다. 리뷰 성공으로 기록하지 않습니다."
+            exit 1
+          fi
+
+      - name: Submit pull request review comment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_BODY: ${{ steps.gemini_review.outputs.summary }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          CURRENT_HEAD=$(gh api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
+          if [[ "${CURRENT_HEAD}" != "${HEAD_SHA}" ]]; then
+            echo "PR에 새 커밋이 추가되어 이전 커밋의 리뷰 게시를 건너뜁니다."
+            exit 0
+          fi
+
+          jq -n \
+            --arg body "## Gemini PR Review
+
+          검토 커밋: ${HEAD_SHA}
+
+          ${REVIEW_BODY}" \
+            --arg commit_id "${HEAD_SHA}" \
+            '{body: $body, commit_id: $commit_id, event: "COMMENT"}' > review.json
+
+          gh api \
+            --method POST \
+            "/repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+            --input review.json

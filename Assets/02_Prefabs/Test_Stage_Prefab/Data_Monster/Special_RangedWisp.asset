@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45ff95d12c6bfe54d8e97dbb5150fe31, type: 3}
+  m_Name: Special_RangedWisp
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDataSO
+  monsterName: RanagedWisp
+  category: 1
+  monsterPrefab: {fileID: 5686954303123018224, guid: ec22b92d2a638fc4fa984e25586298be, type: 3}
+  minSpawnDepth: 3
+  baseWeight: 10
