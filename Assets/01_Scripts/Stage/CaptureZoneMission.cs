@@ -24,6 +24,14 @@ public class CaptureZoneMission : MissionBase
 
     public bool IsPlayerInZone => isPlayerInZone;
 
+    /// <summary>
+    /// MissionManager에서 생성된 신규 점령 구역 오브젝트를 직접 전달받습니다.
+    /// </summary>
+    public void SetTargetZone(CaptureZone zone)
+    {
+        targetZone = zone;
+    }
+
     public override void Initialize()
     {
         currentCaptureTime = 0f;
@@ -32,7 +40,7 @@ public class CaptureZoneMission : MissionBase
         IsCompleted = false;
         IsFailed = false;
 
-        // 점령 구역 자동 탐색
+        // 직접 전달받지 않은 경우에만 폴백으로 씬 전체 탐색
         if (targetZone == null)
         {
             targetZone = FindAnyObjectByType<CaptureZone>();
@@ -80,7 +88,6 @@ public class CaptureZoneMission : MissionBase
             currentCaptureTime += deltaTime;
             NotifyProgressUpdated();
 
-            // 1초마다 콘솔에 점령 진행률 로그 출력
             if (Time.time - lastLogTime >= 1f)
             {
                 lastLogTime = Time.time;
@@ -92,7 +99,7 @@ public class CaptureZoneMission : MissionBase
             {
                 currentCaptureTime = targetCaptureTime;
                 Debug.Log("[거점 점령] ★ 점령 100% 달성! ★");
-                CompleteMission(); // 100% 점령 달성!
+                CompleteMission();
             }
         }
         else if (decayWhenOutside && currentCaptureTime > 0f)
