@@ -6,10 +6,10 @@ using UnityEngine;
 public class GameSession : Singleton<GameSession>
 {
     private RuneEffectDatabase _runeEffectDatabase;
+    private RuneEffectLoadoutManager _runeEffectLoadoutManager;
     private RuneStoneInventory _runeStoneInventory;
     private RuneBook _runeBook;
     private IReadOnlyList<ResearchNodeDefinition> _researchDefinitions;
-    private bool _runeDependenciesConfigured;
 
     private GameDefinitionSet _definitions;
     private bool _isSettlingProgression;
@@ -19,73 +19,28 @@ public class GameSession : Singleton<GameSession>
     public bool IsReady { get; private set; }
     public event Action<PlayerProgression> ProgressReplaced;
 
-    public void ConfigureRuneDependencies(
+    public void Initialize(
         RuneEffectDatabase database,
+        RuneEffectLoadoutManager runeEffectLoadoutManager,
         RuneStoneInventory inventory,
         RuneBook book,
-        IReadOnlyList<ResearchNodeDefinition> researchDefinitions)
+        IReadOnlyList<ResearchNodeDefinition> researchDefinitions,
+        GameDefinitionSet definitions)
     {
-        // 초기 Initialize 전에 준비된 의존성을 전달·검증한다.
         if (IsReady)
             throw new InvalidOperationException("GameSession already initialized");
-
-        if (database == null)
-            throw new ArgumentNullException(nameof(database));
-        if (!database.DatabaseReady)
-            throw new InvalidOperationException("[GameSession.ConfigureRuneDependencies] Database is not ready.");
-        if (inventory == null)
-            throw new ArgumentNullException(nameof(inventory));
-        if (book == null)
-            throw new ArgumentNullException(nameof(book));
-        if (!book.IsInitialized)
-            throw new InvalidOperationException("[GameSession.ConfigureRuneDependencies] Book is not initialized.");
-        if (researchDefinitions == null)
-            throw new ArgumentNullException(nameof(researchDefinitions));
-
+        PlayerProgression progression = new(definitions);
+        // TODO: RuneEffectLoadoutManager 완성 시 RuneLoadout 제거
+        RuneLoadout loadout = new(database, inventory, book, progression.ResearchTree, researchDefinitions);
+        runeEffectLoadoutManager.Initialize(database);
         _runeEffectDatabase = database;
+        _runeEffectLoadoutManager = runeEffectLoadoutManager;
         _runeStoneInventory = inventory;
         _runeBook = book;
         _researchDefinitions = new List<ResearchNodeDefinition>(researchDefinitions);
-
-        _runeDependenciesConfigured = true;
-    }
-
-    public void ResetRuneDependencies()
-    {
-        // 초기 세션 게시 전 실패 시 복구한다.
-        if (IsReady)
-            throw new InvalidOperationException("GameSession already initialized");
-
-        _runeEffectDatabase = null;
-        _runeStoneInventory = null;
-        _runeBook = null;
-        _researchDefinitions = null;
-
-        _runeDependenciesConfigured = false;
-    }
-
-    public void Initialize(GameDefinitionSet definitions)
-    {
-        if (IsReady)
-            throw new InvalidOperationException("[GameSession.Initialize] GameSession already initialized");
-        if (!_runeDependenciesConfigured)
-            throw new InvalidOperationException("[GameSession.Initialize] RuneDependencies is not configured.");
-        if (_researchDefinitions.Any(definition => !definitions.Researches.Contains(definition)))
-            throw new InvalidOperationException("[GameSession.Initialize] Research definition is not registered.");
-
-        PlayerProgression progression = new(definitions);
-
-        RuneLoadout loadout = new(
-            _runeEffectDatabase,
-            _runeStoneInventory,
-            _runeBook,
-            progression.ResearchTree,
-            _researchDefinitions);
-
         _definitions = definitions;
         Current = progression;
         CurrentRuneLoadout = loadout;
-
         IsReady = true;
         SafeEventNotifier.Notify(ProgressReplaced, progression);
     }
@@ -106,6 +61,8 @@ public class GameSession : Singleton<GameSession>
             _runeBook,
             progression.ResearchTree,
             _researchDefinitions);
+
+        _runeEffectLoadoutManager.InitializeLoadout();
 
         Current = progression;
         CurrentRuneLoadout = loadout;

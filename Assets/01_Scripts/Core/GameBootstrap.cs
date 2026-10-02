@@ -11,12 +11,15 @@ public class GameBootstrap : MonoBehaviour
     [SerializeField] private GoldDefinitionSO _gold;
     [SerializeField] private List<ResourceDefinitionSO> _resources;
 
-    [Header("References")]
-    [SerializeField] private GameSession _session;
+    [Header("Databases")]
     [SerializeField] private RuneStoneDatabase _runeStoneDatabase;
     [SerializeField] private RuneEffectDatabase _runeEffectDatabase;
     [SerializeField] private SkillDatabase _skillDatabase;
     [SerializeField] private ResearchDatabase _researchDatabase;
+
+    [Header("Session References")]
+    [SerializeField] private GameSession _session;
+    [SerializeField] private RuneEffectLoadoutManager _runeEffectLoadoutManager;
     [SerializeField] private RuneStoneInventory _runeStoneInventory;
 
     private BootstrapStage _currentStage;
@@ -69,15 +72,13 @@ public class GameBootstrap : MonoBehaviour
             RuneBook runeBook = new(_runeEffectDatabase);
             runeBook.Initialize();
 
-            _currentStage = BootstrapStage.RuneDependencyConfiguration;
-            _session.ConfigureRuneDependencies(
-                _runeEffectDatabase,
+            _currentStage = BootstrapStage.GameSession;
+            _session.Initialize(_runeEffectDatabase,
+                _runeEffectLoadoutManager,
                 _runeStoneInventory,
                 runeBook,
-                definitionSet.Researches);
-
-            _currentStage = BootstrapStage.GameSession;
-            _session.Initialize(definitionSet);
+                definitionSet.Researches,
+                definitionSet);
 
             State = BootstrapState.Ready;
         }
