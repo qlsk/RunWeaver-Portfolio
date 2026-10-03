@@ -99,6 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3896047124056800945}
+  - component: {fileID: 3095149180695187312}
   m_Layer: 5
   m_Name: PlayerHUD_New
   m_TagString: Untagged
@@ -130,6 +131,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3095149180695187312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 498048715140845773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 840d5220a2eddcac7b8cf8bb4dc897bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneEffectSlotsHud
+  _slotBackgrounds:
+  - {fileID: 4226317693623614871}
+  - {fileID: 6288159713864509058}
+  - {fileID: 4011241369828462205}
+  - {fileID: 2489317039358876626}
+  - {fileID: 4625238372506307337}
+  _slotIcons:
+  - {fileID: 2093180538918932923}
+  - {fileID: 8137611869452290734}
+  - {fileID: 1153018077778944593}
+  - {fileID: 369657700204951550}
+  - {fileID: 7465482585739274021}
+  _openBackgroundColor: {r: 1, g: 1, b: 1, a: 1}
+  _lockedBackgroundColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
+  _iconColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &602478396815304656
 GameObject:
   m_ObjectHideFlags: 0
@@ -1660,6 +1688,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1656841726763610812, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5814069952260578230, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_Name
       value: RuneEffectSlot4
@@ -1761,6 +1793,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+--- !u!114 &369657700204951550 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2733252746624087939, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 2364177993877127293}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &2489317039358876626 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 163514922087979951, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 2364177993877127293}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!224 &8959045770629912834 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6673160323342211455, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
@@ -2108,6 +2162,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1656841726763610812, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5814069952260578230, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_Name
       value: RuneEffectSlot3
@@ -2209,6 +2267,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+--- !u!114 &1153018077778944593 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2733252746624087939, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 3886080024725263826}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &4011241369828462205 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 163514922087979951, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 3886080024725263826}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!224 &7599246870832385197 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6673160323342211455, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
@@ -2225,6 +2305,10 @@ PrefabInstance:
     - target: {fileID: 952050077113147180, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656841726763610812, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5814069952260578230, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_Name
@@ -2339,6 +2423,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+--- !u!114 &2093180538918932923 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2733252746624087939, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 4098854521212872248}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &4226317693623614871 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 163514922087979951, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 4098854521212872248}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!224 &7240061474187427655 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6673160323342211455, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
@@ -2355,6 +2461,10 @@ PrefabInstance:
     - target: {fileID: 952050077113147180, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656841726763610812, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5814069952260578230, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_Name
@@ -2462,6 +2572,28 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6673160323342211455, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
   m_PrefabInstance: {fileID: 4788679077474668710}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4625238372506307337 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 163514922087979951, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 4788679077474668710}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &7465482585739274021 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2733252746624087939, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 4788679077474668710}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1001 &5816833453651067925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2584,6 +2716,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1656841726763610812, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5814069952260578230, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
       propertyPath: m_Name
       value: RuneEffectSlot2
@@ -2690,6 +2826,28 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6673160323342211455, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
   m_PrefabInstance: {fileID: 6125154999935139117}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6288159713864509058 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 163514922087979951, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 6125154999935139117}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &8137611869452290734 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2733252746624087939, guid: d58001088a5debe42a36f88e1ebdabe0, type: 3}
+  m_PrefabInstance: {fileID: 6125154999935139117}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1001 &6135505270647036612
 PrefabInstance:
   m_ObjectHideFlags: 0

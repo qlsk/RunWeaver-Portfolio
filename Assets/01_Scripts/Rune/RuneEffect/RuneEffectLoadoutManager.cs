@@ -12,6 +12,8 @@ public class RuneEffectLoadoutManager : Singleton<RuneEffectLoadoutManager>
     public RuneEffectLoadout RuneEffectLoadout { get; private set; }
     public bool Initialized { get; private set; }
 
+    public event Action LoadoutReplaced;
+
     public void Initialize(RuneEffectDatabase runeEffectDatabase)
     {
         if (Initialized)
@@ -19,6 +21,7 @@ public class RuneEffectLoadoutManager : Singleton<RuneEffectLoadoutManager>
         _runeEffectDatabase = runeEffectDatabase;
         RuneEffectLoadout = new RuneEffectLoadout(_runeEffectDatabase);
         Initialized = true;
+        LoadoutReplaced?.Invoke();
     }
 
     public void InitializeLoadout()
@@ -26,5 +29,6 @@ public class RuneEffectLoadoutManager : Singleton<RuneEffectLoadoutManager>
         if (!Initialized)
             throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
         RuneEffectLoadout = new RuneEffectLoadout(_runeEffectDatabase);
+        LoadoutReplaced?.Invoke();
     }
 }
