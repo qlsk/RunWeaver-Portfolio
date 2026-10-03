@@ -204,7 +204,7 @@ public class MainElementSelectView : MonoBehaviour
             ReactionElement.Wind => "rune_wind",
             _ => throw new ArgumentOutOfRangeException(nameof(SelectedElement))
         };
-        manager.RuneEffectLoadout.Equip(effectId);
+        manager.RuneEffectLoadout.EquipPrimaryElement(effectId);
         Debug.Log($"[MainElementSelectView] Confirm: {SelectedElement}", this);
         Confirmed?.Invoke(SelectedElement);
     }

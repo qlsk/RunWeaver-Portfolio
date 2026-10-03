@@ -3572,6 +3572,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 749974754}
     m_Modifications:
+    - target: {fileID: 2661982681786663827, guid: fd1cb59114b8c374fa075284d790297b, type: 3}
+      propertyPath: _dataSource
+      value: 
+      objectReference: {fileID: 1393333621}
     - target: {fileID: 4539184302065990368, guid: fd1cb59114b8c374fa075284d790297b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3663,7 +3667,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4884752687843641705, guid: fd1cb59114b8c374fa075284d790297b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1393333621}
   m_SourcePrefab: {fileID: 100100000, guid: fd1cb59114b8c374fa075284d790297b, type: 3}
 --- !u!224 &1393333618 stripped
 RectTransform:
@@ -3675,6 +3682,30 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4884752687843641705, guid: fd1cb59114b8c374fa075284d790297b, type: 3}
   m_PrefabInstance: {fileID: 1393333617}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1393333621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1393333619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2576a702276c4415b74144df555293db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FakeRuneBookV2DataSource
+  _startActiveSlotCount: 3
+  _startMainElementId: rune_fire
+  _startDetailedIds:
+  - rune_power
+  - rune_pierce
+  - rune_spread
+  _startRuneStones: 010000000100000002000000030000000300000000000000040000000200000000000000010000000200000000000000020000000200000002000000020000000200000000000000010000000200000000000000
+  _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
+  _runeEffectIconCatalog: {fileID: 11400000, guid: db6ec6e88dcf4992b3349e78052514a4, type: 2}
+  _addRuneStonesKey: 49
+  _expandSlotKey: 50
+  _revealCategoryKey: 51
 --- !u!1 &1420330931
 GameObject:
   m_ObjectHideFlags: 0

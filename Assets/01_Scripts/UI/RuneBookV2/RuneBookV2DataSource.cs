@@ -25,6 +25,8 @@ public abstract class RuneBookV2DataSource : MonoBehaviour
     /// <summary>보유 룬 문자 전체 (보유 수가 0인 것도 포함, 표시 순서대로)</summary>
     public abstract IReadOnlyList<RuneStoneStackData> GetRuneStones();
 
+    public abstract bool HasEnoughRuneStones(IReadOnlyDictionary<char, int> requirements);
+
     /// <summary>확정된 장착 상태 (빈 칸은 null)</summary>
     public abstract string GetConfirmedId(int slotIndex);
 
