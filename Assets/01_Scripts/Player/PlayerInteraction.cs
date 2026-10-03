@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
@@ -11,36 +11,50 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float _interactionRange;
     [SerializeField] private LayerMask _interactableLayer;
 
-    public InteractionGuideSource CurrentTarget { get; private set; }
+    private IInteractable _currentInteractable;
 
-    public event Action<InteractionGuideSource> InteractionTargetChanged;
+    public event Action<IInteractable> CurrentInteractableChanged;
 
-    public void Update()
+    private void OnEnable()
     {
-        RefreshTarget();
+        _playerInputHandler.InteractionRequested += OnInteractionRequested;
     }
 
-    private void RefreshTarget()
+    private void OnDisable()
+    {
+        _playerInputHandler.InteractionRequested -= OnInteractionRequested;
+    }
+
+    private void Update()
+    {
+        FindNearestInteractable();
+    }
+
+    private void OnInteractionRequested()
+    {
+        _currentInteractable.Interact();
+    }
+
+    private void FindNearestInteractable()
     {
         Collider2D[] interactableObjects =
             Physics2D.OverlapCircleAll(transform.position, _interactionRange, _interactableLayer);
-        InteractionGuideSource nearestSource = null;
+        IInteractable nearestInteractable = null;
         float nearestDistance = float.PositiveInfinity;
         foreach (Collider2D interactableObject in interactableObjects)
         {
-            var source = interactableObject.GetComponent<InteractionGuideSource>();
-            if (source == null || !source.isActiveAndEnabled)
-                continue;
-            float distance = (source.transform.position - transform.position).sqrMagnitude;
+            if (!interactableObject.TryGetComponent(out IInteractable interactable))
+                return;
+            float distance = Vector3.Distance(interactableObject.transform.position, transform.position);
             if (distance < nearestDistance)
             {
                 nearestDistance = distance;
-                nearestSource = source;
+                nearestInteractable = interactable;
             }
-            if (CurrentTarget == nearestSource)
-                return;
-            CurrentTarget = nearestSource;
-            InteractionTargetChanged?.Invoke(source);
         }
+        if (_currentInteractable == nearestInteractable)
+            return;
+        _currentInteractable = nearestInteractable;
+        CurrentInteractableChanged?.Invoke(_currentInteractable);
     }
 }

@@ -4,6 +4,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputHandler : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PopupController _popupController;
+
     // key binding
     [Header("룬 도감 오픈 키")]
     [SerializeField] private KeyCode _playerOpenRuneBookKeyCode = KeyCode.Tab;
@@ -42,14 +45,24 @@ public class PlayerInputHandler : MonoBehaviour
     private Vector2 _lastDirection = new Vector2(1f, 0f);
     public Vector2 LastDirection => _lastDirection;
 
-    private bool _isInteractionUIOpen;
+    private bool _isPopupOpened;
+
+    private void OnEnable()
+    {
+        _popupController.PopupOpenStateChanged += OnPopupOpenStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        _popupController.PopupOpenStateChanged -= OnPopupOpenStateChanged;
+    }
 
     private void Update()
     {
         // 마우스 position 갱신
         _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        if (!_isInteractionUIOpen)
+        if (!_isPopupOpened)
         {
             // player move input 갱신
             float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
@@ -82,5 +95,10 @@ public class PlayerInputHandler : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Escape))
                 UICloseRequested?.Invoke();
         }
+    }
+
+    private void OnPopupOpenStateChanged(bool isOpened)
+    {
+        _isPopupOpened = isOpened;
     }
 }
