@@ -1,0 +1,29 @@
+﻿using System;
+using UnityEngine;
+
+public class PopupController : MonoBehaviour
+{
+    public event Action<bool> PopupOpenStateChanged;
+
+    private GameObject _currentPopup;
+
+    public void OpenPopup(GameObject popup)
+    {
+        if (_currentPopup == popup)
+            return;
+        if (_currentPopup != null)
+            _currentPopup.SetActive(false);
+        _currentPopup = popup;
+        _currentPopup.SetActive(true);
+        PopupOpenStateChanged?.Invoke(true);
+    }
+
+    public void ClosePopup()
+    {
+        if (_currentPopup == null)
+            return;
+        _currentPopup.SetActive(false);
+        _currentPopup = null;
+        PopupOpenStateChanged?.Invoke(false);
+    }
+}

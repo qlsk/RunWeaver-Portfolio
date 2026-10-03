@@ -51,6 +51,11 @@ public class RuneStoneInventory : MonoBehaviour
             requirements[rune] = quantity + 1;
         }
 
+        return HasEnoughRuneStones(requirements);
+    }
+
+    public bool HasEnoughRuneStones(IReadOnlyDictionary<char, int> requirements)
+    {
         foreach ((char rune, int quantity) in requirements)
         {
             if (GetQuantity(rune) < quantity) return false;

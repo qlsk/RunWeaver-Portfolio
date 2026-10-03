@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,22 +9,20 @@ using UnityEngine.UI;
 /// 새 룬북(RuneBookV2)의 Rune Words 탭 + Rune Stones + Activated 띠를 묶는다.
 ///
 /// 장착 규칙
-/// - 룬 워드를 왼쪽 클릭하면 비어 있는 첫 칸에 "확정 전" 상태로 들어간다. Confirm 전까지 룬 문자는 소모하지 않는다.
-/// - 1번 칸(MAIN)에는 항상 원소가 있어야 한다. 비어 있으면 Confirm을 막는다.
+/// - 장착 규칙은 RuneEffectLoadout에서 검사한다. Confirm 전까지 변경은 화면에만 보관한다.
+/// - 원소를 넣으면 앞의 두 칸에 순서대로 삽입하고 기존 비원소 룬은 뒤로 민다.
+/// - 1번 칸(MAIN)의 주 원소는 오른쪽 클릭으로 해제할 수 없다.
 ///   원소를 넣을 때 MAIN이 비어 있으면 MAIN에 넣는다.
 /// - 서브 원소는 1개까지(MAIN과 같은 원소도 가능). 두 번째를 넣으면 "Only one sub element can be set".
-/// - 원소가 아닌 룬은 나머지 칸(RUNE)에 들어간다. 빈 칸이 없으면 "All slots are full".
+/// - 원소가 아닌 룬은 마지막 장착 룬 뒤에 들어간다. 빈 칸이 없으면 "All slots are full".
 /// - 겹치기가 안 되는 룬을 이미 넣었으면 "This rune cannot be stacked".
 /// - 장착 칸을 오른쪽 클릭하면 뺀다. 이미 확정된 룬을 빼도 룬 문자는 돌려주지 않는다.
-///   MAIN을 빼면 다른 칸의 원소를 MAIN으로 옮긴다. (원소 순서는 상관없고 조합만 중요)
 /// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "Not enough rune stones"를 띄운다.
 /// - Confirm 없이 룬북을 닫으면(이 오브젝트가 꺼지면) 바꾼 내용은 버린다.
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneBookV2Presenter : MonoBehaviour
 {
-    private const int MainSlotIndex = 0;
-
     [SerializeField] private RuneBookV2DataSource _dataSource;
 
     [Header("Rune Words")]
@@ -69,10 +68,10 @@ public class RuneBookV2Presenter : MonoBehaviour
     private RuneWordTileView _hoveredTile;
     private bool _isRefreshQueued;
     private bool _isInitialized;
+    private RuneEffectLoadoutManager _loadoutManager;
+    private RuneEffectLoadout _loadout;
 
-    private int ActiveSlotCount => _dataSource != null
-        ? Mathf.Clamp(_dataSource.ActiveSlotCount, 1, RuneBookV2DataSource.SlotLimit)
-        : 1;
+    private int ActiveSlotCount => _loadout != null ? _loadout.ActiveSlotCount : 0;
 
     private void Awake()
     {
@@ -88,13 +87,13 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
 
         _dataSource.Changed += HandleDataChanged;
-        LoadData();
-        LoadConfirmed();
-        Refresh();
+        BindLoadoutManager();
     }
 
     private void LateUpdate()
     {
+        if (_loadoutManager != RuneEffectLoadoutManager.Instance)
+            BindLoadoutManager();
         if (_isRefreshQueued)
         {
             _isRefreshQueued = false;
@@ -108,6 +107,14 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             _dataSource.Changed -= HandleDataChanged;
         }
+        if (_loadoutManager != null)
+            _loadoutManager.LoadoutReplaced -= BindLoadout;
+        _loadoutManager = null;
+        if (_loadout != null)
+            _loadout.LoadoutChanged -= HandleLoadoutChanged;
+        _loadout = null;
+        Array.Clear(_slotIds, 0, _slotIds.Length);
+        Array.Clear(_isNew, 0, _isNew.Length);
 
         // 확정하지 않은 변경은 버린다. 다시 열면 확정된 상태부터 시작한다.
         _hoveredTile = null;
@@ -199,6 +206,35 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     // ───────────────────────── 데이터 ─────────────────────────
 
+    private void BindLoadoutManager()
+    {
+        if (_loadoutManager != null)
+            _loadoutManager.LoadoutReplaced -= BindLoadout;
+        _loadoutManager = RuneEffectLoadoutManager.Instance;
+        if (_loadoutManager != null)
+            _loadoutManager.LoadoutReplaced += BindLoadout;
+        BindLoadout();
+    }
+
+    private void BindLoadout()
+    {
+        if (_loadout != null)
+            _loadout.LoadoutChanged -= HandleLoadoutChanged;
+        _loadout = _loadoutManager != null ? _loadoutManager.RuneEffectLoadout : null;
+        if (_loadout != null)
+            _loadout.LoadoutChanged += HandleLoadoutChanged;
+        HandleLoadoutChanged();
+    }
+
+    private void HandleLoadoutChanged()
+    {
+        if (_dataSource == null)
+            return;
+        LoadData();
+        LoadConfirmed();
+        Refresh();
+    }
+
     private void HandleDataChanged()
     {
         // 룬 문자 획득, 칸 확장 등. 확정 전 변경은 유지한다.
@@ -232,7 +268,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         for (int i = 0; i < _slotIds.Length; i++)
         {
-            _slotIds[i] = i < ActiveSlotCount ? _dataSource.GetConfirmedId(i) : null;
+            _slotIds[i] = i < ActiveSlotCount ? _loadout.GetEquippedEffectId(i) : null;
             _isNew[i] = false;
         }
     }
@@ -254,36 +290,54 @@ public class RuneBookV2Presenter : MonoBehaviour
             return;
         }
 
-        _isNew[slot] = WouldConsume(entry.Id);
+        for (int i = ActiveSlotCount - 1; i > slot; i--)
+        {
+            _slotIds[i] = _slotIds[i - 1];
+        }
         _slotIds[slot] = entry.Id;
+        UpdateNewEquipmentFlags();
         Refresh();
     }
 
     private void HandleSocketRightClicked(RuneSocketView socket)
     {
         int index = socket.Index;
+        if (index == RuneEffectLoadout.PrimaryElementSlotIndex)
+            return;
+
         if (index < 0 || index >= ActiveSlotCount || _slotIds[index] == null)
         {
             return;
         }
 
-        _slotIds[index] = null;
-        _isNew[index] = false;
-
-        if (index == MainSlotIndex)
+        for (int i = index; i < ActiveSlotCount - 1; i++)
         {
-            // MAIN이 비면 다른 칸의 원소를 MAIN으로 옮긴다.
-            int element = FindElementSlot(1);
-            if (element >= 0)
-            {
-                _slotIds[MainSlotIndex] = _slotIds[element];
-                _isNew[MainSlotIndex] = _isNew[element];
-                _slotIds[element] = null;
-                _isNew[element] = false;
-            }
+            _slotIds[i] = _slotIds[i + 1];
         }
+        _slotIds[ActiveSlotCount - 1] = null;
+        UpdateNewEquipmentFlags();
 
         Refresh();
+    }
+
+    private void UpdateNewEquipmentFlags()
+    {
+        Dictionary<string, int> remainingCounts = new();
+
+        for (int i = 0; i < _slotIds.Length; i++)
+        {
+            _isNew[i] = false;
+
+            string effectId = _slotIds[i];
+            if (string.IsNullOrEmpty(effectId))
+                continue;
+
+            if (!remainingCounts.TryGetValue(effectId, out int remainingCount))
+                remainingCount = _loadout.GetEquippedCount(effectId);
+
+            _isNew[i] = remainingCount == 0;
+            remainingCounts[effectId] = Math.Max(0, remainingCount - 1);
+        }
     }
 
     private void HandleTileEntered(RuneWordTileView tile)
@@ -311,15 +365,32 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleConfirmClicked()
     {
-        if (_dataSource == null || !CanConfirm())
+        if (_dataSource == null || _loadout == null)
         {
+            return;
+        }
+
+        LoadData();
+        CountPendingUse();
+        if (HasShortage())
+        {
+            ShowToast(_notEnoughText);
+            Refresh();
+            return;
+        }
+        if (!HasChanges())
+        {
+            Refresh();
             return;
         }
 
         if (_dataSource.Confirm(_slotIds, _isNew))
         {
+            _loadout.ConfirmEquipment(_slotIds);
+        }
+        else
+        {
             LoadData();
-            LoadConfirmed();
             Refresh();
         }
     }
@@ -330,82 +401,43 @@ public class RuneBookV2Presenter : MonoBehaviour
     private int FindTargetSlot(RuneBookEntryData entry, out string error)
     {
         error = null;
-        int active = ActiveSlotCount;
-
-        if (entry.Category == RuneEffectCategory.Element)
-        {
-            if (_slotIds[MainSlotIndex] == null)
-            {
-                return MainSlotIndex;
-            }
-
-            if (FindElementSlot(1) >= 0)
-            {
-                error = _subElementLimitText;
-                return -1;
-            }
-        }
-        else if (!_dataSource.CanOverlap(entry.Id) && Array.IndexOf(_slotIds, entry.Id) >= 0)
-        {
-            error = _notStackableText;
+        if (_loadout == null)
             return -1;
-        }
+        int slot = _loadout.FindEquipSlot(_slotIds, entry.Id, out EquipError equipError);
+        error = GetErrorText(equipError);
+        return slot;
+    }
 
-        for (int i = 1; i < active; i++)
+    private string GetErrorText(EquipError error)
+    {
+        return error switch
         {
-            if (_slotIds[i] == null)
-            {
-                return i;
-            }
-        }
-
-        error = _slotsFullText;
-        return -1;
+            EquipError.ElementLimit => _subElementLimitText,
+            EquipError.SlotsFull => _slotsFullText,
+            EquipError.CannotStack => _notStackableText,
+            EquipError.MainElementRequired => _mainRequiredText,
+            EquipError.NotEnoughRuneStones => _notEnoughText,
+            _ => null
+        };
     }
 
     /// <summary>
     /// 새로 넣으면 룬 문자를 쓰는지.
     /// 확정된 룬을 빼고 확정 전에 다시 넣으면 원래 있던 것이므로 쓰지 않는다.
     /// </summary>
-    private bool WouldConsume(string id)
+    private bool IsAdditionalEquipment(string effectId)
     {
-        int confirmed = 0;
-        int kept = 0;
-        for (int i = 0; i < _slotIds.Length; i++)
-        {
-            if (_dataSource.GetConfirmedId(i) == id)
-            {
-                confirmed++;
-            }
+        int confirmedCount = _loadout.GetEquippedCount(effectId);
+        int keptCount = _slotIds.Where((id, i) => id == effectId && !_isNew[i]).Count();
 
-            if (_slotIds[i] == id && !_isNew[i])
-            {
-                kept++;
-            }
-        }
-
-        return kept >= confirmed;
-    }
-
-    private int FindElementSlot(int startIndex)
-    {
-        for (int i = startIndex; i < ActiveSlotCount; i++)
-        {
-            if (_slotIds[i] != null && _entries.TryGetValue(_slotIds[i], out RuneBookEntryData entry) &&
-                entry.Category == RuneEffectCategory.Element)
-            {
-                return i;
-            }
-        }
-
-        return -1;
+        return keptCount >= confirmedCount;
     }
 
     private bool HasChanges()
     {
         for (int i = 0; i < _slotIds.Length; i++)
         {
-            if (_isNew[i] || _slotIds[i] != (i < ActiveSlotCount ? _dataSource.GetConfirmedId(i) : null))
+            if (_isNew[i] || _slotIds[i] != (i < ActiveSlotCount ? _loadout.GetEquippedEffectId(i) : null))
             {
                 return true;
             }
@@ -416,21 +448,12 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private bool HasShortage()
     {
-        foreach (KeyValuePair<char, int> use in _pendingUse)
-        {
-            int owned = _stones.TryGetValue(use.Key, out RuneStoneStackData stone) ? stone.Quantity : 0;
-            if (owned - use.Value < 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return !_dataSource.HasEnoughRuneStones(_pendingUse);
     }
 
     private bool CanConfirm()
     {
-        return _slotIds[MainSlotIndex] != null && !HasShortage() && HasChanges();
+        return _loadout != null && !HasShortage() && HasChanges();
     }
 
     // ───────────────────────── 표시 ─────────────────────────
@@ -533,10 +556,6 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             info = _notEnoughText;
         }
-        else if (_slotIds[MainSlotIndex] == null)
-        {
-            info = _mainRequiredText;
-        }
         else
         {
             isWarning = false;
@@ -578,7 +597,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             }
         }
 
-        _tooltip.Show(entry, _dataSource.CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
+        _tooltip.Show(entry, _loadout != null && _loadout.CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
             _tooltipMissing, _hoveredTile.RectTransform);
     }
 
@@ -598,7 +617,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         _hoverUse.Clear();
         RuneBookEntryData entry = _hoveredTile != null ? _hoveredTile.Entry : null;
-        if (entry == null || !entry.IsRevealed || !WouldConsume(entry.Id) || FindTargetSlot(entry, out _) < 0)
+        if (entry == null || !entry.IsRevealed || !IsAdditionalEquipment(entry.Id) || FindTargetSlot(entry, out _) < 0)
         {
             return;
         }

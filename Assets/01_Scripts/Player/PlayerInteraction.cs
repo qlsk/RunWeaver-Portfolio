@@ -1,32 +1,60 @@
 using System;
-using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerInputHandler _playerInputHandler;
+
+    [Header("Settings")]
     [SerializeField] private float _interactionRange;
     [SerializeField] private LayerMask _interactableLayer;
 
-    private int CompareDistanceToPlayer(Collider2D x, Collider2D y)
+    private IInteractable _currentInteractable;
+
+    public event Action<IInteractable> CurrentInteractableChanged;
+
+    private void OnEnable()
     {
-        float xDistance = (x.transform.position - transform.position).sqrMagnitude;
-        float yDistance = (y.transform.position - transform.position).sqrMagnitude;
-        return xDistance.CompareTo(yDistance);
+        _playerInputHandler.InteractionRequested += OnInteractionRequested;
     }
 
-    public InteractionGuideSource FindNearbyTarget()
+    private void OnDisable()
+    {
+        _playerInputHandler.InteractionRequested -= OnInteractionRequested;
+    }
+
+    private void Update()
+    {
+        FindNearestInteractable();
+    }
+
+    private void OnInteractionRequested()
+    {
+        _currentInteractable.Interact();
+    }
+
+    private void FindNearestInteractable()
     {
         Collider2D[] interactableObjects =
             Physics2D.OverlapCircleAll(transform.position, _interactionRange, _interactableLayer);
-        if (interactableObjects.Length == 0)
-            return null;
-        Collider2D closestObject = interactableObjects[0];
-        for (int index = 1; index < interactableObjects.Length; index++)
+        IInteractable nearestInteractable = null;
+        float nearestDistance = float.PositiveInfinity;
+        foreach (Collider2D interactableObject in interactableObjects)
         {
-            if (CompareDistanceToPlayer(interactableObjects[index], closestObject) <= 0)
-                closestObject = interactableObjects[index];
+            if (!interactableObject.TryGetComponent(out IInteractable interactable))
+                return;
+            float distance = Vector3.Distance(interactableObject.transform.position, transform.position);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestInteractable = interactable;
+            }
         }
-        var source = closestObject.GetComponent<InteractionGuideSource>();
-        return source;
+        if (_currentInteractable == nearestInteractable)
+            return;
+        _currentInteractable = nearestInteractable;
+        CurrentInteractableChanged?.Invoke(_currentInteractable);
     }
 }
