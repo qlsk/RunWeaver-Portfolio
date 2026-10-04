@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: -351535894501172995}
   m_Layer: 0
   m_Name: JangEnemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -128,6 +128,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 9fdd714592faa7143a19633b7d68188b, type: 2}
   _targetDetector: {fileID: 3382459475158370839}
+  _enemyMove: 0
 --- !u!114 &3382459475158370839
 MonoBehaviour:
   m_ObjectHideFlags: 0
