@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -77,10 +78,10 @@ public class RuneEffectSlotsHud : MonoBehaviour
         if (_loadout != null)
             _loadout.LoadoutChanged += Refresh;
 
-        Refresh();
+        Refresh(_loadout?.EquippedEffectIds);
     }
 
-    private void Refresh()
+    private void Refresh(IReadOnlyList<string> equippedEffectIds)
     {
         int slotCount = Mathf.Max(_slotBackgrounds?.Length ?? 0, _slotIcons?.Length ?? 0);
         for (int i = 0; i < slotCount; i++)
