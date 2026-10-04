@@ -13,13 +13,12 @@ public class RuneEffectLoadout
 
     // 참조 필드
     private readonly RuneEffectDatabase _effectDatabase;
-    // private readonly RuneStoneInventory _stoneInventory;
-    // private readonly RuneBook _runeBook;
 
     // 내부 필드
     private readonly List<string> _equippedEffectIds;
 
-    public event Action LoadoutChanged;
+    public IReadOnlyList<string> EquippedEffectIds => _equippedEffectIds;
+    public event Action<IReadOnlyList<string>> LoadoutChanged;
 
     public int ActiveSlotCount { get; }
 
@@ -114,7 +113,7 @@ public class RuneEffectLoadout
         else
             _equippedEffectIds[PrimaryElementSlotIndex] = effectId;
 
-        LoadoutChanged?.Invoke();
+        LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 
     /// <summary>
@@ -125,7 +124,7 @@ public class RuneEffectLoadout
         List<string> confirmed = slotIds.Where(id => !string.IsNullOrEmpty(id)).ToList();
         _equippedEffectIds.Clear();
         _equippedEffectIds.AddRange(confirmed);
-        LoadoutChanged?.Invoke();
+        LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 
     /// <summary>
@@ -137,7 +136,7 @@ public class RuneEffectLoadout
         if (!_effectDatabase.TryGetById(effectId, out _))
             throw new InvalidOperationException($"Unknown rune effect ID: {effectId}");
         _equippedEffectIds.RemoveAt(slotIndex);
-        LoadoutChanged?.Invoke();
+        LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 
     /// <summary>
@@ -146,6 +145,6 @@ public class RuneEffectLoadout
     public void ClearAll()
     {
         _equippedEffectIds.Clear();
-        LoadoutChanged?.Invoke();
+        LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 }

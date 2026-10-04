@@ -10,23 +10,23 @@ public class RuneEffectLoadoutManager : Singleton<RuneEffectLoadoutManager>
     private RuneEffectDatabase _runeEffectDatabase;
 
     public RuneEffectLoadout RuneEffectLoadout { get; private set; }
-    public bool Initialized { get; private set; }
+    public bool IsInitialized { get; private set; }
 
     public event Action LoadoutReplaced;
 
     public void Initialize(RuneEffectDatabase runeEffectDatabase)
     {
-        if (Initialized)
+        if (IsInitialized)
             throw new InvalidOperationException("RuneEffectLoadoutManager가 이미 초기화 되었습니다.");
         _runeEffectDatabase = runeEffectDatabase;
         RuneEffectLoadout = new RuneEffectLoadout(_runeEffectDatabase);
-        Initialized = true;
+        IsInitialized = true;
         LoadoutReplaced?.Invoke();
     }
 
     public void InitializeLoadout()
     {
-        if (!Initialized)
+        if (!IsInitialized)
             throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
         RuneEffectLoadout = new RuneEffectLoadout(_runeEffectDatabase);
         LoadoutReplaced?.Invoke();
