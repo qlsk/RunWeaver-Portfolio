@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 원정 출발 전 메인 원소 선택 화면 (화면 구성과 조작만 담당한다. 실제 장착 연결은 하지 않는다)
+/// 원정 출발 전 메인 원소 선택 화면. 확정한 원소의 룬 효과를 기본 원소 슬롯에 장착한다.
 ///
 /// 조작
 /// - 원소 선택 중: 좌/우 방향키로 원을 따라 원소를 바꾸고, F를 누르거나 아래 방향키를 누르면 Confirm 버튼으로 내려간다.
@@ -190,6 +190,21 @@ public class MainElementSelectView : MonoBehaviour
 
     private void Confirm()
     {
+        RuneEffectLoadoutManager manager = RuneEffectLoadoutManager.Instance;
+        if (manager == null || !manager.Initialized)
+        {
+            throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
+        }
+
+        string effectId = SelectedElement switch
+        {
+            ReactionElement.Fire => "rune_fire",
+            ReactionElement.Water => "rune_water",
+            ReactionElement.Earth => "rune_earth",
+            ReactionElement.Wind => "rune_wind",
+            _ => throw new ArgumentOutOfRangeException(nameof(SelectedElement))
+        };
+        manager.RuneEffectLoadout.EquipPrimaryElement(effectId);
         Debug.Log($"[MainElementSelectView] Confirm: {SelectedElement}", this);
         Confirmed?.Invoke(SelectedElement);
     }

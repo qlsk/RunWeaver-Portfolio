@@ -159,6 +159,18 @@ public class FakeRuneBookV2DataSource : RuneBookV2DataSource
         return stones;
     }
 
+    public override bool HasEnoughRuneStones(IReadOnlyDictionary<char, int> requirements)
+    {
+        EnsureInitialized();
+        foreach ((char rune, int required) in requirements)
+        {
+            int owned = _quantities.TryGetValue(rune, out int quantity) ? quantity : 0;
+            if (owned < required)
+                return false;
+        }
+        return true;
+    }
+
     public override string GetConfirmedId(int slotIndex)
     {
         EnsureInitialized();
