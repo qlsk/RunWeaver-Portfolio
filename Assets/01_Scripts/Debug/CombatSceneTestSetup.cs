@@ -1,11 +1,83 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class CombatSceneTestSetup : MonoBehaviour
 {
     [SerializeField] private GameBootstrap _bootstrap;
-    [SerializeField] private ReactionElement _testElement = ReactionElement.Fire;
+    [SerializeField, Min(0), OnValueChanged(nameof(ResizeEquippedEffects))]
+    private int _equippedRuneCount = 1;
+
+    [SerializeField, ListDrawerSettings(ShowIndexLabels = true, IsReadOnly = true)]
+    private string[] _equippedEffectIds = { RuneEffectIds.Fire };
+
+    [SerializeField, HideInInspector] private int _selectedSlot;
+
+    private bool CanSelectRune => _equippedRuneCount > 0;
+
+    [Button("Fire"), BoxGroup("Element"), ButtonGroup("Element/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectFire() => SelectRune(RuneEffectIds.Fire);
+
+    [Button("Water"), BoxGroup("Element"), ButtonGroup("Element/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectWater() => SelectRune(RuneEffectIds.Water);
+
+    [Button("Earth"), BoxGroup("Element"), ButtonGroup("Element/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectEarth() => SelectRune(RuneEffectIds.Earth);
+
+    [Button("Wind"), BoxGroup("Element"), ButtonGroup("Element/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectWind() => SelectRune(RuneEffectIds.Wind);
+
+    [Button("Spread"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectSpread() => SelectRune(RuneEffectIds.Spread);
+
+    [Button("Multiple"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectMultiple() => SelectRune(RuneEffectIds.Multiple);
+
+    private void SelectRune(string effectId)
+    {
+        ResizeEquippedEffects();
+        _equippedEffectIds[_selectedSlot] = effectId;
+    }
+
+    private void ResizeEquippedEffects()
+    {
+        Array.Resize(ref _equippedEffectIds, _equippedRuneCount);
+        _selectedSlot = Mathf.Clamp(_selectedSlot, 0, Mathf.Max(0, _equippedRuneCount - 1));
+    }
+
+#if UNITY_EDITOR
+    [OnInspectorGUI, PropertyOrder(-1)]
+    private void DrawSlotSelection()
+    {
+        UnityEditor.EditorGUILayout.LabelField("Selected Slot");
+        UnityEditor.EditorGUILayout.BeginHorizontal();
+
+        Color originalColor = GUI.backgroundColor;
+        for (int i = 0; i < _equippedRuneCount; i++)
+        {
+            GUI.backgroundColor = i == _selectedSlot ? Color.cyan : originalColor;
+            string label = i == 0 ? "Main" : $"Slot {i + 1}";
+
+            if (GUILayout.Button(label))
+            {
+                UnityEditor.Undo.RecordObject(this, "Select Rune Slot");
+                _selectedSlot = i;
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+        }
+
+        GUI.backgroundColor = originalColor;
+        UnityEditor.EditorGUILayout.EndHorizontal();
+    }
+#endif
+
+    private void OnValidate()
+    {
+        _equippedRuneCount = Mathf.Max(0, _equippedRuneCount);
+        ResizeEquippedEffects();
+    }
 
     private void Start()
     {
@@ -17,10 +89,19 @@ public class CombatSceneTestSetup : MonoBehaviour
         await UniTask.WaitUntil(() => _bootstrap.State == BootstrapState.Ready,
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
-        string effectId = "rune_" + _testElement.ToString().ToLowerInvariant();
-        if (!RuneEffectDatabase.Instance.TryGetById(effectId, out RuneEffectDefinition effect))
-            throw new InvalidOperationException($"Unknown rune effect ID: {effectId}");
+        List<string> effectIds = new(_equippedRuneCount);
+        for (int i = 0; i < _equippedRuneCount; i++)
+        {
+            string effectId = _equippedEffectIds[i];
+            if (string.IsNullOrEmpty(effectId))
+                continue;
 
-        RuneEffectLoadoutManager.Instance.RuneEffectLoadout.ConfirmEquipment(new[] { effect.Id });
+            if (!RuneEffectDatabase.Instance.TryGetById(effectId, out RuneEffectDefinition effect))
+                throw new InvalidOperationException($"Unknown rune effect ID: {effectId}");
+
+            effectIds.Add(effect.Id);
+        }
+
+        RuneEffectLoadoutManager.Instance.RuneEffectLoadout.ConfirmEquipment(effectIds);
     }
 }
