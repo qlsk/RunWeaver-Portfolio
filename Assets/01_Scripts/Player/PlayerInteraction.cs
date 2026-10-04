@@ -44,7 +44,7 @@ public class PlayerInteraction : MonoBehaviour
         foreach (Collider2D interactableObject in interactableObjects)
         {
             if (!interactableObject.TryGetComponent(out IInteractable interactable))
-                return;
+                continue;
             float distance = Vector3.Distance(interactableObject.transform.position, transform.position);
             if (distance < nearestDistance)
             {
