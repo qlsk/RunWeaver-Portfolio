@@ -226,10 +226,10 @@ public class RuneBookV2Presenter : MonoBehaviour
         _loadout = _loadoutManager != null ? _loadoutManager.RuneEffectLoadout : null;
         if (_loadout != null)
             _loadout.LoadoutChanged += HandleLoadoutChanged;
-        HandleLoadoutChanged();
+        HandleLoadoutChanged(_loadout?.EquippedEffectIds);
     }
 
-    private void HandleLoadoutChanged()
+    private void HandleLoadoutChanged(IReadOnlyList<string> equippedEffectIds)
     {
         if (_dataSource == null)
             return;
