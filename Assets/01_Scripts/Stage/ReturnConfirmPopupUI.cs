@@ -89,6 +89,7 @@ public class ReturnConfirmPopupUI : MonoBehaviour
 
     private void OnProceedClicked()
     {
+        SetVisible(false); // 클릭 즉시 팝업 닫기
         if (StageManager.Instance != null)
         {
             StageManager.Instance.ProceedToNextStage();
@@ -97,9 +98,11 @@ public class ReturnConfirmPopupUI : MonoBehaviour
 
     private void OnReturnClicked()
     {
+        SetVisible(false); // 클릭 즉시 팝업 닫기
         if (StageManager.Instance != null)
         {
             StageManager.Instance.ReturnToLobby();
         }
     }
+    
 }

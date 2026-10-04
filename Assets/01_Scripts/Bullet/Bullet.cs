@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
@@ -22,7 +23,7 @@ public class Bullet : MonoBehaviour
     private Transform _owner;
     private Vector2 _direction;
     private bool _initialized;
-    private ElementType _mainElement;
+    private IReadOnlyList<RuneEffectDefinition> _activatedRuneEffects;
 
     public event Action<EnemyHealth, float> HitEffectsRequested;
     public event Action<EnemyHealth> ElementReactionRequested;
@@ -55,13 +56,14 @@ public class Bullet : MonoBehaviour
     }
 
     /// <summary>탄환의 기본 능력치와 발사 방향, 주력 원소를 설정한다.</summary>
-    public void Initialize(float damage, float speed, float range, Vector2 direction, ElementType mainElement)
+    public void Initialize(float damage, float speed, float range, Vector2 direction,
+        IReadOnlyList<RuneEffectDefinition> activatedRuneEffects)
     {
         _damage = damage;
         _speed = speed;
         _range = range;
         _direction = direction.normalized;
-        _mainElement = mainElement;
+        _activatedRuneEffects = activatedRuneEffects;
 
         _travelDistance = 0f;
         _initialized = true;
@@ -90,7 +92,6 @@ public class Bullet : MonoBehaviour
             return;
 
         var enemyHealth = collision.GetComponentInParent<EnemyHealth>();
-        var enemy = collision.GetComponent<Enemy>();
         if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
             return;
 
@@ -98,10 +99,18 @@ public class Bullet : MonoBehaviour
         _initialized = false;
         enemyHealth.TakeDamage(_damage);
 
-        if (_mainElement == ElementType.Fire)
+        const int SubElementIndex = RuneEffectLoadout.ElementRuneEffectSlotIndex;
+        bool hasSubElement = _activatedRuneEffects.Count > SubElementIndex &&
+                             _activatedRuneEffects[SubElementIndex].Category == RuneEffectCategory.Element;
+        if (!enemyHealth.IsDead && !hasSubElement)
         {
-            enemy?.Burn.Activate(_damage);
+            var statusEffects = enemyHealth.GetComponent<EnemyStatusEffectController>();
+            string elementName = _activatedRuneEffects[RuneEffectLoadout.PrimaryElementSlotIndex].EnglishName;
+            if (!Enum.TryParse(elementName, out ReactionElement element))
+                throw new InvalidOperationException($"Invalid element: {element}");
+            statusEffects.ApplyElementEffect(element, _damage, _direction);
         }
+
         Destroy(gameObject);
     }
 

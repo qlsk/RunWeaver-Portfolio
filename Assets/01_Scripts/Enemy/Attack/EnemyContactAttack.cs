@@ -6,9 +6,18 @@ public class EnemyContactAttack : MonoBehaviour
     [SerializeField] private float _attackCooldown;
 
     private float _nextAttackTime;
+    private EnemyStatusEffectController _statusEffectController;
+
+    private void Awake()
+    {
+        _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (_statusEffectController.IsStaggered)
+            return;
+
         if (!collision.gameObject.CompareTag("Player"))
         {
             return;

@@ -439,7 +439,7 @@ public class RuneBookPresenter : MonoBehaviour
 
     private static Sprite GetVisibleIcon(RuneBookEntryData entry)
     {
-        // 기획서 14-3: 아이콘은 상세 공개(Detailed) 단계에서만 보여준다.
-        return entry.AreDetailsRevealed ? entry.Icon : null;
+        // 공개 단계와 상관없이 룬마다 자기 아이콘을 보여준다. (잠김/이름 공개 단계는 칸 색으로 어둡게 표시)
+        return entry.Icon;
     }
 }

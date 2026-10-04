@@ -7,12 +7,15 @@ public class MeleeEnemyMovement : MonoBehaviour
     private EnemyTargetDetector _targetDetector;
     private Rigidbody2D _enemyRigidbody2D;
     private EnemyDashAttack _dashAttack;
+    [SerializeField] private bool _enemyMove = true;
+    private EnemyStatusEffectController _statusEffectController;
 
     private void Awake()
     {
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _enemyRigidbody2D = GetComponent<Rigidbody2D>();
         _dashAttack = GetComponent<EnemyDashAttack>();
+        _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
     private void FixedUpdate()
@@ -20,15 +23,14 @@ public class MeleeEnemyMovement : MonoBehaviour
         if (_dashAttack != null && _dashAttack.IsDashActive)
             return;
 
+        Vector2 moveVelocity = Vector2.zero;
         Transform target = _targetDetector.Target;
-
-        if (target == null)
+        if (_enemyMove && !_statusEffectController.IsStaggered && target != null)
         {
-            _enemyRigidbody2D.linearVelocity = Vector2.zero;
-            return;
+            Vector2 direction = (target.position - transform.position).normalized;
+            moveVelocity = direction * (_enemyData.Stat.MoveSpeed * _statusEffectController.MoveSpeedMultiplier);
         }
 
-        Vector2 direction = (target.position - transform.position).normalized;
-        _enemyRigidbody2D.linearVelocity = direction * _enemyData.Stat.MoveSpeed;
+        _enemyRigidbody2D.linearVelocity = moveVelocity + _statusEffectController.KnockbackVelocity;
     }
 }
