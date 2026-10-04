@@ -210,70 +210,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &209212639
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 209212642}
-  - component: {fileID: 209212641}
-  - component: {fileID: 209212640}
-  m_Layer: 0
-  m_Name: RuneBookController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &209212640
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209212639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72a55e5956cd960ac893859e33762f90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneBookPauseController
-  _behavioursToDisable:
-  - {fileID: 1163802278}
-  - {fileID: 1163802279}
---- !u!114 &209212641
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209212639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2e9d5f12d74f13b71c945d68bcbcb6c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneBookToggle
-  _inputHandler: {fileID: 1163802278}
-  _presenter: {fileID: 747424682}
-  _pauseController: {fileID: 209212640}
-  _closeKeys: 090000001b000000
---- !u!4 &209212642
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209212639}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &301413106
 GameObject:
   m_ObjectHideFlags: 0
@@ -459,129 +395,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 7.2066665, y: 2.719751}
   m_EdgeRadius: 0
---- !u!1 &329547783
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 329547785}
-  - component: {fileID: 329547784}
-  m_Layer: 0
-  m_Name: RuneBookTest
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &329547784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 329547783}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c821f44354453198cff7cc6e5cd0286, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakeRuneBookDataSource
-  _startActiveSlotCount: 2
-  _startRuneStoneQuantity: 3
-  _startMainElementId: rune_fire
-  _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
-  _runeEffectIconCatalog: {fileID: 0}
-  _runeEffectIcon: {fileID: 0}
-  _addRuneStonesKey: 49
-  _addRuneStoneQuantity: 1
-  _revealNextCategoryKey: 50
-  _expandSlotKey: 51
---- !u!4 &329547785
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 329547783}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &330403409
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 330403412}
-  - component: {fileID: 330403411}
-  - component: {fileID: 330403410}
-  m_Layer: 0
-  m_Name: StageUIController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &330403410
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330403409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4adb8445b3091131b49248c1ea8db72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TimerPanelPresenter
-  _source: {fileID: 1503839112}
-  _timerText: {fileID: 0}
-  _warningSeconds: 10
-  _warningColor: {r: 0.9, g: 0.15, b: 0.1, a: 1}
-  _emphasisSeconds: 5
-  _emphasisScale: 1.3
-  _emphasisDuration: 0.3
-  _noTimeLimitText: --:--
---- !u!114 &330403411
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330403409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49b4be01ab410adde2849203c2a76cc6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DepthPanelPresenter
-  _source: {fileID: 1503839112}
-  _panel: {fileID: 0}
-  _depthText: {fileID: 0}
-  _depthFormat: '{0} - {1}'
---- !u!4 &330403412
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330403409}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &332730723
 GameObject:
   m_ObjectHideFlags: 0
@@ -1500,7 +1313,7 @@ PrefabInstance:
     - target: {fileID: 4298714803222458535, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
       propertyPath: _dataSource
       value: 
-      objectReference: {fileID: 329547784}
+      objectReference: {fileID: 0}
     - target: {fileID: 4418595606636739948, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -2039,17 +1852,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6828873519741967105, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
   m_PrefabInstance: {fileID: 747424680}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &747424682 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4298714803222458535, guid: 06a623ded39ee7e40ba24ab7cab4abba, type: 3}
-  m_PrefabInstance: {fileID: 747424680}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a84ad5cd024fc2b08459dbca7e67e0e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneBookPresenter
 --- !u!1 &749974750
 GameObject:
   m_ObjectHideFlags: 0
@@ -3071,100 +2873,6 @@ MonoBehaviour:
   _researchPrerequisiteCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=1157822266
   _researchCostCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=218911871
   _researchEffectCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9n699TL7eORpnIbC_wYbd1FIu4-ABJno6HSoSjbqYTTYAdPFtfjUATgfmv-IxAnyIGLKqzt-Pd-uR/pub?single=true&output=csv&gid=1216300861
---- !u!1001 &1163802276
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4117483220137768412, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_Name
-      value: Player_Sung
-      objectReference: {fileID: 0}
-    - target: {fileID: 4117483220137768412, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7746560776598131813, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
---- !u!114 &1163802277 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8110420657988907431, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-  m_PrefabInstance: {fileID: 1163802276}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
---- !u!114 &1163802278 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5863673722175249506, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-  m_PrefabInstance: {fileID: 1163802276}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
---- !u!114 &1163802279 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 340774800492513042, guid: e5e82655571f17043b9d7615068fd13a, type: 3}
-  m_PrefabInstance: {fileID: 1163802276}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
 --- !u!1 &1172062682
 GameObject:
   m_ObjectHideFlags: 0
@@ -3719,7 +3427,7 @@ GameObject:
   - component: {fileID: 1420330934}
   - component: {fileID: 1420330935}
   m_Layer: 6
-  m_Name: ExpeditionRuneStone
+  m_Name: SpiritRealmGate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3859,7 +3567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractionGuide
   _popupController: {fileID: 749974756}
-  _interactionName: "\uC6D0\uC815 \uC2DC\uC791"
+  _interactionName: "\uC815\uB839\uACC4 \uC9C4\uC785"
   _interactionGuidePoint: {fileID: 1383069078}
   _primaryElementSelectionPopup: {fileID: 1533736805}
 --- !u!224 &1443556304 stripped
@@ -4019,123 +3727,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1447817049}
   m_CullTransparentMesh: 1
---- !u!1 &1503839110
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1503839115}
-  - component: {fileID: 1503839113}
-  - component: {fileID: 1503839114}
-  - component: {fileID: 1503839111}
-  - component: {fileID: 1503839112}
-  m_Layer: 0
-  m_Name: HudTest
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1503839111
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503839110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3da22a7e89cf951608bd000dc0cf89f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakeRunResultSource
-  _survivalSeconds: 1314
-  _maxDepth: 4
-  _totalDamage: 125423
-  _killCount: 484
-  _endReason: 0
-  _primaMateria: 120
-  _azoth: 2
-  _mercury: 35
-  _aetherCrystal: 8
-  _stageSource: {fileID: 1503839112}
---- !u!114 &1503839112
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503839110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d977d7469a7d54ceebe6d198af4d04af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakeStageStatusSource
-  _timeLimit: 120
-  _hasTimeLimit: 1
-  _stageNames:
-  - Realm of Flames
-  - Frozen Depths
-  - Howling Wilds
-  - Stone Abyss
-  _nextDepthKey: 45
-  _shortenTimeKey: 61
-  _shortenedTime: 15
---- !u!114 &1503839113
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503839110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b11795f6f2b8fe501ac203b47c161820, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakeAmmoStatusSource
-  _magazineSize: 10
-  _reloadTime: 2
-  _fireKey: 54
-  _reloadKey: 55
---- !u!114 &1503839114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503839110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44d25e5c3dddf5810193155ac747de56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HudDebugKeys
-  _playerHealth: {fileID: 1163802277}
-  _healthStep: 10
-  _damageKey: 52
-  _healKey: 53
-  _missionView: {fileID: 0}
-  _missionTarget: 5
-  _missionProgressKey: 56
-  _missionResult: {fileID: 1687504769}
-  _missionSuccessKey: 57
-  _missionFailKey: 48
---- !u!4 &1503839115
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503839110}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1511687862
 GameObject:
   m_ObjectHideFlags: 0
@@ -4924,97 +4515,6 @@ PolygonCollider2D:
       - {x: 0.21153846, y: -2.2423077}
       - {x: 0.33076924, y: -2.226923}
   m_UseDelaunayMesh: 1
---- !u!1 &1630255437
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1630255439}
-  - component: {fileID: 1630255438}
-  m_Layer: 0
-  m_Name: "\uC81C\uBAA9 \uC5C6\uC74C"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!212 &1630255438
-SpriteRenderer:
-  serializedVersion: 2
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1630255437}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 782255441
-  m_SortingLayer: 1
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 6bc6829367795f34f8702bac1a7abb25, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 19.83, y: 7.93}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
---- !u!4 &1630255439
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1630255437}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.47, y: 3.97, z: 0}
-  m_LocalScale: {x: 0.3356, y: 0.3356, z: 0.3356}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1635769843
 GameObject:
   m_ObjectHideFlags: 0
@@ -5104,54 +4604,6 @@ Transform:
   - {fileID: 1551570908}
   - {fileID: 1420330933}
   - {fileID: 2119130327}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1687504768
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1687504770}
-  - component: {fileID: 1687504769}
-  m_Layer: 0
-  m_Name: MissionResultController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1687504769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687504768}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2a06ce0f16d664f1465d2d051469f7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MissionResultPresenter
-  _successPanel: {fileID: 0}
-  _failedPanel: {fileID: 0}
-  _endingUI: {fileID: 0}
-  _stageSource: {fileID: 1503839112}
---- !u!4 &1687504770
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687504768}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1890835756
@@ -5302,7 +4754,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2119130327}
   m_Layer: 0
-  m_Name: ExpeditionMagicCircle
+  m_Name: SpiritRealmGateMagicCircle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5394,6 +4846,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 816910342925938360, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1032133926238891698, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
@@ -5658,6 +5114,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4830496610932929838, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5340562731349912373, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
@@ -5946,12 +5406,5 @@ SceneRoots:
   - {fileID: 1680374571}
   - {fileID: 5402325519805073190}
   - {fileID: 1557520135}
-  - {fileID: 329547785}
-  - {fileID: 209212642}
-  - {fileID: 1687504770}
-  - {fileID: 1503839115}
-  - {fileID: 330403412}
   - {fileID: 749974754}
   - {fileID: 910062487}
-  - {fileID: 1163802276}
-  - {fileID: 1630255439}

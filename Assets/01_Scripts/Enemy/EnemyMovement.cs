@@ -5,28 +5,26 @@ public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private EnemyTargetDetector _targetDetector;
-    [SerializeField] private bool _enemyMove;
+    [SerializeField] private bool _enemyMove = true;
     private Rigidbody2D _enemyRigidbody2D;
+    private EnemyStatusEffectController _statusEffectController;
 
     private void Awake()
     {
         _enemyRigidbody2D = GetComponent<Rigidbody2D>();
+        _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
     private void FixedUpdate()
     {
-        if (!_enemyMove)
-            return;
-
+        Vector2 moveVelocity = Vector2.zero;
         Transform target = _targetDetector.Target;
-
-        if (target == null)
+        if (_enemyMove && !_statusEffectController.IsStaggered && target != null)
         {
-            _enemyRigidbody2D.linearVelocity = Vector2.zero;
-            return;
+            Vector2 direction = (target.position - transform.position).normalized;
+            moveVelocity = direction * (_enemyData.Stat.MoveSpeed * _statusEffectController.MoveSpeedMultiplier);
         }
 
-        Vector2 direction = (target.position - transform.position).normalized;
-        _enemyRigidbody2D.linearVelocity = direction * _enemyData.Stat.MoveSpeed;
+        _enemyRigidbody2D.linearVelocity = moveVelocity + _statusEffectController.KnockbackVelocity;
     }
 }

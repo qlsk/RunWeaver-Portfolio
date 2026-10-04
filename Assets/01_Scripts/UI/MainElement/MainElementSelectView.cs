@@ -191,7 +191,7 @@ public class MainElementSelectView : MonoBehaviour
     private void Confirm()
     {
         RuneEffectLoadoutManager manager = RuneEffectLoadoutManager.Instance;
-        if (manager == null || !manager.Initialized)
+        if (manager == null || !manager.IsInitialized)
         {
             throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
         }

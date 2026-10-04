@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 public class GameSession : Singleton<GameSession>
 {
+    // References
     private RuneEffectDatabase _runeEffectDatabase;
     private RuneEffectLoadoutManager _runeEffectLoadoutManager;
     private RuneStoneInventory _runeStoneInventory;
@@ -19,12 +18,8 @@ public class GameSession : Singleton<GameSession>
     public bool IsReady { get; private set; }
     public event Action<PlayerProgression> ProgressReplaced;
 
-    public void Initialize(
-        RuneEffectDatabase database,
-        RuneEffectLoadoutManager runeEffectLoadoutManager,
-        RuneStoneInventory inventory,
-        RuneBook book,
-        IReadOnlyList<ResearchNodeDefinition> researchDefinitions,
+    public void Initialize(RuneEffectDatabase database, RuneEffectLoadoutManager runeEffectLoadoutManager,
+        RuneStoneInventory inventory, RuneBook book, IReadOnlyList<ResearchNodeDefinition> researchDefinitions,
         GameDefinitionSet definitions)
     {
         if (IsReady)
@@ -55,11 +50,7 @@ public class GameSession : Singleton<GameSession>
             throw new InvalidOperationException("End the expedition before starting a new game.");
 
         PlayerProgression progression = new(_definitions);
-        RuneLoadout loadout = new(
-            _runeEffectDatabase,
-            _runeStoneInventory,
-            _runeBook,
-            progression.ResearchTree,
+        RuneLoadout loadout = new(_runeEffectDatabase, _runeStoneInventory, _runeBook, progression.ResearchTree,
             _researchDefinitions);
 
         _runeEffectLoadoutManager.InitializeLoadout();

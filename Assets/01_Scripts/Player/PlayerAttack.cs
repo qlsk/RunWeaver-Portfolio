@@ -1,25 +1,39 @@
 using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 [DefaultExecutionOrder(300)]
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("참조")]
-    [LabelText("탄환 프리팹")][SerializeField] private Bullet _bulletPrefab;
-    [LabelText("발사 위치")][SerializeField] private GameObject _firePosition;
+    [Header("References")]
+    [SerializeField] private Bullet _bulletPrefab;
+    [SerializeField] private GameObject _firePosition;
 
-    [Header("설정 값")]
-    [LabelText("발사 쿨타임")][SerializeField] private float _bulletFireRate = 1f;
-    [LabelText("탄환 공격력")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [LabelText("탄환 속도")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [LabelText("탄환 사거리")][SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [Header("Settings")]
+    [SerializeField] private float _bulletFireRate = 1f;
+    [SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [SerializeField, Min(0f)] private float _bulletRange = 10f;
 
     [SerializeField] private ElementType _mainElement;
 
     [Header("탄창 및 재장전")]
     [SerializeField] private int _magazineSize = 10;
     [SerializeField] private float _reloadTime = 2f;
+
+    // References
+    private RuneEffectDatabase _runeEffectDatabase;
+    private RuneEffectLoadoutManager _runeEffectLoadoutManager;
+
+    // Loadout
+    private IReadOnlyList<RuneEffectDefinition> _activatedRuneEffects;
+
+    // State Flags
+    private bool _isInitialized;
+
+    // Attack states
     private int _currentAmmo;
     private bool _isReloading;
     private float _reloadTimer;
@@ -48,11 +62,16 @@ public class PlayerAttack : MonoBehaviour
 
         _currentAmmo = _magazineSize;
         _bulletFireCoolTimer = _bulletFireRate;
+
+        InitializeAsync().Forget();
     }
 
     /// <summary>발사 대기 시간을 갱신하고 공격 입력이 유지되면 발사한다.</summary>
     private void Update()
     {
+        if (!_isInitialized)
+            return;
+
         _bulletFireCoolTimer += Time.deltaTime;
         if (_isReloading)
         {
@@ -72,6 +91,58 @@ public class PlayerAttack : MonoBehaviour
             Fire();
     }
 
+    private void OnEnable()
+    {
+        if (_runeEffectLoadoutManager == null)
+            return;
+        _runeEffectLoadoutManager.LoadoutReplaced += OnLoadoutReplaced;
+        _runeEffectLoadoutManager.RuneEffectLoadout.LoadoutChanged += OnLoadoutChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (_runeEffectLoadoutManager == null)
+            return;
+        _runeEffectLoadoutManager.LoadoutReplaced -= OnLoadoutReplaced;
+        _runeEffectLoadoutManager.RuneEffectLoadout.LoadoutChanged -= OnLoadoutChanged;
+    }
+
+    private async UniTask InitializeAsync()
+    {
+        await UniTask.WaitUntil(() => RuneEffectDatabase.Instance != null && RuneEffectDatabase.Instance.DatabaseReady,
+            cancellationToken: this.GetCancellationTokenOnDestroy());
+        await UniTask.WaitUntil(
+            () => RuneEffectLoadoutManager.Instance != null && RuneEffectLoadoutManager.Instance.IsInitialized,
+            cancellationToken: this.GetCancellationTokenOnDestroy());
+
+        _runeEffectDatabase = RuneEffectDatabase.Instance;
+        _runeEffectLoadoutManager = RuneEffectLoadoutManager.Instance;
+        _runeEffectLoadoutManager.LoadoutReplaced += OnLoadoutReplaced;
+        _runeEffectLoadoutManager.RuneEffectLoadout.LoadoutChanged += OnLoadoutChanged;
+        OnLoadoutChanged(_runeEffectLoadoutManager.RuneEffectLoadout.EquippedEffectIds);
+
+        _isInitialized = true;
+    }
+
+    private void OnLoadoutReplaced()
+    {
+        // TODO
+    }
+
+    private void OnLoadoutChanged(IReadOnlyList<string> activatedRuneEffectIds)
+    {
+        List<RuneEffectDefinition> effects = new(activatedRuneEffectIds.Count);
+        foreach (string id in activatedRuneEffectIds)
+        {
+            if (!_runeEffectDatabase.TryGetById(id, out RuneEffectDefinition effect))
+                throw new InvalidOperationException($"Unknown rune effect ID: {id}");
+
+            effects.Add(effect);
+        }
+
+        _activatedRuneEffects = effects;
+    }
+
     /// <summary>발사 간격에 맞춰 마우스 방향으로 주력 원소를 가진 탄환을 발사한다.</summary>
     public void Fire()
     {
@@ -87,7 +158,7 @@ public class PlayerAttack : MonoBehaviour
         float rotationZ = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position,
             Quaternion.Euler(0f, 45f, rotationZ));
-        bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _mainElement);
+        bullet.Initialize(_bulletDamage, _bulletSpeed, _bulletRange, direction, _activatedRuneEffects);
 
         bullet.PlayCastEffect(_firePosition.transform);
 
