@@ -384,7 +384,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         if (_dataSource.Confirm(_slotIds, _isNew))
         {
             _loadout.ConfirmEquipment(_slotIds);
-            SceneLoader.LoadSpiritRealmScene();
+            SceneLoader.LoadCombatSceneScene();
         }
         else
         {

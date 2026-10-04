@@ -1,12 +1,12 @@
-using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEngine.SceneManagement.SceneManager;
 
 public static class SceneLoader
 {
-    private const string SpritRealmScene = "SpiritRealmScene";
+    private const string CombatScene = "CombatScene";
 
-    public static AsyncOperation LoadSpiritRealmScene()
+    public static void LoadCombatSceneScene()
     {
-        return SceneManager.LoadSceneAsync(SpritRealmScene, LoadSceneMode.Single);
+        LoadSceneAsync(CombatScene, LoadSceneMode.Single);
     }
 }
