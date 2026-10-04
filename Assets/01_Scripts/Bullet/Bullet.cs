@@ -104,10 +104,11 @@ public class Bullet : MonoBehaviour
                              _activatedRuneEffects[SubElementIndex].Category == RuneEffectCategory.Element;
         if (!enemyHealth.IsDead && !hasSubElement)
         {
-            var statusEffects = enemyHealth.GetComponent<EnemyStatusEffectController>();
+            if (!enemyHealth.TryGetComponent(out EnemyStatusEffectController statusEffects))
+                throw new InvalidOperationException("EnemyStatusEffectController가 없습니다.");
             string elementName = _activatedRuneEffects[RuneEffectLoadout.PrimaryElementSlotIndex].EnglishName;
             if (!Enum.TryParse(elementName, out ReactionElement element))
-                throw new InvalidOperationException($"Invalid element: {element}");
+                throw new InvalidOperationException($"유효하지 않은 원소: {element}");
             statusEffects.ApplyElementEffect(element, _damage, _direction);
         }
 
