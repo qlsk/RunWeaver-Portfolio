@@ -88,12 +88,15 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         _dataSource.Changed += HandleDataChanged;
         BindLoadoutManager();
+        _isRefreshQueued = true;
     }
 
     private void LateUpdate()
     {
         if (_loadoutManager != RuneEffectLoadoutManager.Instance)
             BindLoadoutManager();
+        else if (_loadoutManager != null && _loadout != _loadoutManager.RuneEffectLoadout)
+            BindLoadout();
         if (_isRefreshQueued)
         {
             _isRefreshQueued = false;
@@ -378,15 +381,10 @@ public class RuneBookV2Presenter : MonoBehaviour
             Refresh();
             return;
         }
-        if (!HasChanges())
-        {
-            Refresh();
-            return;
-        }
-
         if (_dataSource.Confirm(_slotIds, _isNew))
         {
             _loadout.ConfirmEquipment(_slotIds);
+            SceneLoader.LoadSpiritRealmScene();
         }
         else
         {
@@ -433,19 +431,6 @@ public class RuneBookV2Presenter : MonoBehaviour
         return keptCount >= confirmedCount;
     }
 
-    private bool HasChanges()
-    {
-        for (int i = 0; i < _slotIds.Length; i++)
-        {
-            if (_isNew[i] || _slotIds[i] != (i < ActiveSlotCount ? _loadout.GetEquippedEffectId(i) : null))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private bool HasShortage()
     {
         return !_dataSource.HasEnoughRuneStones(_pendingUse);
@@ -453,7 +438,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private bool CanConfirm()
     {
-        return _loadout != null && !HasShortage() && HasChanges();
+        return _loadout != null && !HasShortage();
     }
 
     // ───────────────────────── 표시 ─────────────────────────

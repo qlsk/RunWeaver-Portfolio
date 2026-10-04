@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ExpeditionRuneStoneInteractable : MonoBehaviour, IInteractable
+public class SpiritRealmGateInteractable : MonoBehaviour, IInteractable
 {
     [Header("References")]
     [SerializeField] private PopupController _popupController;

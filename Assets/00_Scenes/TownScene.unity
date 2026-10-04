@@ -3719,7 +3719,7 @@ GameObject:
   - component: {fileID: 1420330934}
   - component: {fileID: 1420330935}
   m_Layer: 6
-  m_Name: ExpeditionRuneStone
+  m_Name: SpiritRealmGate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3859,7 +3859,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractionGuide
   _popupController: {fileID: 749974756}
-  _interactionName: "\uC6D0\uC815 \uC2DC\uC791"
+  _interactionName: "\uC815\uB839\uACC4 \uC9C4\uC785"
   _interactionGuidePoint: {fileID: 1383069078}
   _primaryElementSelectionPopup: {fileID: 1533736805}
 --- !u!224 &1443556304 stripped
@@ -5302,7 +5302,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2119130327}
   m_Layer: 0
-  m_Name: ExpeditionMagicCircle
+  m_Name: SpiritRealmGateMagicCircle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5394,6 +5394,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 816910342925938360, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1032133926238891698, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
@@ -5658,6 +5662,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4830496610932929838, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5340562731349912373, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
