@@ -92,7 +92,6 @@ public class Bullet : MonoBehaviour
             return;
 
         var enemyHealth = collision.GetComponentInParent<EnemyHealth>();
-        var enemy = collision.GetComponent<Enemy>();
         if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
             return;
 
@@ -103,8 +102,14 @@ public class Bullet : MonoBehaviour
         const int SubElementIndex = RuneEffectLoadout.ElementRuneEffectSlotIndex;
         bool hasSubElement = _activatedRuneEffects.Count > SubElementIndex &&
                              _activatedRuneEffects[SubElementIndex].Category == RuneEffectCategory.Element;
-        if (_activatedRuneEffects[RuneEffectLoadout.PrimaryElementSlotIndex].Id == "rune_fire" && !hasSubElement)
-            enemy?.Burn.Activate(_damage);
+        if (!enemyHealth.IsDead && !hasSubElement)
+        {
+            var statusEffects = enemyHealth.GetComponent<EnemyStatusEffectController>();
+            string elementName = _activatedRuneEffects[RuneEffectLoadout.PrimaryElementSlotIndex].EnglishName;
+            if (!Enum.TryParse(elementName, out ReactionElement element))
+                throw new InvalidOperationException($"Invalid element: {element}");
+            statusEffects.ApplyElementEffect(element, _damage, _direction);
+        }
 
         Destroy(gameObject);
     }
