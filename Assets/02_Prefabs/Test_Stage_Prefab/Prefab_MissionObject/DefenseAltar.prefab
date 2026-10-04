@@ -83,8 +83,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 33b9f4eba5fc74ac19f33b43a905d570, type: 3}
-  m_Color: {r: 0.8401612, g: 0.8773585, b: 0.22761661, a: 1}
+  m_Sprite: {fileID: -5924482337130929959, guid: ced1f0048bf73d746813dedf17e32644, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -131,7 +131,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.28, y: 1.28}
+    oldSize: {x: 4.863333, y: 3.4133334}
     newSize: {x: 1.28, y: 1.28}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -151,8 +151,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30199681b58d60d46bd8a6486e1d98ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefenseAltar
-  maxHealth: 100
-  currentHealth: 0
-  allowClickDamageForTest: 1
-  testDamageAmount: 25
-  testDamageKey: 107
+  maxHp: 100
+  allowTestInputs: 0

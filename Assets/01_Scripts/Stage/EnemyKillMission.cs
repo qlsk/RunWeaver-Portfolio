@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 미션 1: 적 처치 (일반 몬스터 및 엘리트 몬스터 지정 마릿수 처치)
-/// EnemyHealth 사망 이벤트를 단일 수신합니다.
+/// EnemyHealth 사망 이벤트를 수신하여 MonsterType(sepcial) 및 Tier 정보 기준으로 엘리트를 판정합니다.
 /// </summary>
 public class EnemyKillMission : MissionBase
 {
@@ -57,13 +57,16 @@ public class EnemyKillMission : MissionBase
         if (enemy == null) return;
 
         bool isElite = false;
+
+        // 1. StageEnemyInfo 어댑터 컴포넌트 우선 확인
         if (enemy.TryGetComponent(out StageEnemyInfo info))
         {
             isElite = info.IsElite;
         }
+        // 2. EnemyDataSO의 MonsterType 및 Tier 정보 확인 (MonsterType.sepcial 오타 호환)
         else if (enemy.EnemyData != null && enemy.EnemyData.Info != null)
         {
-            isElite = enemy.EnemyData.Info.Tier > 1;
+            isElite = (enemy.EnemyData.Info.MonsterType == MonsterType.special) || (enemy.EnemyData.Info.Tier > 1);
         }
 
         AddKillCount(isElite, 1);
@@ -78,7 +81,7 @@ public class EnemyKillMission : MissionBase
         if (isElite)
         {
             currentEliteKillCount += amount;
-            Debug.Log($"[적 처치 미션] 엘리트 처치: {currentEliteKillCount} / {targetEliteKillCount}");
+            Debug.Log($"[적 처치 미션] ★ 엘리트 처치: {currentEliteKillCount} / {targetEliteKillCount}");
         }
         else
         {

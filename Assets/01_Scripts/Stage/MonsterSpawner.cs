@@ -102,17 +102,17 @@ public class MonsterSpawner : MonoBehaviour
     {
         spawnableEntries.Clear();
 
-        if (enemyPrefabs == null || enemyPrefabs.Count == 0)
+        enemyPrefabs = enemyPrefabs.Where(p => p != null).ToList();
+
+        if (enemyPrefabs.Count == 0)
         {
-            Debug.LogWarning("[MonsterSpawner] enemyPrefabs 리스트가 비어있습니다! 인스펙터의 Enemy Prefabs 항목에 DefaultEnemy 프리팹을 추가해주세요.");
+            Debug.LogWarning("[MonsterSpawner] enemyPrefabs에 유효한 프리팹이 없습니다! Project 창의 02_Prefabs/Enemy/DefaultEnemy 프리팹을 인스펙터에 끌어다 놓아주세요.");
             return;
         }
 
         int validCount = 0;
         foreach (var prefab in enemyPrefabs)
         {
-            if (prefab == null) continue;
-
             EnemyDataSO data = null;
             if (prefab.TryGetComponent(out EnemyHealth health) || (health = prefab.GetComponentInChildren<EnemyHealth>()) != null)
             {
@@ -188,23 +188,26 @@ public class MonsterSpawner : MonoBehaviour
 
             while (availableBudget > 0 && activeMonsterCostMap.Count < maxCount)
             {
+                // ★ 현재 Depth 조건(MinDepth <= depth) 및 남은 예산(Cost <= availableBudget)을 충족하는 풀만 추출 ★
                 var eligiblePool = spawnableEntries
                     .Where(e => e.Prefab != null && e.MinDepth <= depth && e.Cost <= availableBudget)
                     .ToList();
 
-                if (eligiblePool.Count == 0)
-                {
-                    eligiblePool = spawnableEntries.Where(e => e.Prefab != null).ToList();
-                    if (eligiblePool.Count == 0) break;
-                }
+                // 조건에 맞는 몬스터가 없으면 강제 대체 풀을 사용하지 않고 이번 스폰 시도를 중단(대기)
+                if (eligiblePool.Count == 0) break;
 
                 SpawnableEntry selectedEntry = SelectByTierWeight(eligiblePool, depth);
                 if (selectedEntry == null) break;
 
-                SpawnMonster(selectedEntry);
-
-                currentActiveBudget += selectedEntry.Cost;
-                availableBudget -= selectedEntry.Cost;
+                if (SpawnMonster(selectedEntry))
+                {
+                    currentActiveBudget += selectedEntry.Cost;
+                    availableBudget -= selectedEntry.Cost;
+                }
+                else
+                {
+                    break;
+                }
 
                 yield return new WaitForSeconds(0.1f);
             }
@@ -232,31 +235,38 @@ public class MonsterSpawner : MonoBehaviour
         return pool[0];
     }
 
-    private void SpawnMonster(SpawnableEntry entry)
+    private bool SpawnMonster(SpawnableEntry entry)
     {
-        if (entry == null || entry.Prefab == null) return;
+        if (entry == null || entry.Prefab == null) return false;
 
         if (playerTransform == null)
         {
             GameObject pObj = GameObject.FindGameObjectWithTag("Player");
             if (pObj != null) playerTransform = pObj.transform;
-            else return;
+            else return false;
         }
 
         Vector2 spawnPos = GetRandomSpawnPosition();
-
-        if (spawnEffectPrefab != null)
-        {
-            GameObject fx = Instantiate(spawnEffectPrefab, spawnPos, Quaternion.identity);
-            Destroy(fx, effectDuration);
-        }
 
         GameObject spawned = Instantiate(entry.Prefab, spawnPos, Quaternion.identity);
 
         EnemyHealth health = spawned.GetComponent<EnemyHealth>() ?? spawned.GetComponentInChildren<EnemyHealth>();
         if (health != null)
         {
+            if (spawnEffectPrefab != null)
+            {
+                GameObject fx = Instantiate(spawnEffectPrefab, spawnPos, Quaternion.identity);
+                Destroy(fx, effectDuration);
+            }
+
             activeMonsterCostMap[health] = entry.Cost;
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"[MonsterSpawner] '{entry.Prefab.name}' 프리팹에 EnemyHealth 컴포넌트가 없어 스폰을 취소합니다.");
+            Destroy(spawned);
+            return false;
         }
     }
 
