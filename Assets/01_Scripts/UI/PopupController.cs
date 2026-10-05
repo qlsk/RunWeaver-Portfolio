@@ -7,6 +7,9 @@ public class PopupController : MonoBehaviour
 
     private GameObject _currentPopup;
 
+    /// <summary>팝업이 하나라도 열려 있는지</summary>
+    public bool IsOpen => _currentPopup != null;
+
     public void OpenPopup(GameObject popup)
     {
         if (_currentPopup == popup)
