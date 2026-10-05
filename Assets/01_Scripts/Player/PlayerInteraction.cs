@@ -32,6 +32,10 @@ public class PlayerInteraction : MonoBehaviour
 
     private void OnInteractionRequested()
     {
+        // 주변에 대상이 없거나 이미 파괴된 대상이면 무시한다.
+        if (_currentInteractable == null ||
+            (_currentInteractable is UnityEngine.Object target && target == null))
+            return;
         _currentInteractable.Interact();
     }
 

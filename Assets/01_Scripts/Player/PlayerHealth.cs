@@ -74,6 +74,15 @@ public class PlayerHealth : MonoBehaviour
         _currentHealth = _currentHealth + healAmount > _maxHealth ? _maxHealth : _currentHealth + healAmount;
     }
 
+    /// <summary>
+    /// 무적 여부와 상관없이 즉시 사망 처리한다. (일시정지 메뉴의 탐사 포기 등)
+    /// </summary>
+    public void Kill()
+    {
+        if (_isDead) return;
+        Death();
+    }
+
     // 사망
     private void Death()
     {
