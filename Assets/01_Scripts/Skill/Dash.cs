@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(DashAfterimage))]
 public class Dash : MonoBehaviour
 {
     [SerializeField] private PlayerInputHandler _playerInputHandler;
@@ -10,8 +11,8 @@ public class Dash : MonoBehaviour
     [SerializeField] private float _dashPower = 10f;
     [Header("Dash 쿨타임")]
     [SerializeField] private float _dashCooldown = 3f;
+    private DashAfterimage _dashAfterimage;
     private Rigidbody2D _playerRigidbody2D;
-    private PlayerMove _playerMove;
     private PlayerHealth _playerHealth;
 
     private bool _isDashing = false;
@@ -22,6 +23,7 @@ public class Dash : MonoBehaviour
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerHealth = GetComponent<PlayerHealth>();
+        _dashAfterimage = GetComponent<DashAfterimage>();
     }
 
     private void OnEnable()
@@ -37,6 +39,7 @@ public class Dash : MonoBehaviour
         }
 
         StopAllCoroutines();
+        if (_dashAfterimage != null) _dashAfterimage.Clear();
 
         if (_playerHealth != null)
         {
@@ -62,6 +65,7 @@ public class Dash : MonoBehaviour
     {
         _isDashing = true;
         _canDash = false;
+        _dashAfterimage.BeginEmission();
 
         // dash 중 무적
         _playerHealth.SetDashInvincibility(true);
@@ -86,6 +90,7 @@ public class Dash : MonoBehaviour
 
         // dash 무적 끝
         _playerHealth.SetDashInvincibility(false);
+        _dashAfterimage.StopEmission();
         // dash 후 조작 가능
         _isDashing = false;
 
@@ -93,4 +98,5 @@ public class Dash : MonoBehaviour
         yield return new WaitForSeconds(_dashCooldown);
         _canDash = true;
     }
+
 }
