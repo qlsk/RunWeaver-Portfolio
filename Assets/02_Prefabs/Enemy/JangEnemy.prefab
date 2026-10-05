@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 3096053139321936895}
   - component: {fileID: 1198183762916471408}
   - component: {fileID: -351535894501172995}
+  - component: {fileID: 2829335154018247551}
   m_Layer: 8
   m_Name: JangEnemy
   m_TagString: Enemy
@@ -206,8 +207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 9fdd714592faa7143a19633b7d68188b, type: 2}
-  _targetDetector: {fileID: 3382459475158370839}
-  _enemyMove: 0
+  _enemyMove: 1
 --- !u!114 &3382459475158370839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -357,3 +357,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2829335154018247551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7233f2c81a9443628f30509f697a630b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
+  _enemyHealth: {fileID: 8960704426864751323}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _staggerDuration: 0.5
+  _knockbackDuration: 0.2
+  _knockbackSpeed: 5

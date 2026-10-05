@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 8116234138727132672}
   - component: {fileID: 1191855456333718874}
   - component: {fileID: 8041545278497892238}
+  - component: {fileID: 8298365980880420227}
   m_Layer: 8
   m_Name: QuadrupedEnemy
   m_TagString: Untagged
@@ -145,7 +146,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
   _enemyData: {fileID: 11400000, guid: 9409d466d21d6a644acea50258551427, type: 2}
-  _targetDetector: {fileID: 11171715310889570}
+  _enemyMove: 1
 --- !u!114 &11171715310889570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,7 +266,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67fdddb36a73f9345b32c76f2fc99d3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDashAttack
-  _targetDetector: {fileID: 0}
+  _targetDetector: {fileID: 11171715310889570}
   _attackRange: 5
   _dashDistance: 5
   _prepareDuration: 1
@@ -307,6 +308,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyContactAttack
   _damage: 20
   _attackCooldown: 0.5
+--- !u!114 &8298365980880420227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2644439620610260465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7233f2c81a9443628f30509f697a630b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
+  _enemyHealth: {fileID: 255618171744260552}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _staggerDuration: 0.5
+  _knockbackDuration: 0.2
+  _knockbackSpeed: 5
 --- !u!1 &7552434801245011993
 GameObject:
   m_ObjectHideFlags: 0
