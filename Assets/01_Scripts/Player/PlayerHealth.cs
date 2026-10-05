@@ -48,10 +48,15 @@ public class PlayerHealth : MonoBehaviour
         StartCoroutine(TakeDamageCoroutine(damage));
     }
 
-    private IEnumerator TakeDamageCoroutine(float damage)
+    /// <summary>지속 피해는 피격/대시 무적을 무시하고 새 피격 무적을 만들지 않는다.</summary>
+    public void TakeDamageOverTime(float damage)
     {
-        _hitInvincibility = true;
+        if (_isDead || damage <= 0f) return;
+        ApplyDamage(damage);
+    }
 
+    private void ApplyDamage(float damage)
+    {
         if (_currentHealth - damage <= 0f)
         {
             _currentHealth = 0f;
@@ -62,6 +67,12 @@ public class PlayerHealth : MonoBehaviour
             _currentHealth -= damage;
         }
 
+    }
+
+    private IEnumerator TakeDamageCoroutine(float damage)
+    {
+        _hitInvincibility = true;
+        ApplyDamage(damage);
         yield return new WaitForSeconds(_invincibilityDuration);
         _hitInvincibility = false;
     }

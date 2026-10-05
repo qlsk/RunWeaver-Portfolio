@@ -14,6 +14,7 @@ public class Dash : MonoBehaviour
     private DashAfterimage _dashAfterimage;
     private Rigidbody2D _playerRigidbody2D;
     private PlayerHealth _playerHealth;
+    private PlayerStatusEffectController _statusEffects;
 
     private bool _isDashing = false;
     public bool IsDashing => _isDashing;
@@ -23,6 +24,7 @@ public class Dash : MonoBehaviour
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerHealth = GetComponent<PlayerHealth>();
+        _statusEffects = GetComponent<PlayerStatusEffectController>();
         _dashAfterimage = GetComponent<DashAfterimage>();
     }
 
@@ -58,6 +60,7 @@ public class Dash : MonoBehaviour
     private void DoDash()
     {
         if (!_canDash || _isDashing) return;
+        if (_statusEffects != null && _statusEffects.IsStaggered) return;
         StartCoroutine(DashCoroutine());
     }
 
