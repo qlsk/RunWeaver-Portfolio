@@ -13,7 +13,7 @@ public class EnemyContactAttack : MonoBehaviour
         _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
         if (_statusEffectController.IsStaggered)
             return;
