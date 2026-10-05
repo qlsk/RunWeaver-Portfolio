@@ -24,11 +24,11 @@ public class RangeEnemyMovement : MonoBehaviour
         }
 
         Vector2 direction = (target.position - transform.position).normalized;
-        Debug.Log(Vector2.Distance(transform.position, target.position));
         if (Vector2.Distance(transform.position, target.position) < _minRange)
         {
             direction = -direction;
         }
+
         _enemyRigidbody2D.linearVelocity = direction * _enemyData.Stat.MoveSpeed;
     }
 }
