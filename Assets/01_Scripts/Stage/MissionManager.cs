@@ -181,7 +181,7 @@ public class MissionManager : MonoBehaviour
         OnMissionCompleted?.Invoke(currentMission);
         if (StageManager.Instance != null)
         {
-            StageManager.Instance.SpawnPortalAtCenter();
+            StageManager.Instance.HandleMissionCleared();
         }
     }
 

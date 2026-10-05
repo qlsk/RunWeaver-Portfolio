@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -27,6 +28,9 @@ public class MissionResultPresenter : MonoBehaviour
     private bool _hasShownResult;
     private bool _hasShownFailure;
 
+    /// <summary>성공 패널 연출(페이드 아웃 포함)이 끝났을 때. 포탈 등장 시점으로 쓴다.</summary>
+    public event Action SuccessFinished;
+
     private void Awake()
     {
         // 씬에 켜진 상태로 저장되어 있어도 결과 화면은 꺼진 상태로 시작한다.
@@ -53,6 +57,11 @@ public class MissionResultPresenter : MonoBehaviour
             _failedPanel.Finished += HandleFailedPanelFinished;
         }
 
+        if (_successPanel != null)
+        {
+            _successPanel.Finished += HandleSuccessPanelFinished;
+        }
+
         if (_stageSource != null)
         {
             _stageSource.TimeExpired += ShowFailure;
@@ -75,6 +84,11 @@ public class MissionResultPresenter : MonoBehaviour
         if (_failedPanel != null)
         {
             _failedPanel.Finished -= HandleFailedPanelFinished;
+        }
+
+        if (_successPanel != null)
+        {
+            _successPanel.Finished -= HandleSuccessPanelFinished;
         }
 
         if (_stageSource != null)
@@ -168,6 +182,11 @@ public class MissionResultPresenter : MonoBehaviour
             _subscribedMission.OnMissionCompleted += ShowSuccess;
             _subscribedMission.OnMissionFailed += ShowFailure;
         }
+    }
+
+    private void HandleSuccessPanelFinished()
+    {
+        SafeEventNotifier.Notify(SuccessFinished);
     }
 
     private void HandleFailedPanelFinished()
