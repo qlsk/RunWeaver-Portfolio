@@ -33,6 +33,9 @@ public class RuneBookV2Presenter : MonoBehaviour
     [Tooltip("Confirm 후 전투 씬으로 넘어간다 (거점의 출발 화면). 전투 중 Tab 룬북은 끈다.")]
     [SerializeField] private bool _loadCombatSceneOnConfirm = true;
 
+    [Tooltip("보기 전용으로 열었을 때 Confirm 자리에 보여줄 안내 (마을에서 Tab으로 연 룬북)")]
+    [SerializeField] private string _viewOnlyText = "View only - equip runes at the gate";
+
     [Header("Rune Words")]
     [SerializeField] private RuneWordTileView[] _tiles;
     [SerializeField] private RuneWordTooltipView _tooltip;
@@ -88,9 +91,24 @@ public class RuneBookV2Presenter : MonoBehaviour
         ? _loadout.ActiveSlotCount
         : _dataSource != null ? Mathf.Clamp(_dataSource.ActiveSlotCount, 1, RuneBookV2DataSource.SlotLimit) : 0;
 
+    private bool _isViewOnly;
+
+    /// <summary>보기 전용이면 룬 워드를 넣거나 빼거나 Confirm할 수 없다.</summary>
+    public bool IsViewOnly => _isViewOnly;
+
     private void Awake()
     {
         Initialize();
+    }
+
+    /// <summary>
+    /// 보기 전용으로 바꾼다. (마을에서 Tab으로 연 룬북)
+    /// 보기 전용에서는 Confirm 버튼을 숨기고 장착 변경을 막는다. 툴팁은 그대로 보인다.
+    /// </summary>
+    public void SetViewOnly(bool isViewOnly)
+    {
+        _isViewOnly = isViewOnly;
+        _isRefreshQueued = true;
     }
 
     private void OnEnable()
@@ -308,6 +326,11 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleTileClicked(RuneWordTileView tile)
     {
+        if (_isViewOnly)
+        {
+            return;
+        }
+
         RuneBookEntryData entry = tile.Entry;
         if (entry == null || _dataSource == null)
         {
@@ -332,6 +355,11 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleSocketRightClicked(RuneSocketView socket)
     {
+        if (_isViewOnly)
+        {
+            return;
+        }
+
         int index = socket.Index;
         if (index == RuneEffectLoadout.PrimaryElementSlotIndex)
             return;
@@ -434,7 +462,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleConfirmClicked()
     {
-        if (_dataSource == null)
+        if (_dataSource == null || _isViewOnly)
         {
             return;
         }
@@ -472,6 +500,8 @@ public class RuneBookV2Presenter : MonoBehaviour
                 _loadout.ConfirmEquipment(_slotIds);
                 if (_loadCombatSceneOnConfirm)
                 {
+                    // 마을에서 출발 : 원정(지갑, 시작 골드)을 시작하고 전투 씬으로 간다.
+                    RunFlow.StartExpedition();
                     SceneLoader.LoadCombatSceneScene();
                 }
                 else
@@ -705,6 +735,27 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void RefreshConfirm()
     {
+        if (_confirmButton != null)
+        {
+            _confirmButton.gameObject.SetActive(!_isViewOnly);
+        }
+
+        if (_isViewOnly)
+        {
+            if (_confirmGlow != null)
+            {
+                _confirmGlow.SetActive(false);
+            }
+
+            if (_confirmInfoText != null)
+            {
+                _confirmInfoText.text = _viewOnlyText;
+                _confirmInfoText.color = _infoColor;
+            }
+
+            return;
+        }
+
         bool canConfirm = CanConfirm();
         if (_confirmButton != null)
         {

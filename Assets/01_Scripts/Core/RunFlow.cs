@@ -10,6 +10,9 @@ using UnityEngine;
 /// </summary>
 public static class RunFlow
 {
+    /// <summary>원정을 시작할 때 지갑에 넣어 주는 골드. 마을에서는 이 값을 보여준다.</summary>
+    public const int StartingGold = 1000;
+
     private static RunEndReason? s_endReason;
     private static bool s_isRestartRequested;
 
@@ -33,6 +36,33 @@ public static class RunFlow
         }
 
         s_endReason = reason;
+        return true;
+    }
+
+    /// <summary>
+    /// 원정을 시작한다. (마을에서 룬 확정 후 출발할 때)
+    /// 원정 지갑을 만들고 시작 골드를 넣는다. 이미 원정 중이면 아무것도 하지 않고 false
+    /// </summary>
+    public static bool StartExpedition()
+    {
+        GameSession session = GameSession.Instance;
+        if (session == null || !session.IsReady || session.Current == null)
+        {
+            return false;
+        }
+
+        PlayerHoldings holdings = session.Current.Holdings;
+        if (holdings.IsOnExpedition)
+        {
+            return false;
+        }
+
+        session.StartExpedition();
+        if (StartingGold > 0)
+        {
+            holdings.ExpeditionWallet?.AddGold(StartingGold);
+        }
+
         return true;
     }
 
