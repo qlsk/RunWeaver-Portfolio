@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// 아이콘, 이름, "카테고리 · 겹치기 가능 여부", 설명, 룬 워드(룬 문자 이미지)와 모자란 룬 문자를 보여준다.
 /// - Hidden: 이름과 설명을 ??? 로, 룬 워드는 숨긴다.
 /// - Listed: 설명만 ??? 로 숨긴다.
+/// - 완성품을 가지고 있으면 모자란 룬 문자 줄 대신 "Owned x1 - No rune stones needed"를 보여준다.
 /// 크기와 위치는 RuneBookTooltipLayout이 맞춘다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -37,12 +38,15 @@ public class RuneWordTooltipView : MonoBehaviour
     [Tooltip("모자란 룬 문자 줄 (Missing: + 룬 문자 이미지)")]
     [SerializeField] private GameObject _missingGroup;
     [SerializeField] private Image[] _missingStones;
+    [Tooltip("완성품 보유 줄 (모자란 룬 문자 줄과 같은 자리)")]
+    [SerializeField] private TMP_Text _ownedText;
 
     [Header("문구")]
     [SerializeField] private string _unknownText = "???";
     [SerializeField] private string _hiddenDescription = "Not discovered yet.";
     [SerializeField] private string _stackableText = "Stackable";
     [SerializeField] private string _notStackableText = "Not stackable";
+    [SerializeField] private string _ownedFormat = "Owned x{0} - No rune stones needed";
 
     [Header("색")]
     [SerializeField] private Color _iconBoxColor = new(0.894f, 0.804f, 0.678f, 1f);
@@ -62,8 +66,10 @@ public class RuneWordTooltipView : MonoBehaviour
 
     /// <param name="stones">룬 워드의 룬 문자 순서대로 (모자라면 IsMissing)</param>
     /// <param name="missingStones">모자란 룬 문자 이미지 (중복 없이)</param>
+    /// <param name="ownedCount">남은 완성품 수. 1 이상이면 모자란 룬 문자 줄 대신 보유 줄을 보여준다.</param>
     public void Show(RuneBookEntryData entry, bool canOverlap, Color? elementColor,
-        IReadOnlyList<RuneStoneView> stones, IReadOnlyList<Sprite> missingStones, RectTransform target)
+        IReadOnlyList<RuneStoneView> stones, IReadOnlyList<Sprite> missingStones, RectTransform target,
+        int ownedCount = 0)
     {
         if (entry == null)
         {
@@ -121,7 +127,17 @@ public class RuneWordTooltipView : MonoBehaviour
             }
         }
 
-        int missingCount = missingStones?.Count ?? 0;
+        bool showOwned = ownedCount > 0;
+        if (_ownedText != null)
+        {
+            _ownedText.gameObject.SetActive(showOwned);
+            if (showOwned)
+            {
+                _ownedText.text = string.Format(_ownedFormat, ownedCount);
+            }
+        }
+
+        int missingCount = showOwned ? 0 : missingStones?.Count ?? 0;
         if (_missingGroup != null)
         {
             _missingGroup.SetActive(isRevealed && missingCount > 0);
