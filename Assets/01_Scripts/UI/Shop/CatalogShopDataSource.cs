@@ -122,13 +122,13 @@ public class CatalogShopDataSource : ShopDataSource
         }
 
         ShopCatalogSO.Item item = FindItem(offer.Id);
-        if (item == null || string.IsNullOrEmpty(item.runeEffectId))
+        if (item == null || string.IsNullOrEmpty(item.RuneEffectId))
         {
             Debug.LogWarning($"[Shop] 룬 워드 품목 {offer.Id}에 runeEffectId가 없어 지급하지 못했습니다.", this);
             return;
         }
 
-        OwnedRuneWords.Add(item.runeEffectId);
+        OwnedRuneWords.Add(item.RuneEffectId);
     }
 
     private ShopCatalogSO.Item FindItem(string id)
@@ -140,7 +140,7 @@ public class CatalogShopDataSource : ShopDataSource
 
         foreach (ShopCatalogSO.Item item in _catalog.Items)
         {
-            if (item != null && item.id == id)
+            if (item != null && item.Id == id)
             {
                 return item;
             }
@@ -183,9 +183,9 @@ public class CatalogShopDataSource : ShopDataSource
     private ShopOfferData CreateOffer(ShopCatalogSO.Item item)
     {
         float variance = _catalog.PriceVariance;
-        float price = item.basePrice * Random.Range(1f - variance, 1f + variance);
-        return new ShopOfferData(item.id, item.displayName, item.description, item.icon, item.type,
-            Mathf.Max(1, RoundPrice(price)), item.healRatio);
+        float price = item.BasePrice * Random.Range(1f - variance, 1f + variance);
+        return new ShopOfferData(item.Id, item.DisplayName, item.Description, item.Icon, item.Type,
+            Mathf.Max(1, RoundPrice(price)), item.HealRatio);
     }
 
     private int RoundPrice(float price)
