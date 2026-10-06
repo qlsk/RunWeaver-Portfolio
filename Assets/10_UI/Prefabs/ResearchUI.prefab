@@ -1209,13 +1209,13 @@ MonoBehaviour:
   _insufficientColor: {r: 0.95, g: 0.5, b: 0.45, a: 1}
   _icons:
   - resourceId: prima_materia
-    icon: {fileID: 6534794985514032288, guid: a0cdeae488fe42afaf5b2f5b2546f3d9, type: 3}
+    icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: mercury
-    icon: {fileID: 5121176346307009015, guid: 8ab5edcf2e414fd5aeb2e530b1b2d52f, type: 3}
+    icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: aether_crystal
-    icon: {fileID: 2694715110307299808, guid: 52a99a7df30c4cd78ead8f8fa1c983da, type: 3}
+    icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: azoth
-    icon: {fileID: 3883048799940617704, guid: 2735485896a94fc9b5c1ecb6fe598fb2, type: 3}
+    icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
 --- !u!1 &590276450733726819
 GameObject:
   m_ObjectHideFlags: 0
@@ -1577,13 +1577,13 @@ MonoBehaviour:
   _insufficientColor: {r: 0.95, g: 0.5, b: 0.45, a: 1}
   _icons:
   - resourceId: prima_materia
-    icon: {fileID: 6534794985514032288, guid: a0cdeae488fe42afaf5b2f5b2546f3d9, type: 3}
+    icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: mercury
-    icon: {fileID: 5121176346307009015, guid: 8ab5edcf2e414fd5aeb2e530b1b2d52f, type: 3}
+    icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: aether_crystal
-    icon: {fileID: 2694715110307299808, guid: 52a99a7df30c4cd78ead8f8fa1c983da, type: 3}
+    icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   - resourceId: azoth
-    icon: {fileID: 3883048799940617704, guid: 2735485896a94fc9b5c1ecb6fe598fb2, type: 3}
+    icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
 --- !u!1 &924571052619770176
 GameObject:
   m_ObjectHideFlags: 0
@@ -3705,7 +3705,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -163.5, y: 0}
-  m_SizeDelta: {x: 28, y: 28}
+  m_SizeDelta: {x: 56, y: 56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2922988486167179794
 CanvasRenderer:
@@ -3735,9 +3735,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5121176346307009015, guid: 8ab5edcf2e414fd5aeb2e530b1b2d52f, type: 3}
+  m_Sprite: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -7554,7 +7554,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -88, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 44, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7749941531468450161
 CanvasRenderer:
@@ -7584,9 +7584,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2694715110307299808, guid: 52a99a7df30c4cd78ead8f8fa1c983da, type: 3}
+  m_Sprite: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -10259,7 +10259,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -88, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 44, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2384908371516876517
 CanvasRenderer:
@@ -10289,9 +10289,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 3883048799940617704, guid: 2735485896a94fc9b5c1ecb6fe598fb2, type: 3}
+  m_Sprite: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -11192,7 +11192,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -88, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 44, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4939378761473286221
 CanvasRenderer:
@@ -11222,9 +11222,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6534794985514032288, guid: a0cdeae488fe42afaf5b2f5b2546f3d9, type: 3}
+  m_Sprite: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -11585,7 +11585,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -88, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 44, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1249880562679901844
 CanvasRenderer:
@@ -11615,9 +11615,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5121176346307009015, guid: 8ab5edcf2e414fd5aeb2e530b1b2d52f, type: 3}
+  m_Sprite: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -16265,7 +16265,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -163.5, y: 0}
-  m_SizeDelta: {x: 28, y: 28}
+  m_SizeDelta: {x: 56, y: 56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8796637847089444763
 CanvasRenderer:
@@ -16295,9 +16295,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6534794985514032288, guid: a0cdeae488fe42afaf5b2f5b2546f3d9, type: 3}
+  m_Sprite: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
