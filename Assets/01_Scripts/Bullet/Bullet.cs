@@ -10,6 +10,7 @@ public class Bullet : MonoBehaviour
     [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
     [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
     [FoldoutGroup("References"), SerializeField] private FirestormReaction _firestormReaction;
+    [FoldoutGroup("References"), SerializeField] private DelugeReaction _delugeReaction;
 
     [Header("Cast Effect")]
     [SerializeField] private ParticleSystem _castEffectPrefab;
@@ -123,6 +124,9 @@ public class Bullet : MonoBehaviour
                 case (ReactionElement.Fire, ReactionElement.Wind):
                 case (ReactionElement.Wind, ReactionElement.Fire):
                     _firestormReaction.Execute(hitPosition, _attackData.Damage);
+                    break;
+                case (ReactionElement.Water, ReactionElement.Water):
+                    _delugeReaction.Execute(hitPosition, _attackData.Direction);
                     break;
             }
 

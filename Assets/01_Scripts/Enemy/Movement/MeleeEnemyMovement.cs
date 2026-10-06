@@ -25,7 +25,7 @@ public class MeleeEnemyMovement : MonoBehaviour
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
-    /// 추적 이동에 넉백과 당김을 합산하되 당김 중 추적을 멈추고 공격·대시 중 기존 속도 제어를 유지한다.
+    /// 추적 이동에 넉백, 당김과 밀어내기를 합산하되 당김 중 추적을 멈추고 공격·대시 중 기존 속도 제어를 유지한다.
     private void FixedUpdate()
     {
         if (_tankAttack != null && _tankAttack.IsAttackActive)
@@ -47,6 +47,7 @@ public class MeleeEnemyMovement : MonoBehaviour
 
         Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
         Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
-        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull;
+        Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
+        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
     }
 }

@@ -44,9 +44,13 @@ public class EnemyStatusEffectController : MonoBehaviour
     // Pull state
     private readonly Dictionary<int, (Vector2 Center, float Speed)> _pullModifiers = new();
 
+    // Push state
+    private readonly Dictionary<int, (Vector2 Center, float Speed, Vector2 FallbackDirection)> _pushModifiers = new();
+
     public float MoveSpeedMultiplier => Mathf.Min(_slowRemaining > 0f ? _slowMoveSpeedMultiplier : 1f, _areaMoveSpeedMultiplier);
     public bool IsStaggered => _staggerRemaining > 0f;
     public bool IsPulled => _pullModifiers.Count > 0;
+    public bool IsPushed => _pushModifiers.Count > 0;
     public Vector2 KnockbackVelocity => _knockbackRemaining > 0f ? _knockbackVelocity : Vector2.zero;
     public Vector2 PullVelocity
     {
@@ -72,6 +76,32 @@ public class EnemyStatusEffectController : MonoBehaviour
             float remainingDistance = offset.magnitude;
             float pullSpeed = Mathf.Min(speed * Mathf.Min(1f, remainingDistance), remainingDistance / Time.fixedDeltaTime);
             return offset.normalized * pullSpeed;
+        }
+    }
+
+    /// 가장 가까운 밀어내기 중심에서 바깥으로 향하는 속도를 계산하고 중심에서는 대체 방향을 사용한다.
+    public Vector2 PushVelocity
+    {
+        get
+        {
+            Vector2 position = transform.position;
+            Vector2 direction = Vector2.zero;
+            float speed = 0f;
+            float nearestDistance = float.PositiveInfinity;
+
+            foreach (var push in _pushModifiers.Values)
+            {
+                Vector2 offset = position - push.Center;
+                float distance = offset.sqrMagnitude;
+                if (distance >= nearestDistance)
+                    continue;
+
+                nearestDistance = distance;
+                direction = distance > 0f ? offset.normalized : push.FallbackDirection;
+                speed = push.Speed;
+            }
+
+            return direction * speed;
         }
     }
 
@@ -161,6 +191,18 @@ public class EnemyStatusEffectController : MonoBehaviour
     public void RemovePullModifier(int sourceId)
     {
         _pullModifiers.Remove(sourceId);
+    }
+
+    /// 출처별 밀어내기 중심, 속도와 중심에서 사용할 대체 방향을 등록하거나 갱신한다.
+    public void AddPushModifier(int sourceId, Vector2 center, float speed, Vector2 fallbackDirection)
+    {
+        _pushModifiers[sourceId] = (center, speed, fallbackDirection.normalized);
+    }
+
+    /// 해당 출처의 밀어내기를 해제하며 다른 출처의 밀어내기는 유지한다.
+    public void RemovePushModifier(int sourceId)
+    {
+        _pushModifiers.Remove(sourceId);
     }
 
     /// 등록된 영역 보정 중 가장 낮은 이동 속도 배율을 선택하고 보정이 없으면 1로 복구한다.

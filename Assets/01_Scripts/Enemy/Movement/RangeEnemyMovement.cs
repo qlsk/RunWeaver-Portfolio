@@ -23,7 +23,7 @@ public class RangeEnemyMovement : MonoBehaviour
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
-    /// 관측 위치 기준 접근·후퇴에 넉백과 당김을 합산하며 당김 중 추적을 멈추고 탱크 공격 중 속도 제어를 유지한다.
+    /// 접근·후퇴에 넉백, 당김과 밀어내기를 합산하며 당김 중 추적을 멈추고 탱크 공격 중 속도 제어를 유지한다.
     private void FixedUpdate()
     {
         if (_tankAttack != null && _tankAttack.IsAttackActive)
@@ -31,14 +31,15 @@ public class RangeEnemyMovement : MonoBehaviour
 
         Transform target = _targetDetector.Target;
         bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
-        if (target == null && !isPulled)
+        bool isPushed = _statusEffectController != null && _statusEffectController.IsPushed;
+        if (target == null && !isPulled && !isPushed)
         {
             _enemyRigidbody2D.linearVelocity = Vector2.zero;
             return;
         }
 
         Vector2 moveVelocity = Vector2.zero;
-        if (!isPulled)
+        if (target != null && !isPulled)
         {
             Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
             Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
@@ -51,6 +52,7 @@ public class RangeEnemyMovement : MonoBehaviour
 
         Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
         Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
-        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull;
+        Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
+        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
     }
 }
