@@ -29,6 +29,11 @@ public class PlayerArm : MonoBehaviour
         if (direction == Vector2.zero)
             return;
 
+        Vector3 riflePosition = new Vector3();
+        if (_playerInputHandler.MoveDirection != Vector2.zero)
+        {
+            riflePosition = _rifleOrigin + new Vector3(_offsetX, _offsetY, 0f);
+        }
         // 이동 여부와 관계없이 몸통과 같은 마우스 방향을 바라본다.
         bool isFacingRight = direction.x > 0f;
         bool flipX = _reverse ? isFacingRight : !isFacingRight;
@@ -36,7 +41,6 @@ public class PlayerArm : MonoBehaviour
         if (!isFacingRight)
             angle -= 180f;
 
-        Vector3 riflePosition = _rifleOrigin + new Vector3(_offsetX, _offsetY, 0f);
         if (isFacingRight)
             riflePosition.x = -riflePosition.x;
 
