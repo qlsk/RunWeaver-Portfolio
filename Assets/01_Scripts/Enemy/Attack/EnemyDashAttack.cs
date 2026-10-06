@@ -20,8 +20,8 @@ public class EnemyDashAttack : MonoBehaviour
     [SerializeField] private string _rangeSortingLayer = "Default";
     [SerializeField] private int _rangeSortingOrder;
 
-    public DashAttackState State { get; private set; } = DashAttackState.Idle;
-    public bool IsDashActive => isActiveAndEnabled && State != DashAttackState.Idle;
+    public EnemyAttackState State { get; private set; } = EnemyAttackState.Idle;
+    public bool IsDashActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
 
     private Rigidbody2D _body;
     private EnemyHealth _health;
@@ -71,21 +71,21 @@ public class EnemyDashAttack : MonoBehaviour
 
         switch (State)
         {
-            case DashAttackState.Idle:
+            case EnemyAttackState.Idle:
                 TryPrepare();
                 break;
-            case DashAttackState.Preparing:
+            case EnemyAttackState.Preparing:
                 if (Time.time >= _stateEndTime)
                 {
                     RestoreConstraints();
                     _rangeIndicator.enabled = false;
-                    State = DashAttackState.Dashing;
+                    State = EnemyAttackState.Attacking;
                     _stateEndTime = Time.time + _maxDashDuration;
                     MoveDash();
                 }
 
                 break;
-            case DashAttackState.Dashing:
+            case EnemyAttackState.Attacking:
                 MoveDash();
                 break;
         }
@@ -104,7 +104,7 @@ public class EnemyDashAttack : MonoBehaviour
             return;
 
         _targetPosition = start + toTarget.normalized * _dashDistance;
-        State = DashAttackState.Preparing;
+        State = EnemyAttackState.Preparing;
         _body.linearVelocity = Vector2.zero;
         _savedConstraints = _body.constraints;
         _positionFrozen = true;
@@ -173,7 +173,7 @@ public class EnemyDashAttack : MonoBehaviour
 
     private void StopAtObstacle(int layer)
     {
-        if (State == DashAttackState.Dashing &&
+        if (State == EnemyAttackState.Attacking &&
             (_obstacleLayers.value & (1 << layer)) != 0)
         {
             CancelDash();
@@ -183,7 +183,7 @@ public class EnemyDashAttack : MonoBehaviour
     // 사망, 비활성화 또는 외부 상태이상에서 돌진을 취소할 때 사용한다.
     public void CancelDash()
     {
-        if (State != DashAttackState.Idle)
+        if (State != EnemyAttackState.Idle)
         {
             _body.linearVelocity = Vector2.zero;
             _nextAttackTime = Time.time + _cooldown;
@@ -195,7 +195,7 @@ public class EnemyDashAttack : MonoBehaviour
             _rangeIndicator.enabled = false;
         }
 
-        State = DashAttackState.Idle;
+        State = EnemyAttackState.Idle;
     }
 
     private void RestoreConstraints()

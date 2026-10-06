@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 3272416623154226051}
   - component: {fileID: 1460153028510699780}
   - component: {fileID: 1490919106700319465}
+  - component: {fileID: 6425500356320588167}
   m_Layer: 8
   m_Name: RangeEnemy
   m_TagString: Untagged
@@ -358,3 +359,24 @@ MonoBehaviour:
   _firePoint: {fileID: 7032596482920143957}
   _attackRange: 5
   _attackCooldown: 2
+--- !u!114 &6425500356320588167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7997101506716382822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7233f2c81a9443628f30509f697a630b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
+  _enemyHealth: {fileID: 8004153071751118209}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _staggerDuration: 0.5
+  _knockbackDuration: 0.2
+  _knockbackSpeed: 5
