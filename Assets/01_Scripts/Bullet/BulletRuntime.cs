@@ -11,6 +11,11 @@ public class BulletRuntime
         return target != null && _hitTargets.Add(target);
     }
 
+    public bool HasHitTarget(EnemyHealth target)
+    {
+        return _hitTargets.Contains(target);
+    }
+
     // 첫 적중은 100%, 7번째부터 70%로 유지한다.
     public float GetDamageMultiplier(bool isPierce)
     {
@@ -34,7 +39,7 @@ public class BulletRuntime
     // Return 진입 여부. 한 탄환에서 두 번 복귀하지 않도록 한다.
     public bool ReturnUsed;
 
-    // 복귀 중 Reverse 직후 반전 방향을 유지하는 남은 시간.
+    // Reverse 직후 Seek/복귀 방향 보정을 멈추는 남은 시간.
     public float ReverseSteeringRemaining;
     
     // Flying 중 누적 이동거리. 방향을 반전해도 감소하지 않는다.

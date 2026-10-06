@@ -44,6 +44,9 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Return"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectReturn() => SelectRune(RuneEffectIds.Return);
 
+    [Button("Seek"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectSeek() => SelectRune(RuneEffectIds.Seek);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();
