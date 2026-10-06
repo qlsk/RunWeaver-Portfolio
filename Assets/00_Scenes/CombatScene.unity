@@ -793,6 +793,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4554240844751769967, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
+      propertyPath: _playerHealth
+      value: 
+      objectReference: {fileID: 8110420659177510065}
     - target: {fileID: 4612960165367705702, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -3785,7 +3789,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -20
   m_MaskInteraction: 0
   m_Sprite: {fileID: -864142566084117443, guid: 4e3a5e310fe9e094caf836374a048284, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -4073,6 +4077,8 @@ MonoBehaviour:
   _catalog: {fileID: 11400000, guid: 9c2f832a9aec4ccea439e5d8e1bc7c98, type: 2}
   _startingGold: 5000
   _openOnStart: 0
+  _testCurrentHealth: 45
+  _testMaxHealth: 100
 --- !u!4 &2240439854702175636
 Transform:
   m_ObjectHideFlags: 0
