@@ -80,10 +80,10 @@ public class RuneBookV2Presenter : MonoBehaviour
     private RuneWordTileView _hoveredTile;
     private bool _isRefreshQueued;
     private bool _isInitialized;
-    private RuneEffectLoadoutManager _loadoutManager;
+    private PlayerRuneManager _loadoutManager;
     private RuneEffectLoadout _loadout;
 
-    // 로드아웃(RuneEffectLoadoutManager)이 없는 씬(RuneBookV2Scene 단독 테스트)에서는 데이터 소스의 값과 규칙을 쓴다.
+    // 로드아웃(PlayerRuneManager)이 없는 씬(RuneBookV2Scene 단독 테스트)에서는 데이터 소스의 값과 규칙을 쓴다.
     private int ActiveSlotCount => _loadout != null
         ? _loadout.ActiveSlotCount
         : _dataSource != null ? Mathf.Clamp(_dataSource.ActiveSlotCount, 1, RuneBookV2DataSource.SlotLimit) : 0;
@@ -108,7 +108,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_loadoutManager != RuneEffectLoadoutManager.Instance)
+        if (_loadoutManager != PlayerRuneManager.Instance)
             BindLoadoutManager();
         else if (_loadoutManager != null && _loadout != _loadoutManager.RuneEffectLoadout)
             BindLoadout();
@@ -229,7 +229,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         if (_loadoutManager != null)
             _loadoutManager.LoadoutReplaced -= BindLoadout;
-        _loadoutManager = RuneEffectLoadoutManager.Instance;
+        _loadoutManager = PlayerRuneManager.Instance;
         if (_loadoutManager != null)
             _loadoutManager.LoadoutReplaced += BindLoadout;
         BindLoadout();

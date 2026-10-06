@@ -89,6 +89,11 @@ public class CombatSceneTestSetup : MonoBehaviour
         await UniTask.WaitUntil(() => _bootstrap.State == BootstrapState.Ready,
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
+        // 마을에서 넘어와 이미 장착한 룬이 있으면 그대로 쓴다. (전투 씬을 바로 실행했을 때만 테스트 장착)
+        RuneEffectLoadout loadout = PlayerRuneManager.Instance.RuneEffectLoadout;
+        if (loadout.EquippedEffectIds.Count > 0)
+            return;
+
         List<string> effectIds = new(_equippedRuneCount);
         for (int i = 0; i < _equippedRuneCount; i++)
         {
@@ -102,6 +107,6 @@ public class CombatSceneTestSetup : MonoBehaviour
             effectIds.Add(effect.Id);
         }
 
-        RuneEffectLoadoutManager.Instance.RuneEffectLoadout.ConfirmEquipment(effectIds);
+        loadout.ConfirmEquipment(effectIds);
     }
 }
