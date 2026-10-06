@@ -33,6 +33,9 @@ public class BulletRuntime
     public bool ReverseUsed;
     // Return 진입 여부. 한 탄환에서 두 번 복귀하지 않도록 한다.
     public bool ReturnUsed;
+
+    // 복귀 중 Reverse 직후 반전 방향을 유지하는 남은 시간.
+    public float ReverseSteeringRemaining;
     
     // Flying 중 누적 이동거리. 방향을 반전해도 감소하지 않는다.
     public float TravelDistance;

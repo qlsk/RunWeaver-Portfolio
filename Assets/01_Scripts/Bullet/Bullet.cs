@@ -4,6 +4,17 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    private const float OwnerArrivalDistance = 0.1f;
+    private const float ReverseSteeringDelay = 0.1f;
+
+    private enum BulletEndReason
+    {
+        Hit,
+        MaxRange,
+        OwnerReached,
+        OwnerLost
+    }
+
     [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
     [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
     [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
@@ -63,12 +74,26 @@ public class Bullet : MonoBehaviour
         Destroy(effect.gameObject, _castEffectLifetime);
     }
 
-    /// 공격 방향으로 탄환을 이동시키고 사거리에 도달하면 제거한다.
+    /// 비행 상태에 따라 일반 이동 또는 플레이어 복귀를 처리한다.
     private void Update()
     {
         if (!_isInitialized)
             return;
 
+        if (_attackData.Speed <= 0f)
+        {
+            DestroyBullet();
+            return;
+        }
+
+        if (_runtime.Phase == BulletPhase.Returning)
+            MoveReturning();
+        else if (_runtime.Phase == BulletPhase.Flying)
+            MoveFlying();
+    }
+
+    private void MoveFlying()
+    {
         float remainingDistance = Mathf.Max(0f, _attackData.Range - _runtime.TravelDistance);
         float moveDistance = Mathf.Min(_attackData.Speed * Time.deltaTime, remainingDistance);
 
@@ -76,7 +101,46 @@ public class Bullet : MonoBehaviour
         _runtime.TravelDistance += moveDistance;
 
         if (_runtime.TravelDistance >= _attackData.Range)
-            DestroyBullet();
+            RequestEnd(BulletEndReason.MaxRange);
+    }
+
+    private void MoveReturning()
+    {
+        Transform owner = _attackData.Owner;
+        if (owner == null)
+        {
+            RequestEnd(BulletEndReason.OwnerLost);
+            return;
+        }
+
+        Vector2 offset = owner.position - transform.position;
+        if (offset.sqrMagnitude <= OwnerArrivalDistance * OwnerArrivalDistance)
+        {
+            RequestEnd(BulletEndReason.OwnerReached);
+            return;
+        }
+
+        float deltaTime = Time.deltaTime;
+        float reverseTime = Mathf.Min(deltaTime, _runtime.ReverseSteeringRemaining);
+        if (reverseTime > 0f)
+        {
+            transform.position += (Vector3)(_runtime.Direction * (_attackData.Speed * reverseTime));
+            _runtime.ReverseSteeringRemaining -= reverseTime;
+            deltaTime -= reverseTime;
+        }
+
+        if (deltaTime > 0f)
+        {
+            offset = owner.position - transform.position;
+            _runtime.Direction = offset.normalized;
+            float distance = Mathf.Min(_attackData.Speed * deltaTime, offset.magnitude);
+            transform.position += (Vector3)(_runtime.Direction * distance);
+            UpdateRotation();
+        }
+
+        if (((Vector2)(owner.position - transform.position)).sqrMagnitude <=
+            OwnerArrivalDistance * OwnerArrivalDistance)
+            RequestEnd(BulletEndReason.OwnerReached);
     }
 
     /// 중복 적중을 막고 Pierce 또는 최초 Reverse 발동 시 비행을 유지한다.
@@ -108,7 +172,7 @@ public class Bullet : MonoBehaviour
         {
             _processingHit = false;
             if (!isPierce && !reversedThisHit)
-                DestroyBullet();
+                RequestEnd(BulletEndReason.Hit);
         }
     }
 
@@ -120,6 +184,8 @@ public class Bullet : MonoBehaviour
 
         _runtime.ReverseUsed = true;
         _runtime.Direction = -_runtime.Direction;
+        if (_runtime.Phase == BulletPhase.Returning)
+            _runtime.ReverseSteeringRemaining = ReverseSteeringDelay;
         UpdateRotation();
         return true;
     }
@@ -168,6 +234,27 @@ public class Bullet : MonoBehaviour
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
 
         statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _runtime.Direction);
+    }
+
+    /// 원래 종료 시점에 한 번만 복귀로 전환하고, 복귀 중 종료 요청은 최종 종료한다.
+    private void RequestEnd(BulletEndReason reason)
+    {
+        if (!_isInitialized)
+            return;
+
+        if (_runtime.Phase == BulletPhase.Flying && _attackData.Configuration.IsReturn &&
+            !_runtime.ReturnUsed && _attackData.Owner != null &&
+            (reason == BulletEndReason.Hit || reason == BulletEndReason.MaxRange))
+        {
+            _runtime.ReturnUsed = true;
+            _runtime.Phase = BulletPhase.Returning;
+            _runtime.ReverseSteeringRemaining = 0f;
+            _runtime.Direction = ((Vector2)(_attackData.Owner.position - transform.position)).normalized;
+            UpdateRotation();
+            return;
+        }
+
+        DestroyBullet();
     }
 
     /// 이동과 적중 처리를 중단하고 탄환 오브젝트를 제거한다.

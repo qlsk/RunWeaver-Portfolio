@@ -8,4 +8,5 @@ public static class RuneEffectIds
     public const string Multiple = "rune_multiple";
     public const string Pierce = "rune_pierce";
     public const string Reverse = "rune_reverse";
+    public const string Return = "rune_return";
 }

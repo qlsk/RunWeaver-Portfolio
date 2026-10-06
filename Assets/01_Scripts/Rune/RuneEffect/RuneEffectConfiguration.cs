@@ -10,6 +10,7 @@ public sealed class RuneEffectConfiguration
     public bool IsMultiple { get; }
     public bool IsPierce { get; }
     public bool IsReverse { get; }
+    public bool IsReturn { get; }
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
@@ -42,6 +43,9 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Reverse:
                     IsReverse = true;
+                    break;
+                case RuneEffectIds.Return:
+                    IsReturn = true;
                     break;
             }
         }
