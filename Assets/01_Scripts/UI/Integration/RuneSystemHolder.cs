@@ -12,9 +12,6 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class RuneSystemHolder : MonoBehaviour
 {
-    [Tooltip("플레이어가 룬석을 줍는 인벤토리 (씬의 RuneStoneInventory)")]
-    [SerializeField] private RuneStoneInventory _stoneInventory;
-
     [Tooltip("시작할 때 도감에 공개할 카테고리")]
     [SerializeField] private RuneEffectCategory[] _startRevealedCategories =
     {
@@ -32,15 +29,9 @@ public class RuneSystemHolder : MonoBehaviour
     public bool IsReady => _loadout != null;
     public RuneBook RuneBook => _runeBook;
     public RuneLoadout Loadout => _loadout;
-    public RuneStoneInventory StoneInventory => _stoneInventory;
-
-    private void Awake()
-    {
-        if (_stoneInventory == null)
-        {
-            _stoneInventory = FindAnyObjectByType<RuneStoneInventory>();
-        }
-    }
+    /// <summary>플레이어가 룬석을 줍는 인벤토리 (PlayerRuneManager가 관리)</summary>
+    public RuneStoneInventory StoneInventory =>
+        PlayerRuneManager.Instance != null ? PlayerRuneManager.Instance.RuneStoneInventory : null;
 
     private void Update()
     {
@@ -75,7 +66,7 @@ public class RuneSystemHolder : MonoBehaviour
         ResearchDatabase researchDatabase = ResearchDatabase.Instance;
         GameSession session = GameSession.Instance;
 
-        return _stoneInventory != null
+        return StoneInventory != null
                && effectDatabase != null && effectDatabase.DatabaseReady
                && researchDatabase != null && researchDatabase.DatabaseReady
                && session != null && session.IsReady && session.Current != null;
@@ -97,7 +88,7 @@ public class RuneSystemHolder : MonoBehaviour
                 }
             }
 
-            _loadout = new RuneLoadout(effectDatabase, _stoneInventory, _runeBook,
+            _loadout = new RuneLoadout(effectDatabase, StoneInventory, _runeBook,
                 GameSession.Instance.Current.ResearchTree, ResearchDatabase.Instance.ResearchNodes);
         }
         catch (Exception exception)

@@ -19,8 +19,7 @@ public class GameBootstrap : MonoBehaviour
 
     [Header("Session References")]
     [SerializeField] private GameSession _session;
-    [SerializeField] private RuneEffectLoadoutManager _runeEffectLoadoutManager;
-    [SerializeField] private RuneStoneInventory _runeStoneInventory;
+    [SerializeField] private PlayerRuneManager _playerRuneManager;
 
     private BootstrapStage _currentStage;
 
@@ -46,7 +45,9 @@ public class GameBootstrap : MonoBehaviour
             FailedStage = BootstrapStage.None;
             ValidateReferences();
 
-            if (_session.IsReady)
+            // 두 번째 씬부터는 이 씬의 GameSession이 중복으로 파괴되므로, 이미 살아 있는 세션(Instance)으로 확인한다.
+            GameSession activeSession = GameSession.Instance != null ? GameSession.Instance : _session;
+            if (activeSession.IsReady)
             {
                 State = BootstrapState.Ready;
                 return;
@@ -74,8 +75,7 @@ public class GameBootstrap : MonoBehaviour
 
             _currentStage = BootstrapStage.GameSession;
             _session.Initialize(_runeEffectDatabase,
-                _runeEffectLoadoutManager,
-                _runeStoneInventory,
+                _playerRuneManager,
                 runeBook,
                 definitionSet.Researches,
                 definitionSet);
@@ -101,7 +101,6 @@ public class GameBootstrap : MonoBehaviour
         Check(_runeEffectDatabase, nameof(_runeEffectDatabase));
         Check(_skillDatabase, nameof(_skillDatabase));
         Check(_researchDatabase, nameof(_researchDatabase));
-        Check(_runeStoneInventory, nameof(_runeStoneInventory));
     }
 
     private void ResetDatabases()
@@ -135,4 +134,4 @@ public class GameBootstrap : MonoBehaviour
             }
         }
     }
-}
+}

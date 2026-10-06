@@ -190,10 +190,10 @@ public class MainElementSelectView : MonoBehaviour
 
     private void Confirm()
     {
-        RuneEffectLoadoutManager manager = RuneEffectLoadoutManager.Instance;
+        PlayerRuneManager manager = PlayerRuneManager.Instance;
         if (manager == null || !manager.IsInitialized)
         {
-            throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
+            throw new InvalidOperationException("PlayerRuneManager가 초기화되지 않았습니다.");
         }
 
         string effectId = SelectedElement switch
@@ -265,4 +265,4 @@ public class MainElementSelectView : MonoBehaviour
 
         return string.Empty;
     }
-}
+}

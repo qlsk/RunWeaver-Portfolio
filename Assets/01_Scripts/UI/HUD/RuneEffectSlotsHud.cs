@@ -19,7 +19,7 @@ public class RuneEffectSlotsHud : MonoBehaviour
     [SerializeField] private Color _iconColor = Color.white;
 
     private Sprite[] _defaultIcons;
-    private RuneEffectLoadoutManager _manager;
+    private PlayerRuneManager _manager;
     private RuneEffectLoadout _loadout;
     private RuneEffectDatabase _database;
 
@@ -52,7 +52,7 @@ public class RuneEffectSlotsHud : MonoBehaviour
 
     private void Update()
     {
-        if (_manager != RuneEffectLoadoutManager.Instance || _database != RuneEffectDatabase.Instance)
+        if (_manager != PlayerRuneManager.Instance || _database != RuneEffectDatabase.Instance)
             BindManager();
     }
 
@@ -61,7 +61,7 @@ public class RuneEffectSlotsHud : MonoBehaviour
         if (_manager != null)
             _manager.LoadoutReplaced -= BindLoadout;
 
-        _manager = RuneEffectLoadoutManager.Instance;
+        _manager = PlayerRuneManager.Instance;
         _database = RuneEffectDatabase.Instance;
         if (_manager != null)
             _manager.LoadoutReplaced += BindLoadout;
