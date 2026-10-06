@@ -44,6 +44,12 @@ public class Bullet : MonoBehaviour
 
     [Header("Fix")] [SerializeField] private FixTrap _fixTrapPrefab;
 
+    [Header("Chain")] [SerializeField, Min(0f)]
+    private float _chainRadius = 5f;
+
+    [SerializeField] private LayerMask _chainEnemyLayers = ~0;
+    private readonly List<Collider2D> _chainCandidates = new(16);
+
     // Attack data
     private PlayerAttackData _attackData;
 
@@ -288,6 +294,7 @@ public class Bullet : MonoBehaviour
         {
             enemyHealth.TakeDamage(hitDamage);
             ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
+            ApplyChain(enemyHealth, hitPosition, hitDamage);
             reversedThisHit = ApplyReverse();
         }
         finally
@@ -362,6 +369,52 @@ public class Bullet : MonoBehaviour
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
 
         statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _runtime.Direction);
+    }
+
+    /// 직접 적중마다 다른 적 한 명에게 주 원소 효과를 적용한다. 반응 피해에서는 호출하지 않는다.
+    private void ApplyChain(EnemyHealth directTarget, Vector2 hitPosition, float hitDamage)
+    {
+        RuneEffectConfiguration configuration = _attackData.Configuration;
+        if (!configuration.IsChain || !configuration.PrimaryElement.HasValue || _chainRadius <= 0f)
+            return;
+
+        EnemyStatusEffectController target = FindChainTarget(directTarget, hitPosition);
+        if (target == null)
+            return;
+
+        Vector2 direction = (Vector2)target.transform.position - hitPosition;
+        direction = direction.sqrMagnitude > 0f ? direction.normalized : _runtime.Direction;
+        target.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, direction);
+    }
+
+    private EnemyStatusEffectController FindChainTarget(EnemyHealth directTarget, Vector2 hitPosition)
+    {
+        var filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(_chainEnemyLayers);
+        _chainCandidates.Clear();
+        Physics2D.OverlapCircle(hitPosition, _chainRadius, filter, _chainCandidates);
+
+        EnemyStatusEffectController closest = null;
+        float closestDistance = float.PositiveInfinity;
+        foreach (Collider2D candidate in _chainCandidates)
+        {
+            EnemyHealth enemy = candidate.GetComponentInParent<EnemyHealth>();
+            if (enemy == null || enemy == directTarget || enemy.IsDead || !enemy.isActiveAndEnabled)
+                continue;
+
+            if (!enemy.TryGetComponent(out EnemyStatusEffectController statusEffects) ||
+                !statusEffects.isActiveAndEnabled)
+                continue;
+
+            float distance = ((Vector2)enemy.transform.position - hitPosition).sqrMagnitude;
+            if (distance >= closestDistance)
+                continue;
+
+            closest = statusEffects;
+            closestDistance = distance;
+        }
+
+        return closest;
     }
 
     /// 일반 비행 종료에 Return, Orbit 또는 Fix가 개입한다.

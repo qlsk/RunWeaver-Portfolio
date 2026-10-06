@@ -14,6 +14,7 @@ public sealed class RuneEffectConfiguration
     public bool IsSeek { get; }
     public bool IsOrbit { get; }
     public bool IsFix { get; }
+    public bool IsChain { get; }
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
@@ -58,6 +59,9 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Fix:
                     IsFix = true;
+                    break;
+                case RuneEffectIds.Chain:
+                    IsChain = true;
                     break;
             }
         }
