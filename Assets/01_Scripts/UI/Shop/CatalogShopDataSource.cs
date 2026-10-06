@@ -265,7 +265,7 @@ public class CatalogShopDataSource : ShopDataSource
         float variance = _catalog.PriceVariance;
         float price = item.BasePrice * Random.Range(1f - variance, 1f + variance);
         return new ShopOfferData(item.Id, item.DisplayName, item.Description, item.Icon, item.Type,
-            Mathf.Max(1, RoundPrice(price)), item.RealRatio);
+            Mathf.Max(1, RoundPrice(price)), item.HealRatio);
     }
 
     private int RoundPrice(float price)
