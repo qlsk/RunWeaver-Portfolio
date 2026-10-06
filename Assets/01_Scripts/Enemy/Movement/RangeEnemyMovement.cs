@@ -23,7 +23,7 @@ public class RangeEnemyMovement : MonoBehaviour
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
-    /// 접근·후퇴에 넉백, 당김과 밀어내기를 합산하며 당김 중 추적을 멈추고 탱크 공격 중 속도 제어를 유지한다.
+    /// 당김·속박 중 접근과 후퇴를 멈추고 외부 이동 효과를 합산하며 탱크 공격 중 속도 제어를 유지한다.
     private void FixedUpdate()
     {
         if (_tankAttack != null && _tankAttack.IsAttackActive)
@@ -39,7 +39,8 @@ public class RangeEnemyMovement : MonoBehaviour
         }
 
         Vector2 moveVelocity = Vector2.zero;
-        if (target != null && !isPulled)
+        bool isRooted = _statusEffectController != null && _statusEffectController.IsRooted;
+        if (target != null && !isPulled && !isRooted)
         {
             Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
             Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;

@@ -17,6 +17,8 @@ GameObject:
   - component: {fileID: 3481771100437686312}
   - component: {fileID: 7216901170541185801}
   - component: {fileID: 7216901170541185802}
+  - component: {fileID: 7216901170541185803}
+  - component: {fileID: 7216901170541185804}
   m_Layer: 0
   m_Name: ElementalBullet
   m_TagString: Untagged
@@ -116,6 +118,8 @@ MonoBehaviour:
   _moltenReaction: {fileID: 3481771100437686312}
   _firestormReaction: {fileID: 7216901170541185801}
   _delugeReaction: {fileID: 7216901170541185802}
+  _mireReaction: {fileID: 7216901170541185803}
+  _tempestReaction: {fileID: 7216901170541185804}
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
@@ -258,6 +262,41 @@ MonoBehaviour:
   _delugeDuration: 3
   _moveSpeedMultiplier: 0.5
   _pushSpeed: 2
+--- !u!114 &7216901170541185803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1554cdc98f0e409db656c105f0d8f26e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MireReaction
+  _mireAreaPrefab: {fileID: 2896922333138103206, guid: 071070c872d54897879f69d093f96919, type: 3}
+  _mireRadius: 3
+  _mireDuration: 5
+  _moveSpeedMultiplier: 0.25
+  _rootExposureDuration: 2
+--- !u!114 &7216901170541185804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd111d75782461e92bdf84191d367b7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TempestReaction
+  _tempestAreaPrefab: {fileID: 2896922333138103206, guid: e8bf4b7a50a2444a84b565c2e7f835a5, type: 3}
+  _tempestRadius: 3
+  _tempestDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
 --- !u!1001 &7001000000000000001
 PrefabInstance:
   m_ObjectHideFlags: 0

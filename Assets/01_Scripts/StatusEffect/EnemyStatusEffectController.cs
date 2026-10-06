@@ -34,6 +34,9 @@ public class EnemyStatusEffectController : MonoBehaviour
     private float _areaMoveSpeedMultiplier = 1f;
     private readonly Dictionary<int, float> _moveSpeedModifiers = new();
 
+    // Root state
+    private readonly HashSet<int> _rootModifiers = new();
+
     // Stagger state
     private float _staggerRemaining;
 
@@ -49,6 +52,7 @@ public class EnemyStatusEffectController : MonoBehaviour
 
     public float MoveSpeedMultiplier => Mathf.Min(_slowRemaining > 0f ? _slowMoveSpeedMultiplier : 1f, _areaMoveSpeedMultiplier);
     public bool IsStaggered => _staggerRemaining > 0f;
+    public bool IsRooted => _rootModifiers.Count > 0;
     public bool IsPulled => _pullModifiers.Count > 0;
     public bool IsPushed => _pushModifiers.Count > 0;
     public Vector2 KnockbackVelocity => _knockbackRemaining > 0f ? _knockbackVelocity : Vector2.zero;
@@ -179,6 +183,18 @@ public class EnemyStatusEffectController : MonoBehaviour
     {
         _moveSpeedModifiers.Remove(sourceId);
         RefreshAreaMoveSpeedMultiplier();
+    }
+
+    /// 속박 출처를 등록하며 같은 출처의 중복 등록은 하나로 유지한다.
+    public void AddRootModifier(int sourceId)
+    {
+        _rootModifiers.Add(sourceId);
+    }
+
+    /// 해당 출처의 속박을 해제하며 다른 출처의 속박은 유지한다.
+    public void RemoveRootModifier(int sourceId)
+    {
+        _rootModifiers.Remove(sourceId);
     }
 
     /// 출처별 당김 중심과 속도를 등록하거나 갱신한다.

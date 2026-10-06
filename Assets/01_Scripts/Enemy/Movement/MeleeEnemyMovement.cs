@@ -25,7 +25,7 @@ public class MeleeEnemyMovement : MonoBehaviour
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
     }
 
-    /// 추적 이동에 넉백, 당김과 밀어내기를 합산하되 당김 중 추적을 멈추고 공격·대시 중 기존 속도 제어를 유지한다.
+    /// 당김·속박 중 추적을 멈추고 외부 이동 효과를 합산하며 공격·대시 중 기존 속도 제어를 유지한다.
     private void FixedUpdate()
     {
         if (_tankAttack != null && _tankAttack.IsAttackActive)
@@ -38,7 +38,8 @@ public class MeleeEnemyMovement : MonoBehaviour
         Transform target = _targetDetector.Target;
         bool isStaggered = _statusEffectController != null && _statusEffectController.IsStaggered;
         bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
-        if (_enemyMove && !isStaggered && !isPulled && target != null && _enemyData != null && _enemyData.Stat != null)
+        bool isRooted = _statusEffectController != null && _statusEffectController.IsRooted;
+        if (_enemyMove && !isStaggered && !isPulled && !isRooted && target != null && _enemyData != null && _enemyData.Stat != null)
         {
             Vector2 direction = (_targetDetector.LastKnownTargetPosition - (Vector2)transform.position).normalized;
             float speedMultiplier = _statusEffectController != null ? _statusEffectController.MoveSpeedMultiplier : 1f;
