@@ -24,6 +24,7 @@ public class PlayerAttack : MonoBehaviour
 
     // References
     private PlayerInputHandler _playerInputHandler;
+    private PlayerStatusEffectController _statusEffects;
     private Camera _camera;
     private RuneEffectDatabase _runeEffectDatabase;
     private PlayerRuneManager _playerRuneManager;
@@ -71,6 +72,7 @@ public class PlayerAttack : MonoBehaviour
     private void Start()
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
+        _statusEffects = GetComponent<PlayerStatusEffectController>();
         _camera = Camera.main;
 
         if (_playerInputHandler == null || _camera == null || _bulletPrefab == null || _firePosition == null)
@@ -89,7 +91,8 @@ public class PlayerAttack : MonoBehaviour
         if (!_isInitialized)
             return;
 
-        _bulletFireCoolTimer += Time.deltaTime;
+        float intervalMultiplier = _statusEffects != null ? _statusEffects.AttackIntervalMultiplier : 1f;
+        _bulletFireCoolTimer += Time.deltaTime / intervalMultiplier;
 
         if (_remainingBurstShots > 0)
         {
@@ -203,7 +206,8 @@ public class PlayerAttack : MonoBehaviour
 
     private void UpdateBurst()
     {
-        _multipleTimer -= Time.deltaTime;
+        float intervalMultiplier = _statusEffects != null ? _statusEffects.AttackIntervalMultiplier : 1f;
+        _multipleTimer -= Time.deltaTime / intervalMultiplier;
         if (_multipleTimer > 0f)
             return;
 
@@ -255,4 +259,4 @@ public class PlayerAttack : MonoBehaviour
 
         _mainElement = element;
     }
-}
+}

@@ -13,8 +13,7 @@ public class EnemyTankAttack : MonoBehaviour
     [SerializeField] private Color _rangeColor = new Color(1f, 0.2f, 0.1f, 0.35f);
     [SerializeField] private string _rangeSortingLayer = "Default";
     [SerializeField] private int _rangeSortingOrder = 10;
-
-    private const float WarningDuration = 1f;
+    [SerializeField] private float WarningDuration = 1f;
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
     private EnemyStatusEffectController _statusEffects;
