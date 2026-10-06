@@ -1,6 +1,28 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 // 탄환마다 독립적으로 생성하는 실행 상태. 상태 전환 시 전체를 초기화하지 않는다.
 public class BulletRuntime
 {
+    private readonly HashSet<EnemyHealth> _hitTargets = new();
+
+    public bool TryRegisterTarget(EnemyHealth target)
+    {
+        return target != null && _hitTargets.Add(target);
+    }
+
+    // 첫 적중은 100%, 7번째부터 70%로 유지한다.
+    public float GetDamageMultiplier(bool isPierce)
+    {
+        return isPierce ? 1f - 0.05f * Mathf.Min(HitCount, 6) : 1f;
+    }
+
+    public void RecordHit()
+    {
+        if (HitCount < int.MaxValue)
+            HitCount++;
+    }
+
     // Bullet의 현재 이동 상태
     public BulletPhase Phase;
     // 완료한 직접 적중 횟수. 다음 적중의 Pierce 피해 감소에 사용한다.

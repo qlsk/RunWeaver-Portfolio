@@ -35,6 +35,9 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Multiple"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectMultiple() => SelectRune(RuneEffectIds.Multiple);
 
+    [Button("Pierce"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectPierce() => SelectRune(RuneEffectIds.Pierce);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();

@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    private const string EnemyTag = "Enemy";
-
     [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
     [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
     [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
@@ -20,15 +18,17 @@ public class Bullet : MonoBehaviour
     private PlayerAttackData _attackData;
 
     // Runtime state
-    private float _travelDistance;
+    private BulletRuntime _runtime;
     private bool _isInitialized;
+    private bool _processingHit;
 
     /// 공격 데이터를 저장하고 이동 거리와 적중 처리 상태를 초기화한다.
     public void Initialize(PlayerAttackData attackData)
     {
         _attackData = attackData.WithDirection(attackData.Direction.normalized);
 
-        _travelDistance = 0f;
+        _runtime = new BulletRuntime { Phase = BulletPhase.Flying };
+        _processingHit = false;
         _isInitialized = true;
     }
 
@@ -63,43 +63,49 @@ public class Bullet : MonoBehaviour
         if (!_isInitialized)
             return;
 
-        float remainingDistance = _attackData.Range - _travelDistance;
+        float remainingDistance = Mathf.Max(0f, _attackData.Range - _runtime.TravelDistance);
         float moveDistance = Mathf.Min(_attackData.Speed * Time.deltaTime, remainingDistance);
 
         transform.position += (Vector3)(_attackData.Direction * moveDistance);
-        _travelDistance += moveDistance;
+        _runtime.TravelDistance += moveDistance;
 
-        if (_travelDistance >= _attackData.Range)
+        if (_runtime.TravelDistance >= _attackData.Range)
             DestroyBullet();
     }
 
-    /// 적중 중복을 차단하고 직접 피해와 원소 효과를 적용한 뒤 탄환을 제거한다.
+    /// 동일 적의 중복 적중을 막고 Pierce가 없는 탄환만 적중 후 제거한다.
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!_isInitialized)
+        if (!_isInitialized || _processingHit)
             return;
 
-        if (!collision.CompareTag(EnemyTag))
-            return;
-
-        if (!collision.TryGetComponent(out EnemyHealth enemyHealth))
-            throw new InvalidOperationException($"EnemyHealth Component is missing: {collision.name}");
-
+        EnemyHealth enemyHealth = collision.GetComponentInParent<EnemyHealth>();
         if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
             return;
 
-        // Prevent repeated hits before destruction is processed.
-        _isInitialized = false;
+        if (!_runtime.TryRegisterTarget(enemyHealth))
+            return;
+
+        bool isPierce = _attackData.Configuration.IsPierce;
+        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce);
+        _runtime.RecordHit();
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
-        enemyHealth.TakeDamage(_attackData.Damage);
-
-        ApplyElementEffect(enemyHealth, hitPosition);
-
-        DestroyBullet();
+        _processingHit = true;
+        try
+        {
+            enemyHealth.TakeDamage(hitDamage);
+            ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
+        }
+        finally
+        {
+            _processingHit = false;
+            if (!isPierce)
+                DestroyBullet();
+        }
     }
 
     /// 두 원소의 반응을 실행하거나 살아 있는 적에게 단일 원소 효과를 적용한다.
-    private void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition)
+    private void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage)
     {
         RuneEffectConfiguration configuration = _attackData.Configuration;
         if (!configuration.PrimaryElement.HasValue)
@@ -110,19 +116,19 @@ public class Bullet : MonoBehaviour
             switch (configuration.PrimaryElement.Value, configuration.SecondaryElement.Value)
             {
                 case (ReactionElement.Fire, ReactionElement.Fire):
-                    _overHeatReaction.Execute(hitPosition, _attackData.Damage);
+                    _overHeatReaction.Execute(hitPosition, hitDamage);
                     break;
                 case (ReactionElement.Fire, ReactionElement.Water):
                 case (ReactionElement.Water, ReactionElement.Fire):
-                    _steamReaction.Execute(hitPosition, _attackData.Damage);
+                    _steamReaction.Execute(hitPosition, hitDamage);
                     break;
                 case (ReactionElement.Fire, ReactionElement.Earth):
                 case (ReactionElement.Earth, ReactionElement.Fire):
-                    _moltenReaction.Execute(hitPosition, _attackData.Damage);
+                    _moltenReaction.Execute(hitPosition, hitDamage);
                     break;
                 case (ReactionElement.Fire, ReactionElement.Wind):
                 case (ReactionElement.Wind, ReactionElement.Fire):
-                    _firestormReaction.Execute(hitPosition, _attackData.Damage);
+                    _firestormReaction.Execute(hitPosition, hitDamage);
                     break;
             }
 
@@ -135,12 +141,14 @@ public class Bullet : MonoBehaviour
         if (!enemyHealth.TryGetComponent(out EnemyStatusEffectController statusEffects))
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
 
-        statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, _attackData.Damage, _attackData.Direction);
+        statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _attackData.Direction);
     }
 
     /// 이동과 적중 처리를 중단하고 탄환 오브젝트를 제거한다.
     private void DestroyBullet()
     {
+        if (_runtime != null)
+            _runtime.Phase = BulletPhase.Ended;
         _isInitialized = false;
         Destroy(gameObject);
     }

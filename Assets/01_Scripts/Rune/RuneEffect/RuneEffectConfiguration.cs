@@ -8,6 +8,7 @@ public sealed class RuneEffectConfiguration
 
     public bool IsSpread { get; }
     public bool IsMultiple { get; }
+    public bool IsPierce { get; }
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
@@ -34,6 +35,9 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Multiple:
                     IsMultiple = true;
+                    break;
+                case RuneEffectIds.Pierce:
+                    IsPierce = true;
                     break;
             }
         }
