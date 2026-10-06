@@ -110,35 +110,10 @@ public class Bullet : MonoBehaviour
 
         if (configuration.SecondaryElement.HasValue)
         {
-            switch (configuration.PrimaryElement.Value, configuration.SecondaryElement.Value)
-            {
-                case (ReactionElement.Fire, ReactionElement.Fire):
-                    _overHeatReaction.Execute(hitPosition, _attackData.Damage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Water):
-                case (ReactionElement.Water, ReactionElement.Fire):
-                    _steamReaction.Execute(hitPosition, _attackData.Damage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Earth):
-                case (ReactionElement.Earth, ReactionElement.Fire):
-                    _moltenReaction.Execute(hitPosition, _attackData.Damage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Wind):
-                case (ReactionElement.Wind, ReactionElement.Fire):
-                    _firestormReaction.Execute(hitPosition, _attackData.Damage);
-                    break;
-                case (ReactionElement.Water, ReactionElement.Water):
-                    _delugeReaction.Execute(hitPosition, _attackData.Direction);
-                    break;
-                case (ReactionElement.Water, ReactionElement.Earth):
-                case (ReactionElement.Earth, ReactionElement.Water):
-                    _mireReaction.Execute(hitPosition);
-                    break;
-                case (ReactionElement.Water, ReactionElement.Wind):
-                case (ReactionElement.Wind, ReactionElement.Water):
-                    _tempestReaction.Execute(hitPosition, _attackData.Damage);
-                    break;
-            }
+            ExecuteReaction(
+                configuration.PrimaryElement.Value,
+                configuration.SecondaryElement.Value,
+                new ReactionContext(hitPosition, _attackData.Damage, _attackData.Direction));
 
             return;
         }
@@ -150,6 +125,40 @@ public class Bullet : MonoBehaviour
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
 
         statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, _attackData.Damage, _attackData.Direction);
+    }
+
+    /// 원소 조합에 해당하는 반응을 실행하며 서로 다른 원소의 순서는 구분하지 않는다.
+    private void ExecuteReaction(ReactionElement primary, ReactionElement secondary, ReactionContext context)
+    {
+        switch (primary, secondary)
+        {
+            case (ReactionElement.Fire, ReactionElement.Fire):
+                _overHeatReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Water):
+            case (ReactionElement.Water, ReactionElement.Fire):
+                _steamReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Earth):
+            case (ReactionElement.Earth, ReactionElement.Fire):
+                _moltenReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Fire):
+                _firestormReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Water):
+                _delugeReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Earth):
+            case (ReactionElement.Earth, ReactionElement.Water):
+                _mireReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Water):
+                _tempestReaction.Execute(context);
+                break;
+        }
     }
 
     /// 이동과 적중 처리를 중단하고 탄환 오브젝트를 제거한다.

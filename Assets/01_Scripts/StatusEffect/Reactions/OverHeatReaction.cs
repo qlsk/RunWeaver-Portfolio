@@ -18,18 +18,18 @@ public class OverHeatReaction : MonoBehaviour
     [FoldoutGroup("Ember Settings"), SerializeField] private float _emberTickInterval = 1f;
     [FoldoutGroup("Ember Settings"), SerializeField] private float _emberDuration = 3f;
 
-    public void Execute(Vector2 hitPosition, float bulletDamage)
+    public void Execute(ReactionContext context)
     {
-        float explosionDamage = bulletDamage * _explosionDamageMultiplier;
-        float emberTickDamage = bulletDamage * _emberDamageMultiplier;
+        float explosionDamage = context.BulletDamage * _explosionDamageMultiplier;
+        float emberTickDamage = context.BulletDamage * _emberDamageMultiplier;
 
-        ApplyExplosionDamage(hitPosition, explosionDamage);
+        ApplyExplosionDamage(context.HitPosition, explosionDamage);
 
-        // ParticleSystem explosionEffect = Instantiate(_explosionEffectPrefab, hitPosition, Quaternion.identity);
+        // ParticleSystem explosionEffect = Instantiate(_explosionEffectPrefab, context.HitPosition, Quaternion.identity);
         // explosionEffect.Play(true);
         // Destroy(explosionEffect.gameObject, _explosionEffectLifetime);
 
-        EmberArea emberArea = Instantiate(_emberAreaPrefab, hitPosition, Quaternion.identity);
+        EmberArea emberArea = Instantiate(_emberAreaPrefab, context.HitPosition, Quaternion.identity);
         emberArea.Initialize(emberTickDamage, _emberRadius, _emberTickInterval, _emberDuration);
     }
 

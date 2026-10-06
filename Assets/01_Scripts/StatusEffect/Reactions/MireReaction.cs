@@ -13,9 +13,9 @@ public class MireReaction : MonoBehaviour
     [FoldoutGroup("Root Settings"), SerializeField] private float _rootExposureDuration = 2f;
 
     /// 적중 위치에 진흙 영역을 생성하고 감속과 속박에 필요한 노출 시간 설정을 전달한다.
-    public void Execute(Vector2 hitPosition)
+    public void Execute(ReactionContext context)
     {
-        MireArea area = Instantiate(_mireAreaPrefab, hitPosition, Quaternion.identity);
+        MireArea area = Instantiate(_mireAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_mireRadius, _mireDuration, _moveSpeedMultiplier, _rootExposureDuration);
     }
 }

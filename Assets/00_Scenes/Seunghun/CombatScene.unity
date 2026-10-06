@@ -1993,7 +1993,7 @@ MonoBehaviour:
   _equippedRuneCount: 2
   _equippedEffectIds:
   - rune_fire
-  - rune_water
+  - rune_earth
   _selectedSlot: 1
 --- !u!114 &910000004 stripped
 MonoBehaviour:
@@ -4171,6 +4171,8 @@ MonoBehaviour:
   _catalog: {fileID: 11400000, guid: 9c2f832a9aec4ccea439e5d8e1bc7c98, type: 2}
   _startingGold: 5000
   _openOnStart: 0
+  _testCurrentHealth: 45
+  _testMaxHealth: 100
 --- !u!114 &2179557755031804761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4367,6 +4369,14 @@ PrefabInstance:
     - target: {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
       propertyPath: m_Name
       value: DefaultEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 3689827544831260602, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 3689827544831260602, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 0.6283066
       objectReference: {fileID: 0}
     - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5690,6 +5700,7 @@ MonoBehaviour:
   _playerHealth: {fileID: 8110420659177510065}
   _stageSource: {fileID: 7097088682787474019}
   _deathTracker: {fileID: 5017721887018420292}
+  _resourceDefinitions: []
 --- !u!114 &7084094975176446167
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,9 +13,9 @@ public class DelugeReaction : MonoBehaviour
     [FoldoutGroup("Push Settings"), SerializeField] private float _pushSpeed = 2f;
 
     /// 적중 위치에 범람을 생성하고 영역 설정과 중심에서 사용할 밀어내기 방향을 전달한다.
-    public void Execute(Vector2 hitPosition, Vector2 bulletDirection)
+    public void Execute(ReactionContext context)
     {
-        DelugeArea area = Instantiate(_delugeAreaPrefab, hitPosition, Quaternion.identity);
-        area.Initialize(_delugeRadius, _delugeDuration, _moveSpeedMultiplier, _pushSpeed, bulletDirection);
+        DelugeArea area = Instantiate(_delugeAreaPrefab, context.HitPosition, Quaternion.identity);
+        area.Initialize(_delugeRadius, _delugeDuration, _moveSpeedMultiplier, _pushSpeed, context.BulletDirection);
     }
 }
