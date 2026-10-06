@@ -5,7 +5,8 @@ using UnityEngine;
 /// </summary>
 public class ShopOfferData
 {
-    public ShopOfferData(string id, string displayName, string description, Sprite icon, ShopItemType type, int price)
+    public ShopOfferData(string id, string displayName, string description, Sprite icon, ShopItemType type, int price,
+        float healRatio = 0f)
     {
         Id = id;
         DisplayName = displayName;
@@ -13,6 +14,7 @@ public class ShopOfferData
         Icon = icon;
         Type = type;
         Price = price;
+        HealRatio = healRatio;
     }
 
     public string Id { get; }
@@ -21,4 +23,7 @@ public class ShopOfferData
     public Sprite Icon { get; }
     public ShopItemType Type { get; }
     public int Price { get; }
+
+    /// <summary>포션 : 최대 체력 대비 회복 비율 (포션이 아니면 0)</summary>
+    public float HealRatio { get; }
 }

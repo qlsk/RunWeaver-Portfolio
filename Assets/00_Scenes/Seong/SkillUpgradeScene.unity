@@ -639,7 +639,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionSkillUpgradeSource
   _upgradeResourceId: mercury
-  _resourceIcons: []
+  _resourceIcons:
+  - ResourceId: prima_materia
+    Icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: azoth
+    Icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: mercury
+    Icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: aether_crystal
+    Icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
 --- !u!114 &5368430586848198545 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2264447926274700285, guid: d9097a8d619d4134490671943c6aa10e, type: 3}
@@ -696,7 +704,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FakeSkillUpgradeDataSource
   _upgradeResourceId: mercury
-  _resourceIcons: []
+  _resourceIcons:
+  - ResourceId: prima_materia
+    Icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: azoth
+    Icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: mercury
+    Icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
+  - ResourceId: aether_crystal
+    Icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
   _startQuantity: 20
   _addQuantity: 20
   _addResourceKey: 49
