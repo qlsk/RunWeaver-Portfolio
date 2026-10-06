@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 새 룬북(RuneBookV2)을 실제 게임 데이터에 연결하는 데이터 소스.
-/// - 룬 워드 목록 / 공개 단계 : GameSession의 RuneBook + RuneEffectDatabase
+/// - 룬 워드 목록 / 공개 단계 : GameSession의 RuneBook + RuneEffectDatabase (모든 룬 워드는 처음부터 Listed)
 /// - 보유 룬 문자 : PlayerRuneManager의 RuneStoneInventory (RuneStoneDatabase 순서대로, 0개 포함)
 /// - 활성 칸 수 / 확정된 장착 : PlayerRuneManager의 RuneEffectLoadout
 /// - Confirm : 새로 넣은 칸의 룬 워드만큼 룬 문자를 소모하고, 장착한 룬 워드의 설명을 공개한다.
@@ -19,16 +19,9 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
     [SerializeField] private RuneStoneIconCatalog _runeStoneIconCatalog;
     [SerializeField] private RuneEffectIconCatalog _runeEffectIconCatalog;
 
-    [Tooltip("연결할 때 도감에 공개할 카테고리 (기획서 14-2 : 원소, 강화는 처음부터 공개)")]
-    [SerializeField] private RuneEffectCategory[] _startRevealedCategories =
-    {
-        RuneEffectCategory.Element,
-        RuneEffectCategory.Enhancement
-    };
-
     [Header("테스트")]
-    [Tooltip("누르면 모든 룬 문자를 1개씩 얻는다. 테스트할 때만 키를 지정한다 (기본 None)")]
-    [SerializeField] private KeyCode _debugAddRuneStonesKey = KeyCode.None;
+    [Tooltip("누르면 모든 룬 문자를 종류별로 1개씩 얻는다. (에디터, 개발 빌드에서만 동작. 끄려면 None)")]
+    [SerializeField] private KeyCode _testAddRuneStonesKey = KeyCode.F1;
 
     private readonly Dictionary<char, int> _wordRequirements = new();
     private RuneBook _runeBook;
@@ -62,13 +55,17 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
             return;
         }
 
-        if (_debugAddRuneStonesKey != KeyCode.None && Input.GetKeyDown(_debugAddRuneStonesKey))
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_testAddRuneStonesKey != KeyCode.None && Input.GetKeyDown(_testAddRuneStonesKey))
         {
             foreach (RuneStoneDefinition definition in RuneStoneDatabase.Instance.GetAll())
             {
                 _inventory.TryAddRuneStone(definition.RuneCharacter, 1);
             }
+
+            Debug.Log("[GameRuneBookV2DataSource] [테스트] 룬 문자를 종류별로 1개씩 지급했습니다.", this);
         }
+#endif
     }
 
     // ───────────────────────── 연결 ─────────────────────────
@@ -102,8 +99,6 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
         _runeBook = session.RuneBook;
         _runeManager = runeManager;
         _inventory = runeManager.RuneStoneInventory;
-        RevealStartCategories();
-
         _runeBook.RuneBookChanged += HandleSourceChanged;
         _runeManager.LoadoutReplaced += HandleLoadoutReplaced;
         _inventory.OnInventoryChanged += HandleSourceChanged;
@@ -125,39 +120,6 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
         _runeManager = null;
         _inventory = null;
         _isBound = false;
-    }
-
-    private void RevealStartCategories()
-    {
-        if (_startRevealedCategories == null)
-        {
-            return;
-        }
-
-        RuneEffectDatabase effectDatabase = RuneEffectDatabase.Instance;
-        foreach (RuneEffectCategory category in _startRevealedCategories)
-        {
-            if (!effectDatabase.TryGetByCategory(category, out IReadOnlyList<RuneEffectDefinition> effects))
-            {
-                continue;
-            }
-
-            // 이미 공개된 카테고리는 건너뛴다. (RevealCategory는 매번 변경을 알리므로)
-            bool hasHidden = false;
-            foreach (RuneEffectDefinition effect in effects)
-            {
-                if (!_runeBook.IsRevealed(effect.Id))
-                {
-                    hasHidden = true;
-                    break;
-                }
-            }
-
-            if (hasHidden)
-            {
-                _runeBook.RevealCategory(category);
-            }
-        }
     }
 
     private void HandleSourceChanged()
@@ -192,7 +154,9 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
                 reveal = RuneWordRevealLevel.Detailed;
             }
 
-            entries.Add(new RuneBookEntryData(effect.Id, effect.RuneWord, effect.EnglishName, effect.Description,
+            // DB 설명은 한글이라 룬북 폰트(영문)로 표시할 수 없으므로 영문 설명을 쓴다.
+            string description = RuneEffectText.GetDescription(effect.Id, effect.Description);
+            entries.Add(new RuneBookEntryData(effect.Id, effect.RuneWord, effect.EnglishName, description,
                 effect.Category, reveal, FindEffectIcon(effect)));
         }
 
@@ -275,10 +239,10 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
             }
         }
 
-        // 장착한 룬 워드는 설명까지 공개한다. (목록에 없는 룬 워드는 RuneBook 규칙상 바로 공개할 수 없어 건너뛴다)
+        // 장착한 룬 워드는 설명까지 공개한다.
         foreach (string id in slotIds)
         {
-            if (!string.IsNullOrEmpty(id) && _runeBook.IsRevealed(id))
+            if (!string.IsNullOrEmpty(id))
             {
                 _runeBook.RevealDetails(id);
             }

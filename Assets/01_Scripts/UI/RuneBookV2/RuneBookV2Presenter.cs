@@ -309,7 +309,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     private void HandleTileClicked(RuneWordTileView tile)
     {
         RuneBookEntryData entry = tile.Entry;
-        if (entry == null || (!entry.IsRevealed && GetOwned(entry.Id) <= 0) || _dataSource == null)
+        if (entry == null || _dataSource == null)
         {
             return;
         }
@@ -762,7 +762,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         _tooltipStones.Clear();
         _tooltipMissing.Clear();
         int ownedCount = GetRemainingOwned(entry.Id);
-        if (entry.IsRevealed && !string.IsNullOrEmpty(entry.RuneWord))
+        if (!string.IsNullOrEmpty(entry.RuneWord))
         {
             foreach (char rune in entry.RuneWord)
             {
@@ -799,7 +799,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         _hoverUse.Clear();
         RuneBookEntryData entry = _hoveredTile != null ? _hoveredTile.Entry : null;
-        if (entry == null || !entry.IsRevealed || !IsAdditionalEquipment(entry.Id) || FindTargetSlot(entry, out _) < 0)
+        if (entry == null || !IsAdditionalEquipment(entry.Id) || FindTargetSlot(entry, out _) < 0)
         {
             return;
         }

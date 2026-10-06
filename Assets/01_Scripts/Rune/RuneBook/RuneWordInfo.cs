@@ -9,7 +9,6 @@ public class RuneWordInfo
     private string _runeWord;
     private string _description;
     private Sprite _icon;
-    private bool _isRevealed;
     private bool _areDetailsRevealed;
 
     public string RuneEffectId => _runeEffectId;
@@ -19,7 +18,6 @@ public class RuneWordInfo
     public string RuneWord => _runeWord;
     public string Description => _description;
     public Sprite Icon => _icon;
-    public bool IsRevealed => _isRevealed;
     public bool AreDetailsRevealed => _areDetailsRevealed;
 
     public RuneWordInfo(RuneEffectDefinition definition, RuneWordRevealLevel revealLevel)
@@ -31,7 +29,6 @@ public class RuneWordInfo
         _runeWord = definition.RuneWord;
         _description = definition.Description;
         _icon = definition.Icon;
-        _isRevealed = revealLevel != RuneWordRevealLevel.Hidden;
         _areDetailsRevealed = revealLevel == RuneWordRevealLevel.Detailed;
     }
 }

@@ -7,18 +7,11 @@ using UnityEngine;
 /// 팀원 쪽에 정식 관리 코드가 생기면 그쪽으로 교체한다. (RuneBook, RuneLoadout 클래스 자체는 수정하지 않는다)
 ///
 /// DB(RuneEffectDatabase, ResearchDatabase)와 GameSession이 준비되면 한 번 생성하고 Ready 이벤트를 보낸다.
-/// 기획서 14-2에 따라 Element, Enhancement 카테고리는 처음부터 도감에 공개한다.
+/// 모든 룬 워드는 처음부터 도감에 공개된다. (Hidden 단계 폐기)
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneSystemHolder : MonoBehaviour
 {
-    [Tooltip("시작할 때 도감에 공개할 카테고리")]
-    [SerializeField] private RuneEffectCategory[] _startRevealedCategories =
-    {
-        RuneEffectCategory.Element,
-        RuneEffectCategory.Enhancement
-    };
-
     private RuneBook _runeBook;
     private RuneLoadout _loadout;
     private bool _hasLoggedWaiting;
@@ -78,15 +71,8 @@ public class RuneSystemHolder : MonoBehaviour
         {
             RuneEffectDatabase effectDatabase = RuneEffectDatabase.Instance;
             _runeBook = new RuneBook(effectDatabase);
+            // 모든 룬 워드는 처음부터 목록에 공개된다. (Hidden 폐기)
             _runeBook.Initialize();
-
-            foreach (RuneEffectCategory category in _startRevealedCategories)
-            {
-                if (effectDatabase.TryGetByCategory(category, out _))
-                {
-                    _runeBook.RevealCategory(category);
-                }
-            }
 
             _loadout = new RuneLoadout(effectDatabase, StoneInventory, _runeBook,
                 GameSession.Instance.Current.ResearchTree, ResearchDatabase.Instance.ResearchNodes);

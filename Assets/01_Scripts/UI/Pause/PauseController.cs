@@ -19,7 +19,7 @@ using UnityEngine.UI;
 /// - 탐사 중 : Resume / Settings / Abandon Run / Quit Game
 /// - 거점 : Resume / Settings / Quit Game
 /// - Resume(Esc) : 탐사 중에는 3, 2, 1 카운트다운 후 재개, 거점에서는 바로 재개
-/// - Abandon Run : 경고 창 → 확인하면 사망 처리
+/// - Abandon Run : 경고 창 → 확인하면 이번 런을 포기한다. (종료 사유 Abandoned를 기록하고 사망 처리 → "Run Abandoned" 결과)
 /// - Quit Game : 확인 창 → 확인하면 게임 종료
 ///
 /// 이 컴포넌트는 항상 켜져 있는 오브젝트에 붙이고, 화면(_content)은 꺼진 상태로 둔다.
@@ -286,7 +286,7 @@ public class PauseController : MonoBehaviour
         }
 
         ShowConfirm("Abandon Run?",
-            "Abandoning counts as <color=#FF6B5A>death</color>.\nYou will lose <color=#FF6B5A>80%</color> of the currency you carry.",
+            "This run will <color=#FF6B5A>end</color> here.\nYour equipped runes and gold will be lost.",
             "Abandon",
             AbandonRun);
     }
@@ -320,7 +320,9 @@ public class PauseController : MonoBehaviour
     private void AbandonRun()
     {
         // 게임 시간을 되돌린 뒤 사망 처리한다. (사망 연출과 결과 화면은 기존 사망 흐름을 그대로 탄다)
+        // 종료 사유를 먼저 기록해 결과에 "Run Abandoned"가 나오게 한다.
         Close();
+        RunFlow.TrySetEndReason(RunEndReason.Abandoned);
 
         if (_playerHealth != null)
         {

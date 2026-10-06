@@ -118,11 +118,6 @@ public class GameRuneBookDataSource : RuneBookDataSource
             return false;
         }
 
-        if (!_runeBook.IsRevealed(entryId))
-        {
-            return false;
-        }
-
         IReadOnlyList<string> equippedIds = _loadout.GetEquippedEffectIds();
         if (equippedIds[slotIndex] == entryId)
         {

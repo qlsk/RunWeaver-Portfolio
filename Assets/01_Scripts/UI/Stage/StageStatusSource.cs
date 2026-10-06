@@ -2,9 +2,8 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 스테이지 진행 상태(입장, 남은 제한 시간)를 UI에 알리는 이벤트 창구.
-/// 현재 스테이지 흐름을 관리하는 코드가 없으므로, 생기면 이 클래스를 상속해
-/// 실제 이벤트(스테이지 입장, 제한 시간 변경)를 전달하는 어댑터를 만든다.
+/// 스테이지 진행 상태(입장, 남은 제한 시간, 현재 목표와 달성도)를 UI에 알리는 이벤트 창구.
+/// 실제 게임은 GameStageStatusSource(StageManager 연결), 테스트는 FakeStageStatusSource를 쓴다.
 /// </summary>
 public abstract class StageStatusSource : MonoBehaviour
 {
@@ -28,6 +27,12 @@ public abstract class StageStatusSource : MonoBehaviour
     /// </summary>
     public event Action TimeExpired;
 
+    /// <summary>
+    /// 현재 목표가 바뀌었을 때 발생한다. (목표 이름, 달성도 문구) 예: ("Survive", "42%")
+    /// 타이머 아래에 표시한다.
+    /// </summary>
+    public event Action<string, string> ObjectiveChanged;
+
     protected void RaiseStageEntered(int depth, string stageName)
     {
         StageEntered?.Invoke(depth, stageName);
@@ -41,5 +46,10 @@ public abstract class StageStatusSource : MonoBehaviour
     protected void RaiseTimeExpired()
     {
         TimeExpired?.Invoke();
+    }
+
+    protected void RaiseObjectiveChanged(string objectiveName, string progressText)
+    {
+        ObjectiveChanged?.Invoke(objectiveName, progressText);
     }
 }

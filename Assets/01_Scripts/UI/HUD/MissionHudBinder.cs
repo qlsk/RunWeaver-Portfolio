@@ -7,19 +7,44 @@ using UnityEngine;
 /// 생존·제단 방어 미션은 남은 시간이 바뀌어도 진행 이벤트를 보내지 않고, 미션 완료/실패 때도 이벤트가 없어
 /// 매 프레임 문구를 만들어 바뀌었을 때만 갱신한다.
 /// 씬에 MissionManager가 없으면 아무것도 하지 않는다.
+///
+/// [변경] 미션 두루마리는 사용하지 않는다. 미션 종류와 달성도는 타이머 아래에 표시한다. (TimerPanelPresenter)
+/// _isScrollHidden이 켜져 있으면(기본) 시작할 때 두루마리를 숨기고 이 컴포넌트를 끈다.
 /// </summary>
 [DisallowMultipleComponent]
 public class MissionHudBinder : MonoBehaviour
 {
     [SerializeField] private MissionScrollView _view;
+    [Tooltip("켜져 있으면 미션 두루마리를 숨기고 갱신하지 않는다. (미션 표시는 타이머 아래로 옮김)")]
+    [SerializeField] private bool _isScrollHidden = true;
 
     private MissionManager _missionManager;
     private MissionBase _subscribedMission;
     private string _lastProgressText;
     private MissionBase _lastShownMission;
 
+    private void Awake()
+    {
+        if (!_isScrollHidden)
+        {
+            return;
+        }
+
+        if (_view != null)
+        {
+            _view.gameObject.SetActive(false);
+        }
+
+        enabled = false;
+    }
+
     private void Start()
     {
+        if (_isScrollHidden)
+        {
+            return;
+        }
+
         // MissionManager.Instance는 MissionManager.Awake에서 설정되므로 Start에서 찾는다.
         _missionManager = MissionManager.Instance;
         if (_missionManager == null || _view == null)

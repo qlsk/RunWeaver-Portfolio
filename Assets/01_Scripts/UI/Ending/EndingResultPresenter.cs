@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 결과창이 켜질 때 결과 데이터와 룬북 데이터를 읽어 EndingResultView에 표시한다.
+/// To Lobby : 런을 정리하고 마을로 간다. / ReStart : 마을로 간 뒤 제단 옆에서 원소 선택 창을 바로 연다. (RunFlow)
 /// </summary>
 [DisallowMultipleComponent]
 public class EndingResultPresenter : MonoBehaviour
@@ -11,6 +12,8 @@ public class EndingResultPresenter : MonoBehaviour
     [SerializeField] private RunResultSource _resultSource;
     [SerializeField] private RuneBookDataSource _runeBookDataSource;
 
+    private bool _isLeaving;
+
     private void OnEnable()
     {
         if (_view == null)
@@ -18,6 +21,10 @@ public class EndingResultPresenter : MonoBehaviour
             Debug.LogError("[EndingResultPresenter] EndingResultView가 할당되지 않았습니다.", this);
             return;
         }
+
+        _isLeaving = false;
+        _view.LobbyRequested += HandleLobbyRequested;
+        _view.RestartRequested += HandleRestartRequested;
 
         if (_resultSource != null)
         {
@@ -37,6 +44,37 @@ public class EndingResultPresenter : MonoBehaviour
         {
             Debug.LogWarning("[EndingResultPresenter] 룬 데이터가 할당되지 않았습니다.", this);
         }
+    }
+
+    private void OnDisable()
+    {
+        if (_view != null)
+        {
+            _view.LobbyRequested -= HandleLobbyRequested;
+            _view.RestartRequested -= HandleRestartRequested;
+        }
+    }
+
+    private void HandleLobbyRequested()
+    {
+        if (_isLeaving)
+        {
+            return;
+        }
+
+        _isLeaving = true;
+        RunFlow.GoToLobby();
+    }
+
+    private void HandleRestartRequested()
+    {
+        if (_isLeaving)
+        {
+            return;
+        }
+
+        _isLeaving = true;
+        RunFlow.Restart();
     }
 
     private List<RuneBookEntryData> GetEquippedEntries()

@@ -241,8 +241,7 @@ public class RuneBookPresenter : MonoBehaviour
 
     private void ClampSelection()
     {
-        if (_selectedEntryIndex >= _entries.Count ||
-            (_selectedEntryIndex != NoSelection && !_entries[_selectedEntryIndex].IsRevealed))
+        if (_selectedEntryIndex >= _entries.Count)
         {
             _selectedEntryIndex = NoSelection;
         }
@@ -341,7 +340,7 @@ public class RuneBookPresenter : MonoBehaviour
 
     private void HandleEntrySlotClicked(RuneSymbolSlotView slot)
     {
-        if (slot.Index >= _entries.Count || !_entries[slot.Index].IsRevealed)
+        if (slot.Index >= _entries.Count)
         {
             return;
         }
@@ -431,7 +430,6 @@ public class RuneBookPresenter : MonoBehaviour
     {
         return entry.RevealLevel switch
         {
-            RuneWordRevealLevel.Hidden => RuneSymbolSlotState.Locked,
             RuneWordRevealLevel.Listed => RuneSymbolSlotState.Listed,
             _ => RuneSymbolSlotState.Detailed
         };

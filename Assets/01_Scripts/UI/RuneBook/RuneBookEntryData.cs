@@ -13,7 +13,6 @@ public sealed class RuneBookEntryData
     public RuneWordRevealLevel RevealLevel { get; }
     public Sprite Icon { get; }
 
-    public bool IsRevealed => RevealLevel != RuneWordRevealLevel.Hidden;
     public bool AreDetailsRevealed => RevealLevel == RuneWordRevealLevel.Detailed;
 
     public RuneBookEntryData(string id, string runeWord, string englishName, string description,

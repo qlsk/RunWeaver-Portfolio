@@ -236,7 +236,7 @@ public class FakeRuneBookV2DataSource : RuneBookV2DataSource
             {
                 RuneEffectCategory.Element or RuneEffectCategory.Enhancement => RuneWordRevealLevel.Detailed,
                 RuneEffectCategory.Behaviour => RuneWordRevealLevel.Listed,
-                _ => RuneWordRevealLevel.Hidden
+                _ => RuneWordRevealLevel.Listed
             };
         }
 
