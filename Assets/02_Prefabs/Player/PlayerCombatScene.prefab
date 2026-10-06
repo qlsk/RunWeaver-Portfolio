@@ -198,6 +198,7 @@ GameObject:
   - component: {fileID: 1593836526085822974}
   - component: {fileID: 4602380106323482487}
   - component: {fileID: 2002052558151069215}
+  - component: {fileID: 7699531753324067131}
   - component: {fileID: 8526868689881822135}
   - component: {fileID: 3754110856340387365}
   - component: {fileID: 6754240136049947221}
@@ -402,17 +403,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  _bulletPrefab: {fileID: -366077479794701219, guid: 5869fc16855d2d449b0c753f4340d1e5, type: 3}
+  _bulletPrefab: {fileID: 1808444329942870919, guid: ab00c7ac76b34ab7851d67224d9f2880, type: 3}
   _firePosition: {fileID: 8755656963266282849}
   _bulletFireRate: 1
   _bulletDamage: 10
-  _bulletSpeed: 5
+  _bulletSpeed: 20
   _bulletRange: 10
   _mainElement: 0
   _spreadAngle: 15
   _multipleInterval: 0.1
   _magazineSize: 10
   _reloadTime: 2
+--- !u!114 &7699531753324067131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566649832509364097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e98d649e8aee4f3c91c0a67cf48a9841, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffectController
+  _playerHealth: {fileID: 6754240136049947221}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _attackSlowDuration: 3
+  _attackIntervalMultiplier: 1.5
+  _staggerDuration: 0.5
 --- !u!114 &8526868689881822135
 MonoBehaviour:
   m_ObjectHideFlags: 0
