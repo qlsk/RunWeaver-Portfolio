@@ -23,7 +23,7 @@ public class ShopCatalogSO : ScriptableObject
         public string RuneEffectId;
 
         [Tooltip("포션 : 최대 체력 대비 회복 비율 (0.3 = 최대 체력의 30% 회복). 포션이 아니면 0")]
-        [Range(0f, 1f)] public float RealRatio;
+        [Range(0f, 1f)] public float HealRatio;
     }
 
     [SerializeField] private List<Item> _items = new();
