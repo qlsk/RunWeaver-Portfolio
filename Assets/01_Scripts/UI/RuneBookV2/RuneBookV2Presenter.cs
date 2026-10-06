@@ -549,6 +549,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             EquipError.CannotStack => _notStackableText,
             EquipError.MainElementRequired => _mainRequiredText,
             EquipError.NotEnoughRuneStones => _notEnoughText,
+            EquipError.ConflictingEndEffect => "Return과 Orbit은 함께 장착할 수 없습니다.",
             _ => null
         };
     }
@@ -642,7 +643,11 @@ public class RuneBookV2Presenter : MonoBehaviour
         error = EquipError.None;
         bool isElement = entry.Category == RuneEffectCategory.Element;
 
-        if (Array.IndexOf(_slotIds, entry.Id) >= 0 && !CanOverlap(entry.Id))
+        if (RuneEffectLoadout.HasConflictingEndEffect(_slotIds, entry.Id))
+        {
+            error = EquipError.ConflictingEndEffect;
+        }
+        else if (Array.IndexOf(_slotIds, entry.Id) >= 0 && !CanOverlap(entry.Id))
         {
             error = EquipError.CannotStack;
         }

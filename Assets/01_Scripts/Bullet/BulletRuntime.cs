@@ -44,6 +44,8 @@ public class BulletRuntime
     
     // Flying 중 누적 이동거리. 방향을 반전해도 감소하지 않는다.
     public float TravelDistance;
+    // Grow 연결용 전체 이동 거리. 복귀 거리와 궤도 호 길이를 포함한다.
+    public float TotalTravelDistance;
     // 성장 진행도(0~1). Flying/Returning/Orbiting 이동 모두 누적한다.
     public float GrowProgress;
     // Orbit 진입 이후 경과 시간(초).

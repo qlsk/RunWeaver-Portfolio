@@ -7,13 +7,15 @@ public class Bullet : MonoBehaviour
 {
     private const float OwnerArrivalDistance = 0.1f;
     private const float ReverseSteeringDelay = 0.1f;
+    private const float OrbitDuration = 5f;
 
     private enum BulletEndReason
     {
         Hit,
         MaxRange,
         OwnerReached,
-        OwnerLost
+        OwnerLost,
+        OrbitTimeout
     }
 
     [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
@@ -80,13 +82,13 @@ public class Bullet : MonoBehaviour
         Destroy(effect.gameObject, _castEffectLifetime);
     }
 
-    /// 비행 상태에 따라 일반 이동 또는 플레이어 복귀를 처리한다.
+    /// 비행 상태에 따라 일반 이동, 플레이어 복귀 또는 궤도 회전을 처리한다.
     private void Update()
     {
         if (!_isInitialized)
             return;
 
-        if (_attackData.Speed <= 0f)
+        if (_attackData.Speed <= 0f && _runtime.Phase != BulletPhase.Orbiting)
         {
             DestroyBullet();
             return;
@@ -96,6 +98,8 @@ public class Bullet : MonoBehaviour
             MoveReturning();
         else if (_runtime.Phase == BulletPhase.Flying)
             MoveFlying();
+        else if (_runtime.Phase == BulletPhase.Orbiting)
+            MoveOrbiting();
     }
 
     private void MoveFlying()
@@ -126,6 +130,7 @@ public class Bullet : MonoBehaviour
         float moveDistance = Mathf.Min(_attackData.Speed * deltaTime, remainingDistance);
         transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;
+        _runtime.TotalTravelDistance += moveDistance;
     }
 
     /// 일반 비행 중 가장 가까운 미적중 적을 추적하며, 없으면 현재 방향을 유지한다.
@@ -188,6 +193,7 @@ public class Bullet : MonoBehaviour
         if (reverseTime > 0f)
         {
             transform.position += (Vector3)(_runtime.Direction * (_attackData.Speed * reverseTime));
+            _runtime.TotalTravelDistance += _attackData.Speed * reverseTime;
             _runtime.ReverseSteeringRemaining -= reverseTime;
             deltaTime -= reverseTime;
         }
@@ -198,6 +204,7 @@ public class Bullet : MonoBehaviour
             _runtime.Direction = offset.normalized;
             float distance = Mathf.Min(_attackData.Speed * deltaTime, offset.magnitude);
             transform.position += (Vector3)(_runtime.Direction * distance);
+            _runtime.TotalTravelDistance += distance;
             UpdateRotation();
         }
 
@@ -206,7 +213,48 @@ public class Bullet : MonoBehaviour
             RequestEnd(BulletEndReason.OwnerReached);
     }
 
-    /// 중복 적중을 막고 Pierce 또는 최초 Reverse 발동 시 비행을 유지한다.
+    private void EnterOrbiting()
+    {
+        Vector2 offset = transform.position - _attackData.Owner.position;
+        _runtime.Phase = BulletPhase.Orbiting;
+        _runtime.OrbitElapsed = 0f;
+        _runtime.OrbitRadius = Mathf.Max(offset.magnitude, 0.01f);
+        _runtime.OrbitAngle = Mathf.Atan2(offset.y, offset.x);
+        _runtime.ReverseSteeringRemaining = 0f;
+        UpdateOrbitDirection();
+    }
+
+    /// 플레이어의 현재 위치를 중심으로 탄환 속도를 접선 속도로 사용해 5초간 회전한다.
+    private void MoveOrbiting()
+    {
+        if (_attackData.Owner == null)
+        {
+            RequestEnd(BulletEndReason.OwnerLost);
+            return;
+        }
+
+        float deltaTime = Mathf.Min(Time.deltaTime, Mathf.Max(0f, OrbitDuration - _runtime.OrbitElapsed));
+        float distance = Mathf.Max(0f, _attackData.Speed) * deltaTime;
+        _runtime.OrbitAngle += distance / _runtime.OrbitRadius * _runtime.OrbitDirection;
+        Vector2 radial = new Vector2(Mathf.Cos(_runtime.OrbitAngle), Mathf.Sin(_runtime.OrbitAngle));
+        Vector2 nextPosition = (Vector2)_attackData.Owner.position + radial * _runtime.OrbitRadius;
+        transform.position = new Vector3(nextPosition.x, nextPosition.y, transform.position.z);
+        _runtime.TotalTravelDistance += distance;
+        _runtime.OrbitElapsed += deltaTime;
+        UpdateOrbitDirection();
+
+        if (_runtime.OrbitElapsed >= OrbitDuration)
+            RequestEnd(BulletEndReason.OrbitTimeout);
+    }
+
+    private void UpdateOrbitDirection()
+    {
+        _runtime.Direction = new Vector2(-Mathf.Sin(_runtime.OrbitAngle), Mathf.Cos(_runtime.OrbitAngle)) *
+                             _runtime.OrbitDirection;
+        UpdateRotation();
+    }
+
+    /// Orbit에서는 Pierce가 없으면 최초 Reverse가 발동해도 적중 후 종료한다.
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!_isInitialized || _processingHit)
@@ -234,7 +282,7 @@ public class Bullet : MonoBehaviour
         finally
         {
             _processingHit = false;
-            if (!isPierce && !reversedThisHit)
+            if (!isPierce && (_runtime.Phase == BulletPhase.Orbiting || !reversedThisHit))
                 RequestEnd(BulletEndReason.Hit);
         }
     }
@@ -246,6 +294,13 @@ public class Bullet : MonoBehaviour
             return false;
 
         _runtime.ReverseUsed = true;
+        if (_runtime.Phase == BulletPhase.Orbiting)
+        {
+            _runtime.OrbitDirection *= -1f;
+            UpdateOrbitDirection();
+            return true;
+        }
+
         _runtime.Direction = -_runtime.Direction;
         _runtime.ReverseSteeringRemaining = ReverseSteeringDelay;
         UpdateRotation();
@@ -298,11 +353,18 @@ public class Bullet : MonoBehaviour
         statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _runtime.Direction);
     }
 
-    /// 원래 종료 시점에 한 번만 복귀로 전환하고, 복귀 중 종료 요청은 최종 종료한다.
+    /// 일반 비행의 종료 요청에 Return 또는 Orbit이 개입하고 이후 종료 요청은 최종 종료한다.
     private void RequestEnd(BulletEndReason reason)
     {
         if (!_isInitialized)
             return;
+
+        if (_runtime.Phase == BulletPhase.Flying && reason == BulletEndReason.MaxRange &&
+            _attackData.Configuration.IsOrbit && _attackData.Owner != null)
+        {
+            EnterOrbiting();
+            return;
+        }
 
         if (_runtime.Phase == BulletPhase.Flying && _attackData.Configuration.IsReturn &&
             !_runtime.ReturnUsed && _attackData.Owner != null &&

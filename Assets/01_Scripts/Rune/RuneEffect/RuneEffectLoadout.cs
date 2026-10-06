@@ -71,6 +71,12 @@ public class RuneEffectLoadout
         if (!_effectDatabase.TryGetById(effectId, out RuneEffectDefinition effect))
             throw new InvalidOperationException($"Unknown rune effect ID: {effectId}");
 
+        if (HasConflictingEndEffect(slotIds, effectId))
+        {
+            error = EquipError.ConflictingEndEffect;
+            return -1;
+        }
+
         if (slotIds.Any(id => id == effectId && !CanOverlap(effectId)))
         {
             error = EquipError.CannotStack;
@@ -122,6 +128,9 @@ public class RuneEffectLoadout
     public void ConfirmEquipment(IReadOnlyList<string> slotIds)
     {
         List<string> confirmed = slotIds.Where(id => !string.IsNullOrEmpty(id)).ToList();
+        if (confirmed.Contains(RuneEffectIds.Return) && confirmed.Contains(RuneEffectIds.Orbit))
+            throw new InvalidOperationException("Return and Orbit cannot be equipped together.");
+
         _equippedEffectIds.Clear();
         _equippedEffectIds.AddRange(confirmed);
         LoadoutChanged?.Invoke(_equippedEffectIds);
@@ -146,5 +155,11 @@ public class RuneEffectLoadout
     {
         _equippedEffectIds.Clear();
         LoadoutChanged?.Invoke(_equippedEffectIds);
+    }
+
+    public static bool HasConflictingEndEffect(IReadOnlyList<string> slotIds, string effectId)
+    {
+        return (effectId == RuneEffectIds.Return && slotIds.Contains(RuneEffectIds.Orbit)) ||
+               (effectId == RuneEffectIds.Orbit && slotIds.Contains(RuneEffectIds.Return));
     }
 }

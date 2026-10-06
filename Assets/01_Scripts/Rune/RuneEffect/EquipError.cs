@@ -5,5 +5,6 @@
     ElementLimit,
     CannotStack,
     MainElementRequired,
-    NotEnoughRuneStones
+    NotEnoughRuneStones,
+    ConflictingEndEffect
 }
