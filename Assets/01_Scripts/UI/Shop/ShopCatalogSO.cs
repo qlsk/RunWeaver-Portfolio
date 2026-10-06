@@ -18,6 +18,9 @@ public class ShopCatalogSO : ScriptableObject
         public Sprite icon;
         public ShopItemType type;
         [Min(1)] public int basePrice = 100;
+
+        [Tooltip("포션 : 최대 체력 대비 회복 비율 (0.3 = 최대 체력의 30% 회복). 포션이 아니면 0")]
+        [Range(0f, 1f)] public float healRatio;
     }
 
     [SerializeField] private List<Item> _items = new();

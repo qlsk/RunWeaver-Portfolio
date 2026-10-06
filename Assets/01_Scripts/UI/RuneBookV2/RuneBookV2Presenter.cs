@@ -71,7 +71,10 @@ public class RuneBookV2Presenter : MonoBehaviour
     private RuneEffectLoadoutManager _loadoutManager;
     private RuneEffectLoadout _loadout;
 
-    private int ActiveSlotCount => _loadout != null ? _loadout.ActiveSlotCount : 0;
+    // 로드아웃(RuneEffectLoadoutManager)이 없는 씬(RuneBookV2Scene 단독 테스트)에서는 데이터 소스의 값과 규칙을 쓴다.
+    private int ActiveSlotCount => _loadout != null
+        ? _loadout.ActiveSlotCount
+        : _dataSource != null ? Mathf.Clamp(_dataSource.ActiveSlotCount, 1, RuneBookV2DataSource.SlotLimit) : 0;
 
     private void Awake()
     {
@@ -271,7 +274,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         for (int i = 0; i < _slotIds.Length; i++)
         {
-            _slotIds[i] = i < ActiveSlotCount ? _loadout.GetEquippedEffectId(i) : null;
+            _slotIds[i] = i < ActiveSlotCount ? GetConfirmedId(i) : null;
             _isNew[i] = false;
         }
     }
@@ -336,7 +339,7 @@ public class RuneBookV2Presenter : MonoBehaviour
                 continue;
 
             if (!remainingCounts.TryGetValue(effectId, out int remainingCount))
-                remainingCount = _loadout.GetEquippedCount(effectId);
+                remainingCount = GetConfirmedCount(effectId);
 
             _isNew[i] = remainingCount == 0;
             remainingCounts[effectId] = Math.Max(0, remainingCount - 1);
@@ -368,7 +371,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleConfirmClicked()
     {
-        if (_dataSource == null || _loadout == null)
+        if (_dataSource == null)
         {
             return;
         }
@@ -383,8 +386,18 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
         if (_dataSource.Confirm(_slotIds, _isNew))
         {
-            _loadout.ConfirmEquipment(_slotIds);
-            SceneLoader.LoadCombatSceneScene();
+            if (_loadout != null)
+            {
+                _loadout.ConfirmEquipment(_slotIds);
+                SceneLoader.LoadCombatSceneScene();
+            }
+            else
+            {
+                // 단독 테스트 : 데이터 소스에만 확정하고 화면을 다시 그린다.
+                LoadData();
+                LoadConfirmed();
+                Refresh();
+            }
         }
         else
         {
@@ -399,9 +412,9 @@ public class RuneBookV2Presenter : MonoBehaviour
     private int FindTargetSlot(RuneBookEntryData entry, out string error)
     {
         error = null;
-        if (_loadout == null)
-            return -1;
-        int slot = _loadout.FindEquipSlot(_slotIds, entry.Id, out EquipError equipError);
+        int slot = _loadout != null
+            ? _loadout.FindEquipSlot(_slotIds, entry.Id, out EquipError equipError)
+            : FindEquipSlotWithoutLoadout(entry, out equipError);
         error = GetErrorText(equipError);
         return slot;
     }
@@ -425,7 +438,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     /// </summary>
     private bool IsAdditionalEquipment(string effectId)
     {
-        int confirmedCount = _loadout.GetEquippedCount(effectId);
+        int confirmedCount = GetConfirmedCount(effectId);
         int keptCount = _slotIds.Where((id, i) => id == effectId && !_isNew[i]).Count();
 
         return keptCount >= confirmedCount;
@@ -438,7 +451,95 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private bool CanConfirm()
     {
-        return _loadout != null && !HasShortage();
+        return _dataSource != null && !HasShortage();
+    }
+
+    private string GetConfirmedId(int slotIndex)
+    {
+        if (_loadout != null)
+        {
+            return _loadout.GetEquippedEffectId(slotIndex);
+        }
+
+        return _dataSource != null ? _dataSource.GetConfirmedId(slotIndex) : null;
+    }
+
+    private int GetConfirmedCount(string effectId)
+    {
+        if (_loadout != null)
+        {
+            return _loadout.GetEquippedCount(effectId);
+        }
+
+        int count = 0;
+        for (int i = 0; i < ActiveSlotCount; i++)
+        {
+            if (GetConfirmedId(i) == effectId)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private bool CanOverlap(string effectId)
+    {
+        if (_loadout != null)
+        {
+            return _loadout.CanOverlap(effectId);
+        }
+
+        bool isElement = _entries.TryGetValue(effectId, out RuneBookEntryData entry) &&
+                         entry.Category == RuneEffectCategory.Element;
+        return isElement || (_dataSource != null && _dataSource.CanOverlap(effectId));
+    }
+
+    /// <summary>
+    /// 로드아웃이 없을 때 RuneEffectLoadout.FindEquipSlot과 같은 규칙으로 넣을 칸을 정한다.
+    /// (원소는 앞의 두 칸에 순서대로, 서브 원소는 1개까지, 비원소는 마지막 장착 룬 뒤)
+    /// </summary>
+    private int FindEquipSlotWithoutLoadout(RuneBookEntryData entry, out EquipError error)
+    {
+        int occupied = 0;
+        int elements = 0;
+        foreach (string id in _slotIds)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                continue;
+            }
+
+            occupied++;
+            if (_entries.TryGetValue(id, out RuneBookEntryData equipped) &&
+                equipped.Category == RuneEffectCategory.Element)
+            {
+                elements++;
+            }
+        }
+
+        error = EquipError.None;
+        bool isElement = entry.Category == RuneEffectCategory.Element;
+
+        if (Array.IndexOf(_slotIds, entry.Id) >= 0 && !CanOverlap(entry.Id))
+        {
+            error = EquipError.CannotStack;
+        }
+        else if (isElement && elements > RuneEffectLoadout.ElementRuneEffectSlotIndex)
+        {
+            error = EquipError.ElementLimit;
+        }
+        else if (occupied >= ActiveSlotCount)
+        {
+            error = EquipError.SlotsFull;
+        }
+
+        if (error != EquipError.None)
+        {
+            return -1;
+        }
+
+        return isElement ? elements : occupied;
     }
 
     // ───────────────────────── 표시 ─────────────────────────
@@ -582,7 +683,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             }
         }
 
-        _tooltip.Show(entry, _loadout != null && _loadout.CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
+        _tooltip.Show(entry, CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
             _tooltipMissing, _hoveredTile.RectTransform);
     }
 

@@ -21,6 +21,8 @@ public class ShopPresenter : MonoBehaviour
     [Header("Details")]
     [SerializeField] private TMP_Text _detailNameText;
     [SerializeField] private TMP_Text _detailDescriptionText;
+    [Tooltip("포션 설명 아래에 붙는 체력 변화. {0} 현재 체력, {1} 구매 후 체력, {2} 최대 체력")]
+    [SerializeField] private string _potionHealthFormat = "({0}/{2}) -> <color=#7FD38A>({1}/{2})</color>";
 
     [Header("Reroll")]
     [SerializeField] private Button _rerollButton;
@@ -191,8 +193,22 @@ public class ShopPresenter : MonoBehaviour
 
         if (_detailDescriptionText != null)
         {
-            _detailDescriptionText.text = offer != null ? offer.Description : string.Empty;
+            _detailDescriptionText.text = offer != null ? offer.Description + GetPotionHealthText(offer) : string.Empty;
         }
+    }
+
+    /// <summary>포션이면 "(현재/최대) -> (구매 후/최대)" 줄을 만든다. 체력을 알 수 없으면 빈 문자열.</summary>
+    private string GetPotionHealthText(ShopOfferData offer)
+    {
+        if (offer.Type != ShopItemType.Potion || offer.HealRatio <= 0f ||
+            !_dataSource.TryGetPlayerHealth(out float current, out float max))
+        {
+            return string.Empty;
+        }
+
+        float after = Mathf.Min(max, current + max * offer.HealRatio);
+        return "\n\n" + string.Format(CultureInfo.InvariantCulture, _potionHealthFormat,
+            Mathf.RoundToInt(current), Mathf.RoundToInt(after), Mathf.RoundToInt(max));
     }
 
     private int FindFirstOfferIndex()
