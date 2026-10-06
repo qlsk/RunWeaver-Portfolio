@@ -1,5 +1,6 @@
 using UnityEngine;
 
+/// 마지막으로 관측한 대상 위치를 기준으로 접근하거나 최소 거리 안에서 후퇴한다.
 public class RangeEnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
@@ -21,18 +22,16 @@ public class RangeEnemyMovement : MonoBehaviour
             return;
 
         Transform target = _targetDetector.Target;
-
         if (target == null)
         {
             _enemyRigidbody2D.linearVelocity = Vector2.zero;
             return;
         }
 
-        Vector2 direction = (target.position - transform.position).normalized;
-        if (Vector2.Distance(transform.position, target.position) < _minRange)
-        {
+        Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
+        Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
+        if (Vector2.Distance(transform.position, targetPosition) < _minRange)
             direction = -direction;
-        }
 
         _enemyRigidbody2D.linearVelocity = direction * _enemyData.Stat.MoveSpeed;
     }

@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour
     private const string EnemyTag = "Enemy";
 
     [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
+    [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
 
     [Header("Cast Effect")]
     [SerializeField] private ParticleSystem _castEffectPrefab;
@@ -99,9 +100,17 @@ public class Bullet : MonoBehaviour
 
         if (configuration.SecondaryElement.HasValue)
         {
-            if (configuration.PrimaryElement.Value == ReactionElement.Fire &&
-                configuration.SecondaryElement.Value == ReactionElement.Fire)
-                _overHeatReaction.Execute(hitPosition, _attackData.Damage);
+            switch (configuration.PrimaryElement.Value, configuration.SecondaryElement.Value)
+            {
+                case (ReactionElement.Fire, ReactionElement.Fire):
+                    _overHeatReaction.Execute(hitPosition, _attackData.Damage);
+                    break;
+                case (ReactionElement.Fire, ReactionElement.Water):
+                case (ReactionElement.Water, ReactionElement.Fire):
+                    _steamReaction.Execute(hitPosition, _attackData.Damage);
+                    break;
+            }
+
             return;
         }
 

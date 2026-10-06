@@ -1,6 +1,6 @@
-using System;
 using UnityEngine;
 
+/// 마지막으로 관측한 대상 위치를 향해 이동하고 이동 상태 효과를 적용한다.
 public class MeleeEnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
@@ -33,7 +33,7 @@ public class MeleeEnemyMovement : MonoBehaviour
         bool isStaggered = _statusEffectController != null && _statusEffectController.IsStaggered;
         if (_enemyMove && !isStaggered && target != null && _enemyData != null && _enemyData.Stat != null)
         {
-            Vector2 direction = (target.position - transform.position).normalized;
+            Vector2 direction = (_targetDetector.LastKnownTargetPosition - (Vector2)transform.position).normalized;
             float speedMultiplier = _statusEffectController != null ? _statusEffectController.MoveSpeedMultiplier : 1f;
             moveVelocity = direction * (_enemyData.Stat.MoveSpeed * speedMultiplier);
         }

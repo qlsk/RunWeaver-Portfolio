@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1808444329942870919}
   - component: {fileID: -1367794926946469454}
   - component: {fileID: 4621851132757544785}
+  - component: {fileID: 8652517633453959891}
   m_Layer: 0
   m_Name: ElementalBullet
   m_TagString: Untagged
@@ -108,6 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   _overHeatReaction: {fileID: 4621851132757544785}
+  _steamReaction: {fileID: 8652517633453959891}
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
@@ -177,6 +179,24 @@ MonoBehaviour:
   _emberDamageMultiplier: 0.2
   _emberTickInterval: 1
   _emberDuration: 3
+--- !u!114 &8652517633453959891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 832f4b9206324865b9201cb7ff773a7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SteamReaction
+  _steamAreaPrefab: {fileID: 930955139833614276, guid: 2be1698d578f272478d7a9ea6d41ae33, type: 3}
+  _steamRadius: 2
+  _steamDamageMultiplier: 0.2
+  _steamTickInterval: 1
+  _steamDuration: 3
+  _trackingIntervalMultiplier: 10
 --- !u!1001 &7001000000000000001
 PrefabInstance:
   m_ObjectHideFlags: 0
