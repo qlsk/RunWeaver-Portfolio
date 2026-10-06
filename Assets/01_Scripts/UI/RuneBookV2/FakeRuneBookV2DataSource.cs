@@ -11,6 +11,7 @@ using UnityEngine;
 /// 1: 모든 룬 문자 1개씩 추가
 /// 2: 활성 칸 1칸 확장 (최대 5칸)
 /// 3: 숨겨진 카테고리 공개 (Control → Special)
+/// (전투 씬처럼 테스트 키가 필요 없으면 인스펙터에서 None으로 둔다)
 /// </summary>
 public class FakeRuneBookV2DataSource : RuneBookV2DataSource
 {
@@ -127,7 +128,9 @@ public class FakeRuneBookV2DataSource : RuneBookV2DataSource
         List<RuneBookEntryData> entries = new(s_effects.Length);
         foreach ((string id, string name, RuneEffectCategory category, bool _, string description) in s_effects)
         {
-            entries.Add(new RuneBookEntryData(id, ToRuneWord(name), name, description, category, _reveal[id],
+            // 완성품을 가지고 있으면 이미 아는 룬 워드로 본다.
+            RuneWordRevealLevel reveal = GetOwnedCount(id) > 0 ? RuneWordRevealLevel.Detailed : _reveal[id];
+            entries.Add(new RuneBookEntryData(id, ToRuneWord(name), name, description, category, reveal,
                 FindEffectIcon(id)));
         }
 
@@ -184,7 +187,14 @@ public class FakeRuneBookV2DataSource : RuneBookV2DataSource
         {
             string id = i < slotIds.Count ? slotIds[i] : null;
             _confirmed[i] = id;
-            if (id == null || i >= newlyAdded.Count || !newlyAdded[i])
+            if (id == null)
+            {
+                continue;
+            }
+
+            // 장착한 룬 워드는 공개한다. (완성품으로 넣은 룬 워드 포함)
+            _reveal[id] = RuneWordRevealLevel.Detailed;
+            if (i >= newlyAdded.Count || !newlyAdded[i])
             {
                 continue;
             }
@@ -196,8 +206,6 @@ public class FakeRuneBookV2DataSource : RuneBookV2DataSource
                     _quantities[rune]--;
                 }
             }
-
-            _reveal[id] = RuneWordRevealLevel.Detailed;
         }
 
         Debug.Log("[FakeRuneBookV2DataSource] Confirmed: " + string.Join(", ", _confirmed), this);

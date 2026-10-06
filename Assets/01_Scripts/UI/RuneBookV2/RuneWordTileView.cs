@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,6 +10,7 @@ using UnityEngine.UI;
 /// - 공개 단계(Hidden / Listed / Detailed)에 따라 바탕색과 아이콘 색을 바꾼다.
 /// - 원소 룬이 공개(Detailed)되면 안쪽을 원소 색으로 채운다.
 /// - 마우스를 올리면 빛과 붉은 테두리를 켜고, 왼쪽 클릭을 알린다.
+/// - 상점에서 산 완성품이 있으면 오른쪽 위에 보유 수 표시(x1)를 켠다.
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
@@ -24,6 +26,11 @@ public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExi
     [SerializeField] private GameObject _frame;
     [SerializeField] private GameObject _hoverFrame;
     [SerializeField] private GameObject _hoverGlow;
+
+    [Header("완성품 보유 표시")]
+    [SerializeField] private GameObject _ownedBadge;
+    [SerializeField] private TMP_Text _ownedCountText;
+    [SerializeField] private string _ownedFormat = "x{0}";
 
     [Header("공개 단계별 바탕색")]
     [SerializeField] private Color _detailedColor = new(0.894f, 0.804f, 0.678f, 1f);
@@ -83,7 +90,8 @@ public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     /// <param name="entry">표시할 룬 효과. null이면 칸을 숨긴다.</param>
     /// <param name="elementColor">원소 룬이면 원소 색, 아니면 null</param>
-    public void Show(RuneBookEntryData entry, Color? elementColor)
+    /// <param name="ownedCount">남은 완성품 수 (0이면 표시를 끈다)</param>
+    public void Show(RuneBookEntryData entry, Color? elementColor, int ownedCount = 0)
     {
         Entry = entry;
         if (gameObject.activeSelf != (entry != null))
@@ -114,6 +122,20 @@ public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExi
             if (showFill)
             {
                 _elementFill.color = elementColor.Value;
+            }
+        }
+
+        if (_ownedBadge != null)
+        {
+            bool showOwned = ownedCount > 0;
+            if (_ownedBadge.activeSelf != showOwned)
+            {
+                _ownedBadge.SetActive(showOwned);
+            }
+
+            if (showOwned && _ownedCountText != null)
+            {
+                _ownedCountText.text = string.Format(_ownedFormat, ownedCount);
             }
         }
 

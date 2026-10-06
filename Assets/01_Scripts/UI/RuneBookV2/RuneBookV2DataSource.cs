@@ -6,6 +6,7 @@ using UnityEngine;
 /// 새 룬북 화면(RuneBookV2)이 쓰는 데이터.
 /// - 룬 워드 목록, 보유 룬 문자(0개인 것도 포함), 활성 칸 수, 확정된 장착 상태를 제공한다.
 /// - Confirm으로 장착을 확정하면 새로 넣은 룬 워드의 룬 문자를 그때 소모한다.
+/// - 상점에서 산 완성품이 있으면 룬 문자 대신 완성품을 1개 소모한다.
 /// 실제 게임 연결은 이 클래스를 상속한 소스로 교체한다. (지금은 FakeRuneBookV2DataSource)
 /// </summary>
 public abstract class RuneBookV2DataSource : MonoBehaviour
@@ -35,6 +36,28 @@ public abstract class RuneBookV2DataSource : MonoBehaviour
     /// newlyAdded: 이번에 새로 넣은 칸 (이 칸의 룬 워드만 룬 문자를 소모한다)
     /// </summary>
     public abstract bool Confirm(IReadOnlyList<string> slotIds, IReadOnlyList<bool> newlyAdded);
+
+    /// <summary>상점에서 산 룬 워드 완성품 보유 수 (1개로 룬 문자 없이 1번 활성화)</summary>
+    public virtual int GetOwnedCount(string entryId)
+    {
+        return OwnedRuneWords.GetCount(entryId);
+    }
+
+    /// <summary>완성품 1개를 소모한다. (Confirm할 때 완성품으로 넣은 칸마다 부른다)</summary>
+    public virtual bool ConsumeOwned(string entryId)
+    {
+        return OwnedRuneWords.Consume(entryId);
+    }
+
+    protected virtual void OnEnable()
+    {
+        OwnedRuneWords.Changed += NotifyChanged;
+    }
+
+    protected virtual void OnDisable()
+    {
+        OwnedRuneWords.Changed -= NotifyChanged;
+    }
 
     protected void NotifyChanged()
     {

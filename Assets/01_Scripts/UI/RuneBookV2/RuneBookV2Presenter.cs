@@ -19,11 +19,19 @@ using UnityEngine.UI;
 /// - 장착 칸을 오른쪽 클릭하면 뺀다. 이미 확정된 룬을 빼도 룬 문자는 돌려주지 않는다.
 /// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "Not enough rune stones"를 띄운다.
 /// - Confirm 없이 룬북을 닫으면(이 오브젝트가 꺼지면) 바꾼 내용은 버린다.
+///
+/// 완성품 (상점에서 산 룬 워드)
+/// - 완성품이 있는 룬 워드를 새로 넣으면 룬 문자 대신 완성품을 쓴다. (앞 칸부터, 보유 수만큼)
+/// - Confirm할 때 완성품으로 넣은 칸마다 완성품을 1개 소모한다.
+/// - 칸에는 남은 완성품 수(x1)를, 팝업에는 "Owned x1 - No rune stones needed"를 보여준다.
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneBookV2Presenter : MonoBehaviour
 {
     [SerializeField] private RuneBookV2DataSource _dataSource;
+
+    [Tooltip("Confirm 후 전투 씬으로 넘어간다 (거점의 출발 화면). 전투 중 Tab 룬북은 끈다.")]
+    [SerializeField] private bool _loadCombatSceneOnConfirm = true;
 
     [Header("Rune Words")]
     [SerializeField] private RuneWordTileView[] _tiles;
@@ -50,6 +58,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     [Header("문구")]
     [SerializeField] private string _usesFormat = "Uses {0} rune stones";
     [SerializeField] private string _usesOneText = "Uses 1 rune stone";
+    [SerializeField] private string _usesOwnedText = "Uses owned rune word";
     [SerializeField] private string _notEnoughText = "Not enough rune stones";
     [SerializeField] private string _mainRequiredText = "Set a main element";
     [SerializeField] private string _subElementLimitText = "Only one sub element can be set";
@@ -58,6 +67,9 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private readonly string[] _slotIds = new string[RuneBookV2DataSource.SlotLimit];
     private readonly bool[] _isNew = new bool[RuneBookV2DataSource.SlotLimit];
+    // 새로 넣은 칸 중 룬 문자 대신 완성품을 쓰는 칸
+    private readonly bool[] _usesOwned = new bool[RuneBookV2DataSource.SlotLimit];
+    private readonly Dictionary<string, int> _owned = new();
     private readonly Dictionary<string, RuneBookEntryData> _entries = new();
     private readonly Dictionary<char, RuneStoneStackData> _stones = new();
     private readonly Dictionary<char, int> _pendingUse = new();
@@ -121,6 +133,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         _loadout = null;
         Array.Clear(_slotIds, 0, _slotIds.Length);
         Array.Clear(_isNew, 0, _isNew.Length);
+        Array.Clear(_usesOwned, 0, _usesOwned.Length);
 
         // 확정하지 않은 변경은 버린다. 다시 열면 확정된 상태부터 시작한다.
         _hoveredTile = null;
@@ -243,8 +256,9 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleDataChanged()
     {
-        // 룬 문자 획득, 칸 확장 등. 확정 전 변경은 유지한다.
+        // 룬 문자 획득, 칸 확장, 완성품 수 변경 등. 확정 전 변경은 유지한다.
         LoadData();
+        UpdateOwnedFlags();
         Refresh();
     }
 
@@ -256,6 +270,16 @@ public class RuneBookV2Presenter : MonoBehaviour
             if (entry != null)
             {
                 _entries[entry.Id] = entry;
+            }
+        }
+
+        _owned.Clear();
+        foreach (string id in _entries.Keys)
+        {
+            int count = _dataSource.GetOwnedCount(id);
+            if (count > 0)
+            {
+                _owned[id] = count;
             }
         }
 
@@ -276,6 +300,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             _slotIds[i] = i < ActiveSlotCount ? GetConfirmedId(i) : null;
             _isNew[i] = false;
+            _usesOwned[i] = false;
         }
     }
 
@@ -284,7 +309,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     private void HandleTileClicked(RuneWordTileView tile)
     {
         RuneBookEntryData entry = tile.Entry;
-        if (entry == null || !entry.IsRevealed || _dataSource == null)
+        if (entry == null || (!entry.IsRevealed && GetOwned(entry.Id) <= 0) || _dataSource == null)
         {
             return;
         }
@@ -344,6 +369,44 @@ public class RuneBookV2Presenter : MonoBehaviour
             _isNew[i] = remainingCount == 0;
             remainingCounts[effectId] = Math.Max(0, remainingCount - 1);
         }
+
+        UpdateOwnedFlags();
+    }
+
+    /// <summary>새로 넣은 칸에 앞에서부터 완성품을 배정한다. (룬 워드별 보유 수만큼)</summary>
+    private void UpdateOwnedFlags()
+    {
+        for (int i = 0; i < _slotIds.Length; i++)
+        {
+            _usesOwned[i] = _isNew[i] && !string.IsNullOrEmpty(_slotIds[i]) &&
+                            CountUsedOwned(_slotIds[i], i) < GetOwned(_slotIds[i]);
+        }
+    }
+
+    /// <summary>앞의 칸들(beforeIndex 전)에서 완성품을 쓰는 수</summary>
+    private int CountUsedOwned(string effectId, int beforeIndex = RuneBookV2DataSource.SlotLimit)
+    {
+        int count = 0;
+        for (int i = 0; i < beforeIndex && i < _slotIds.Length; i++)
+        {
+            if (_usesOwned[i] && _slotIds[i] == effectId)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private int GetOwned(string effectId)
+    {
+        return effectId != null && _owned.TryGetValue(effectId, out int count) ? count : 0;
+    }
+
+    /// <summary>아직 칸에 배정하지 않은 완성품 수</summary>
+    private int GetRemainingOwned(string effectId)
+    {
+        return Math.Max(0, GetOwned(effectId) - CountUsedOwned(effectId));
     }
 
     private void HandleTileEntered(RuneWordTileView tile)
@@ -377,6 +440,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
 
         LoadData();
+        UpdateOwnedFlags();
         CountPendingUse();
         if (HasShortage())
         {
@@ -384,12 +448,39 @@ public class RuneBookV2Presenter : MonoBehaviour
             Refresh();
             return;
         }
-        if (_dataSource.Confirm(_slotIds, _isNew))
+        // 룬 문자는 완성품을 쓰지 않는 새 칸만 소모한다.
+        bool[] usesRuneStones = new bool[_slotIds.Length];
+        List<string> ownedToConsume = new();
+        for (int i = 0; i < _slotIds.Length; i++)
         {
+            usesRuneStones[i] = _isNew[i] && !_usesOwned[i];
+            if (_isNew[i] && _usesOwned[i] && _slotIds[i] != null)
+            {
+                ownedToConsume.Add(_slotIds[i]);
+            }
+        }
+
+        if (_dataSource.Confirm(_slotIds, usesRuneStones))
+        {
+            foreach (string id in ownedToConsume)
+            {
+                _dataSource.ConsumeOwned(id);
+            }
+
             if (_loadout != null)
             {
                 _loadout.ConfirmEquipment(_slotIds);
-                SceneLoader.LoadCombatSceneScene();
+                if (_loadCombatSceneOnConfirm)
+                {
+                    SceneLoader.LoadCombatSceneScene();
+                }
+                else
+                {
+                    // 전투 중 : 씬은 그대로 두고 확정된 상태로 다시 그린다.
+                    LoadData();
+                    LoadConfirmed();
+                    Refresh();
+                }
             }
             else
             {
@@ -559,7 +650,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             if (tile != null)
             {
                 _entries.TryGetValue(tile.EntryId, out RuneBookEntryData entry);
-                tile.Show(entry, GetElementColor(entry));
+                tile.Show(entry, GetElementColor(entry), entry != null ? GetRemainingOwned(entry.Id) : 0);
             }
         }
 
@@ -645,7 +736,9 @@ public class RuneBookV2Presenter : MonoBehaviour
         else
         {
             isWarning = false;
-            info = total == 0 ? string.Empty : total == 1 ? _usesOneText : string.Format(_usesFormat, total);
+            bool usesOwned = Array.IndexOf(_usesOwned, true) >= 0;
+            info = total == 0 ? usesOwned ? _usesOwnedText : string.Empty
+                : total == 1 ? _usesOneText : string.Format(_usesFormat, total);
         }
 
         _confirmInfoText.text = info;
@@ -668,12 +761,14 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         _tooltipStones.Clear();
         _tooltipMissing.Clear();
+        int ownedCount = GetRemainingOwned(entry.Id);
         if (entry.IsRevealed && !string.IsNullOrEmpty(entry.RuneWord))
         {
             foreach (char rune in entry.RuneWord)
             {
                 int need = Count(entry.RuneWord, rune);
-                bool isMissing = GetAvailable(rune) < need;
+                // 완성품이 있으면 룬 문자가 필요 없으므로 모자란 표시를 하지 않는다.
+                bool isMissing = ownedCount <= 0 && GetAvailable(rune) < need;
                 Sprite icon = _stones.TryGetValue(rune, out RuneStoneStackData stone) ? stone.Icon : null;
                 _tooltipStones.Add(new RuneWordTooltipView.RuneStoneView(icon, isMissing));
                 if (isMissing && !_tooltipMissing.Contains(icon))
@@ -684,7 +779,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
 
         _tooltip.Show(entry, CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
-            _tooltipMissing, _hoveredTile.RectTransform);
+            _tooltipMissing, _hoveredTile.RectTransform, ownedCount);
     }
 
     private void CountPendingUse()
@@ -692,7 +787,8 @@ public class RuneBookV2Presenter : MonoBehaviour
         _pendingUse.Clear();
         for (int i = 0; i < _slotIds.Length; i++)
         {
-            if (_isNew[i] && _slotIds[i] != null && _entries.TryGetValue(_slotIds[i], out RuneBookEntryData entry))
+            if (_isNew[i] && !_usesOwned[i] && _slotIds[i] != null &&
+                _entries.TryGetValue(_slotIds[i], out RuneBookEntryData entry))
             {
                 AddUse(_pendingUse, entry.RuneWord);
             }
@@ -704,6 +800,12 @@ public class RuneBookV2Presenter : MonoBehaviour
         _hoverUse.Clear();
         RuneBookEntryData entry = _hoveredTile != null ? _hoveredTile.Entry : null;
         if (entry == null || !entry.IsRevealed || !IsAdditionalEquipment(entry.Id) || FindTargetSlot(entry, out _) < 0)
+        {
+            return;
+        }
+
+        // 남은 완성품이 있으면 룬 문자를 쓰지 않는다.
+        if (GetRemainingOwned(entry.Id) > 0)
         {
             return;
         }

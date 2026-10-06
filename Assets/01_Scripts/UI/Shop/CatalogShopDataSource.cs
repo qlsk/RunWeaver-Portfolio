@@ -88,6 +88,7 @@ public class CatalogShopDataSource : ShopDataSource
         ShopOfferData offer = _offers[slotIndex];
         _gold -= offer.Price;
         _offers[slotIndex] = null;
+        GrantItem(offer);
 
         Debug.Log($"[Shop] Bought {offer.DisplayName} ({offer.Type}) for {offer.Price}. Gold left: {_gold}", this);
         RaisePurchased(offer);
@@ -110,6 +111,42 @@ public class CatalogShopDataSource : ShopDataSource
         Debug.Log($"[Shop] Rerolled for {cost}. Next reroll: {RerollCost}. Gold left: {_gold}", this);
         RaiseChanged();
         return true;
+    }
+
+    /// <summary>산 품목을 지급한다. (지금은 룬 워드 완성품만. 나머지 종류는 각 시스템 연결 후 추가)</summary>
+    private void GrantItem(ShopOfferData offer)
+    {
+        if (offer.Type != ShopItemType.RuneWord)
+        {
+            return;
+        }
+
+        ShopCatalogSO.Item item = FindItem(offer.Id);
+        if (item == null || string.IsNullOrEmpty(item.runeEffectId))
+        {
+            Debug.LogWarning($"[Shop] 룬 워드 품목 {offer.Id}에 runeEffectId가 없어 지급하지 못했습니다.", this);
+            return;
+        }
+
+        OwnedRuneWords.Add(item.runeEffectId);
+    }
+
+    private ShopCatalogSO.Item FindItem(string id)
+    {
+        if (_catalog == null)
+        {
+            return null;
+        }
+
+        foreach (ShopCatalogSO.Item item in _catalog.Items)
+        {
+            if (item != null && item.id == id)
+            {
+                return item;
+            }
+        }
+
+        return null;
     }
 
     private void FillOffers()
