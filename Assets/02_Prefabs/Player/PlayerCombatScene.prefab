@@ -206,6 +206,7 @@ GameObject:
   - component: {fileID: 6342265282032336166}
   - component: {fileID: 8632906734022220514}
   - component: {fileID: 469444044121680997}
+  - component: {fileID: 8463615780488062515}
   - component: {fileID: 6277004397005914175}
   - component: {fileID: 3085005107725748379}
   - component: {fileID: 1981721773277717195}
@@ -402,7 +403,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  _bulletPrefab: {fileID: -366077479794701219, guid: 5869fc16855d2d449b0c753f4340d1e5, type: 3}
+  _bulletPrefab: {fileID: 1808444329942870919, guid: ab00c7ac76b34ab7851d67224d9f2880, type: 3}
   _firePosition: {fileID: 8755656963266282849}
   _bulletFireRate: 1
   _bulletDamage: 10
@@ -536,6 +537,23 @@ MonoBehaviour:
   _armSpriteRenderer: {fileID: 3553827385922233564}
   _offsetScale: 0.64
   _originOffset: 0
+--- !u!114 &8463615780488062515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566649832509364097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 817f2b21486e54f47823765f51b9fb8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
+  _playerInputHandler: {fileID: 3754110856340387365}
+  _interactionRange: 2
+  _interactableLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &6277004397005914175
 MonoBehaviour:
   m_ObjectHideFlags: 0
