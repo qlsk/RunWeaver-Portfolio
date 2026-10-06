@@ -20,12 +20,14 @@ MonoBehaviour:
     icon: {fileID: 1527658911, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1200
+    healRatio: 0
   - id: rw_seek
     displayName: 'RuneWord: Seek'
     description: Bullets automatically track enemies within a certain range.
     icon: {fileID: 1362566179, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1200
+    healRatio: 0
   - id: rw_chain
     displayName: 'RuneWord: Chain'
     description: On hit, the elemental reaction chains once to nearby enemies at
@@ -33,54 +35,63 @@ MonoBehaviour:
     icon: {fileID: 1515027171, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1400
+    healRatio: 0
   - id: rw_orbit
     displayName: 'RuneWord: Orbit'
     description: At maximum range, bullets orbit the player for 5 seconds.
     icon: {fileID: 212567177, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1300
+    healRatio: 0
   - id: rw_spread
     displayName: 'RuneWord: Spread'
     description: Fires 3 bullets in a fan. Each bullet deals 50% less damage.
     icon: {fileID: -1201954233, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1500
+    healRatio: 0
   - id: rw_multiple
     displayName: 'RuneWord: Multiple'
     description: Fires bullets twice in a row. Each bullet deals 40% less damage.
     icon: {fileID: -1826348027, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     type: 0
     basePrice: 1500
+    healRatio: 0
   - id: rs_pouch_small
     displayName: Rune Stone Pouch
     description: Gain 5 random rune stones.
-    icon: {fileID: 0}
+    icon: {fileID: -5925839551017428873, guid: e47bd0a6f47ccfe41b13e9c9fb36a461, type: 3}
     type: 1
     basePrice: 400
+    healRatio: 0
   - id: re_prima_materia
     displayName: Prima Materia x5
     description: Research material. Used to unlock research nodes.
     icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
     type: 2
     basePrice: 600
+    healRatio: 0
   - id: re_azoth
     displayName: Azoth x3
     description: Research material. Used to unlock research nodes.
     icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
     type: 2
     basePrice: 800
+    healRatio: 0
   - id: re_mercury
     displayName: Mercury x3
     description: Research material. Used to unlock research nodes.
     icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
     type: 2
     basePrice: 700
+    healRatio: 0
   - id: re_aether_crystal
     displayName: Aether Crystal x1
     description: Rare research material. Used to unlock research nodes.
     icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
     type: 2
     basePrice: 1000
+    healRatio: 0
   - id: po_health
     displayName: Health Potion
     description: Restores 30% of maximum health.
