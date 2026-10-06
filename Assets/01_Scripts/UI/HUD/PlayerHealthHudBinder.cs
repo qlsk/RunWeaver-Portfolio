@@ -16,6 +16,12 @@ public class PlayerHealthHudBinder : MonoBehaviour
 
     private void Awake()
     {
+        // 씬에서 연결하지 않았으면 플레이어를 찾아서 쓴다. (마을 HUD 등)
+        if (_playerHealth == null)
+        {
+            _playerHealth = FindAnyObjectByType<PlayerHealth>();
+        }
+
         if (_playerHealth == null)
         {
             Debug.LogError("[PlayerHealthHudBinder] PlayerHealth가 할당되지 않았습니다.", this);

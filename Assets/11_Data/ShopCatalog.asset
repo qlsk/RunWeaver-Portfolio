@@ -103,7 +103,8 @@ MonoBehaviour:
     HealRatio: 0
   - Id: rw_pierce
     DisplayName: 'RuneWord: Pierce'
-    Description: Bullets pierce enemies instead of disappearing. Damage drops 5% per pierce (up to 30%).
+    Description: Bullets pierce enemies instead of disappearing. Damage drops 5%
+      per pierce (up to 30%).
     Icon: {fileID: 1527658911, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1200
@@ -111,7 +112,8 @@ MonoBehaviour:
     HealRatio: 0
   - Id: rw_chain
     DisplayName: 'RuneWord: Chain'
-    Description: On hit, the elemental reaction chains once to nearby enemies at 50% damage.
+    Description: On hit, the elemental reaction chains once to nearby enemies at
+      50% damage.
     Icon: {fileID: 1515027171, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1400
@@ -183,7 +185,8 @@ MonoBehaviour:
     HealRatio: 0
   - Id: rw_echo
     DisplayName: 'RuneWord: Echo'
-    Description: After an elemental reaction occurs, the same reaction triggers once more after a delay.
+    Description: After an elemental reaction occurs, the same reaction triggers once
+      more after a delay.
     Icon: {fileID: 713557240, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1600
@@ -195,38 +198,6 @@ MonoBehaviour:
     Icon: {fileID: -5925839551017428873, guid: e47bd0a6f47ccfe41b13e9c9fb36a461, type: 3}
     Type: 1
     BasePrice: 400
-    RuneEffectId: 
-    HealRatio: 0
-  - Id: re_prima_materia
-    DisplayName: Prima Materia x5
-    Description: Research material. Used to unlock research nodes.
-    Icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    Type: 2
-    BasePrice: 600
-    RuneEffectId: 
-    HealRatio: 0
-  - Id: re_azoth
-    DisplayName: Azoth x3
-    Description: Research material. Used to unlock research nodes.
-    Icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    Type: 2
-    BasePrice: 800
-    RuneEffectId: 
-    HealRatio: 0
-  - Id: re_mercury
-    DisplayName: Mercury x3
-    Description: Research material. Used to unlock research nodes.
-    Icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    Type: 2
-    BasePrice: 700
-    RuneEffectId: 
-    HealRatio: 0
-  - Id: re_aether_crystal
-    DisplayName: Aether Crystal x1
-    Description: Rare research material. Used to unlock research nodes.
-    Icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    Type: 2
-    BasePrice: 1000
     RuneEffectId: 
     HealRatio: 0
   - Id: po_health

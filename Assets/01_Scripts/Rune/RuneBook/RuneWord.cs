@@ -7,12 +7,12 @@ public class RuneWord
 
     public string RuneEffectId => _runeEffectId;
     public RuneWordRevealLevel RevealLevel => _revealLevel;
-    public bool IsRevealed => _revealLevel != RuneWordRevealLevel.Hidden;
 
     public RuneWord(string runeEffectId)
     {
         _runeEffectId = runeEffectId;
-        _revealLevel = RuneWordRevealLevel.Hidden;
+        // 모든 룬 워드는 처음부터 목록에 공개된다.
+        _revealLevel = RuneWordRevealLevel.Listed;
     }
 
     public void Reveal(RuneWordRevealLevel targetLevel)
@@ -25,10 +25,6 @@ public class RuneWord
         if (_revealLevel == targetLevel)
         {
             throw new InvalidOperationException($"Already at reveal level '{targetLevel}': {_runeEffectId}");
-        }
-        if (_revealLevel == RuneWordRevealLevel.Hidden && targetLevel == RuneWordRevealLevel.Detailed)
-        {
-            throw new InvalidOperationException($"List the rune before revealing details: {_runeEffectId}");
         }
         if ((int)_revealLevel > (int)targetLevel)
         {

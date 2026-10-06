@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4265914710850992044}
   - component: {fileID: 3463437766152985380}
   - component: {fileID: 429925943445133865}
+  - component: {fileID: 6120473958216830417}
   m_Layer: 0
   m_Name: ResourceSlot
   m_TagString: Untagged
@@ -91,6 +92,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldHudView
   _amountText: {fileID: 7520855771160175973}
+--- !u!114 &6120473958216830417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 718548794033921255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3f3b5c61db49bd4685f3dea5f6e3085, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoldHudBinder
+  _view: {fileID: 429925943445133865}
 --- !u!1 &8215608180028489448
 GameObject:
   m_ObjectHideFlags: 0

@@ -24,6 +24,9 @@ public class ShopCatalogSO : ScriptableObject
 
         [Tooltip("포션 : 최대 체력 대비 회복 비율 (0.3 = 최대 체력의 30% 회복). 포션이 아니면 0")]
         [Range(0f, 1f)] public float HealRatio;
+
+        [Tooltip("룬 문자 : 사면 받는 무작위 룬 문자 수 (종류는 하나씩 무작위). 룬 문자가 아니면 무시한다")]
+        [Min(1)] public int RuneStoneAmount = 5;
     }
 
     [SerializeField] private List<Item> _items = new();
