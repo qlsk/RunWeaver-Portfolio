@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: -1367794926946469454}
   - component: {fileID: 4621851132757544785}
   - component: {fileID: 8652517633453959891}
+  - component: {fileID: 3481771100437686312}
+  - component: {fileID: 7216901170541185801}
   m_Layer: 0
   m_Name: ElementalBullet
   m_TagString: Untagged
@@ -110,6 +112,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   _overHeatReaction: {fileID: 4621851132757544785}
   _steamReaction: {fileID: 8652517633453959891}
+  _moltenReaction: {fileID: 3481771100437686312}
+  _firestormReaction: {fileID: 7216901170541185801}
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
@@ -197,6 +201,44 @@ MonoBehaviour:
   _steamTickInterval: 1
   _steamDuration: 3
   _trackingIntervalMultiplier: 10
+--- !u!114 &3481771100437686312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43962e2243c24ad495b315099f31ac0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoltenReaction
+  _moltenAreaPrefab: {fileID: 2896922333138103206, guid: b3414c074b4b2d64fba725748f8d07ae, type: 3}
+  _moltenRadius: 2
+  _moltenDamageMultiplier: 0.2
+  _moltenTickInterval: 1
+  _moltenDuration: 3
+  _moveSpeedMultiplier: 0.5
+--- !u!114 &7216901170541185801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 345f4c8808914692a5ca1b261091403c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FirestormReaction
+  _firestormAreaPrefab: {fileID: 2896922333138103206, guid: c74c0c6aaf5d46a690d3e581dce92a35, type: 3}
+  _firestormRadius: 3
+  _firestormDuration: 3
+  _burnApplyInterval: 0.5
+  _burnDamageMultiplier: 0.2
+  _burnTickInterval: 1
+  _burnDuration: 3
+  _pullSpeed: 1
 --- !u!1001 &7001000000000000001
 PrefabInstance:
   m_ObjectHideFlags: 0
