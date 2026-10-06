@@ -1671,6 +1671,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 723587024}
   m_CullTransparentMesh: 1
+--- !u!114 &795934867 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3754110856340387365, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+  m_PrefabInstance: {fileID: 1118310059}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
 --- !u!1 &817703558
 GameObject:
   m_ObjectHideFlags: 0
@@ -2031,6 +2042,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3754110856340387365, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: _popupController
+      value: 
+      objectReference: {fileID: 709986239}
     - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.01149
@@ -4129,7 +4144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ebc8b504c314f95975504dc8bb72811, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookV2Toggle
-  _inputHandler: {fileID: 0}
+  _inputHandler: {fileID: 795934867}
   _runeBook: {fileID: 1881311474863504300}
   _pauseController: {fileID: 4261298719248684}
   _closeKeys: 090000001b000000
