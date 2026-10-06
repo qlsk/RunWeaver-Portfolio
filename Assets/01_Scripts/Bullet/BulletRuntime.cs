@@ -25,6 +25,8 @@ public class BulletRuntime
 
     // Bullet의 현재 이동 상태
     public BulletPhase Phase;
+    // 발사 이후 반전을 반영하는 현재 진행 방향.
+    public Vector2 Direction;
     // 완료한 직접 적중 횟수. 다음 적중의 Pierce 피해 감소에 사용한다.
     public int HitCount;
     // Reverse 사용 여부. Return/Orbit 진입 후에도 유지한다.

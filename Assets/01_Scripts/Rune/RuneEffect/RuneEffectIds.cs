@@ -7,4 +7,5 @@ public static class RuneEffectIds
     public const string Spread = "rune_spread";
     public const string Multiple = "rune_multiple";
     public const string Pierce = "rune_pierce";
+    public const string Reverse = "rune_reverse";
 }

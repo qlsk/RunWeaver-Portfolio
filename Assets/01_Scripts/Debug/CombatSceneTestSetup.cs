@@ -38,6 +38,9 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Pierce"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectPierce() => SelectRune(RuneEffectIds.Pierce);
 
+    [Button("Reverse"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectReverse() => SelectRune(RuneEffectIds.Reverse);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();

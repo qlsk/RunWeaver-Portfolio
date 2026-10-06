@@ -27,9 +27,15 @@ public class Bullet : MonoBehaviour
     {
         _attackData = attackData.WithDirection(attackData.Direction.normalized);
 
-        _runtime = new BulletRuntime { Phase = BulletPhase.Flying };
+        _runtime = new BulletRuntime
+        {
+            Phase = BulletPhase.Flying,
+            Direction = _attackData.Direction,
+            ReverseUsed = false
+        };
         _processingHit = false;
         _isInitialized = true;
+        UpdateRotation();
     }
 
     /// 발사 위치에 시각 효과를 재생하고 설정된 시간이 지나면 제거한다.
@@ -66,14 +72,14 @@ public class Bullet : MonoBehaviour
         float remainingDistance = Mathf.Max(0f, _attackData.Range - _runtime.TravelDistance);
         float moveDistance = Mathf.Min(_attackData.Speed * Time.deltaTime, remainingDistance);
 
-        transform.position += (Vector3)(_attackData.Direction * moveDistance);
+        transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;
 
         if (_runtime.TravelDistance >= _attackData.Range)
             DestroyBullet();
     }
 
-    /// 동일 적의 중복 적중을 막고 Pierce가 없는 탄환만 적중 후 제거한다.
+    /// 중복 적중을 막고 Pierce 또는 최초 Reverse 발동 시 비행을 유지한다.
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!_isInitialized || _processingHit)
@@ -90,18 +96,38 @@ public class Bullet : MonoBehaviour
         float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce);
         _runtime.RecordHit();
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
+        bool reversedThisHit = false;
         _processingHit = true;
         try
         {
             enemyHealth.TakeDamage(hitDamage);
             ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
+            reversedThisHit = ApplyReverse();
         }
         finally
         {
             _processingHit = false;
-            if (!isPierce)
+            if (!isPierce && !reversedThisHit)
                 DestroyBullet();
         }
+    }
+
+    /// 탄환의 전체 생명주기에서 한 번만 반전하고 이번 적중의 발동 여부를 반환한다.
+    private bool ApplyReverse()
+    {
+        if (!_isInitialized || !_attackData.Configuration.IsReverse || _runtime.ReverseUsed)
+            return false;
+
+        _runtime.ReverseUsed = true;
+        _runtime.Direction = -_runtime.Direction;
+        UpdateRotation();
+        return true;
+    }
+
+    private void UpdateRotation()
+    {
+        float angle = Mathf.Atan2(_runtime.Direction.y, _runtime.Direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
     /// 두 원소의 반응을 실행하거나 살아 있는 적에게 단일 원소 효과를 적용한다.
@@ -141,7 +167,7 @@ public class Bullet : MonoBehaviour
         if (!enemyHealth.TryGetComponent(out EnemyStatusEffectController statusEffects))
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
 
-        statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _attackData.Direction);
+        statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _runtime.Direction);
     }
 
     /// 이동과 적중 처리를 중단하고 탄환 오브젝트를 제거한다.
