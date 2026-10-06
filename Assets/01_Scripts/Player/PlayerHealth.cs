@@ -87,6 +87,7 @@ public class PlayerHealth : MonoBehaviour
         {
             ApplyDamage(damage);
         }
+
         yield return new WaitForSeconds(_invincibilityDuration);
         _hitInvincibility = false;
     }
