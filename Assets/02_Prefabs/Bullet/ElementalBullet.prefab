@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1065958527626800737}
   - component: {fileID: 1808444329942870919}
   - component: {fileID: -1367794926946469454}
+  - component: {fileID: 4621851132757544785}
   m_Layer: 0
   m_Name: ElementalBullet
   m_TagString: Untagged
@@ -106,13 +107,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97dfdaeb5e04e534890f7d7cfcebf1f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  _overHeatReaction: {fileID: 4621851132757544785}
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
-  _trapPrefab: {fileID: 0}
-  _enemyLayers:
-    serializedVersion: 2
-    m_Bits: 55
 --- !u!61 &-1367794926946469454
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -159,6 +157,26 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.80866665, y: 0.15666667}
   m_EdgeRadius: 0
+--- !u!114 &4621851132757544785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfa2745d6f0d40ed98481f4aab3e7924, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OverHeatReaction
+  _emberAreaPrefab: {fileID: 8134511033335864483, guid: f0c39123b3031a24bb47b3c8a14ba8b6, type: 3}
+  _explosionRadius: 2
+  _explosionDamageMultiplier: 1
+  _explosionEffectLifetime: 3
+  _emberRadius: 2
+  _emberDamageMultiplier: 0.2
+  _emberTickInterval: 1
+  _emberDuration: 3
 --- !u!1001 &7001000000000000001
 PrefabInstance:
   m_ObjectHideFlags: 0

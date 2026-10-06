@@ -1,9 +1,12 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
     private const string EnemyTag = "Enemy";
+
+    [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
 
     [Header("Cast Effect")]
     [SerializeField] private ParticleSystem _castEffectPrefab;
@@ -56,10 +59,10 @@ public class Bullet : MonoBehaviour
 
         // Prevent repeated hits before destruction is processed.
         _isInitialized = false;
+        Vector2 hitPosition = collision.ClosestPoint(transform.position);
         enemyHealth.TakeDamage(_attackData.Damage);
 
-        if (!enemyHealth.IsDead)
-            ApplyElementEffect(enemyHealth);
+        ApplyElementEffect(enemyHealth, hitPosition);
 
         DestroyBullet();
     }
@@ -88,10 +91,21 @@ public class Bullet : MonoBehaviour
         Destroy(effect.gameObject, _castEffectLifetime);
     }
 
-    private void ApplyElementEffect(EnemyHealth enemyHealth)
+    private void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition)
     {
         RuneEffectConfiguration configuration = _attackData.Configuration;
-        if (!configuration.PrimaryElement.HasValue || configuration.SecondaryElement.HasValue)
+        if (!configuration.PrimaryElement.HasValue)
+            return;
+
+        if (configuration.SecondaryElement.HasValue)
+        {
+            if (configuration.PrimaryElement.Value == ReactionElement.Fire &&
+                configuration.SecondaryElement.Value == ReactionElement.Fire)
+                _overHeatReaction.Execute(hitPosition, _attackData.Damage);
+            return;
+        }
+
+        if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
             return;
 
         if (!enemyHealth.TryGetComponent(out EnemyStatusEffectController statusEffects))
