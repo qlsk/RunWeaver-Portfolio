@@ -128,8 +128,8 @@ public class RuneEffectLoadout
     public void ConfirmEquipment(IReadOnlyList<string> slotIds)
     {
         List<string> confirmed = slotIds.Where(id => !string.IsNullOrEmpty(id)).ToList();
-        if (confirmed.Contains(RuneEffectIds.Return) && confirmed.Contains(RuneEffectIds.Orbit))
-            throw new InvalidOperationException("Return and Orbit cannot be equipped together.");
+        if (confirmed.Any(id => HasConflictingEndEffect(confirmed, id)))
+            throw new InvalidOperationException("Return, Orbit and Fix cannot be equipped together.");
 
         _equippedEffectIds.Clear();
         _equippedEffectIds.AddRange(confirmed);
@@ -159,7 +159,14 @@ public class RuneEffectLoadout
 
     public static bool HasConflictingEndEffect(IReadOnlyList<string> slotIds, string effectId)
     {
-        return (effectId == RuneEffectIds.Return && slotIds.Contains(RuneEffectIds.Orbit)) ||
-               (effectId == RuneEffectIds.Orbit && slotIds.Contains(RuneEffectIds.Return));
+        if (!IsEndEffect(effectId))
+            return false;
+
+        return slotIds.Any(id => id != effectId && IsEndEffect(id));
+    }
+
+    private static bool IsEndEffect(string effectId)
+    {
+        return effectId == RuneEffectIds.Return || effectId == RuneEffectIds.Orbit || effectId == RuneEffectIds.Fix;
     }
 }

@@ -117,6 +117,11 @@ MonoBehaviour:
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
+  _seekRadius: 5
+  _seekEnemyLayers:
+    serializedVersion: 2
+    m_Bits: 1015
+  _fixTrapPrefab: {fileID: 0}
 --- !u!61 &-1367794926946469454
 BoxCollider2D:
   m_ObjectHideFlags: 0

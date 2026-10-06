@@ -50,6 +50,9 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Orbit"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectOrbit() => SelectRune(RuneEffectIds.Orbit);
 
+    [Button("Fix"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectFix() => SelectRune(RuneEffectIds.Fix);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();

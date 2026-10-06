@@ -13,6 +13,7 @@ public sealed class RuneEffectConfiguration
     public bool IsReturn { get; }
     public bool IsSeek { get; }
     public bool IsOrbit { get; }
+    public bool IsFix { get; }
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
@@ -55,10 +56,13 @@ public sealed class RuneEffectConfiguration
                 case RuneEffectIds.Orbit:
                     IsOrbit = true;
                     break;
+                case RuneEffectIds.Fix:
+                    IsFix = true;
+                    break;
             }
         }
 
-        if (IsReturn && IsOrbit)
-            throw new InvalidOperationException("Return and Orbit cannot be equipped together.");
+        if ((IsReturn ? 1 : 0) + (IsOrbit ? 1 : 0) + (IsFix ? 1 : 0) > 1)
+            throw new InvalidOperationException("Return, Orbit and Fix cannot be equipped together.");
     }
 }

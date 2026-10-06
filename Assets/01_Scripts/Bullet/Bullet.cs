@@ -18,20 +18,31 @@ public class Bullet : MonoBehaviour
         OrbitTimeout
     }
 
-    [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
-    [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
-    [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
-    [FoldoutGroup("References"), SerializeField] private FirestormReaction _firestormReaction;
+    [FoldoutGroup("References"), SerializeField]
+    private OverHeatReaction _overHeatReaction;
 
-    [Header("Cast Effect")]
-    [SerializeField] private ParticleSystem _castEffectPrefab;
+    [FoldoutGroup("References"), SerializeField]
+    private SteamReaction _steamReaction;
+
+    [FoldoutGroup("References"), SerializeField]
+    private MoltenReaction _moltenReaction;
+
+    [FoldoutGroup("References"), SerializeField]
+    private FirestormReaction _firestormReaction;
+
+    [Header("Cast Effect")] [SerializeField]
+    private ParticleSystem _castEffectPrefab;
+
     [SerializeField, Min(0.01f)] private float _castEffectScale = 1f;
     [SerializeField, Min(0.1f)] private float _castEffectLifetime = 3f;
 
-    [Header("Seek")]
-    [SerializeField, Min(0f)] private float _seekRadius = 5f;
+    [Header("Seek")] [SerializeField, Min(0f)]
+    private float _seekRadius = 5f;
+
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
     private readonly List<Collider2D> _seekCandidates = new(16);
+
+    [Header("Fix")] [SerializeField] private FixTrap _fixTrapPrefab;
 
     // Attack data
     private PlayerAttackData _attackData;
@@ -353,11 +364,24 @@ public class Bullet : MonoBehaviour
         statusEffects.ApplyElementEffect(configuration.PrimaryElement.Value, hitDamage, _runtime.Direction);
     }
 
-    /// 일반 비행의 종료 요청에 Return 또는 Orbit이 개입하고 이후 종료 요청은 최종 종료한다.
+    /// 일반 비행 종료에 Return, Orbit 또는 Fix가 개입한다.
     private void RequestEnd(BulletEndReason reason)
     {
         if (!_isInitialized)
             return;
+
+        if (_runtime.Phase == BulletPhase.Flying && reason == BulletEndReason.MaxRange &&
+            _attackData.Configuration.IsFix)
+        {
+            Vector3 position = transform.position;
+            // 먼저 종료 상태를 확정해 같은 프레임의 중복 생성과 추가 적중을 차단한다.
+            DestroyBullet();
+            if (_fixTrapPrefab == null)
+                throw new InvalidOperationException("FixTrap prefab is missing.");
+
+            Instantiate(_fixTrapPrefab, position, Quaternion.identity);
+            return;
+        }
 
         if (_runtime.Phase == BulletPhase.Flying && reason == BulletEndReason.MaxRange &&
             _attackData.Configuration.IsOrbit && _attackData.Owner != null)

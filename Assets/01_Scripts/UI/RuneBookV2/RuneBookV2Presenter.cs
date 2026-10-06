@@ -549,7 +549,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             EquipError.CannotStack => _notStackableText,
             EquipError.MainElementRequired => _mainRequiredText,
             EquipError.NotEnoughRuneStones => _notEnoughText,
-            EquipError.ConflictingEndEffect => "Return과 Orbit은 함께 장착할 수 없습니다.",
+            EquipError.ConflictingEndEffect => "Return, Orbit, Fix는 함께 장착할 수 없습니다.",
             _ => null
         };
     }
