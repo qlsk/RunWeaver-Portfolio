@@ -41,11 +41,28 @@ public class MissionManager : MonoBehaviour
     [Header("스폰 위치 설정")]
     [SerializeField] private Vector3 missionObjectSpawnPosition = Vector3.zero;
 
+    [Header("미션 추첨")]
+    [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")]
+    [SerializeField, Range(0f, 1f)] private float _repeatedMissionWeight = 0.25f;
+
     private MissionBase currentMission;
     private GameObject spawnedMissionObject;
+    private MissionType? _lastMissionType;
+    private bool _isMissionRunning;
 
+    /// <summary>새 미션이 정해졌을 때 (아직 진행 전. HUD 표시용)</summary>
     public event Action<MissionBase> OnMissionInitialized;
+    /// <summary>시작 오브젝트 상호작용으로 미션 진행이 시작되었을 때</summary>
+    public event Action<MissionBase> OnMissionStarted;
     public event Action<MissionBase> OnMissionCompleted;
+    /// <summary>미션이 실패했을 때 (제단 파괴, 생존 미션 중 사망)</summary>
+    public event Action<MissionBase> OnMissionFailed;
+
+    /// <summary>현재 미션이 깔아 둔 미션 오브젝트 (거점, 제단, 영혼 수집 구역). 없으면 null</summary>
+    public GameObject CurrentMissionObject => spawnedMissionObject;
+
+    /// <summary>미션 진행 중인지 (시작 오브젝트 상호작용 후 완료/실패 전)</summary>
+    public bool IsMissionRunning => _isMissionRunning;
 
     private void Awake()
     {
@@ -66,13 +83,14 @@ public class MissionManager : MonoBehaviour
 
     /// <summary>
     /// 새로운 층수에 진입할 때 무작위 미션을 추첨하고 해당 오브젝트를 스폰합니다.
+    /// 미션 진행은 BeginCurrentMission을 부를 때 시작합니다. (시작 오브젝트 상호작용)
     /// </summary>
-    public void StartRandomMission(int depth)
+    public MissionBase PrepareRandomMission(int depth)
     {
         CleanupCurrentMission();
 
-        Array missionValues = Enum.GetValues(typeof(MissionType));
-        MissionType randomType = (MissionType)missionValues.GetValue(UnityEngine.Random.Range(0, missionValues.Length));
+        MissionType randomType = PickMissionType();
+        _lastMissionType = randomType;
 
         Debug.Log($"[MissionManager] ===== Depth {depth} 무작위 미션 추첨: {randomType} =====");
 
@@ -80,11 +98,73 @@ public class MissionManager : MonoBehaviour
 
         if (currentMission != null)
         {
-            currentMission.Initialize();
-            currentMission.OnMissionCompleted -= HandleMissionCompleted;
-            currentMission.OnMissionCompleted += HandleMissionCompleted;
             OnMissionInitialized?.Invoke(currentMission);
         }
+
+        return currentMission;
+    }
+
+    /// <summary>
+    /// 준비된 미션의 진행을 시작합니다. 이때부터 처치 수, 점령 게이지, 생존 시간 등이 집계됩니다.
+    /// </summary>
+    public void BeginCurrentMission()
+    {
+        if (currentMission == null || _isMissionRunning)
+        {
+            return;
+        }
+
+        currentMission.Initialize();
+        currentMission.OnMissionCompleted -= HandleMissionCompleted;
+        currentMission.OnMissionCompleted += HandleMissionCompleted;
+        currentMission.OnMissionFailed -= HandleMissionFailed;
+        currentMission.OnMissionFailed += HandleMissionFailed;
+        _isMissionRunning = true;
+
+        Debug.Log($"[MissionManager] 미션 시작: {currentMission.GetType().Name}");
+        OnMissionStarted?.Invoke(currentMission);
+    }
+
+    /// <summary>
+    /// [기존 호환] 미션을 추첨하고 바로 시작합니다.
+    /// </summary>
+    public void StartRandomMission(int depth)
+    {
+        PrepareRandomMission(depth);
+        BeginCurrentMission();
+    }
+
+    /// <summary>
+    /// 미션 종류를 가중치로 뽑습니다. 직전 층과 같은 미션은 가중치가 낮습니다.
+    /// </summary>
+    private MissionType PickMissionType()
+    {
+        MissionType[] types = (MissionType[])Enum.GetValues(typeof(MissionType));
+        float[] weights = new float[types.Length];
+        float totalWeight = 0f;
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            weights[i] = _lastMissionType.HasValue && types[i] == _lastMissionType.Value ? _repeatedMissionWeight : 1f;
+            totalWeight += weights[i];
+        }
+
+        if (totalWeight <= 0f)
+        {
+            return types[UnityEngine.Random.Range(0, types.Length)];
+        }
+
+        float pick = UnityEngine.Random.Range(0f, totalWeight);
+        for (int i = 0; i < types.Length; i++)
+        {
+            pick -= weights[i];
+            if (pick < 0f)
+            {
+                return types[i];
+            }
+        }
+
+        return types[types.Length - 1];
     }
 
     private void SetupMissionStrategy(MissionType type)
@@ -169,7 +249,7 @@ public class MissionManager : MonoBehaviour
 
     private void Update()
     {
-        if (currentMission != null && !currentMission.IsCompleted && !currentMission.IsFailed)
+        if (_isMissionRunning && currentMission != null && !currentMission.IsCompleted && !currentMission.IsFailed)
         {
             currentMission.UpdateMission(Time.deltaTime);
         }
@@ -177,12 +257,28 @@ public class MissionManager : MonoBehaviour
 
     private void HandleMissionCompleted()
     {
-        Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 포탈 생성 요청");
+        _isMissionRunning = false;
+        Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 정화와 포탈 생성 요청");
         OnMissionCompleted?.Invoke(currentMission);
         if (StageManager.Instance != null)
         {
             StageManager.Instance.HandleMissionCleared();
         }
+    }
+
+    private void HandleMissionFailed()
+    {
+        _isMissionRunning = false;
+        Debug.Log("[MissionManager] ✖ 미션 실패! StageManager에 런 종료 요청");
+        OnMissionFailed?.Invoke(currentMission);
+    }
+
+    /// <summary>
+    /// 미션 진행을 멈춘다. (런 종료) 미션과 미션 오브젝트는 그대로 둔다.
+    /// </summary>
+    public void StopCurrentMission()
+    {
+        _isMissionRunning = false;
     }
 
     public void CleanupMissionObject()
@@ -197,9 +293,12 @@ public class MissionManager : MonoBehaviour
 
     public void CleanupCurrentMission()
     {
+        _isMissionRunning = false;
+
         if (currentMission != null)
         {
             currentMission.OnMissionCompleted -= HandleMissionCompleted;
+            currentMission.OnMissionFailed -= HandleMissionFailed;
             Destroy(currentMission);
             currentMission = null;
         }

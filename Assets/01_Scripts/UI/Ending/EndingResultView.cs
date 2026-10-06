@@ -27,15 +27,14 @@ public class EndingResultView : MonoBehaviour
     [SerializeField] private TMP_Text _endReasonText;
     [SerializeField, TextArea] private string _diedText =
         "You danced with the Spirit of Flame and were reduced to a handful of ashes!";
-    [SerializeField, TextArea] private string _returnedText = "You chose to return safely.";
-    [SerializeField, TextArea] private string _escapedText = "You made a hasty escape.";
-    [SerializeField, TextArea] private string _timeOverText =
-        "Time ran out, and the depths swallowed you whole!";
+    [SerializeField, TextArea] private string _missionFailedText =
+        "The mission failed, and the depths swallowed you whole!";
+    [SerializeField, TextArea] private string _abandonedText = "You abandoned the run.";
+    [SerializeField, TextArea] private string _clearedText = "You defeated the guardian and purified the Spirit Realm!";
 
     [Header("칸의 부모")]
     [SerializeField] private Transform _activatedRuneContainer;
     [SerializeField] private Transform _gatheredRuneContainer;
-    [SerializeField] private Transform _researchResourceContainer;
 
     [Header("버튼")]
     [SerializeField] private Button _lobbyButton;
@@ -43,7 +42,6 @@ public class EndingResultView : MonoBehaviour
 
     private IconSlotView[] _activatedRuneSlots = Array.Empty<IconSlotView>();
     private CountSlotView[] _gatheredRuneSlots = Array.Empty<CountSlotView>();
-    private CountSlotView[] _researchResourceSlots = Array.Empty<CountSlotView>();
     private bool _isInitialized;
 
     /// <summary>To Lobby 버튼을 눌렀을 때 발생한다.</summary>
@@ -87,19 +85,6 @@ public class EndingResultView : MonoBehaviour
         if (_endReasonText != null)
         {
             _endReasonText.text = GetEndReasonText(result.EndReason);
-        }
-
-        for (int i = 0; i < _researchResourceSlots.Length; i++)
-        {
-            if (i < result.ResearchResources.Count)
-            {
-                ResourceAmountData resource = result.ResearchResources[i];
-                _researchResourceSlots[i].Show(resource.Icon, resource.Amount);
-            }
-            else
-            {
-                _researchResourceSlots[i].Hide();
-            }
         }
     }
 
@@ -160,7 +145,6 @@ public class EndingResultView : MonoBehaviour
         _isInitialized = true;
         _activatedRuneSlots = CollectSlots<IconSlotView>(_activatedRuneContainer);
         _gatheredRuneSlots = CollectSlots<CountSlotView>(_gatheredRuneContainer);
-        _researchResourceSlots = CollectSlots<CountSlotView>(_researchResourceContainer);
 
         if (_lobbyButton != null)
         {
@@ -210,9 +194,9 @@ public class EndingResultView : MonoBehaviour
     {
         return reason switch
         {
-            RunEndReason.Returned => _returnedText,
-            RunEndReason.Escaped => _escapedText,
-            RunEndReason.TimeOver => _timeOverText,
+            RunEndReason.MissionFailed => _missionFailedText,
+            RunEndReason.Abandoned => _abandonedText,
+            RunEndReason.Cleared => _clearedText,
             _ => _diedText
         };
     }

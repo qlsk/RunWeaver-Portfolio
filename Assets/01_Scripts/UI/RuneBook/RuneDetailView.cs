@@ -35,13 +35,6 @@ public class RuneDetailView : MonoBehaviour
             return;
         }
 
-        if (!entry.IsRevealed)
-        {
-            SetTexts(_unknownText, _unknownText, _unknownText);
-            ShowSymbol(RuneSymbolSlotState.Locked, entry.Icon);
-            return;
-        }
-
         string description = entry.AreDetailsRevealed ? entry.Description : _unknownText;
         SetTexts(entry.RuneWord, entry.EnglishName, description);
 

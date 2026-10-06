@@ -9,6 +9,12 @@ using UnityEngine;
 /// - 리롤 비용은 상점을 열 때 기본 비용으로 시작해, 리롤할 때마다 일정 비율씩 오른다.
 /// 골드는 원정 중이면 원정 지갑(GameSession → PlayerHoldings → ExpeditionWallet)을 쓴다.
 /// 원정 중이 아니면(ShopScene 단독 테스트) 인스펙터의 시작 골드를 따로 관리한다.
+///
+/// 구매한 품목 지급
+/// - 룬 워드 : 완성품 1개 (OwnedRuneWords). 룬북에서 룬 문자 없이 1번 장착할 수 있다.
+/// - 룬 문자 : 무작위 룬 문자 RuneStoneAmount개 (PlayerRuneManager의 룬 문자 인벤토리)
+/// - 포션 : 즉시 최대 체력 × HealRatio만큼 회복 (PlayerHealth)
+/// 지급할 수 없는 상태면(플레이어나 인벤토리가 없음) 골드를 쓰지 않고 구매를 막는다.
 /// </summary>
 public class CatalogShopDataSource : ShopDataSource
 {
@@ -101,13 +107,20 @@ public class CatalogShopDataSource : ShopDataSource
         }
 
         ShopOfferData offer = _offers[slotIndex];
+        ShopCatalogSO.Item item = FindItem(offer.Id);
+        if (!CanGrant(offer, item))
+        {
+            Debug.LogWarning($"[Shop] {offer.DisplayName}을(를) 지급할 수 없어 구매를 취소했습니다.", this);
+            return false;
+        }
+
         if (!TrySpend(offer.Price))
         {
             return false;
         }
 
         _offers[slotIndex] = null;
-        GrantItem(offer);
+        GrantItem(offer, item);
 
         Debug.Log($"[Shop] Bought {offer.DisplayName} ({offer.Type}) for {offer.Price}. Gold left: {Gold}", this);
         RaisePurchased(offer);
@@ -193,22 +206,83 @@ public class CatalogShopDataSource : ShopDataSource
         }
     }
 
-    /// <summary>산 품목을 지급한다. (지금은 룬 워드 완성품만. 나머지 종류는 각 시스템 연결 후 추가)</summary>
-    private void GrantItem(ShopOfferData offer)
+    /// <summary>지금 이 품목을 지급할 수 있는지. 지급할 수 없으면 골드를 쓰지 않는다.</summary>
+    /// <summary>체력이 가득 찼으면 포션은 살 수 없다.</summary>
+    public override bool CanPurchase(ShopOfferData offer)
     {
-        if (offer.Type != ShopItemType.RuneWord)
+        if (offer == null)
         {
-            return;
+            return false;
         }
 
-        ShopCatalogSO.Item item = FindItem(offer.Id);
-        if (item == null || string.IsNullOrEmpty(item.RuneEffectId))
+        if (offer.Type != ShopItemType.Potion)
         {
-            Debug.LogWarning($"[Shop] 룬 워드 품목 {offer.Id}에 runeEffectId가 없어 지급하지 못했습니다.", this);
-            return;
+            return true;
         }
 
-        OwnedRuneWords.Add(item.RuneEffectId);
+        return !TryGetPlayerHealth(out float current, out float max) || current < max;
+    }
+
+    private bool CanGrant(ShopOfferData offer, ShopCatalogSO.Item item)
+    {
+        switch (offer.Type)
+        {
+            case ShopItemType.RuneWord:
+                return item != null && !string.IsNullOrEmpty(item.RuneEffectId);
+
+            case ShopItemType.RuneStone:
+                PlayerRuneManager runeManager = PlayerRuneManager.Instance;
+                RuneStoneDatabase stoneDatabase = RuneStoneDatabase.Instance;
+                return runeManager != null && runeManager.IsInitialized &&
+                       stoneDatabase != null && stoneDatabase.DatabaseReady && stoneDatabase.GetAll().Count > 0;
+
+            case ShopItemType.Potion:
+                PlayerHealth health = FindAnyObjectByType<PlayerHealth>();
+                return health != null && !health.IsDead && offer.HealRatio > 0f &&
+                       health.CurrentHealth < health.MaxHealth;
+
+            default:
+                // 연구 물질 등 폐기된 품목
+                return false;
+        }
+    }
+
+    /// <summary>산 품목을 지급한다.</summary>
+    private void GrantItem(ShopOfferData offer, ShopCatalogSO.Item item)
+    {
+        switch (offer.Type)
+        {
+            case ShopItemType.RuneWord:
+                OwnedRuneWords.Add(item.RuneEffectId);
+                Debug.Log($"[Shop] 룬 워드 완성품 지급: {item.RuneEffectId}", this);
+                break;
+
+            case ShopItemType.RuneStone:
+                GrantRandomRuneStones(item != null ? item.RuneStoneAmount : 1);
+                break;
+
+            case ShopItemType.Potion:
+                PlayerHealth health = FindAnyObjectByType<PlayerHealth>();
+                float healAmount = health.MaxHealth * offer.HealRatio;
+                health.Heal(healAmount);
+                Debug.Log($"[Shop] 체력 {healAmount:0} 회복 → {health.CurrentHealth:0}/{health.MaxHealth:0}", this);
+                break;
+        }
+    }
+
+    /// <summary>룬 문자를 amount개 지급한다. 하나마다 종류를 무작위로 고른다.</summary>
+    private void GrantRandomRuneStones(int amount)
+    {
+        IReadOnlyList<RuneStoneDefinition> definitions = RuneStoneDatabase.Instance.GetAll();
+        RuneStoneInventory inventory = PlayerRuneManager.Instance.RuneStoneInventory;
+
+        for (int i = 0; i < Mathf.Max(1, amount); i++)
+        {
+            RuneStoneDefinition definition = definitions[Random.Range(0, definitions.Count)];
+            inventory.TryAddRuneStone(definition.RuneCharacter, 1);
+        }
+
+        Debug.Log($"[Shop] 무작위 룬 문자 {Mathf.Max(1, amount)}개 지급", this);
     }
 
     private ShopCatalogSO.Item FindItem(string id)
