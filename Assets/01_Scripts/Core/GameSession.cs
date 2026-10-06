@@ -5,8 +5,7 @@ public class GameSession : Singleton<GameSession>
 {
     // References
     private RuneEffectDatabase _runeEffectDatabase;
-    private RuneEffectLoadoutManager _runeEffectLoadoutManager;
-    private RuneStoneInventory _runeStoneInventory;
+    private PlayerRuneManager _playerRuneManager;
     private RuneBook _runeBook;
     private IReadOnlyList<ResearchNodeDefinition> _researchDefinitions;
 
@@ -15,22 +14,24 @@ public class GameSession : Singleton<GameSession>
 
     public PlayerProgression Current { get; private set; }
     public RuneLoadout CurrentRuneLoadout { get; private set; }
+    /// <summary>룬 워드 공개 상태 (도감)</summary>
+    public RuneBook RuneBook => _runeBook;
     public bool IsReady { get; private set; }
     public event Action<PlayerProgression> ProgressReplaced;
 
-    public void Initialize(RuneEffectDatabase database, RuneEffectLoadoutManager runeEffectLoadoutManager,
-        RuneStoneInventory inventory, RuneBook book, IReadOnlyList<ResearchNodeDefinition> researchDefinitions,
-        GameDefinitionSet definitions)
+    public void Initialize(RuneEffectDatabase database, PlayerRuneManager playerRuneManager,
+        RuneBook book, IReadOnlyList<ResearchNodeDefinition> researchDefinitions, GameDefinitionSet definitions)
     {
         if (IsReady)
             throw new InvalidOperationException("GameSession already initialized");
         PlayerProgression progression = new(definitions);
-        // TODO: RuneEffectLoadoutManager 완성 시 RuneLoadout 제거
-        RuneLoadout loadout = new(database, inventory, book, progression.ResearchTree, researchDefinitions);
-        runeEffectLoadoutManager.Initialize(database);
+        // 룬 문자 인벤토리는 PlayerRuneManager가 만든다. RuneLoadout보다 먼저 초기화한다.
+        playerRuneManager.Initialize(database);
+        // TODO: PlayerRuneManager 완성 시 RuneLoadout 제거
+        RuneLoadout loadout = new(database, playerRuneManager.RuneStoneInventory, book, progression.ResearchTree,
+            researchDefinitions);
         _runeEffectDatabase = database;
-        _runeEffectLoadoutManager = runeEffectLoadoutManager;
-        _runeStoneInventory = inventory;
+        _playerRuneManager = playerRuneManager;
         _runeBook = book;
         _researchDefinitions = new List<ResearchNodeDefinition>(researchDefinitions);
         _definitions = definitions;
@@ -50,10 +51,9 @@ public class GameSession : Singleton<GameSession>
             throw new InvalidOperationException("End the expedition before starting a new game.");
 
         PlayerProgression progression = new(_definitions);
-        RuneLoadout loadout = new(_runeEffectDatabase, _runeStoneInventory, _runeBook, progression.ResearchTree,
-            _researchDefinitions);
-
-        _runeEffectLoadoutManager.InitializeLoadout();
+        _playerRuneManager.ResetForNewGame();
+        RuneLoadout loadout = new(_runeEffectDatabase, _playerRuneManager.RuneStoneInventory, _runeBook,
+            progression.ResearchTree, _researchDefinitions);
 
         Current = progression;
         CurrentRuneLoadout = loadout;
@@ -129,4 +129,4 @@ public class GameSession : Singleton<GameSession>
         if (!Current.Holdings.IsOnExpedition)
             throw new InvalidOperationException("No expedition in progress.");
     }
-}
+}

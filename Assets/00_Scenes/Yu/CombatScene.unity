@@ -119,50 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &42451152
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 42451154}
-  - component: {fileID: 42451153}
-  m_Layer: 0
-  m_Name: RuneStoneInventory
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &42451153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42451152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ca6129a02bf4093ab278531e6f9586e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneStoneInventory
---- !u!4 &42451154
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42451152}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &62873827
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,7 +273,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84f300a2c72735e4aa899e98ec52eeb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAcquire
-  _runeStoneInventory: {fileID: 42451153}
 --- !u!114 &136836585 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5863673722175249506, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
@@ -932,7 +887,6 @@ MonoBehaviour:
   _runeEffectDatabase: {fileID: 1320659391}
   _skillDatabase: {fileID: 183798088}
   _researchDatabase: {fileID: 1010764932}
-  _runeStoneInventory: {fileID: 42451153}
 --- !u!4 &951670900
 Transform:
   m_ObjectHideFlags: 0
@@ -1452,7 +1406,6 @@ SceneRoots:
   - {fileID: 1010764933}
   - {fileID: 183798089}
   - {fileID: 416648580}
-  - {fileID: 42451154}
   - {fileID: 323743781}
   - {fileID: 62873830}
   - {fileID: 754828447}

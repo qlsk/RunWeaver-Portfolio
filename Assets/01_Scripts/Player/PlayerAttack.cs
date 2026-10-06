@@ -26,7 +26,7 @@ public class PlayerAttack : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     private Camera _camera;
     private RuneEffectDatabase _runeEffectDatabase;
-    private RuneEffectLoadoutManager _runeEffectLoadoutManager;
+    private PlayerRuneManager _playerRuneManager;
     private RuneEffectLoadout _runeEffectLoadout;
 
     // Loadout
@@ -63,7 +63,7 @@ public class PlayerAttack : MonoBehaviour
         if (!_isInitialized)
             return;
 
-        _runeEffectLoadoutManager.LoadoutReplaced += OnLoadoutReplaced;
+        _playerRuneManager.LoadoutReplaced += OnLoadoutReplaced;
         OnLoadoutReplaced();
     }
 
@@ -119,10 +119,10 @@ public class PlayerAttack : MonoBehaviour
     {
         _remainingBurstShots = 0;
 
-        if (_runeEffectLoadoutManager == null)
+        if (_playerRuneManager == null)
             return;
 
-        _runeEffectLoadoutManager.LoadoutReplaced -= OnLoadoutReplaced;
+        _playerRuneManager.LoadoutReplaced -= OnLoadoutReplaced;
 
         if (_runeEffectLoadout != null)
             _runeEffectLoadout.LoadoutChanged -= OnLoadoutChanged;
@@ -136,16 +136,16 @@ public class PlayerAttack : MonoBehaviour
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
         await UniTask.WaitUntil(
-            () => RuneEffectLoadoutManager.Instance != null && RuneEffectLoadoutManager.Instance.IsInitialized,
+            () => PlayerRuneManager.Instance != null && PlayerRuneManager.Instance.IsInitialized,
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
         _runeEffectDatabase = RuneEffectDatabase.Instance;
-        _runeEffectLoadoutManager = RuneEffectLoadoutManager.Instance;
+        _playerRuneManager = PlayerRuneManager.Instance;
         _isInitialized = true;
 
         if (isActiveAndEnabled)
         {
-            _runeEffectLoadoutManager.LoadoutReplaced += OnLoadoutReplaced;
+            _playerRuneManager.LoadoutReplaced += OnLoadoutReplaced;
             OnLoadoutReplaced();
         }
     }
@@ -155,7 +155,7 @@ public class PlayerAttack : MonoBehaviour
         if (_runeEffectLoadout != null)
             _runeEffectLoadout.LoadoutChanged -= OnLoadoutChanged;
 
-        _runeEffectLoadout = _runeEffectLoadoutManager.RuneEffectLoadout;
+        _runeEffectLoadout = _playerRuneManager.RuneEffectLoadout;
         _runeEffectLoadout.LoadoutChanged += OnLoadoutChanged;
 
         OnLoadoutChanged(_runeEffectLoadout.EquippedEffectIds);
@@ -255,4 +255,4 @@ public class PlayerAttack : MonoBehaviour
 
         _mainElement = element;
     }
-}
+}

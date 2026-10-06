@@ -12,18 +12,18 @@ public class ShopCatalogSO : ScriptableObject
     [Serializable]
     public class Item
     {
-        public string id;
-        public string displayName;
-        [TextArea] public string description;
-        public Sprite icon;
-        public ShopItemType type;
-        [Min(1)] public int basePrice = 100;
+        public string Id;
+        public string DisplayName;
+        [TextArea] public string Description;
+        public Sprite Icon;
+        public ShopItemType Type;
+        [Min(1)] public int BasePrice = 100;
 
         [Tooltip("룬 워드 : 사면 받는 완성품의 룬 효과 id (예: rune_pierce). 룬 워드가 아니면 비운다")]
-        public string runeEffectId;
+        public string RuneEffectId;
 
         [Tooltip("포션 : 최대 체력 대비 회복 비율 (0.3 = 최대 체력의 30% 회복). 포션이 아니면 0")]
-        [Range(0f, 1f)] public float healRatio;
+        [Range(0f, 1f)] public float RealRatio;
     }
 
     [SerializeField] private List<Item> _items = new();
