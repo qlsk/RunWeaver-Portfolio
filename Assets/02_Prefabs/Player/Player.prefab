@@ -168,6 +168,8 @@ MonoBehaviour:
   _bulletSpeed: 5
   _bulletRange: 10
   _mainElement: 0
+  _spreadAngle: 15
+  _multipleInterval: 0.1
   _magazineSize: 10
   _reloadTime: 2
 --- !u!114 &1796876364397183347
@@ -215,6 +217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+  _popupController: {fileID: 0}
   _playerOpenRuneBookKeyCode: 9
   _playerDashKeyCode: 32
   _playerSkill1KeyCode: 113
