@@ -16,6 +16,8 @@ public class GameRunResultSource : RunResultSource
     [SerializeField] private PlayerHealth _playerHealth;
     [SerializeField] private GameStageStatusSource _stageSource;
     [SerializeField] private EnemyDeathTracker _deathTracker;
+    [Tooltip("연구 자원 아이콘을 찾을 자원 정의 (원초 물질, 아조트, 수은, 에테르 결정)")]
+    [SerializeField] private ResourceDefinitionSO[] _resourceDefinitions;
 
     private float _startTime;
     private float _endTime = -1f;
@@ -81,7 +83,7 @@ public class GameRunResultSource : RunResultSource
         }
     }
 
-    private static IReadOnlyList<ResourceAmountData> GetResearchResources()
+    private IReadOnlyList<ResourceAmountData> GetResearchResources()
     {
         List<ResourceAmountData> resources = new(s_researchResourceIds.Length);
         ResourceInventory inventory = GameSession.Instance != null && GameSession.Instance.IsReady
@@ -93,9 +95,27 @@ public class GameRunResultSource : RunResultSource
         {
             int amount = 0;
             snapshot?.TryGetValue(resourceId, out amount);
-            resources.Add(new ResourceAmountData(resourceId, null, amount));
+            resources.Add(new ResourceAmountData(resourceId, FindIcon(resourceId), amount));
         }
 
         return resources;
+    }
+
+    private Sprite FindIcon(string resourceId)
+    {
+        if (_resourceDefinitions == null)
+        {
+            return null;
+        }
+
+        foreach (ResourceDefinitionSO definition in _resourceDefinitions)
+        {
+            if (definition != null && definition.Id == resourceId)
+            {
+                return definition.Icon;
+            }
+        }
+
+        return null;
     }
 }

@@ -44,6 +44,25 @@ public abstract class ShopDataSource : MonoBehaviour
         return CanAfford(RerollCost);
     }
 
+    /// <summary>
+    /// 포션 구매 전후 체력을 보여주기 위한 플레이어 체력. 씬의 PlayerHealth를 읽는다.
+    /// 플레이어가 없으면 false.
+    /// </summary>
+    public virtual bool TryGetPlayerHealth(out float current, out float max)
+    {
+        PlayerHealth health = FindAnyObjectByType<PlayerHealth>();
+        if (health != null && health.MaxHealth > 0f)
+        {
+            current = health.CurrentHealth;
+            max = health.MaxHealth;
+            return true;
+        }
+
+        current = 0f;
+        max = 0f;
+        return false;
+    }
+
     public ShopOfferData GetOffer(int slotIndex)
     {
         IReadOnlyList<ShopOfferData> offers = Offers;

@@ -15,6 +15,10 @@ public class CatalogShopDataSource : ShopDataSource
     [SerializeField, Min(0)] private int _startingGold = 5000;
     [SerializeField] private bool _openOnStart = true;
 
+    [Header("테스트용 플레이어 체력 (씬에 PlayerHealth가 없을 때 사용)")]
+    [SerializeField, Min(0f)] private float _testCurrentHealth = 45f;
+    [SerializeField, Min(1f)] private float _testMaxHealth = 100f;
+
     private readonly List<ShopOfferData> _offers = new();
     private readonly List<ShopCatalogSO.Item> _pickBuffer = new();
     private int _gold;
@@ -53,6 +57,18 @@ public class CatalogShopDataSource : ShopDataSource
         {
             Open();
         }
+    }
+
+    public override bool TryGetPlayerHealth(out float current, out float max)
+    {
+        if (base.TryGetPlayerHealth(out current, out max))
+        {
+            return true;
+        }
+
+        max = _testMaxHealth;
+        current = Mathf.Min(_testCurrentHealth, _testMaxHealth);
+        return true;
     }
 
     public override void Open()
@@ -132,7 +148,7 @@ public class CatalogShopDataSource : ShopDataSource
         float variance = _catalog.PriceVariance;
         float price = item.basePrice * Random.Range(1f - variance, 1f + variance);
         return new ShopOfferData(item.id, item.displayName, item.description, item.icon, item.type,
-            Mathf.Max(1, RoundPrice(price)));
+            Mathf.Max(1, RoundPrice(price)), item.healRatio);
     }
 
     private int RoundPrice(float price)
