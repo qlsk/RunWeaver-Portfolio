@@ -795,7 +795,7 @@ PrefabInstance:
     - target: {fileID: 4554240844751769967, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: _playerHealth
       value: 
-      objectReference: {fileID: 8110420659177510065}
+      objectReference: {fileID: 0}
     - target: {fileID: 4612960165367705702, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -1066,6 +1066,7 @@ MonoBehaviour:
   defenseAltarPrefab: {fileID: 6042031307549014131, guid: b3ca6905047fb8642b1759ad70406f8e, type: 3}
   soulHarvestZonePrefab: {fileID: 6800633804430475103, guid: 21d558cc8862ddf459f7dde8d9bd6ba3, type: 3}
   missionObjectSpawnPosition: {x: 0, y: 0, z: 0}
+  _repeatedMissionWeight: 0.25
 --- !u!4 &307671942
 Transform:
   m_ObjectHideFlags: 0
@@ -1207,6 +1208,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
   currentDepth: 1
+  _missionStageCount: 10
+  _missionTimeLimit: 120
+  _purificationDuration: 10
+  _startObjectPrefab: {fileID: 0}
+  _startObjectPosition: {x: 0, y: 2, z: 0}
+  _startObjectLayer: 6
+  _bossPrefab: {fileID: 0}
+  _bossSpawnPosition: {x: 0, y: 6, z: 0}
   portalPrefab: {fileID: 1999159252981218860, guid: 1e2eacc9f4c76324097e79e91f100141, type: 3}
   portalSpawnPosition: {x: 0, y: 0, z: 0}
   shopFloorInterval: 5
@@ -1400,11 +1409,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &455288043 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7566649832509364097, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-  m_PrefabInstance: {fileID: 7502686300656740308}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &709986234
 GameObject:
   m_ObjectHideFlags: 0
@@ -2019,6 +2023,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 914b428b6a1f739141f89e4cfb577aaf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthBarView
+--- !u!1001 &1118310059
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.01149
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.54989
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5897215615387760818, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7566649832509364097, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
+      propertyPath: m_Name
+      value: PlayerCombatScene 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 74305bbc44be5014ebe6a84facba2b96, type: 3}
 --- !u!1 &1169058032
 GameObject:
   m_ObjectHideFlags: 0
@@ -3842,8 +3903,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookPauseController
   _behavioursToDisable:
-  - {fileID: 5863673720717228404}
-  - {fileID: 340774801384284676}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &276226060761301678
 Transform:
   m_ObjectHideFlags: 0
@@ -3873,6 +3934,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FadePanelView
   _startAlpha: 0
   _fadeInDuration: 0.15
+  _maxAlpha: 1
   _startScale: 1.3
   _holdDuration: 3
   _fadeOutDuration: 0.5
@@ -3887,17 +3949,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a84ad5cd024fc2b08459dbca7e67e0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookPresenter
---- !u!114 &340774801384284676 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2002052558151069215, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-  m_PrefabInstance: {fileID: 7502686300656740308}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 455288043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
 --- !u!4 &591202267690117478
 Transform:
   m_ObjectHideFlags: 0
@@ -3947,6 +3998,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FadePanelView
   _startAlpha: 0
   _fadeInDuration: 0.5
+  _maxAlpha: 1
   _startScale: 1
   _holdDuration: 3
   _fadeOutDuration: 0.5
@@ -3983,6 +4035,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FadePanelView
   _startAlpha: 0
   _fadeInDuration: 0.6
+  _maxAlpha: 1
   _startScale: 1
   _holdDuration: 3
   _fadeOutDuration: 0
@@ -4032,7 +4085,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b33bd0f3ad8144acac8efff3ab6b8525, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneSystemHolder
-  _startRevealedCategories: 0000000001000000
 --- !u!114 &2113040957216720470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4077,7 +4129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ebc8b504c314f95975504dc8bb72811, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookV2Toggle
-  _inputHandler: {fileID: 5863673720717228404}
+  _inputHandler: {fileID: 0}
   _runeBook: {fileID: 1881311474863504300}
   _pauseController: {fileID: 4261298719248684}
   _closeKeys: 090000001b000000
@@ -4099,6 +4151,14 @@ MonoBehaviour:
   _failedPanel: {fileID: 1668942014364468321}
   _endingUI: {fileID: 1627062966}
   _stageSource: {fileID: 7097088682787474019}
+  _successText: {fileID: 0}
+  _failedText: {fileID: 0}
+  _missionCompleteText: Mission Complete
+  _runClearText: Run Clear
+  _youDieText: You Die
+  _missionFailedText: Mission Failed
+  _runAbandonedText: Run Abandoned
+  _failedPanelMaxAlpha: 0.8
 --- !u!1 &2416031143714648691
 GameObject:
   m_ObjectHideFlags: 0
@@ -4365,6 +4425,10 @@ MonoBehaviour:
   _emphasisScale: 1.3
   _emphasisDuration: 0.3
   _noTimeLimitText: --:--
+  _objectiveNameText: {fileID: 0}
+  _objectiveProgressText: {fileID: 0}
+  _objectiveFontScale: 0.55
+  _objectiveLineSpacing: 0.75
 --- !u!114 &3366663457877962215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4377,7 +4441,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a21f2867eebf45db96e3873b8be0f4d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDeathResultTrigger
-  _playerHealth: {fileID: 8110420659177510065}
+  _playerHealth: {fileID: 0}
   _missionResult: {fileID: 2396920390293750956}
 --- !u!114 &3405396358825736848
 MonoBehaviour:
@@ -4391,7 +4455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2e9d5f12d74f13b71c945d68bcbcb6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneBookToggle
-  _inputHandler: {fileID: 5863673720717228404}
+  _inputHandler: {fileID: 0}
   _presenter: {fileID: 329078829269333988}
   _pauseController: {fileID: 4261298719248684}
   _closeKeys: 090000001b000000
@@ -5396,17 +5460,6 @@ MonoBehaviour:
   target: {fileID: 0}
   smoothSpeed: 8
   offset: {x: 0, y: 0, z: -10}
---- !u!114 &5863673720717228404 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3754110856340387365, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-  m_PrefabInstance: {fileID: 7502686300656740308}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 455288043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
 --- !u!114 &6773246749242817190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5432,14 +5485,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b252f117d9814e48b542d90950134cf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameRunResultSource
-  _playerHealth: {fileID: 8110420659177510065}
+  _playerHealth: {fileID: 0}
   _stageSource: {fileID: 7097088682787474019}
   _deathTracker: {fileID: 5017721887018420292}
-  _resourceDefinitions:
-  - {fileID: 11400000, guid: 68ef1510db0d9eb4a8d47396e540fc8a, type: 2}
-  - {fileID: 11400000, guid: 0dfdee0b555979f448f077d2aef9a090, type: 2}
-  - {fileID: 11400000, guid: 2fa5709e1392e3c4e9bcf159e476b8cb, type: 2}
-  - {fileID: 11400000, guid: 667dd032be2f5e046a8b248fd683f140, type: 2}
 --- !u!114 &7084094975176446167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5452,7 +5500,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0926130350894ba497c0a49ea1c6430b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAmmoStatusSource
-  _playerAttack: {fileID: 340774801384284676}
+  _playerAttack: {fileID: 0}
 --- !u!114 &7097088682787474019
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5466,106 +5514,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameStageStatusSource
   _stageName: Spirit Realm
---- !u!1001 &7502686300656740308
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 3085005107725748379, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: _afterimagesEnabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3754110856340387365, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: _popupController
-      value: 
-      objectReference: {fileID: 709986239}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7566649832509364097, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_Name
-      value: Player
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7566649832509364097, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      insertIndex: 7
-      addedObject: {fileID: 8110420659177510082}
-  m_SourcePrefab: {fileID: 100100000, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
---- !u!114 &8110420659177510065 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6754240136049947221, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-  m_PrefabInstance: {fileID: 7502686300656740308}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 455288043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
---- !u!114 &8110420659177510082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 455288043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e98d649e8aee4f3c91c0a67cf48a9841, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffectController
-  _playerHealth: {fileID: 8110420659177510065}
-  _burnDuration: 3
-  _burnInterval: 1
-  _burnDamageMultiplier: 0.2
-  _slowDuration: 3
-  _slowMoveSpeedMultiplier: 0.5
-  _attackSlowDuration: 3
-  _attackIntervalMultiplier: 1.5
-  _staggerDuration: 0.5
+  _purificationName: Purification
+  _purificationProgress: Mission Complete
+  _clearedName: Purified
+  _clearedProgress: Enter the portal
+  _progressFormat: '{0}%'
 --- !u!1001 &8290876633665580328
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5629,7 +5582,7 @@ PrefabInstance:
     - target: {fileID: 356920814322493212, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: _playerHealth
       value: 
-      objectReference: {fileID: 8110420659177510065}
+      objectReference: {fileID: 0}
     - target: {fileID: 471356573561871105, guid: 13e19b3aeb912b04fbf528bbfbfb0e84, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5956,8 +5909,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameRuneBookV2DataSource
   _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
   _runeEffectIconCatalog: {fileID: 11400000, guid: db6ec6e88dcf4992b3349e78052514a4, type: 2}
-  _startRevealedCategories: 0000000001000000
-  _debugAddRuneStonesKey: 0
+  _testAddRuneStonesKey: 282
 --- !u!224 &8890274906935437091 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3788939947950413569, guid: 4bd246ad461e2ef5600f136b4b20ff6b, type: 3}
@@ -5982,7 +5934,6 @@ SceneRoots:
   - {fileID: 1873639914}
   - {fileID: 2240439854702175636}
   - {fileID: 777816919021414354}
-  - {fileID: 7502686300656740308}
   - {fileID: 276226060761301678}
   - {fileID: 2859060209558831655}
   - {fileID: 307671942}
@@ -5991,3 +5942,4 @@ SceneRoots:
   - {fileID: 5434363257504237404}
   - {fileID: 910000002}
   - {fileID: 591202267690117478}
+  - {fileID: 1118310059}
