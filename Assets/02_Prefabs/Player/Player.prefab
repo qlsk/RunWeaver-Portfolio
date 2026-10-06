@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1376386325469124260}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BulletPosition
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +55,9 @@ GameObject:
   - component: {fileID: 7808976935776062243}
   - component: {fileID: 4121573060399259138}
   - component: {fileID: 8800439020481767035}
-  m_Layer: 0
+  - component: {fileID: 4534917502527689588}
+  - component: {fileID: 8483855564624597261}
+  m_Layer: 7
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -168,6 +170,8 @@ MonoBehaviour:
   _bulletSpeed: 5
   _bulletRange: 10
   _mainElement: 0
+  _spreadAngle: 15
+  _multipleInterval: 0.1
   _magazineSize: 10
   _reloadTime: 2
 --- !u!114 &1796876364397183347
@@ -199,8 +203,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DashAfterimage
   _afterimagesEnabled: 1
-  _afterimageInterval: 0.035
-  _afterimageLifetime: 0.2
+  _afterimageInterval: 0.01
+  _afterimageLifetime: 0.3
   _afterimageColor: {r: 0.4, g: 0.8, b: 1, a: 0.45}
   _afterimageSources: []
 --- !u!114 &5863673722175249506
@@ -215,6 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+  _popupController: {fileID: 0}
   _playerOpenRuneBookKeyCode: 9
   _playerDashKeyCode: 32
   _playerSkill1KeyCode: 113
@@ -234,7 +239,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   _maxHealth: 100
   _currentHealth: 0
-  _invincibilityDuration: 0.5
+  _invincibilityDuration: 5
 --- !u!50 &5141058915935371194
 Rigidbody2D:
   serializedVersion: 5
@@ -396,6 +401,40 @@ MonoBehaviour:
   _armSpriteRenderer: {fileID: 227534212621198233}
   _offsetScale: 0.64
   _originOffset: 0
+--- !u!114 &4534917502527689588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff2d04d60fc9a2c4d844a1f3a9e0fa9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Cleanse
+  _playerInputHandler: {fileID: 5863673722175249506}
+--- !u!114 &8483855564624597261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e98d649e8aee4f3c91c0a67cf48a9841, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffectController
+  _playerHealth: {fileID: 8110420657988907431}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _attackSlowDuration: 3
+  _attackIntervalMultiplier: 1.5
+  _staggerDuration: 0.5
 --- !u!1 &8620150176453649939
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,7 +445,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8408192967395980671}
   - component: {fileID: 227534212621198233}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -499,7 +538,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4353578317361503239}
   - component: {fileID: 7120921233138825178}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerBehindArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
