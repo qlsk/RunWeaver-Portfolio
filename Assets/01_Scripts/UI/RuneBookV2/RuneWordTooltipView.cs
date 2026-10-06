@@ -18,9 +18,9 @@ public class RuneWordTooltipView : MonoBehaviour
     [Serializable]
     private class StoneSlot
     {
-        public Image icon;
+        public Image Icon;
         [Tooltip("모자랄 때 켜는 붉은 고리")]
-        public GameObject missingRing;
+        public GameObject MissingRing;
     }
 
     [SerializeField] private RuneBookTooltipLayout _layout;
@@ -111,18 +111,18 @@ public class RuneWordTooltipView : MonoBehaviour
             {
                 StoneSlot slot = _runeWordStones[i];
                 bool visible = i < stoneCount;
-                if (slot.icon != null)
+                if (slot.Icon != null)
                 {
-                    slot.icon.gameObject.SetActive(visible);
+                    slot.Icon.gameObject.SetActive(visible);
                     if (visible)
                     {
-                        slot.icon.sprite = stones[i].Icon;
+                        slot.Icon.sprite = stones[i].Icon;
                     }
                 }
 
-                if (slot.missingRing != null)
+                if (slot.MissingRing != null)
                 {
-                    slot.missingRing.SetActive(visible && stones[i].IsMissing);
+                    slot.MissingRing.SetActive(visible && stones[i].IsMissing);
                 }
             }
         }
