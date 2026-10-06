@@ -345,8 +345,7 @@ MonoBehaviour:
   _skillDatabase: {fileID: 429440506}
   _researchDatabase: {fileID: 373322917}
   _session: {fileID: 1489287712}
-  _runeEffectLoadoutManager: {fileID: 856864072}
-  _runeStoneInventory: {fileID: 1852019833}
+  _playerRuneManager: {fileID: 856864072}
 --- !u!4 &74425229
 Transform:
   m_ObjectHideFlags: 0
@@ -1842,7 +1841,7 @@ GameObject:
   - component: {fileID: 856864073}
   - component: {fileID: 856864072}
   m_Layer: 0
-  m_Name: RuneEffectLoadoutManager
+  m_Name: PlayerRuneManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1859,7 +1858,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a27f308a76564ef8acc1a41503da9f75, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneEffectLoadoutManager
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRuneManager
   _isDontDestroyOnLoad: 1
 --- !u!4 &856864073
 Transform:
@@ -3682,50 +3681,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1852019832
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1852019834}
-  - component: {fileID: 1852019833}
-  m_Layer: 0
-  m_Name: RuneStoneInventory
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1852019833
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1852019832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ca6129a02bf4093ab278531e6f9586e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneStoneInventory
---- !u!4 &1852019834
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1852019832}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.305, y: -3.82994, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1873639912
 GameObject:
   m_ObjectHideFlags: 0
@@ -4062,7 +4017,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b33bd0f3ad8144acac8efff3ab6b8525, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuneSystemHolder
-  _stoneInventory: {fileID: 0}
   _startRevealedCategories: 0000000001000000
 --- !u!114 &2113040957216720470
 MonoBehaviour:
@@ -5955,21 +5909,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1881311474863504300}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2576a702276c4415b74144df555293db, type: 3}
+  m_Script: {fileID: 11500000, guid: d238c815b9a9485fb59dd598a16800d4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FakeRuneBookV2DataSource
-  _startActiveSlotCount: 3
-  _startMainElementId: rune_fire
-  _startDetailedIds:
-  - rune_power
-  - rune_pierce
-  - rune_spread
-  _startRuneStones: 010000000100000002000000030000000300000000000000040000000200000000000000010000000200000000000000020000000200000002000000020000000200000000000000010000000200000000000000
+  m_EditorClassIdentifier: Assembly-CSharp::GameRuneBookV2DataSource
   _runeStoneIconCatalog: {fileID: 11400000, guid: 2037cd942beede24698b37c7d406637a, type: 2}
   _runeEffectIconCatalog: {fileID: 11400000, guid: db6ec6e88dcf4992b3349e78052514a4, type: 2}
-  _addRuneStonesKey: 0
-  _expandSlotKey: 0
-  _revealCategoryKey: 0
+  _startRevealedCategories: 0000000001000000
 --- !u!114 &2293414950012080867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5999,7 +5944,6 @@ SceneRoots:
   - {fileID: 429440507}
   - {fileID: 373322918}
   - {fileID: 856864073}
-  - {fileID: 1852019834}
   - {fileID: 2074085735}
   - {fileID: 817703559}
   - {fileID: 1169058035}

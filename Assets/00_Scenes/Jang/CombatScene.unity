@@ -271,50 +271,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
---- !u!1 &42451152
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 42451154}
-  - component: {fileID: 42451153}
-  m_Layer: 0
-  m_Name: RuneStoneInventory
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &42451153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42451152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ca6129a02bf4093ab278531e6f9586e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RuneStoneInventory
---- !u!4 &42451154
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42451152}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &62873827
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,8 +875,7 @@ MonoBehaviour:
   _skillDatabase: {fileID: 183798088}
   _researchDatabase: {fileID: 1010764932}
   _session: {fileID: 1613213599}
-  _runeEffectLoadoutManager: {fileID: 0}
-  _runeStoneInventory: {fileID: 42451153}
+  _playerRuneManager: {fileID: 0}
 --- !u!4 &951670900
 Transform:
   m_ObjectHideFlags: 0
@@ -1405,10 +1360,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
-    - target: {fileID: 5000901869329216964, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
-      propertyPath: _runeStoneInventory
-      value: 
-      objectReference: {fileID: 42451153}
     - target: {fileID: 5787910676664630094, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_IsTrigger
       value: 0
@@ -1600,7 +1551,6 @@ SceneRoots:
   - {fileID: 869455812298708977}
   - {fileID: 761737270}
   - {fileID: 1313729118}
-  - {fileID: 42451154}
   - {fileID: 1613213600}
   - {fileID: 1320659392}
   - {fileID: 1010764933}

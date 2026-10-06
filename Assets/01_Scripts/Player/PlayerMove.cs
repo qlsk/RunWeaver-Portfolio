@@ -3,6 +3,7 @@ using UnityEngine;
 public class PlayerMove : MonoBehaviour
 {
     private Dash _dash;
+    private PlayerStatusEffectController _statusEffects;
     private readonly float _playerMoveSpeed = 5f;
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
@@ -14,6 +15,7 @@ public class PlayerMove : MonoBehaviour
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerInputHandler = GetComponent<PlayerInputHandler>();
         _dash = GetComponent<Dash>();
+        _statusEffects = GetComponent<PlayerStatusEffectController>();
     }
 
     private void FixedUpdate()
@@ -23,13 +25,20 @@ public class PlayerMove : MonoBehaviour
 
     private void Move()
     {
-        if (_dash.IsDashing)
+        if (_statusEffects != null && _statusEffects.IsStaggered)
+        {
+            _playerRigidbody2D.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        if (_dash != null && _dash.IsDashing)
         {
             return;
         }
 
         Vector2 moveDirection = _playerInputHandler.MoveDirection;
 
-        _playerRigidbody2D.linearVelocity = moveDirection * _playerMoveSpeed;
+        float multiplier = _statusEffects != null ? _statusEffects.MoveSpeedMultiplier : 1f;
+        _playerRigidbody2D.linearVelocity = moveDirection * (_playerMoveSpeed * multiplier);
     }
 }

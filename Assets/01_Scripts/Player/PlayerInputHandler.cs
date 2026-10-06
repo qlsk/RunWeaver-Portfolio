@@ -73,27 +73,39 @@ public class PlayerInputHandler : MonoBehaviour
 
             // Dash key 입력 시
             if (Input.GetKeyDown(_playerDashKeyCode))
+            {
                 DashPressed?.Invoke();
+            }
 
             // skill 1 key 입력 시
             if (Input.GetKeyDown(_playerSkill1KeyCode))
+            {
                 Skill1Pressed?.Invoke();
+            }
 
             // skill 2 key 입력 시
             if (Input.GetKeyDown(_playerSkill2KeyCode))
+            {
                 Skill2Pressed?.Invoke();
+            }
 
             // open rune book key 입력 시
             if (Input.GetKeyDown(_playerOpenRuneBookKeyCode))
+            {
                 OpenRuneBookPressed?.Invoke();
+            }
 
             if (Input.GetKeyDown(KeyCode.F))
+            {
                 InteractionRequested?.Invoke();
+            }
         }
         else
         {
             if (Input.GetKeyDown(KeyCode.Escape))
+            {
                 UICloseRequested?.Invoke();
+            }
         }
     }
 
