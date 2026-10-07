@@ -193,7 +193,8 @@ public class PlayerAttack : MonoBehaviour
 
         float damage = _bulletDamage * _runeEffectConfiguration.SpreadDamageMultiplier *
                        _runeEffectConfiguration.MultipleDamageMultiplier;
-        _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration);
+        _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration,
+            transform);
 
         _currentAmmo--;
         _bulletFireCoolTimer = 0f;
