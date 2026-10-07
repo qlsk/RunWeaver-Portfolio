@@ -673,7 +673,7 @@ public class StageManager : MonoBehaviour
         return mission switch
         {
             EnemyKillMission => "Defeat Enemies",
-            SoulCollectMission => "Collect Souls",
+            SoulCollectMission => "Kill in the Zone",
             AltarDefenseMission => "Defend the Altar",
             SurvivalMission => "Survive",
             CaptureZoneMission => "Capture the Zone",
@@ -706,12 +706,20 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    /// <summary>남은 적과 적 탄환을 모두 지운다. (정화 완료, 다음 층 시작, 런 종료)</summary>
     private void ClearActiveEnemies()
     {
         EnemyHealth[] realEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (var enemy in realEnemies)
         {
             if (enemy != null) Destroy(enemy.gameObject);
+        }
+
+        // 적 탄환은 플레이어에 맞을 때만 사라지므로, 층이 바뀌어도 날아오지 않게 함께 지운다.
+        EnemyBullet[] enemyBullets = FindObjectsByType<EnemyBullet>(FindObjectsSortMode.None);
+        foreach (EnemyBullet bullet in enemyBullets)
+        {
+            if (bullet != null) Destroy(bullet.gameObject);
         }
     }
 
