@@ -102,7 +102,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             StartSpawning(1);
         }
-        else if (stageManager.Phase == StagePhase.InMission && spawnCoroutine == null)
+        else if (stageManager.Phase == StagePhase.InMission && _spawnCoroutine == null)
         {
             StartSpawning(stageManager.CurrentDepth);
         }
@@ -172,10 +172,10 @@ public class MonsterSpawner : MonoBehaviour
     /// </summary>
     public void PauseSpawning()
     {
-        if (spawnCoroutine != null)
+        if (_spawnCoroutine != null)
         {
-            StopCoroutine(spawnCoroutine);
-            spawnCoroutine = null;
+            StopCoroutine(_spawnCoroutine);
+            _spawnCoroutine = null;
         }
     }
 
@@ -184,7 +184,7 @@ public class MonsterSpawner : MonoBehaviour
     /// </summary>
     public GameObject GetFallbackEnemyPrefab()
     {
-        foreach (GameObject prefab in enemyPrefabs)
+        foreach (GameObject prefab in _enemyPrefabs)
         {
             if (prefab != null)
             {
