@@ -14,6 +14,13 @@ public class PlayerHealth : MonoBehaviour
     [Header("피격 무적 지속 시간")]
     [SerializeField] private float _invincibilityDuration = 0.5f;
 
+    /// <summary>보상 특성용: 피격 무적 지속 시간 외부 조정.</summary>
+    public float InvincibilityDuration
+    {
+        get => _invincibilityDuration;
+        set => _invincibilityDuration = Mathf.Max(0f, value);
+    }
+
     private Shield _shield;
 
     public event Action Died;

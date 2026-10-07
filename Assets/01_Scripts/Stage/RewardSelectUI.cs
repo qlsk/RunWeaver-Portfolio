@@ -31,6 +31,12 @@ public class RewardSelectUI : MonoBehaviour
     [Tooltip("확정 버튼 라벨 (선택 사항)")]
     [SerializeField] private Text _externalConfirmLabel;
 
+    [Header("열 때 표시할 문구 (비워두면 씬에 적힌 그대로 유지)")]
+    [Tooltip("보상 UI가 열릴 때 제목에 표시할 글자")]
+    [SerializeField] private string _openTitleText = "보상을 선택하세요 (반드시 1개)";
+    [Tooltip("미선택 상태에서 확정 버튼에 표시할 글자")]
+    [SerializeField] private string _noSelectionText = "카드를 선택하세요";
+
     [Header("카드 색상 (플레이스홀더)")]
     [SerializeField, FormerlySerializedAs("normalCardColor")] private Color _normalCardColor = new(0.16f, 0.17f, 0.22f, 1f);
     [SerializeField, FormerlySerializedAs("selectedCardColor")] private Color _selectedCardColor = new(0.85f, 0.65f, 0.2f, 1f);
@@ -49,8 +55,7 @@ public class RewardSelectUI : MonoBehaviour
     [Tooltip("확정 버튼 크기")]
     [SerializeField] private Vector2 _confirmButtonSize = new(440f, 64f);
     [Tooltip("제목 / 카드이름 / 카드설명 / 확정버튼 글자 크기")]
-    [SerializeField, Min(8)] private int _titleFontSize = 30;
-    [SerializeField, Min(8)] private int _cardNameFontSize = 22;
+    [SerializeField, Min(8)] private int _titleFontSize = 30;    [SerializeField, Min(8)] private int _cardNameFontSize = 22;
     [SerializeField, Min(8)] private int _cardDescFontSize = 16;
     [SerializeField, Min(8)] private int _confirmFontSize = 24;
 
@@ -146,7 +151,10 @@ public class RewardSelectUI : MonoBehaviour
             _cardBackgrounds[i].color = _normalCardColor;
         }
 
-        _titleText.text = "보상을 선택하세요 (반드시 1개)";
+        if (!string.IsNullOrEmpty(_openTitleText))
+        {
+            _titleText.text = _openTitleText;
+        }
         RefreshConfirmButton();
         _root.SetActive(true);
     }
@@ -174,6 +182,7 @@ public class RewardSelectUI : MonoBehaviour
             _cardBackgrounds[i].color = i == _selectedIndex ? _selectedCardColor : _normalCardColor;
         }
 
+        Debug.Log($"[RewardSelectUI] 카드 선택: {index} ({_currentOptions[index].Title})", this);
         RefreshConfirmButton();
 
         // 게임패드/키보드 포커스도 따라가게 한다.
@@ -214,9 +223,14 @@ public class RewardSelectUI : MonoBehaviour
 
         if (_confirmLabel != null)
         {
-            _confirmLabel.text = _selectedIndex >= 0
-                ? $"확정: {_currentOptions[_selectedIndex].Title}"
-                : "카드를 선택하세요";
+            if (_selectedIndex >= 0)
+            {
+                _confirmLabel.text = $"확정: {_currentOptions[_selectedIndex].Title}";
+            }
+            else if (!string.IsNullOrEmpty(_noSelectionText))
+            {
+                _confirmLabel.text = _noSelectionText;
+            }
         }
     }
 
@@ -382,6 +396,12 @@ public class RewardSelectUI : MonoBehaviour
             new RewardOption { Type = RewardType.Passive, Title = "데미지 +5%", Description = "데미지 +5%" },
             new RewardOption { Type = RewardType.Passive, Title = "이동속도 +5%", Description = "이동속도 +5%" }
         };
+        // 미리보기도 실전처럼 섞는다 (더미 순서 고정 방지).
+        for (int i = preview.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (preview[i], preview[j]) = (preview[j], preview[i]);
+        }
         Open(preview);
     }
 
