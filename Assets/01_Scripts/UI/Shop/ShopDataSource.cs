@@ -36,7 +36,16 @@ public abstract class ShopDataSource : MonoBehaviour
     public bool CanBuy(int slotIndex)
     {
         ShopOfferData offer = GetOffer(slotIndex);
-        return offer != null && CanAfford(offer.Price);
+        return offer != null && CanAfford(offer.Price) && CanPurchase(offer);
+    }
+
+    /// <summary>
+    /// 골드와 상관없이 지금 살 수 있는 품목인지. (예: 체력이 가득 찼으면 포션은 살 수 없다)
+    /// 기본은 항상 살 수 있다.
+    /// </summary>
+    public virtual bool CanPurchase(ShopOfferData offer)
+    {
+        return offer != null;
     }
 
     public bool CanReroll()

@@ -1127,6 +1127,44 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1741448318024911670, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
   m_PrefabInstance: {fileID: 1861652958}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &699587083560911445 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 591202267690117478, guid: 5e1c156167e833775deb2534264b5e5d, type: 3}
+  m_PrefabInstance: {fileID: 2431008639077372733}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1005605760000108646 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
+  m_PrefabInstance: {fileID: 1861652958}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1861927130367685391 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
+  m_PrefabInstance: {fileID: 606973473}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &1919903414242285023 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2113040957216720470, guid: 5e1c156167e833775deb2534264b5e5d, type: 3}
+  m_PrefabInstance: {fileID: 2431008639077372733}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1971643042951698770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8419929546764902403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9974f41e0da4fcaa61cbbc5073e28c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TitleMenuController
+  _newGameButton: {fileID: 5598999390524678384}
+  _continueButton: {fileID: 4036763186051562238}
+  _settingsButton: {fileID: 1005605760000108646}
+  _quitButton: {fileID: 1861927130367685391}
+  _loadingSceneName: LoadingScene
+  _settingsPanel: {fileID: 699587083560911445}
 --- !u!1001 &2431008639077372733
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1148,36 +1186,31 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5e1c156167e833775deb2534264b5e5d, type: 3}
---- !u!224 &1919903414242285023 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2113040957216720470, guid: 5e1c156167e833775deb2534264b5e5d, type: 3}
-  m_PrefabInstance: {fileID: 2431008639077372733}
+--- !u!1 &4036763186051562238 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
+  m_PrefabInstance: {fileID: 142867108}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &5598999390524678384 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
   m_PrefabInstance: {fileID: 720339764}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &4036763186051562238 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
-  m_PrefabInstance: {fileID: 142867108}
+--- !u!4 &7571945928994561201
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1005605760000108646 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
-  m_PrefabInstance: {fileID: 1861652958}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1861927130367685391 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4735823275401573845, guid: 5927b5d53aa09ac40aec5893c9a554ff, type: 3}
-  m_PrefabInstance: {fileID: 606973473}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &699587083560911445 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 591202267690117478, guid: 5e1c156167e833775deb2534264b5e5d, type: 3}
-  m_PrefabInstance: {fileID: 2431008639077372733}
-  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8419929546764902403}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8419929546764902403
 GameObject:
   m_ObjectHideFlags: 0
@@ -1195,39 +1228,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7571945928994561201
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8419929546764902403}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1971643042951698770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8419929546764902403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9974f41e0da4fcaa61cbbc5073e28c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TitleMenuController
-  _newGameButton: {fileID: 5598999390524678384}
-  _continueButton: {fileID: 4036763186051562238}
-  _settingsButton: {fileID: 1005605760000108646}
-  _quitButton: {fileID: 1861927130367685391}
-  _loadingSceneName: LoadingScene
-  _settingsPanel: {fileID: 699587083560911445}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

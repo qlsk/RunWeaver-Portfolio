@@ -35,6 +35,27 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Multiple"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectMultiple() => SelectRune(RuneEffectIds.Multiple);
 
+    [Button("Pierce"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectPierce() => SelectRune(RuneEffectIds.Pierce);
+
+    [Button("Reverse"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectReverse() => SelectRune(RuneEffectIds.Reverse);
+
+    [Button("Return"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectReturn() => SelectRune(RuneEffectIds.Return);
+
+    [Button("Seek"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectSeek() => SelectRune(RuneEffectIds.Seek);
+
+    [Button("Orbit"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectOrbit() => SelectRune(RuneEffectIds.Orbit);
+
+    [Button("Fix"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectFix() => SelectRune(RuneEffectIds.Fix);
+
+    [Button("Chain"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectChain() => SelectRune(RuneEffectIds.Chain);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();
