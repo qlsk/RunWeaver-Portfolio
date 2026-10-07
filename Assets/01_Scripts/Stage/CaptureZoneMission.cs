@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 미션 5: 거점 점령 (일정 구역을 플레이어가 계속 밟고 있으면 게이지가 차고 100% 달성 시 클리어)
@@ -7,51 +8,51 @@ public class CaptureZoneMission : MissionBase
 {
     [Header("점령 설정")]
     [Tooltip("점령 완료(100%)에 필요한 구역 내 총 체류 시간 (초)")]
-    [SerializeField] private float targetCaptureTime = 10f;
+    [SerializeField, FormerlySerializedAs("targetCaptureTime")] private float _targetCaptureTime = 10f;
 
     [Tooltip("구역 밖으로 벗어났을 때 점령 게이지가 서서히 감소할지 여부")]
-    [SerializeField] private bool decayWhenOutside = false;
+    [SerializeField, FormerlySerializedAs("decayWhenOutside")] private bool _decayWhenOutside = false;
 
     [Tooltip("구역 밖일 때 게이지 감소 속도 비율 (1이면 채우는 속도와 동일)")]
-    [SerializeField] private float decayRate = 0.5f;
+    [SerializeField, FormerlySerializedAs("decayRate")] private float _decayRate = 0.5f;
 
     [Header("점령 구역 (비워두면 씬의 CaptureZone 자동 탐색)")]
-    [SerializeField] private CaptureZone targetZone;
+    [SerializeField, FormerlySerializedAs("targetZone")] private CaptureZone _targetZone;
 
-    private float currentCaptureTime = 0f;
-    private bool isPlayerInZone = false;
-    private float lastLogTime = 0f;
+    private float _currentCaptureTime = 0f;
+    private bool _isPlayerInZone = false;
+    private float _lastLogTime = 0f;
 
-    public bool IsPlayerInZone => isPlayerInZone;
+    public bool IsPlayerInZone => _isPlayerInZone;
 
     /// <summary>
     /// MissionManager에서 생성된 신규 점령 구역 오브젝트를 직접 전달받습니다.
     /// </summary>
     public void SetTargetZone(CaptureZone zone)
     {
-        targetZone = zone;
+        _targetZone = zone;
     }
 
     public override void Initialize()
     {
-        currentCaptureTime = 0f;
-        isPlayerInZone = false;
-        lastLogTime = 0f;
+        _currentCaptureTime = 0f;
+        _isPlayerInZone = false;
+        _lastLogTime = 0f;
         IsCompleted = false;
         IsFailed = false;
 
         // 직접 전달받지 않은 경우에만 폴백으로 씬 전체 탐색
-        if (targetZone == null)
+        if (_targetZone == null)
         {
-            targetZone = FindAnyObjectByType<CaptureZone>();
+            _targetZone = FindAnyObjectByType<CaptureZone>();
         }
 
-        if (targetZone != null)
+        if (_targetZone != null)
         {
-            targetZone.OnPlayerPresenceChanged -= HandlePlayerPresenceChanged;
-            targetZone.OnPlayerPresenceChanged += HandlePlayerPresenceChanged;
-            isPlayerInZone = targetZone.IsPlayerInside;
-            Debug.Log($"[CaptureZoneMission] 점령 구역 연결 완료: {targetZone.name}, 목표 시간 {targetCaptureTime}초");
+            _targetZone.OnPlayerPresenceChanged -= HandlePlayerPresenceChanged;
+            _targetZone.OnPlayerPresenceChanged += HandlePlayerPresenceChanged;
+            _isPlayerInZone = _targetZone.IsPlayerInside;
+            Debug.Log($"[CaptureZoneMission] 점령 구역 연결 완료: {_targetZone.name}, 목표 시간 {_targetCaptureTime}초");
         }
         else
         {
@@ -73,9 +74,9 @@ public class CaptureZoneMission : MissionBase
 
     private void UnsubscribeZone()
     {
-        if (targetZone != null)
+        if (_targetZone != null)
         {
-            targetZone.OnPlayerPresenceChanged -= HandlePlayerPresenceChanged;
+            _targetZone.OnPlayerPresenceChanged -= HandlePlayerPresenceChanged;
         }
     }
 
@@ -83,33 +84,33 @@ public class CaptureZoneMission : MissionBase
     {
         if (IsCompleted || IsFailed) return;
 
-        if (isPlayerInZone)
+        if (_isPlayerInZone)
         {
-            currentCaptureTime += deltaTime;
+            _currentCaptureTime += deltaTime;
             NotifyProgressUpdated();
 
-            if (Time.time - lastLogTime >= 1f)
+            if (Time.time - _lastLogTime >= 1f)
             {
-                lastLogTime = Time.time;
+                _lastLogTime = Time.time;
                 int percent = Mathf.FloorToInt(GetProgressRatio() * 100f);
-                Debug.Log($"[거점 점령] 점령 진행 중... {percent}% ({currentCaptureTime:F1}초 / {targetCaptureTime:F1}초)");
+                Debug.Log($"[거점 점령] 점령 진행 중... {percent}% ({_currentCaptureTime:F1}초 / {_targetCaptureTime:F1}초)");
             }
 
-            if (currentCaptureTime >= targetCaptureTime)
+            if (_currentCaptureTime >= _targetCaptureTime)
             {
-                currentCaptureTime = targetCaptureTime;
+                _currentCaptureTime = _targetCaptureTime;
                 Debug.Log("[거점 점령] ★ 점령 100% 달성! ★");
                 CompleteMission();
             }
         }
-        else if (decayWhenOutside && currentCaptureTime > 0f)
+        else if (_decayWhenOutside && _currentCaptureTime > 0f)
         {
-            currentCaptureTime = Mathf.Max(0f, currentCaptureTime - (deltaTime * decayRate));
+            _currentCaptureTime = Mathf.Max(0f, _currentCaptureTime - (deltaTime * _decayRate));
             NotifyProgressUpdated();
 
-            if (Time.time - lastLogTime >= 1f)
+            if (Time.time - _lastLogTime >= 1f)
             {
-                lastLogTime = Time.time;
+                _lastLogTime = Time.time;
                 int percent = Mathf.FloorToInt(GetProgressRatio() * 100f);
                 Debug.Log($"[거점 점령] 구역 밖 이탈! 점령도 감소 중... {percent}%");
             }
@@ -118,7 +119,7 @@ public class CaptureZoneMission : MissionBase
 
     private void HandlePlayerPresenceChanged(bool inZone)
     {
-        isPlayerInZone = inZone;
+        _isPlayerInZone = inZone;
         int percent = Mathf.FloorToInt(GetProgressRatio() * 100f);
 
         if (inZone)
@@ -135,14 +136,14 @@ public class CaptureZoneMission : MissionBase
 
     public override float GetProgressRatio()
     {
-        if (targetCaptureTime <= 0f) return 1f;
-        return Mathf.Clamp01(currentCaptureTime / targetCaptureTime);
+        if (_targetCaptureTime <= 0f) return 1f;
+        return Mathf.Clamp01(_currentCaptureTime / _targetCaptureTime);
     }
 
     public override string GetProgressText()
     {
         int percentage = Mathf.FloorToInt(GetProgressRatio() * 100f);
-        string status = isPlayerInZone ? " (점령 진행 중...)" : " (구역 밖 대기)";
+        string status = _isPlayerInZone ? " (점령 진행 중...)" : " (구역 밖 대기)";
         return $"거점 점령: {percentage}%{status}";
     }
 }
