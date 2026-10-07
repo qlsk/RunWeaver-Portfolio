@@ -1,14 +1,16 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class ReturnConfirmPopupUI : MonoBehaviour
 {
     [Header("UI 패널")]
-    [Tooltip("비워두거나 본인을 연결하면 CanvasGroup을 통해 안전하게 표시/숨김 처리됩니다.")][SerializeField] private GameObject _popupPanel;
+    [Tooltip("비워두거나 본인을 연결하면 CanvasGroup을 통해 안전하게 표시/숨김 처리됩니다.")]
+    [SerializeField, FormerlySerializedAs("popupPanel")] private GameObject _popupPanel;
 
     [Header("조작 버튼")]
-    [SerializeField] private Button _proceedButton; // [계속 진행] 버튼
-    [SerializeField] private Button _returnButton; // [복귀] 버튼
+    [SerializeField, FormerlySerializedAs("proceedButton")] private Button _proceedButton;  // [계속 진행] 버튼
+    [SerializeField, FormerlySerializedAs("returnButton")] private Button _returnButton;   // [복귀] 버튼
 
     private CanvasGroup _canvasGroup;
 

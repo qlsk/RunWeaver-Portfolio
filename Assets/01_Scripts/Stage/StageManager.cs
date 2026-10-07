@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 스테이지 진행(심도, 미션 시작, 정화, 포탈 이동, 런 종료)을 관리한다.
@@ -50,7 +51,7 @@ public class StageManager : MonoBehaviour
     }
 
     [Header("스테이지 상태 정보")]
-    [SerializeField] private int _currentDepth = 1;
+    [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
     [Header("런 구성")]
     [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")][SerializeField, Min(1)] private int _missionStageCount = 10;
@@ -70,14 +71,17 @@ public class StageManager : MonoBehaviour
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
 
     [Header("포탈 프리팹 및 스폰 위치")]
-    [SerializeField] private GameObject _portalPrefab;
-    [Tooltip("포탈이 놓이는 위치 (맵 중앙)")][SerializeField] private Vector3 _portalSpawnPosition = Vector3.zero;
+    [SerializeField, FormerlySerializedAs("portalPrefab")] private GameObject _portalPrefab;
+    [Tooltip("포탈이 놓이는 위치 (맵 중앙)")]
+    [SerializeField, FormerlySerializedAs("portalSpawnPosition")] private Vector3 _portalSpawnPosition = Vector3.zero;
 
     [Header("상점")]
-    [Tooltip("이 층수 단위를 넘어갈 때 상점을 연다 (5면 5→6 ...). 보스 스테이지로 갈 때도 연다.")][SerializeField, Min(1)]
-    private int _shopFloorInterval = 5;
-    [Tooltip("비워두면 씬에서 찾는다 (꺼진 오브젝트 포함)")][SerializeField] private ShopPresenter _shopPresenter;
-    [Tooltip("비워두면 씬에서 찾는다")][SerializeField] private PopupController _popupController;
+    [Tooltip("이 층수 단위를 넘어갈 때 상점을 연다 (5면 5→6 ...). 보스 스테이지로 갈 때도 연다.")]
+    [SerializeField, FormerlySerializedAs("shopFloorInterval"), Min(1)] private int _shopFloorInterval = 5;
+    [Tooltip("비워두면 씬에서 찾는다 (꺼진 오브젝트 포함)")]
+    [SerializeField, FormerlySerializedAs("shopPresenter")] private ShopPresenter _shopPresenter;
+    [Tooltip("비워두면 씬에서 찾는다")]
+    [SerializeField, FormerlySerializedAs("popupController")] private PopupController _popupController;
 
     private PortalSpawner _portalSpawner;
     private MissionManager _missionManager;
@@ -666,7 +670,7 @@ public class StageManager : MonoBehaviour
         return mission switch
         {
             EnemyKillMission => "Defeat Enemies",
-            SoulCollectMission => "Collect Souls",
+            SoulCollectMission => "Kill in the Zone",
             AltarDefenseMission => "Defend the Altar",
             SurvivalMission => "Survive",
             CaptureZoneMission => "Capture the Zone",
@@ -699,12 +703,20 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    /// <summary>남은 적과 적 탄환을 모두 지운다. (정화 완료, 다음 층 시작, 런 종료)</summary>
     private void ClearActiveEnemies()
     {
         EnemyHealth[] realEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (var enemy in realEnemies)
         {
             if (enemy != null) Destroy(enemy.gameObject);
+        }
+
+        // 적 탄환은 플레이어에 맞을 때만 사라지므로, 층이 바뀌어도 날아오지 않게 함께 지운다.
+        EnemyBullet[] enemyBullets = FindObjectsByType<EnemyBullet>(FindObjectsSortMode.None);
+        foreach (EnemyBullet bullet in enemyBullets)
+        {
+            if (bullet != null) Destroy(bullet.gameObject);
         }
     }
 

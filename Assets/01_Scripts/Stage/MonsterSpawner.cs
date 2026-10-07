@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class MonsterSpawner : MonoBehaviour
 {
@@ -20,25 +21,25 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     [Header("몬스터 프리팹 데이터베이스 (프리팹 직접 등록)")]
-    [SerializeField] private List<GameObject> _enemyPrefabs = new List<GameObject>();
+    [SerializeField, FormerlySerializedAs("enemyPrefabs")] private List<GameObject> _enemyPrefabs = new List<GameObject>();
 
     [Header("예산(Budget) 스케일링 설정")]
-    [SerializeField] private int _baseBudget = 20;
-    [SerializeField] private int _budgetPerDepth = 10;
+    [SerializeField, FormerlySerializedAs("baseBudget")] private int _baseBudget = 20;
+    [SerializeField, FormerlySerializedAs("budgetPerDepth")] private int _budgetPerDepth = 10;
 
     [Header("최대 마릿수(Count) 스케일링 설정")]
-    [SerializeField] private int _baseMaxMonsterCount = 15;
-    [SerializeField] private int _monsterCountPerDepth = 5;
+    [SerializeField, FormerlySerializedAs("baseMaxMonsterCount")] private int _baseMaxMonsterCount = 15;
+    [SerializeField, FormerlySerializedAs("monsterCountPerDepth")] private int _monsterCountPerDepth = 5;
 
     [Header("스폰 주기 및 티어 가속 계수")]
-    [SerializeField] private float _spawnInterval = 0.5f;
-    [SerializeField] private float _tierGrowthMultiplier = 5f;
+    [SerializeField, FormerlySerializedAs("spawnInterval")] private float _spawnInterval = 0.5f;
+    [SerializeField, FormerlySerializedAs("tierGrowthMultiplier")] private float _tierGrowthMultiplier = 5f;
 
     [Header("스폰 거리 및 연출")]
-    [SerializeField] private float _minSpawnDistance = 8f;
-    [SerializeField] private float _maxSpawnDistance = 12f;
-    [SerializeField] private GameObject _spawnEffectPrefab;
-    [SerializeField] private float _effectDuration = 1f;
+    [SerializeField, FormerlySerializedAs("minSpawnDistance")] private float _minSpawnDistance = 8f;
+    [SerializeField, FormerlySerializedAs("maxSpawnDistance")] private float _maxSpawnDistance = 12f;
+    [SerializeField, FormerlySerializedAs("spawnEffectPrefab")] private GameObject _spawnEffectPrefab;
+    [SerializeField, FormerlySerializedAs("effectDuration")] private float _effectDuration = 1f;
 
     private Transform _playerTransform;
     private Coroutine _spawnCoroutine;

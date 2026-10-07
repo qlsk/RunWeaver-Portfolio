@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 스테이지 시스템이 몬스터에 부착하는 메타 정보.
@@ -6,12 +7,12 @@ using UnityEngine;
 /// </summary>
 public class StageEnemyInfo : MonoBehaviour
 {
-    [SerializeField] private bool isElite = false;
+    [SerializeField, FormerlySerializedAs("isElite")] private bool _isElite = false;
 
-    public bool IsElite => isElite;
+    public bool IsElite => _isElite;
 
     public void Setup(bool elite)
     {
-        isElite = elite;
+        _isElite = elite;
     }
 }

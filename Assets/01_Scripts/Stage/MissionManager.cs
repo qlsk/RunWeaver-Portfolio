@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum MissionType
 {
@@ -34,12 +35,12 @@ public class MissionManager : MonoBehaviour
     }
 
     [Header("미션 전용 오브젝트 프리팹")]
-    [SerializeField] private GameObject _captureZonePrefab; // 거점 점령용 프리팹
-    [SerializeField] private GameObject _defenseAltarPrefab; // 제단 방어용 프리팹
-    [SerializeField] private GameObject _soulHarvestZonePrefab; // 영혼 수집 구역용 프리팹
+    [SerializeField, FormerlySerializedAs("captureZonePrefab")] private GameObject _captureZonePrefab;      // 거점 점령용 프리팹
+    [SerializeField, FormerlySerializedAs("defenseAltarPrefab")] private GameObject _defenseAltarPrefab;     // 제단 방어용 프리팹
+    [SerializeField, FormerlySerializedAs("soulHarvestZonePrefab")] private GameObject _soulHarvestZonePrefab;  // 영혼 수집 구역용 프리팹
 
     [Header("스폰 위치 설정")]
-    [SerializeField] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
+    [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
 
     [Header("미션 추첨")]
     [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")][SerializeField, Range(0f, 1f)]

@@ -18,6 +18,12 @@ public class PlayerHealth : MonoBehaviour
 
     public event Action Died;
 
+    /// <summary>보상 특성용: 실제 피해 확정 통지 (쉴드 소모·무적 회피분은 나가지 않음).</summary>
+    public event Action<float> Damaged;
+
+    /// <summary>보상 특성용 피해 배율 (기본 1). 받는 피해에 곱해진다.</summary>
+    public float DamageTakenMultiplier { get; set; } = 1f;
+
     private bool _isDead = false;
     public bool IsDead => _isDead;
 
@@ -65,14 +71,16 @@ public class PlayerHealth : MonoBehaviour
 
     private void ApplyDamage(float damage)
     {
-        if (_currentHealth - damage <= 0f)
+        float finalDamage = Mathf.Max(0f, damage) * DamageTakenMultiplier;
+        Damaged?.Invoke(finalDamage);
+        if (_currentHealth - finalDamage <= 0f)
         {
             _currentHealth = 0f;
             Death();
         }
         else
         {
-            _currentHealth -= damage;
+            _currentHealth -= finalDamage;
         }
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 미션 클리어 후 등장하는 포탈. 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
@@ -49,7 +50,7 @@ public class Portal : MonoBehaviour, IInteractable
     [Tooltip("맥동이 켜지고 꺼질 때 걸리는 시간")][SerializeField, Min(0.01f)] private float _pulseBlendDuration = 0.25f;
 
     [Header("Gizmo")]
-    [SerializeField] private Color _gizmoColor = new(0f, 1f, 1f, 0.4f);
+    [SerializeField, FormerlySerializedAs("gizmoColor")] private Color _gizmoColor = new(0f, 1f, 1f, 0.4f);
 
     private Vector3 _baseScale = Vector3.one;
     private Color _spriteColor = Color.white;
