@@ -13,6 +13,12 @@ public class Bullet : MonoBehaviour
     [FoldoutGroup("References"), SerializeField] private DelugeReaction _delugeReaction;
     [FoldoutGroup("References"), SerializeField] private MireReaction _mireReaction;
     [FoldoutGroup("References"), SerializeField] private TempestReaction _tempestReaction;
+    [FoldoutGroup("References"), SerializeField] private PetrifyReaction _petrifyReaction;
+    [FoldoutGroup("References"), SerializeField] private CycloneReaction _cycloneReaction;
+    [FoldoutGroup("References"), SerializeField] private SandstormReaction _sandstormReaction;
+
+    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
+    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
 
     [Header("Cast Effect")]
     [SerializeField] private ParticleSystem _castEffectPrefab;
@@ -60,20 +66,35 @@ public class Bullet : MonoBehaviour
         Destroy(effect.gameObject, _castEffectLifetime);
     }
 
-    /// 공격 방향으로 탄환을 이동시키고 사거리에 도달하면 제거한다.
+    /// 이동 거리 비율에 따른 EaseOutQuint로 속도를 변경하고 사거리에 도달하면 제거한다.
     private void Update()
     {
         if (!_isInitialized)
             return;
 
         float remainingDistance = _attackData.Range - _travelDistance;
-        float moveDistance = Mathf.Min(_attackData.Speed * Time.deltaTime, remainingDistance);
+        if (remainingDistance <= 0f)
+        {
+            DestroyBullet();
+            return;
+        }
+
+        float speed = CalculateSpeed(_travelDistance / _attackData.Range);
+        float moveDistance = Mathf.Min(speed * Time.deltaTime, remainingDistance);
 
         transform.position += (Vector3)(_attackData.Direction * moveDistance);
         _travelDistance += moveDistance;
 
         if (_travelDistance >= _attackData.Range)
             DestroyBullet();
+    }
+
+    /// EaseOutQuint로 인스펙터의 시작 속도에서 마지막 속도까지 보간한다.
+    private float CalculateSpeed(float progress)
+    {
+        float remainingProgress = 1f - Mathf.Clamp01(progress);
+        float easedProgress = 1f - remainingProgress * remainingProgress * remainingProgress * remainingProgress * remainingProgress;
+        return Mathf.Lerp(_startSpeed, _endSpeed, easedProgress);
     }
 
     /// 적중 중복을 차단하고 직접 피해와 원소 효과를 적용한 뒤 탄환을 제거한다.
@@ -157,6 +178,16 @@ public class Bullet : MonoBehaviour
             case (ReactionElement.Water, ReactionElement.Wind):
             case (ReactionElement.Wind, ReactionElement.Water):
                 _tempestReaction.Execute(context);
+                break;
+            case (ReactionElement.Earth, ReactionElement.Earth):
+                _petrifyReaction.Execute(context);
+                break;
+            case (ReactionElement.Wind, ReactionElement.Wind):
+                _cycloneReaction.Execute(context);
+                break;
+            case (ReactionElement.Earth, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Earth):
+                _sandstormReaction.Execute(context);
                 break;
         }
     }

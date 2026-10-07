@@ -37,6 +37,14 @@ public class EnemyStatusEffectController : MonoBehaviour
     // Root state
     private readonly HashSet<int> _rootModifiers = new();
 
+    // Petrify state
+    private int _petrifySourceId;
+    private float _petrifyRemaining;
+    private float _petrifyMoveSpeedMultiplier;
+    private float _petrifyDefenseMultiplier;
+    private bool _petrifyRoots;
+    private bool _hasPetrify;
+
     // Stagger state
     private float _staggerRemaining;
 
@@ -128,6 +136,24 @@ public class EnemyStatusEffectController : MonoBehaviour
         _slowRemaining = Mathf.Max(_slowRemaining - deltaTime, 0f);
         _staggerRemaining = Mathf.Max(_staggerRemaining - deltaTime, 0f);
         _knockbackRemaining = Mathf.Max(_knockbackRemaining - deltaTime, 0f);
+        if (_hasPetrify)
+        {
+            _petrifyRemaining = Mathf.Max(_petrifyRemaining - deltaTime, 0f);
+            if (_petrifyRemaining <= 0f)
+                ClearPetrify();
+        }
+    }
+
+    /// 비활성화 시 석화가 등록한 이동 제한과 방어력 감소만 해제한다.
+    private void OnDisable()
+    {
+        ClearPetrify();
+    }
+
+    /// 파괴 시 남아 있는 석화 등록을 정리한다.
+    private void OnDestroy()
+    {
+        ClearPetrify();
     }
 
     /// 단일 원소에 따라 연소, 감속, 경직 또는 넉백을 적용한다.
@@ -145,12 +171,57 @@ public class EnemyStatusEffectController : MonoBehaviour
                 _staggerRemaining = _staggerDuration;
                 break;
             case ReactionElement.Wind:
-                _knockbackVelocity = bulletDirection.normalized * _knockbackSpeed;
-                _knockbackRemaining = _knockbackDuration;
+                ApplyKnockback(bulletDirection, _knockbackSpeed, _knockbackDuration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(element), element, null);
         }
+    }
+
+    /// 석화 시간을 갱신하고 재적용 시 강한 이동 제한과 방어력 감소를 유지한다.
+    public void ApplyPetrify(float duration, float moveSpeedMultiplier, bool root, float defenseMultiplier)
+    {
+        if (!_hasPetrify)
+        {
+            _petrifySourceId = GetInstanceID();
+            _petrifyMoveSpeedMultiplier = moveSpeedMultiplier;
+            _petrifyDefenseMultiplier = defenseMultiplier;
+            _petrifyRoots = root;
+        }
+        else
+        {
+            _petrifyMoveSpeedMultiplier = Mathf.Min(_petrifyMoveSpeedMultiplier, moveSpeedMultiplier);
+            _petrifyDefenseMultiplier = Mathf.Min(_petrifyDefenseMultiplier, defenseMultiplier);
+            _petrifyRoots |= root;
+        }
+
+        _hasPetrify = true;
+        _petrifyRemaining = duration;
+        AddMoveSpeedModifier(_petrifySourceId, _petrifyMoveSpeedMultiplier);
+        if (_petrifyRoots)
+            AddRootModifier(_petrifySourceId);
+        _enemyHealth.AddDefenseModifier(_petrifySourceId, _petrifyDefenseMultiplier);
+    }
+
+    /// 지정한 방향과 속도로 일정 시간 넉백을 적용한다.
+    public void ApplyKnockback(Vector2 direction, float speed, float duration)
+    {
+        _knockbackVelocity = direction.normalized * speed;
+        _knockbackRemaining = duration;
+    }
+
+    /// 석화 출처만 해제하고 지속 상태를 초기화한다.
+    private void ClearPetrify()
+    {
+        if (!_hasPetrify)
+            return;
+
+        RemoveMoveSpeedModifier(_petrifySourceId);
+        RemoveRootModifier(_petrifySourceId);
+        if (_enemyHealth != null)
+            _enemyHealth.RemoveDefenseModifier(_petrifySourceId);
+        _petrifyRemaining = 0f;
+        _hasPetrify = false;
     }
 
     /// 연소 시간을 갱신하고 재적용 시 피해 타이머를 유지하면서 더 높은 초당 피해 설정을 채택한다.

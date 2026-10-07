@@ -32,7 +32,8 @@ public class RangeEnemyMovement : MonoBehaviour
         Transform target = _targetDetector.Target;
         bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
         bool isPushed = _statusEffectController != null && _statusEffectController.IsPushed;
-        if (target == null && !isPulled && !isPushed)
+        Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
+        if (target == null && !isPulled && !isPushed && knockback == Vector2.zero)
         {
             _enemyRigidbody2D.linearVelocity = Vector2.zero;
             return;
@@ -51,7 +52,6 @@ public class RangeEnemyMovement : MonoBehaviour
             moveVelocity = direction * (_enemyData.Stat.MoveSpeed * speedMultiplier);
         }
 
-        Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
         Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
         Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
         _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
