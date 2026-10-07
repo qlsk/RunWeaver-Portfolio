@@ -16,6 +16,12 @@ GameObject:
   - component: {fileID: 8652517633453959891}
   - component: {fileID: 3481771100437686312}
   - component: {fileID: 7216901170541185801}
+  - component: {fileID: 7216901170541185802}
+  - component: {fileID: 7216901170541185803}
+  - component: {fileID: 7216901170541185804}
+  - component: {fileID: 7216901170541185805}
+  - component: {fileID: 7216901170541185806}
+  - component: {fileID: 7216901170541185807}
   m_Layer: 0
   m_Name: ElementalBullet
   m_TagString: Untagged
@@ -110,10 +116,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97dfdaeb5e04e534890f7d7cfcebf1f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  _petrifyReaction: {fileID: 7216901170541185805}
+  _cycloneReaction: {fileID: 7216901170541185806}
+  _sandstormReaction: {fileID: 7216901170541185807}
   _overHeatReaction: {fileID: 4621851132757544785}
   _steamReaction: {fileID: 8652517633453959891}
   _moltenReaction: {fileID: 3481771100437686312}
   _firestormReaction: {fileID: 7216901170541185801}
+  _delugeReaction: {fileID: 7216901170541185802}
+  _mireReaction: {fileID: 7216901170541185803}
+  _tempestReaction: {fileID: 7216901170541185804}
   _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
   _castEffectScale: 1
   _castEffectLifetime: 3
@@ -244,6 +256,58 @@ MonoBehaviour:
   _burnTickInterval: 1
   _burnDuration: 3
   _pullSpeed: 1
+--- !u!114 &7216901170541185802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97179f7a54a84bd3a8804be2f3ed52d4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DelugeReaction
+  _delugeAreaPrefab: {fileID: 2896922333138103206, guid: 9fdd64fdbf7c48efa7c40276b9cd9228, type: 3}
+  _delugeRadius: 3
+  _delugeDuration: 3
+  _moveSpeedMultiplier: 0.5
+  _pushSpeed: 2
+--- !u!114 &7216901170541185803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1554cdc98f0e409db656c105f0d8f26e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MireReaction
+  _mireAreaPrefab: {fileID: 2896922333138103206, guid: 071070c872d54897879f69d093f96919, type: 3}
+  _mireRadius: 3
+  _mireDuration: 5
+  _moveSpeedMultiplier: 0.25
+  _rootExposureDuration: 2
+--- !u!114 &7216901170541185804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd111d75782461e92bdf84191d367b7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TempestReaction
+  _tempestAreaPrefab: {fileID: 2896922333138103206, guid: e8bf4b7a50a2444a84b565c2e7f835a5, type: 3}
+  _tempestRadius: 3
+  _tempestDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
 --- !u!1001 &7001000000000000001
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -318,3 +382,62 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
   m_PrefabInstance: {fileID: 7001000000000000001}
   m_PrefabAsset: {fileID: 0}
+
+--- !u!114 &7216901170541185805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a16f56af8e7145488a81d27878dbee5a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PetrifyReaction
+  _petrifyRadius: 2
+  _petrifyDuration: 3
+  _moveSpeedMultiplier: 0.2
+  _root: 1
+  _defenseMultiplier: 0.5
+
+--- !u!114 &7216901170541185806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5050f9beebbb47fe827c8a63a2ecb527, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CycloneReaction
+  _cycloneAreaPrefab: {fileID: 2896922333138103206, guid: fb9a2c2fcf2e4ae79c635444decdd35d, type: 3}
+  _cycloneRadius: 3
+  _cycloneDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
+  _knockbackSpeed: 5
+  _knockbackDuration: 0.3
+
+--- !u!114 &7216901170541185807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435869128427126605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36283b04ede44c6e8e957e11a5983309, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SandstormReaction
+  _sandstormAreaPrefab: {fileID: 2896922333138103206, guid: 63bdedbe65f144e0b8a469d57bfc9068, type: 3}
+  _sandstormRadius: 3
+  _sandstormDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
+  _defenseMultiplier: 0.5

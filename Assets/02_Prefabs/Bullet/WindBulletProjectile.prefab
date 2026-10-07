@@ -9801,6 +9801,9 @@ GameObject:
   - component: {fileID: 6809880747103385932}
   - component: {fileID: 7501313899495622879}
   - component: {fileID: 7695118270808426037}
+  - component: {fileID: 7216901170541185805}
+  - component: {fileID: 7216901170541185806}
+  - component: {fileID: 7216901170541185807}
   m_Layer: 0
   m_Name: WindBulletProjectile
   m_TagString: Untagged
@@ -14700,6 +14703,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97dfdaeb5e04e534890f7d7cfcebf1f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  _petrifyReaction: {fileID: 7216901170541185805}
+  _cycloneReaction: {fileID: 7216901170541185806}
+  _sandstormReaction: {fileID: 7216901170541185807}
 --- !u!58 &7695118270808426037
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -19785,3 +19791,62 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da1b031a13b76d34892fdc5af6a0d348, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+
+--- !u!114 &7216901170541185805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a16f56af8e7145488a81d27878dbee5a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PetrifyReaction
+  _petrifyRadius: 2
+  _petrifyDuration: 3
+  _moveSpeedMultiplier: 0.2
+  _root: 1
+  _defenseMultiplier: 0.5
+
+--- !u!114 &7216901170541185806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5050f9beebbb47fe827c8a63a2ecb527, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CycloneReaction
+  _cycloneAreaPrefab: {fileID: 2896922333138103206, guid: fb9a2c2fcf2e4ae79c635444decdd35d, type: 3}
+  _cycloneRadius: 3
+  _cycloneDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
+  _knockbackSpeed: 5
+  _knockbackDuration: 0.3
+
+--- !u!114 &7216901170541185807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36283b04ede44c6e8e957e11a5983309, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SandstormReaction
+  _sandstormAreaPrefab: {fileID: 2896922333138103206, guid: 63bdedbe65f144e0b8a469d57bfc9068, type: 3}
+  _sandstormRadius: 3
+  _sandstormDuration: 3
+  _tickDamageMultiplier: 0.2
+  _tickInterval: 0.5
+  _pullSpeed: 2
+  _defenseMultiplier: 0.5
