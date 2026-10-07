@@ -215,11 +215,11 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
             return;
         }
 
-        if (option.type == RewardType.RuneStone)
+        if (option.Type == RewardType.RuneStone)
         {
             if (_dropper != null)
             {
-                _dropper.Scatter(Mathf.Max(1, option.runeStoneCount));
+                _dropper.Scatter(Mathf.Max(1, option.RuneStoneCount));
             }
             else
             {
@@ -228,10 +228,10 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
         else
         {
-            if (_passives != null && option.passive != null)
+            if (_passives != null && option.Passive != null)
             {
                 // 선택 확정 이후에만 스택이 반영된다.
-                _passives.AddStack(option.passive.statType, option.passive.valuePerStack);
+                _passives.AddStack(option.Passive.StatType, option.Passive.ValuePerStack);
             }
             else
             {
