@@ -8,8 +8,9 @@ using UnityEngine.UI;
 ///
 /// 여는 방법
 /// - 열려 있는 화면이 없을 때 Esc. 룬북, 팝업(주 원소 선택, 상점 등)이 열려 있으면 Esc는 그 화면만 닫는다.
-/// - 게임 창이 포커스를 잃으면(Alt+Tab 등) 자동으로 연다.
-/// - 열 수 없는 때 : 다른 화면이 열려 있을 때, 플레이어 사망 후, 결과 화면(_blockers)이 켜져 있을 때
+/// - 게임 창이 포커스를 잃으면(Alt+Tab 등) 자동으로 연다. 에디터에서는 _pauseOnFocusLostInEditor를 켰을 때만 연다.
+///   카운트다운 중에 포커스를 잃으면 메뉴로 돌아간다.
+/// - 열 수 없는 때 : 다른 화면이 열려 있을 때, 플레이어 사망 후, 런 종료 후, 화면 전환(ScreenFader) 중, 결과 화면(_blockers)이 켜져 있을 때
 ///
 /// 일시정지 중
 /// - Time.timeScale = 0 (적, 탄환, 스폰, 타이머 정지)
@@ -19,6 +20,7 @@ using UnityEngine.UI;
 /// - 탐사 중 : Resume / Settings / Abandon Run / Quit Game
 /// - 거점 : Resume / Settings / Quit Game
 /// - Resume(Esc) : 탐사 중에는 3, 2, 1 카운트다운 후 재개, 거점에서는 바로 재개
+///   카운트다운 중에 Esc를 누르면 메뉴로 돌아간다.
 /// - Abandon Run : 경고 창 → 확인하면 이번 런을 포기한다. (종료 사유 Abandoned를 기록하고 사망 처리 → "Run Abandoned" 결과)
 /// - Quit Game : 확인 창 → 확인하면 게임 종료
 ///
@@ -67,6 +69,8 @@ public class PauseController : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField, Min(1)] private int _countdownSeconds = 3;
+    [Tooltip("에디터에서도 게임 창이 포커스를 잃으면 일시정지한다. (끄면 Console 등을 눌러도 멈추지 않는다. 빌드에서는 항상 일시정지)")]
+    [SerializeField] private bool _pauseOnFocusLostInEditor;
 
     private State _state = State.Closed;
     private float _previousTimeScale = 1f;
@@ -132,6 +136,10 @@ public class PauseController : MonoBehaviour
             case State.Confirm:
                 _confirmDialog.Cancel();
                 break;
+            case State.Countdown:
+                // 카운트다운을 멈추고 메뉴로 돌아간다. (게임은 계속 멈춰 있다)
+                ShowMenu();
+                break;
         }
     }
 
@@ -142,9 +150,24 @@ public class PauseController : MonoBehaviour
 
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (!hasFocus && _state == State.Closed)
+        if (hasFocus)
+        {
+            return;
+        }
+
+        if (Application.isEditor && !_pauseOnFocusLostInEditor)
+        {
+            return;
+        }
+
+        if (_state == State.Closed)
         {
             Open();
+        }
+        else if (_state == State.Countdown)
+        {
+            // 카운트다운 중에 자리를 비우면 재개되지 않도록 메뉴로 돌아간다.
+            ShowMenu();
         }
     }
 
@@ -159,6 +182,12 @@ public class PauseController : MonoBehaviour
 
         // 런이 끝난 뒤(클리어 연출, 결과창)에는 열지 않는다.
         if (RunFlow.HasEnded)
+        {
+            return false;
+        }
+
+        // 층 전환 연출(검은 화면) 중에는 열지 않는다.
+        if (ScreenFader.IsFading)
         {
             return false;
         }

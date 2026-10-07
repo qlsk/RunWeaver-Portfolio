@@ -118,13 +118,16 @@ public class EnemyTankAttack : MonoBehaviour
         _body.linearVelocity = Vector2.zero;
         _damagedPlayers.Clear();
 
-        // Trigger를 포함한 플레이어 콜라이더를 검사하고 중복 콜라이더 피해를 방지한다.
+        // 피격 영역만 검사하고 같은 플레이어의 중복 피해를 방지한다.
         var filter = new ContactFilter2D { useTriggers = true };
         var hits = new List<Collider2D>();
         Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
         foreach (Collider2D hit in hits)
         {
-            PlayerHealth player = hit.GetComponentInParent<PlayerHealth>();
+            if (!hit.TryGetComponent(out PlayerHitbox hitbox))
+                continue;
+
+            PlayerHealth player = hitbox.Health;
             if (player != null && !player.IsDead && _damagedPlayers.Add(player))
             {
                 player.TakeDamage(_damage);
