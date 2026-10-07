@@ -32,6 +32,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     [SerializeField, FormerlySerializedAs("rewardUI")] private RewardSelectUI _rewardUI;
     [SerializeField, FormerlySerializedAs("dropper")] private RuneStoneDropper _dropper;
     [SerializeField, FormerlySerializedAs("passives")] private PassiveStatManager _passives;
+    private TraitManager _traits;
 
     private MissionManager _missionManager;
     private StageManager _stageManager;
@@ -60,6 +61,15 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         {
             _passives = PassiveStatManager.Instance;
         }
+
+        _traits = TraitManager.Instance;
+
+        // 특성 핸들러·합성기는 씬에 없어도 동작해야 하므로 여기서 보장한다.
+        EnsureHandler<TraitStatComposer>();
+        EnsureHandler<AttackTraitHandler>();
+        EnsureHandler<DashTraitHandler>();
+        EnsureHandler<ShieldTraitHandler>();
+        EnsureHandler<CleanseTraitHandler>();
 
         _missionManager = MissionManager.Instance;
         if (_missionManager != null)
@@ -208,6 +218,15 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         finish?.Invoke();
     }
 
+    private void EnsureHandler<T>() where T : Component
+    {
+        if (FindAnyObjectByType<T>() == null)
+        {
+            gameObject.AddComponent<T>();
+            Debug.Log($"[RewardController] {typeof(T).Name} 자동 생성", this);
+        }
+    }
+
     private void ApplyReward(RewardOption option)
     {
         if (option == null)
@@ -224,6 +243,25 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
             else
             {
                 Debug.LogWarning("[RewardController] RuneStoneDropper가 없어 룬석을 지급하지 못했습니다.", this);
+            }
+        }
+        else if (option.type == RewardType.Trait)
+        {
+            if (_traits != null && option.trait != null)
+            {
+                // 선택 확정 이후에만 보유에 반영된다. shield_01은 1회성 최대치 증가라 즉시 적용.
+                if (_traits.AcquireTrait(option.trait) && option.trait.id == "shield_01")
+                {
+                    Shield shield = FindAnyObjectByType<Shield>();
+                    if (shield != null)
+                    {
+                        shield.ShieldMaxStackUp();
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[RewardController] TraitManager/데이터가 없어 특성을 지급하지 못했습니다.", this);
             }
         }
         else

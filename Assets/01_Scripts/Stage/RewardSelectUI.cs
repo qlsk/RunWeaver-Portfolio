@@ -174,6 +174,7 @@ public class RewardSelectUI : MonoBehaviour
             _cardBackgrounds[i].color = i == _selectedIndex ? _selectedCardColor : _normalCardColor;
         }
 
+        Debug.Log($"[RewardSelectUI] 카드 선택: {index} ({_currentOptions[index].title})", this);
         RefreshConfirmButton();
 
         // 게임패드/키보드 포커스도 따라가게 한다.
@@ -382,6 +383,12 @@ public class RewardSelectUI : MonoBehaviour
             new RewardOption { type = RewardType.Passive, title = "데미지 +5%", description = "데미지 +5%" },
             new RewardOption { type = RewardType.Passive, title = "이동속도 +5%", description = "이동속도 +5%" }
         };
+        // 미리보기도 실전처럼 섞는다 (더미 순서 고정 방지).
+        for (int i = preview.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (preview[i], preview[j]) = (preview[j], preview[i]);
+        }
         Open(preview);
     }
 

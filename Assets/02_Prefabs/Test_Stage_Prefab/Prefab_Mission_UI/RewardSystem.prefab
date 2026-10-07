@@ -1,0 +1,169 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4268157321800714096
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1578773256265180748}
+  - component: {fileID: 1701668431565119080}
+  - component: {fileID: 7402363872591413476}
+  - component: {fileID: 8703808939882985842}
+  - component: {fileID: 271045741579942422}
+  - component: {fileID: 5873278715339141940}
+  m_Layer: 0
+  m_Name: RewardSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1578773256265180748
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 630, y: 522, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1701668431565119080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8da482c5ef04b0f48a45e1ac5d344b21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RewardController
+  _generator: {fileID: 0}
+  _rewardUI: {fileID: 0}
+  _dropper: {fileID: 0}
+  _passives: {fileID: 0}
+--- !u!114 &7402363872591413476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a380df6b2c8fd44c98fa9a1bcf09036, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RewardGenerator
+  _baseRuneStoneCount: 5
+  _runeStonePerDepth: 1
+  _passivePool:
+  - {fileID: 11400000, guid: 6bd610561e0bfe04abce8b7aa0dede5c, type: 2}
+  - {fileID: 11400000, guid: 0a21d65ceafed4944af2d228539e5d04, type: 2}
+  - {fileID: 11400000, guid: cf80c5ec1fcdfa5498902fd120366caa, type: 2}
+  - {fileID: 11400000, guid: 41788a3917f71f24e8954b6d1dbe1831, type: 2}
+  _runeStoneIcon: {fileID: 0}
+  _traitPool:
+  - {fileID: 11400000, guid: b7541f0c7515270459db812cba25864d, type: 2}
+  - {fileID: 11400000, guid: 3dc098a7ba495eb4eb492caf96d473d8, type: 2}
+  - {fileID: 11400000, guid: 8bffb8262a0e90d4582af42633f71d17, type: 2}
+  - {fileID: 11400000, guid: 26bf9a687a62dcf49adad8d12f32f901, type: 2}
+  - {fileID: 11400000, guid: 11fd935598f857e44b9036ab7413edd0, type: 2}
+  - {fileID: 11400000, guid: 002ddc07dd30b1a43adb8a3c3c06dffe, type: 2}
+  - {fileID: 11400000, guid: 238fd3b217c1c4a4b871ef35c1eafa06, type: 2}
+  - {fileID: 11400000, guid: cdaf4053f5a9a1f44a2eb06ea1bf61cb, type: 2}
+  - {fileID: 11400000, guid: c0263acca41922c4db26f00c700cd33e, type: 2}
+  - {fileID: 11400000, guid: dc5fd5c4479197a4da5d7fdaff0126c6, type: 2}
+  - {fileID: 11400000, guid: e21e7b7f6832c034eb5458a3f0d362cf, type: 2}
+  - {fileID: 11400000, guid: 61b5786594a31674c85f94869cd9d075, type: 2}
+  - {fileID: 11400000, guid: 625ea5a508df9964d8223fd667e36e65, type: 2}
+  - {fileID: 11400000, guid: 7ab900479501ed34c8375fe256023970, type: 2}
+  - {fileID: 11400000, guid: 05d502b0151653245b64499464a40ce1, type: 2}
+  - {fileID: 11400000, guid: 8610cec570bdd7e4e9c7666098ec4cc9, type: 2}
+  - {fileID: 11400000, guid: 69eb5cfaff54df74889559c692eb4bfd, type: 2}
+  - {fileID: 11400000, guid: e264387a4ded1834b8d893e0d87a9eb4, type: 2}
+  - {fileID: 11400000, guid: 116eee6b53904834e8e2f5ab7513c87d, type: 2}
+  - {fileID: 11400000, guid: 82b7ff432018c5a479c21aab7b946194, type: 2}
+--- !u!114 &8703808939882985842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64448b77d4e3d10479745d13cc073b86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RewardSelectUI
+  _externalRoot: {fileID: 0}
+  _externalTitle: {fileID: 0}
+  _externalCards:
+  - Background: {fileID: 0}
+    Button: {fileID: 0}
+    Icon: {fileID: 0}
+    Name: {fileID: 0}
+    Desc: {fileID: 0}
+  - Background: {fileID: 0}
+    Button: {fileID: 0}
+    Icon: {fileID: 0}
+    Name: {fileID: 0}
+    Desc: {fileID: 0}
+  - Background: {fileID: 0}
+    Button: {fileID: 0}
+    Icon: {fileID: 0}
+    Name: {fileID: 0}
+    Desc: {fileID: 0}
+  _externalConfirmButton: {fileID: 0}
+  _externalConfirmLabel: {fileID: 0}
+  _normalCardColor: {r: 0.16, g: 0.17, b: 0.22, a: 1}
+  _selectedCardColor: {r: 0.85, g: 0.65, b: 0.2, a: 1}
+  _runePlaceholderColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  _passivePlaceholderColor: {r: 0.55, g: 0.9, b: 0.55, a: 1}
+  _panelSize: {x: 1080, y: 680}
+  _cardSize: {x: 300, y: 400}
+  _cardSpacing: 24
+  _iconSize: 96
+  _confirmButtonSize: {x: 440, y: 64}
+  _titleFontSize: 30
+  _cardNameFontSize: 22
+  _cardDescFontSize: 16
+  _confirmFontSize: 24
+--- !u!114 &271045741579942422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbdd1777b5d2d644b880906eb6f171e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneStoneDropper
+  _runePickupPrefab: {fileID: 7604851959272145055, guid: af0ce2a398dee2b40a34d0a87efd6eff, type: 3}
+  _scatterRadiusMin: 1
+  _scatterRadiusMax: 2.5
+  _scatterDuration: 0.4
+  _quantityPerPickup: 1
+--- !u!114 &5873278715339141940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268157321800714096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 090c4168bc3287d408ea7a1ce85cc2ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PassiveStatManager

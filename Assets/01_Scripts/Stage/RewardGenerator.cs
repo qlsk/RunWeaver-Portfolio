@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// 보상 선택지 3개 생성. 3슬롯 완전 랜덤 (룬석 포함 6종 중 서로 다른 3종).
+/// 보상 선택지 3개 생성. 3슬롯 완전 랜덤 (룬석 + 패시브 + 특성 중 서로 다른 3종).
 ///
-/// - 후보: 룬석 1종 + 패시브 풀. 한 UI에서 같은 종류 중복 금지.
-/// - 룬석이 안 뜰 수도 있다. 룬석 개수 = _baseRuneStoneCount + (depth - 1) × _runeStonePerDepth
-/// - 인스펙터에 PassiveData가 비어 있으면 코드 내장 기본 4종으로 동작한다 (에셋 교체 전 플레이스홀더).
+/// - 룬석 개수 = _baseRuneStoneCount + (depth - 1) × _runeStonePerDepth
+/// - 패시브: 풀에서 추첨. 보유 스택이 있어도 제외하지 않는다.
+/// - 특성: 보유済 제외 (한 번 선택되면 다시 안 뜬다).
+/// - 한 UI에서 같은 종류 중복 금지. 후보가 3종 미만이면 중복 허용으로 채운다.
+/// - 풀이 비어 있으면 내장 기본값으로 동작한다 (에셋 교체 전 플레이스홀더).
 /// - 심층은 StageManager에서 읽기만 한다 (Stage 외부 수정 없음).
 /// </summary>
 [DisallowMultipleComponent]
@@ -22,6 +24,10 @@ public class RewardGenerator : MonoBehaviour
     [Tooltip("룬석 카드 아이콘. 비워두면 UI에서 색상 플레이스홀더로 표시된다.")]
     [SerializeField, FormerlySerializedAs("runeStoneIcon")] private Sprite _runeStoneIcon;
 
+    [Header("특성 풀 (20종, 비워두면 내장 기본값 사용)")]
+    [Tooltip("보유한 특성은 추첨에서 제외된다.")]
+    [SerializeField] private TraitData[] _traitPool;
+
     /// <summary>
     /// UI를 열기 직전에 한 번 호출한다. 항상 3개를 반환한다.
     /// </summary>
@@ -30,72 +36,68 @@ public class RewardGenerator : MonoBehaviour
         int safeDepth = Mathf.Max(1, depth);
         int runeCount = _baseRuneStoneCount + (safeDepth - 1) * _runeStonePerDepth;
 
-        List<PassiveData> pool = GetEffectivePool();
+        List<PassiveData> passives = GetEffectivePassivePool();
+        List<TraitData> traits = GetEffectiveTraitPool();
 
-        // 후보 종류: 0 = 룬석, 1..N = 패시브 인덱스. 서로 다른 3종을 뽑는다.
-        List<int> kinds = new(pool.Count + 1);
-        kinds.Add(0);
-        for (int i = 1; i <= pool.Count; i++)
+        TraitManager manager = TraitManager.Instance;
+
+        // 후보 종류를 섞어서 서로 다른 3종을 뽑는다.
+        List<RewardOption> candidates = new(passives.Count + traits.Count + 1)
         {
-            kinds.Add(i);
+            RewardOption.ForRuneStone(runeCount, _runeStoneIcon)
+        };
+        HashSet<PassiveStatType> usedStats = new();
+        foreach (PassiveData passive in passives)
+        {
+            if (usedStats.Add(passive.statType))
+            {
+                candidates.Add(RewardOption.ForPassive(passive));
+            }
         }
 
-        Shuffle(kinds);
+        HashSet<string> usedTraitIds = new(System.StringComparer.Ordinal);
+        foreach (TraitData trait in traits)
+        {
+            if (trait == null || string.IsNullOrWhiteSpace(trait.id))
+            {
+                continue;
+            }
+
+            if (manager != null && manager.Has(trait.id))
+            {
+                continue;
+            }
+
+            if (usedTraitIds.Add(trait.id))
+            {
+                candidates.Add(RewardOption.ForTrait(trait));
+            }
+        }
+
+        Shuffle(candidates);
 
         List<RewardOption> options = new(3);
-        HashSet<PassiveStatType> usedStats = new();
-        foreach (int kind in kinds)
+        int take = Mathf.Min(3, candidates.Count);
+        for (int i = 0; i < take; i++)
         {
-            if (options.Count >= 3)
-            {
-                break;
-            }
-
-            if (kind == 0)
-            {
-                options.Add(RewardOption.ForRuneStone(runeCount, _runeStoneIcon));
-            }
-            else
-            {
-                PassiveData data = pool[kind - 1];
-                // 같은 스탯 중복 금지 (풀이 1~2종뿐이면 부족분은 아래에서 중복 허용으로 채운다).
-                if (usedStats.Add(data.statType))
-                {
-                    options.Add(RewardOption.ForPassive(data));
-                }
-            }
+            options.Add(candidates[i]);
         }
 
         // 후보가 3종 미만이면 중복 허용으로 3개를 채운다.
         int guard = 0;
-        while (options.Count < 3 && guard < 30)
+        while (options.Count < 3 && candidates.Count > 0 && guard < 30)
         {
             guard++;
-            if (Random.Range(0, pool.Count + 1) == 0)
-            {
-                options.Add(RewardOption.ForRuneStone(runeCount, _runeStoneIcon));
-            }
-            else
-            {
-                options.Add(RewardOption.ForPassive(pool[Random.Range(0, pool.Count)]));
-            }
+            options.Add(candidates[Random.Range(0, candidates.Count)]);
         }
 
         // 최종 순서도 섞는다 (룬석 위치 고정 방지).
         Shuffle(options);
+        Debug.Log($"[RewardGenerator] 후보 {candidates.Count}종(패시브 {passives.Count}, 특성 {traits.Count}) → 선택: {string.Join(", ", options.ConvertAll(o => o.title))}", this);
         return options;
     }
 
-    private void Shuffle<T>(List<T> list)
-    {
-        for (int i = list.Count - 1; i > 0; i--)
-        {
-            int j = Random.Range(0, i + 1);
-            (list[i], list[j]) = (list[j], list[i]);
-        }
-    }
-
-    private List<PassiveData> GetEffectivePool()
+    private List<PassiveData> GetEffectivePassivePool()
     {
         List<PassiveData> pool = new();
         if (_passivePool != null)
@@ -111,28 +113,49 @@ public class RewardGenerator : MonoBehaviour
 
         if (pool.Count == 0)
         {
-            pool = BuildFallbackPool();
+            pool = BuildFallbackPassives();
         }
 
-        // 풀이 1종뿐이면 중복 방지가 불가능하므로 그대로 반환 (호출 측 가드에서 처리)
+        return pool;
+    }
+
+    private List<TraitData> GetEffectiveTraitPool()
+    {
+        List<TraitData> pool = new();
+        if (_traitPool != null)
+        {
+            foreach (TraitData data in _traitPool)
+            {
+                if (data != null)
+                {
+                    pool.Add(data);
+                }
+            }
+        }
+
+        if (pool.Count == 0)
+        {
+            pool = TraitFallback.Build();
+        }
+
         return pool;
     }
 
     /// <summary>
     /// PassiveData 에셋이 아직 없을 때 쓰는 내장 기본 4종. 에셋으로 교체하면 쓰이지 않는다.
     /// </summary>
-    private List<PassiveData> BuildFallbackPool()
+    private List<PassiveData> BuildFallbackPassives()
     {
         return new List<PassiveData>
         {
-            MakeFallback("passive_damage", PassiveStatType.Damage, "데미지", "데미지 +5%"),
-            MakeFallback("passive_attack_speed", PassiveStatType.AttackSpeed, "공격속도", "공격속도 +5%"),
-            MakeFallback("passive_move_speed", PassiveStatType.MoveSpeed, "이동속도", "이동속도 +5%"),
-            MakeFallback("passive_magazine_size", PassiveStatType.MagazineSize, "탄창 크기", "탄창 크기 +5% (올림, 최소 +1발)")
+            MakeFallbackPassive("passive_damage", PassiveStatType.Damage, "데미지", "데미지 +5%"),
+            MakeFallbackPassive("passive_attack_speed", PassiveStatType.AttackSpeed, "공격속도", "공격속도 +5%"),
+            MakeFallbackPassive("passive_move_speed", PassiveStatType.MoveSpeed, "이동속도", "이동속도 +5%"),
+            MakeFallbackPassive("passive_magazine_size", PassiveStatType.MagazineSize, "탄창 크기", "탄창 크기 +5% (올림, 최소 +1발)")
         };
     }
 
-    private PassiveData MakeFallback(string id, PassiveStatType type, string displayName, string description)
+    private PassiveData MakeFallbackPassive(string id, PassiveStatType type, string displayName, string description)
     {
         PassiveData data = ScriptableObject.CreateInstance<PassiveData>();
         data.id = id;
@@ -141,5 +164,14 @@ public class RewardGenerator : MonoBehaviour
         data.description = description;
         data.valuePerStack = 0.05f;
         return data;
+    }
+
+    private void Shuffle<T>(List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
     }
 }

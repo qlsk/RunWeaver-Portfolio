@@ -9,6 +9,7 @@ public class RewardOption
 {
     public RewardType type;
     public PassiveData passive;
+    public TraitData trait;
     public int runeStoneCount;
     public Sprite icon;
     public string title;
@@ -35,6 +36,18 @@ public class RewardOption
             passive = data,
             icon = data.icon,
             title = $"{data.displayName} +{percent}%",
+            description = data.description
+        };
+    }
+
+    public static RewardOption ForTrait(TraitData data)
+    {
+        return new RewardOption
+        {
+            type = RewardType.Trait,
+            trait = data,
+            icon = data.icon,
+            title = data.displayName,
             description = data.description
         };
     }
