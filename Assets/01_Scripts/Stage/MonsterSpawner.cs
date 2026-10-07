@@ -5,43 +5,43 @@ using UnityEngine;
 
 public class MonsterSpawner : MonoBehaviour
 {
-    private static MonsterSpawner instance;
+    private static MonsterSpawner s_instance;
 
     public static MonsterSpawner Instance
     {
         get
         {
-            if (instance == null)
+            if (s_instance == null)
             {
-                instance = FindAnyObjectByType<MonsterSpawner>();
+                s_instance = FindAnyObjectByType<MonsterSpawner>();
             }
-            return instance;
+            return s_instance;
         }
     }
 
     [Header("몬스터 프리팹 데이터베이스 (프리팹 직접 등록)")]
-    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
+    [SerializeField] private List<GameObject> _enemyPrefabs = new List<GameObject>();
 
     [Header("예산(Budget) 스케일링 설정")]
-    [SerializeField] private int baseBudget = 20;
-    [SerializeField] private int budgetPerDepth = 10;
+    [SerializeField] private int _baseBudget = 20;
+    [SerializeField] private int _budgetPerDepth = 10;
 
     [Header("최대 마릿수(Count) 스케일링 설정")]
-    [SerializeField] private int baseMaxMonsterCount = 15;
-    [SerializeField] private int monsterCountPerDepth = 5;
+    [SerializeField] private int _baseMaxMonsterCount = 15;
+    [SerializeField] private int _monsterCountPerDepth = 5;
 
     [Header("스폰 주기 및 티어 가속 계수")]
-    [SerializeField] private float spawnInterval = 0.5f;
-    [SerializeField] private float tierGrowthMultiplier = 5f;
+    [SerializeField] private float _spawnInterval = 0.5f;
+    [SerializeField] private float _tierGrowthMultiplier = 5f;
 
     [Header("스폰 거리 및 연출")]
-    [SerializeField] private float minSpawnDistance = 8f;
-    [SerializeField] private float maxSpawnDistance = 12f;
-    [SerializeField] private GameObject spawnEffectPrefab;
-    [SerializeField] private float effectDuration = 1f;
+    [SerializeField] private float _minSpawnDistance = 8f;
+    [SerializeField] private float _maxSpawnDistance = 12f;
+    [SerializeField] private GameObject _spawnEffectPrefab;
+    [SerializeField] private float _effectDuration = 1f;
 
-    private Transform playerTransform;
-    private Coroutine spawnCoroutine;
+    private Transform _playerTransform;
+    private Coroutine _spawnCoroutine;
 
     private class SpawnableEntry
     {
@@ -61,17 +61,17 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    private readonly List<SpawnableEntry> spawnableEntries = new List<SpawnableEntry>();
-    private readonly Dictionary<EnemyHealth, int> activeMonsterCostMap = new Dictionary<EnemyHealth, int>();
-    private int currentActiveBudget = 0;
+    private readonly List<SpawnableEntry> _spawnableEntries = new List<SpawnableEntry>();
+    private readonly Dictionary<EnemyHealth, int> _activeMonsterCostMap = new Dictionary<EnemyHealth, int>();
+    private int _currentActiveBudget = 0;
 
     private void Awake()
     {
-        if (instance == null)
+        if (s_instance == null)
         {
-            instance = this;
+            s_instance = this;
         }
-        else if (instance != this)
+        else if (s_instance != this)
         {
             Destroy(gameObject);
         }
@@ -90,7 +90,7 @@ public class MonsterSpawner : MonoBehaviour
     private void Start()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) playerTransform = playerObj.transform;
+        if (playerObj != null) _playerTransform = playerObj.transform;
 
         CacheEnemyPrefabs();
 
@@ -101,7 +101,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             StartSpawning(1);
         }
-        else if (stageManager.Phase == StagePhase.InMission && spawnCoroutine == null)
+        else if (stageManager.Phase == StagePhase.InMission && _spawnCoroutine == null)
         {
             StartSpawning(stageManager.CurrentDepth);
         }
@@ -109,26 +109,28 @@ public class MonsterSpawner : MonoBehaviour
 
     private void CacheEnemyPrefabs()
     {
-        spawnableEntries.Clear();
+        _spawnableEntries.Clear();
 
-        enemyPrefabs = enemyPrefabs.Where(p => p != null).ToList();
+        _enemyPrefabs = _enemyPrefabs.Where(p => p != null).ToList();
 
-        if (enemyPrefabs.Count == 0)
+        if (_enemyPrefabs.Count == 0)
         {
-            Debug.LogWarning("[MonsterSpawner] enemyPrefabs에 유효한 프리팹이 없습니다! Project 창의 02_Prefabs/Enemy/DefaultEnemy 프리팹을 인스펙터에 끌어다 놓아주세요.");
+            Debug.LogWarning(
+                "[MonsterSpawner] enemyPrefabs에 유효한 프리팹이 없습니다! Project 창의 02_Prefabs/Enemy/DefaultEnemy 프리팹을 인스펙터에 끌어다 놓아주세요.");
             return;
         }
 
         int validCount = 0;
-        foreach (var prefab in enemyPrefabs)
+        foreach (var prefab in _enemyPrefabs)
         {
             EnemyDataSO data = null;
-            if (prefab.TryGetComponent(out EnemyHealth health) || (health = prefab.GetComponentInChildren<EnemyHealth>()) != null)
+            if (prefab.TryGetComponent(out EnemyHealth health) ||
+                (health = prefab.GetComponentInChildren<EnemyHealth>()) != null)
             {
                 data = health.EnemyData;
             }
 
-            spawnableEntries.Add(new SpawnableEntry
+            _spawnableEntries.Add(new SpawnableEntry
             {
                 Prefab = prefab,
                 Data = data
@@ -141,27 +143,27 @@ public class MonsterSpawner : MonoBehaviour
 
     public void StartSpawning(int depth)
     {
-        if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
-        spawnCoroutine = StartCoroutine(ContinuousSpawnRoutine(depth));
+        if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+        _spawnCoroutine = StartCoroutine(ContinuousSpawnRoutine(depth));
     }
 
     public void StopSpawning()
     {
-        if (spawnCoroutine != null)
+        if (_spawnCoroutine != null)
         {
-            StopCoroutine(spawnCoroutine);
-            spawnCoroutine = null;
+            StopCoroutine(_spawnCoroutine);
+            _spawnCoroutine = null;
         }
 
-        foreach (var pair in activeMonsterCostMap.ToList())
+        foreach (var pair in _activeMonsterCostMap.ToList())
         {
             if (pair.Key != null && pair.Key.gameObject != null)
             {
                 Destroy(pair.Key.gameObject);
             }
         }
-        activeMonsterCostMap.Clear();
-        currentActiveBudget = 0;
+        _activeMonsterCostMap.Clear();
+        _currentActiveBudget = 0;
 
         Debug.Log("[MonsterSpawner] 몬스터 스폰 코루틴 중지 및 활성 몬스터 정리 완료");
     }
@@ -171,10 +173,10 @@ public class MonsterSpawner : MonoBehaviour
     /// </summary>
     public void PauseSpawning()
     {
-        if (spawnCoroutine != null)
+        if (_spawnCoroutine != null)
         {
-            StopCoroutine(spawnCoroutine);
-            spawnCoroutine = null;
+            StopCoroutine(_spawnCoroutine);
+            _spawnCoroutine = null;
         }
     }
 
@@ -183,7 +185,7 @@ public class MonsterSpawner : MonoBehaviour
     /// </summary>
     public GameObject GetFallbackEnemyPrefab()
     {
-        foreach (GameObject prefab in enemyPrefabs)
+        foreach (GameObject prefab in _enemyPrefabs)
         {
             if (prefab != null)
             {
@@ -202,31 +204,31 @@ public class MonsterSpawner : MonoBehaviour
         Debug.Log($"[MonsterSpawner] Depth {newDepth}로 스포너 재시작");
     }
 
-    public int GetMaxActiveBudget(int depth) => baseBudget + (depth - 1) * budgetPerDepth;
-    public int GetMaxMonsterCount(int depth) => baseMaxMonsterCount + (depth - 1) * monsterCountPerDepth;
+    public int GetMaxActiveBudget(int depth) => _baseBudget + (depth - 1) * _budgetPerDepth;
+    public int GetMaxMonsterCount(int depth) => _baseMaxMonsterCount + (depth - 1) * _monsterCountPerDepth;
 
     private IEnumerator ContinuousSpawnRoutine(int depth)
     {
         while (true)
         {
-            yield return new WaitForSeconds(spawnInterval);
+            yield return new WaitForSeconds(_spawnInterval);
 
             CleanStaleMonsters();
 
-            if (spawnableEntries.Count == 0)
+            if (_spawnableEntries.Count == 0)
             {
                 CacheEnemyPrefabs();
-                if (spawnableEntries.Count == 0) continue;
+                if (_spawnableEntries.Count == 0) continue;
             }
 
             int maxBudget = GetMaxActiveBudget(depth);
             int maxCount = GetMaxMonsterCount(depth);
-            int availableBudget = maxBudget - currentActiveBudget;
+            int availableBudget = maxBudget - _currentActiveBudget;
 
-            while (availableBudget > 0 && activeMonsterCostMap.Count < maxCount)
+            while (availableBudget > 0 && _activeMonsterCostMap.Count < maxCount)
             {
                 // ★ 현재 Depth 조건(MinDepth <= depth) 및 남은 예산(Cost <= availableBudget)을 충족하는 풀만 추출 ★
-                var eligiblePool = spawnableEntries
+                var eligiblePool = _spawnableEntries
                     .Where(e => e.Prefab != null && e.MinDepth <= depth && e.Cost <= availableBudget)
                     .ToList();
 
@@ -238,7 +240,7 @@ public class MonsterSpawner : MonoBehaviour
 
                 if (SpawnMonster(selectedEntry))
                 {
-                    currentActiveBudget += selectedEntry.Cost;
+                    _currentActiveBudget += selectedEntry.Cost;
                     availableBudget -= selectedEntry.Cost;
                 }
                 else
@@ -254,7 +256,7 @@ public class MonsterSpawner : MonoBehaviour
     private SpawnableEntry SelectByTierWeight(List<SpawnableEntry> pool, int depth)
     {
         List<float> weights = pool
-            .Select(e => e.GetCalculatedWeight(depth, tierGrowthMultiplier))
+            .Select(e => e.GetCalculatedWeight(depth, _tierGrowthMultiplier))
             .ToList();
 
         float totalWeight = weights.Sum();
@@ -276,10 +278,10 @@ public class MonsterSpawner : MonoBehaviour
     {
         if (entry == null || entry.Prefab == null) return false;
 
-        if (playerTransform == null)
+        if (_playerTransform == null)
         {
             GameObject pObj = GameObject.FindGameObjectWithTag("Player");
-            if (pObj != null) playerTransform = pObj.transform;
+            if (pObj != null) _playerTransform = pObj.transform;
             else return false;
         }
 
@@ -290,13 +292,13 @@ public class MonsterSpawner : MonoBehaviour
         EnemyHealth health = spawned.GetComponent<EnemyHealth>() ?? spawned.GetComponentInChildren<EnemyHealth>();
         if (health != null)
         {
-            if (spawnEffectPrefab != null)
+            if (_spawnEffectPrefab != null)
             {
-                GameObject fx = Instantiate(spawnEffectPrefab, spawnPos, Quaternion.identity);
-                Destroy(fx, effectDuration);
+                GameObject fx = Instantiate(_spawnEffectPrefab, spawnPos, Quaternion.identity);
+                Destroy(fx, _effectDuration);
             }
 
-            activeMonsterCostMap[health] = entry.Cost;
+            _activeMonsterCostMap[health] = entry.Cost;
             return true;
         }
         else
@@ -309,29 +311,29 @@ public class MonsterSpawner : MonoBehaviour
 
     private Vector2 GetRandomSpawnPosition()
     {
-        Vector2 center = playerTransform != null ? (Vector2)playerTransform.position : Vector2.zero;
+        Vector2 center = _playerTransform != null ? (Vector2)_playerTransform.position : Vector2.zero;
         float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-        float distance = UnityEngine.Random.Range(minSpawnDistance, maxSpawnDistance);
+        float distance = UnityEngine.Random.Range(_minSpawnDistance, _maxSpawnDistance);
 
         return center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)
     {
-        if (enemy != null && activeMonsterCostMap.TryGetValue(enemy, out int cost))
+        if (enemy != null && _activeMonsterCostMap.TryGetValue(enemy, out int cost))
         {
-            currentActiveBudget = Mathf.Max(0, currentActiveBudget - cost);
-            activeMonsterCostMap.Remove(enemy);
+            _currentActiveBudget = Mathf.Max(0, _currentActiveBudget - cost);
+            _activeMonsterCostMap.Remove(enemy);
         }
     }
 
     private void CleanStaleMonsters()
     {
-        var deadKeys = activeMonsterCostMap.Keys.Where(k => k == null || k.gameObject == null).ToList();
+        var deadKeys = _activeMonsterCostMap.Keys.Where(k => k == null || k.gameObject == null).ToList();
         foreach (var key in deadKeys)
         {
-            currentActiveBudget = Mathf.Max(0, currentActiveBudget - activeMonsterCostMap[key]);
-            activeMonsterCostMap.Remove(key);
+            _currentActiveBudget = Mathf.Max(0, _currentActiveBudget - _activeMonsterCostMap[key]);
+            _activeMonsterCostMap.Remove(key);
         }
     }
 }

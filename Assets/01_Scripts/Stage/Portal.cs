@@ -28,13 +28,11 @@ public class Portal : MonoBehaviour, IInteractable
     private const string DefaultLabelText = "Descend";
 
     [Header("References")]
-    [Tooltip("포탈 이미지 오브젝트. 크기 연출은 여기에만 적용된다")]
-    [SerializeField] private Transform _visual;
+    [Tooltip("포탈 이미지 오브젝트. 크기 연출은 여기에만 적용된다")][SerializeField] private Transform _visual;
     [SerializeField] private SpriteRenderer _sprite;
     [SerializeField] private Collider2D _collider;
     [SerializeField] private TextMeshPro _label;
-    [Tooltip("가까이 갔을 때만 보이는 F 안내 텍스트")]
-    [SerializeField] private TextMeshPro _prompt;
+    [Tooltip("가까이 갔을 때만 보이는 F 안내 텍스트")][SerializeField] private TextMeshPro _prompt;
 
     [Header("Colors (포탈 / 텍스트)")]
     [SerializeField] private Color _descendColor = Color.white;
@@ -48,11 +46,10 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField, Min(0f)] private float _pulseScale = 0.05f;
     [SerializeField, Range(0f, 1f)] private float _pulseDarken = 0.3f;
     [SerializeField, Min(0f)] private float _pulseSpeed = 2.5f;
-    [Tooltip("맥동이 켜지고 꺼질 때 걸리는 시간")]
-    [SerializeField, Min(0.01f)] private float _pulseBlendDuration = 0.25f;
+    [Tooltip("맥동이 켜지고 꺼질 때 걸리는 시간")][SerializeField, Min(0.01f)] private float _pulseBlendDuration = 0.25f;
 
     [Header("Gizmo")]
-    [SerializeField] private Color gizmoColor = new(0f, 1f, 1f, 0.4f);
+    [SerializeField] private Color _gizmoColor = new(0f, 1f, 1f, 0.4f);
 
     private Vector3 _baseScale = Vector3.one;
     private Color _spriteColor = Color.white;
@@ -316,7 +313,7 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = gizmoColor;
+        Gizmos.color = _gizmoColor;
         Gizmos.DrawWireSphere(transform.position, 1f);
     }
 }
