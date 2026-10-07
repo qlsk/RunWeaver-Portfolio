@@ -6,16 +6,6 @@ public class EnemyBullet : MonoBehaviour
     private bool _initialized;
     [SerializeField] private float _damage = 5f;
     [SerializeField, Min(0f)] private float _speed = 2f;
-    private PlayerHealth _playerHealth;
-
-    private void Awake()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            _playerHealth = player.GetComponent<PlayerHealth>();
-        }
-    }
 
     public void Initialize(Vector2 direction)
     {
@@ -43,14 +33,10 @@ public class EnemyBullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!collision.gameObject.CompareTag("Player")) return;
-        if (_playerHealth == null)
-            _playerHealth = collision.GetComponentInParent<PlayerHealth>();
-
-        if (_playerHealth == null)
+        if (!collision.TryGetComponent(out PlayerHitbox hitbox) || hitbox.Health == null)
             return;
 
-        _playerHealth.TakeDamage(_damage);
+        hitbox.Health.TakeDamage(_damage);
         Destroy(gameObject);
     }
 }
