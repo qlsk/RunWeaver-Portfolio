@@ -5,8 +5,7 @@ using UnityEngine;
 /// - 층에 들어오면(StageStarted) 심도 패널을 띄운다.
 /// - 타이머 : 시작 전에는 미션 제한 시간 전체에서 멈춰 있고, 미션 중에는 남은 시간, 정화 중에는 정화 남은 시간을 보여준다.
 ///   제한 시간이 없으면(보스 스테이지) "제한 시간 없음"으로 표시한다.
-/// - 타이머 아래 : 목표 이름(Survive 등)과 달성도(42%)를 보여준다. 정화 중에는 "Purification"과 "Portal is open"을 보여준다.
-/// - 빨간 경고는 시간이 다 되면 실패하는 미션 중에만 켠다. (정화, 생존 미션, 시작 전에는 끈다)
+/// - 타이머 아래 : 목표 이름(Survive 등)과 달성도(42%)를 보여준다. 정화 중에는 "Purification"과 "Mission Complete"를 보여준다.
 /// - 미션 제한 시간이 0이 되어 미션 실패로 끝나면 TimeExpired를 보낸다.
 /// </summary>
 public class GameStageStatusSource : StageStatusSource
@@ -16,7 +15,7 @@ public class GameStageStatusSource : StageStatusSource
 
     [Header("목표 문구")]
     [SerializeField] private string _purificationName = "Purification";
-    [SerializeField] private string _purificationProgress = "Portal is open";
+    [SerializeField] private string _purificationProgress = "Mission Complete";
     [SerializeField] private string _clearedName = "Purified";
     [SerializeField] private string _clearedProgress = "Enter the portal";
     [Tooltip("{0}: 달성도(0~100)")]
@@ -29,10 +28,6 @@ public class GameStageStatusSource : StageStatusSource
 
     /// <summary>이번 판에서 도달한 가장 깊은 심도</summary>
     public int MaxDepth => _maxDepth;
-
-    public override bool IsTimeWarningEnabled =>
-        _stageManager != null && _stageManager.Phase == StagePhase.InMission &&
-        _stageManager.CurrentMission is not SurvivalMission;
 
     private void Start()
     {

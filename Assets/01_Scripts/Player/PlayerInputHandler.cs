@@ -32,12 +32,9 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 MousePosition => _mousePosition;
 
     // 마우스 왼쪽 버튼을 누르고 있는지 확인
-    // 팝업(상점 등)이 열려 있거나, 일시정지 중이거나, 런이 끝났으면(결과창) 사격/재장전 입력을 막는다.
-    public bool IsAttackHeld => CanUseWeaponInput && Input.GetMouseButton(0);
+    public bool IsAttackHeld => Input.GetMouseButton(0);
 
-    public bool IsReloadPressed => CanUseWeaponInput && Input.GetKeyDown(_playerReloadKeyCode);
-
-    private bool CanUseWeaponInput => !_isPopupOpened && !PauseController.IsGamePaused && !RunFlow.HasEnded;
+    public bool IsReloadPressed => Input.GetKeyDown(_playerReloadKeyCode);
 
     // player move input (위 아래 왼쪽 오른쪽)
     private Vector2 _moveDirection;

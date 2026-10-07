@@ -33,12 +33,6 @@ public abstract class StageStatusSource : MonoBehaviour
     /// </summary>
     public event Action<string, string> ObjectiveChanged;
 
-    /// <summary>
-    /// 남은 시간이 적을 때 타이머를 빨갛게 강조할지. 시간이 다 되면 실패하는 동안만 true로 둔다.
-    /// (정화 카운트다운, 생존 미션처럼 시간이 다 되면 좋은 일이 생기는 경우는 false)
-    /// </summary>
-    public virtual bool IsTimeWarningEnabled => true;
-
     protected void RaiseStageEntered(int depth, string stageName)
     {
         StageEntered?.Invoke(depth, stageName);

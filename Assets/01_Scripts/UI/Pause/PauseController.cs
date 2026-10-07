@@ -157,12 +157,6 @@ public class PauseController : MonoBehaviour
             return false;
         }
 
-        // 런이 끝난 뒤(클리어 연출, 결과창)에는 열지 않는다.
-        if (RunFlow.HasEnded)
-        {
-            return false;
-        }
-
         return _playerHealth == null || !_playerHealth.IsDead;
     }
 
