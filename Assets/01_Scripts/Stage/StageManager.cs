@@ -54,24 +54,20 @@ public class StageManager : MonoBehaviour
     [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
     [Header("런 구성")]
-    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
-    [SerializeField, Min(1)] private int _missionStageCount = 10;
-    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")]
-    [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
-    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")]
-    [SerializeField, Min(0f)] private float _purificationDuration = 10f;
+    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")][SerializeField, Min(1)] private int _missionStageCount = 10;
+    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")][SerializeField, Min(1f)]
+    private float _missionTimeLimit = 120f;
+    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")][SerializeField, Min(0f)] private float _purificationDuration = 10f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")]
-    [SerializeField] private MissionStartObject _startObjectPrefab;
-    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
-    [SerializeField] private Vector3 _startObjectPosition = new(0f, 2f, 0f);
-    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")]
-    [SerializeField] private int _startObjectLayer = 6;
+    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")][SerializeField] private MissionStartObject _startObjectPrefab;
+    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")][SerializeField]
+    private Vector3 _startObjectPosition = new(0f, 2f, 0f);
+    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")][SerializeField]
+    private int _startObjectLayer = 6;
 
     [Header("보스 스테이지")]
-    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")]
-    [SerializeField] private GameObject _bossPrefab;
+    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")][SerializeField] private GameObject _bossPrefab;
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
 
     [Header("포탈 프리팹 및 스폰 위치")]

@@ -116,7 +116,8 @@ public class MonsterSpawner : MonoBehaviour
 
         if (_enemyPrefabs.Count == 0)
         {
-            Debug.LogWarning("[MonsterSpawner] enemyPrefabs에 유효한 프리팹이 없습니다! Project 창의 02_Prefabs/Enemy/DefaultEnemy 프리팹을 인스펙터에 끌어다 놓아주세요.");
+            Debug.LogWarning(
+                "[MonsterSpawner] enemyPrefabs에 유효한 프리팹이 없습니다! Project 창의 02_Prefabs/Enemy/DefaultEnemy 프리팹을 인스펙터에 끌어다 놓아주세요.");
             return;
         }
 
@@ -124,7 +125,8 @@ public class MonsterSpawner : MonoBehaviour
         foreach (var prefab in _enemyPrefabs)
         {
             EnemyDataSO data = null;
-            if (prefab.TryGetComponent(out EnemyHealth health) || (health = prefab.GetComponentInChildren<EnemyHealth>()) != null)
+            if (prefab.TryGetComponent(out EnemyHealth health) ||
+                (health = prefab.GetComponentInChildren<EnemyHealth>()) != null)
             {
                 data = health.EnemyData;
             }
