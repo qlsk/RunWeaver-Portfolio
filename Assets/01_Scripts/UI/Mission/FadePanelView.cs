@@ -15,6 +15,8 @@ public class FadePanelView : MonoBehaviour
     [Header("페이드 인")]
     [SerializeField, Range(0f, 1f)] private float _startAlpha;
     [SerializeField, Min(0f)] private float _fadeInDuration = 0.15f;
+    [Tooltip("페이드 인으로 진해지는 최대 알파 (1이면 완전히 불투명)")]
+    [SerializeField, Range(0f, 1f)] private float _maxAlpha = 1f;
 
     [Header("크기 강조 (1이면 사용 안 함)")]
     [SerializeField, Min(0.01f)] private float _startScale = 1f;
@@ -35,6 +37,12 @@ public class FadePanelView : MonoBehaviour
     public event Action Finished;
 
     public bool IsPlaying => _playRoutine != null;
+
+    /// <summary>페이드 인으로 진해지는 최대 알파를 정한다. (다음 재생부터 적용)</summary>
+    public void SetMaxAlpha(float maxAlpha)
+    {
+        _maxAlpha = Mathf.Clamp01(maxAlpha);
+    }
 
     public void Play()
     {
@@ -85,13 +93,13 @@ public class FadePanelView : MonoBehaviour
 
     private IEnumerator PlayRoutine()
     {
-        yield return Animate(_fadeInDuration, _startAlpha, 1f, _startScale, 1f);
+        yield return Animate(_fadeInDuration, Mathf.Min(_startAlpha, _maxAlpha), _maxAlpha, _startScale, 1f);
 
         yield return new WaitForSecondsRealtime(_holdDuration);
 
         if (_fadeOutDuration > NoFadeOut)
         {
-            yield return Animate(_fadeOutDuration, 1f, 0f, 1f, 1f);
+            yield return Animate(_fadeOutDuration, _maxAlpha, 0f, 1f, 1f);
             gameObject.SetActive(false);
         }
 

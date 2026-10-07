@@ -13,238 +13,209 @@ MonoBehaviour:
   m_Name: ShopCatalog
   m_EditorClassIdentifier: Assembly-CSharp::ShopCatalogSO
   _items:
-  - id: rw_fire
-    displayName: 'RuneWord: Fire'
-    description: Adds the Fire element to bullets.
-    icon: {fileID: -5686324843479974724, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1100
-    runeEffectId: rune_fire
-    healRatio: 0
-  - id: rw_water
-    displayName: 'RuneWord: Water'
-    description: Adds the Water element to bullets.
-    icon: {fileID: -7212943909279140981, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1100
-    runeEffectId: rune_water
-    healRatio: 0
-  - id: rw_earth
-    displayName: 'RuneWord: Earth'
-    description: Adds the Earth element to bullets.
-    icon: {fileID: -3526115792135047502, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1100
-    runeEffectId: rune_earth
-    healRatio: 0
-  - id: rw_wind
-    displayName: 'RuneWord: Wind'
-    description: Adds the Wind element to bullets.
-    icon: {fileID: -8298205407634032285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1100
-    runeEffectId: rune_wind
-    healRatio: 0
-  - id: rw_power
-    displayName: 'RuneWord: Power'
-    description: Increases the power of bullets and elemental reactions by 50%.
-    icon: {fileID: -1708668002, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1000
-    runeEffectId: rune_power
-    healRatio: 0
-  - id: rw_speed
-    displayName: 'RuneWord: Speed'
-    description: Increases bullet speed by 50%.
-    icon: {fileID: -1201954233, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1000
-    runeEffectId: rune_speed
-    healRatio: 0
-  - id: rw_range
-    displayName: 'RuneWord: Range'
-    description: Increases bullet range by 50%.
-    icon: {fileID: 874300285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1000
-    runeEffectId: rune_range
-    healRatio: 0
-  - id: rw_grow
-    displayName: 'RuneWord: Grow'
-    description: Bullet power gradually increases while traveling, up to 200%.
-    icon: {fileID: 1568585635, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1000
-    runeEffectId: rune_grow
-    healRatio: 0
-  - id: rw_duration
-    displayName: 'RuneWord: Duration'
-    description: Increases the duration of elemental reaction effects.
-    icon: {fileID: -633696880, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1000
-    runeEffectId: rune_duration
-    healRatio: 0
-  - id: rw_return
-    displayName: 'RuneWord: Return'
-    description: Bullets return to the player after reaching maximum range.
-    icon: {fileID: -1513176336, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1200
-    runeEffectId: rune_return
-    healRatio: 0
-  - id: rw_seek
-    displayName: 'RuneWord: Seek'
-    description: Bullets automatically track enemies within a certain range.
-    icon: {fileID: 1362566179, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1200
-    runeEffectId: rune_seek
-    healRatio: 0
-  - id: rw_pierce
-    displayName: 'RuneWord: Pierce'
-    description: Bullets pierce enemies instead of disappearing. Damage drops 5% per pierce (up to 30%).
-    icon: {fileID: 1527658911, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1200
-    runeEffectId: rune_pierce
-    healRatio: 0
-  - id: rw_chain
-    displayName: 'RuneWord: Chain'
-    description: On hit, the elemental reaction chains once to nearby enemies at 50% damage.
-    icon: {fileID: 1515027171, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1400
-    runeEffectId: rune_chain
-    healRatio: 0
-  - id: rw_fix
-    displayName: 'RuneWord: Fix'
-    description: At maximum range, bullets stay in place for 10 seconds before disappearing.
-    icon: {fileID: -1051220346, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1300
-    runeEffectId: rune_fix
-    healRatio: 0
-  - id: rw_orbit
-    displayName: 'RuneWord: Orbit'
-    description: At maximum range, bullets orbit the player for 5 seconds.
-    icon: {fileID: 212567177, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1300
-    runeEffectId: rune_orbit
-    healRatio: 0
-  - id: rw_spread
-    displayName: 'RuneWord: Spread'
-    description: Fires 3 bullets in a fan. Each bullet deals 50% less damage.
-    icon: {fileID: 862109683, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1500
-    runeEffectId: rune_spread
-    healRatio: 0
-  - id: rw_multiple
-    displayName: 'RuneWord: Multiple'
-    description: Fires bullets twice in a row. Each bullet deals 40% less damage.
-    icon: {fileID: -1826348027, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1500
-    runeEffectId: rune_multiple
-    healRatio: 0
-  - id: rw_bind
-    displayName: 'RuneWord: Bind'
-    description: Binds enemies hit for 1 second, restricting their movement.
-    icon: {fileID: -608979020, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1300
-    runeEffectId: rune_bind
-    healRatio: 0
-  - id: rw_absorb
-    displayName: 'RuneWord: Absorb'
-    description: Restores health equal to 10% of the damage dealt on hit.
-    icon: {fileID: -1158828805, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1300
-    runeEffectId: rune_absorb
-    healRatio: 0
-  - id: rw_break
-    displayName: 'RuneWord: Break'
-    description: On hit, destroys enemy shields or applies a weakening effect.
-    icon: {fileID: 527459426, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1300
-    runeEffectId: rune_break
-    healRatio: 0
-  - id: rw_reverse
-    displayName: 'RuneWord: Reverse'
-    description: Bullets survive their first hit and reverse direction once.
-    icon: {fileID: 1656741038, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1600
-    runeEffectId: rune_reverse
-    healRatio: 0
-  - id: rw_echo
-    displayName: 'RuneWord: Echo'
-    description: After an elemental reaction occurs, the same reaction triggers once more after a delay.
-    icon: {fileID: 713557240, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    type: 0
-    basePrice: 1600
-    runeEffectId: rune_echo
-    healRatio: 0
-  - id: rs_pouch_small
-    displayName: Rune Stone Pouch
-    description: Gain 5 random rune stones.
-    icon: {fileID: -5925839551017428873, guid: e47bd0a6f47ccfe41b13e9c9fb36a461, type: 3}
-    type: 1
-    basePrice: 400
-    runeEffectId: 
-    healRatio: 0
-  - id: re_prima_materia
-    displayName: Prima Materia x5
-    description: Research material. Used to unlock research nodes.
-    icon: {fileID: -1746163827458993367, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    type: 2
-    basePrice: 600
-    runeEffectId: 
-    healRatio: 0
-  - id: re_azoth
-    displayName: Azoth x3
-    description: Research material. Used to unlock research nodes.
-    icon: {fileID: 7893262314082883006, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    type: 2
-    basePrice: 800
-    runeEffectId: 
-    healRatio: 0
-  - id: re_mercury
-    displayName: Mercury x3
-    description: Research material. Used to unlock research nodes.
-    icon: {fileID: -2097485206269048795, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    type: 2
-    basePrice: 700
-    runeEffectId: 
-    healRatio: 0
-  - id: re_aether_crystal
-    displayName: Aether Crystal x1
-    description: Rare research material. Used to unlock research nodes.
-    icon: {fileID: -7152099036508023167, guid: 49f1e5d8e73be004cbbee38b39440906, type: 3}
-    type: 2
-    basePrice: 1000
-    runeEffectId: 
-    healRatio: 0
-  - id: po_health
-    displayName: Health Potion
-    description: Restores 30% of maximum health.
-    icon: {fileID: 3384543554474837776, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
-    type: 3
-    basePrice: 300
-    runeEffectId: 
-    healRatio: 0.3
-  - id: po_health_large
-    displayName: Greater Health Potion
-    description: Restores 50% of maximum health.
-    icon: {fileID: -5472931847263231318, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
-    type: 3
-    basePrice: 550
-    runeEffectId: 
-    healRatio: 0.5
+  - Id: rw_fire
+    DisplayName: 'RuneWord: Fire'
+    Description: Adds the Fire element to bullets.
+    Icon: {fileID: -5686324843479974724, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1100
+    RuneEffectId: rune_fire
+    HealRatio: 0
+  - Id: rw_water
+    DisplayName: 'RuneWord: Water'
+    Description: Adds the Water element to bullets.
+    Icon: {fileID: -7212943909279140981, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1100
+    RuneEffectId: rune_water
+    HealRatio: 0
+  - Id: rw_earth
+    DisplayName: 'RuneWord: Earth'
+    Description: Adds the Earth element to bullets.
+    Icon: {fileID: -3526115792135047502, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1100
+    RuneEffectId: rune_earth
+    HealRatio: 0
+  - Id: rw_wind
+    DisplayName: 'RuneWord: Wind'
+    Description: Adds the Wind element to bullets.
+    Icon: {fileID: -8298205407634032285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1100
+    RuneEffectId: rune_wind
+    HealRatio: 0
+  - Id: rw_power
+    DisplayName: 'RuneWord: Power'
+    Description: Increases the power of bullets and elemental reactions by 50%.
+    Icon: {fileID: -1708668002, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1000
+    RuneEffectId: rune_power
+    HealRatio: 0
+  - Id: rw_speed
+    DisplayName: 'RuneWord: Speed'
+    Description: Increases bullet speed by 50%.
+    Icon: {fileID: -1201954233, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1000
+    RuneEffectId: rune_speed
+    HealRatio: 0
+  - Id: rw_range
+    DisplayName: 'RuneWord: Range'
+    Description: Increases bullet range by 50%.
+    Icon: {fileID: 874300285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1000
+    RuneEffectId: rune_range
+    HealRatio: 0
+  - Id: rw_grow
+    DisplayName: 'RuneWord: Grow'
+    Description: Bullet power gradually increases while traveling, up to 200%.
+    Icon: {fileID: 1568585635, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1000
+    RuneEffectId: rune_grow
+    HealRatio: 0
+  - Id: rw_duration
+    DisplayName: 'RuneWord: Duration'
+    Description: Increases the duration of elemental reaction effects.
+    Icon: {fileID: -633696880, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1000
+    RuneEffectId: rune_duration
+    HealRatio: 0
+  - Id: rw_return
+    DisplayName: 'RuneWord: Return'
+    Description: Bullets return to the player after reaching maximum range.
+    Icon: {fileID: -1513176336, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1200
+    RuneEffectId: rune_return
+    HealRatio: 0
+  - Id: rw_seek
+    DisplayName: 'RuneWord: Seek'
+    Description: Bullets automatically track enemies within a certain range.
+    Icon: {fileID: 1362566179, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1200
+    RuneEffectId: rune_seek
+    HealRatio: 0
+  - Id: rw_pierce
+    DisplayName: 'RuneWord: Pierce'
+    Description: Bullets pierce enemies instead of disappearing. Damage drops 5%
+      per pierce (up to 30%).
+    Icon: {fileID: 1527658911, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1200
+    RuneEffectId: rune_pierce
+    HealRatio: 0
+  - Id: rw_chain
+    DisplayName: 'RuneWord: Chain'
+    Description: On hit, the elemental reaction chains once to nearby enemies at
+      50% damage.
+    Icon: {fileID: 1515027171, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1400
+    RuneEffectId: rune_chain
+    HealRatio: 0
+  - Id: rw_fix
+    DisplayName: 'RuneWord: Fix'
+    Description: At maximum range, bullets stay in place for 10 seconds before disappearing.
+    Icon: {fileID: -1051220346, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1300
+    RuneEffectId: rune_fix
+    HealRatio: 0
+  - Id: rw_orbit
+    DisplayName: 'RuneWord: Orbit'
+    Description: At maximum range, bullets orbit the player for 5 seconds.
+    Icon: {fileID: 212567177, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1300
+    RuneEffectId: rune_orbit
+    HealRatio: 0
+  - Id: rw_spread
+    DisplayName: 'RuneWord: Spread'
+    Description: Fires 3 bullets in a fan. Each bullet deals 50% less damage.
+    Icon: {fileID: 862109683, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1500
+    RuneEffectId: rune_spread
+    HealRatio: 0
+  - Id: rw_multiple
+    DisplayName: 'RuneWord: Multiple'
+    Description: Fires bullets twice in a row. Each bullet deals 40% less damage.
+    Icon: {fileID: -1826348027, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1500
+    RuneEffectId: rune_multiple
+    HealRatio: 0
+  - Id: rw_bind
+    DisplayName: 'RuneWord: Bind'
+    Description: Binds enemies hit for 1 second, restricting their movement.
+    Icon: {fileID: -608979020, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1300
+    RuneEffectId: rune_bind
+    HealRatio: 0
+  - Id: rw_absorb
+    DisplayName: 'RuneWord: Absorb'
+    Description: Restores health equal to 10% of the damage dealt on hit.
+    Icon: {fileID: -1158828805, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1300
+    RuneEffectId: rune_absorb
+    HealRatio: 0
+  - Id: rw_break
+    DisplayName: 'RuneWord: Break'
+    Description: On hit, destroys enemy shields or applies a weakening effect.
+    Icon: {fileID: 527459426, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1300
+    RuneEffectId: rune_break
+    HealRatio: 0
+  - Id: rw_reverse
+    DisplayName: 'RuneWord: Reverse'
+    Description: Bullets survive their first hit and reverse direction once.
+    Icon: {fileID: 1656741038, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1600
+    RuneEffectId: rune_reverse
+    HealRatio: 0
+  - Id: rw_echo
+    DisplayName: 'RuneWord: Echo'
+    Description: After an elemental reaction occurs, the same reaction triggers once
+      more after a delay.
+    Icon: {fileID: 713557240, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
+    Type: 0
+    BasePrice: 1600
+    RuneEffectId: rune_echo
+    HealRatio: 0
+  - Id: rs_pouch_small
+    DisplayName: Rune Stone Pouch
+    Description: Gain 5 random rune stones.
+    Icon: {fileID: -5925839551017428873, guid: e47bd0a6f47ccfe41b13e9c9fb36a461, type: 3}
+    Type: 1
+    BasePrice: 400
+    RuneEffectId: 
+    HealRatio: 0
+  - Id: po_health
+    DisplayName: Health Potion
+    Description: Restores 30% of maximum health.
+    Icon: {fileID: 3384543554474837776, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
+    Type: 3
+    BasePrice: 300
+    RuneEffectId: 
+    HealRatio: 0.3
+  - Id: po_health_large
+    DisplayName: Greater Health Potion
+    Description: Restores 50% of maximum health.
+    Icon: {fileID: -5472931847263231318, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
+    Type: 3
+    BasePrice: 550
+    RuneEffectId: 
+    HealRatio: 0.5
   _slotCount: 3
   _priceVariance: 0.2
   _priceRoundUnit: 10

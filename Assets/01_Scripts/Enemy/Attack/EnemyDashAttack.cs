@@ -25,6 +25,7 @@ public class EnemyDashAttack : MonoBehaviour
 
     private Rigidbody2D _body;
     private EnemyHealth _health;
+    private EnemyStatusEffectController _statusEffectController;
     private Vector2 _targetPosition;
     private RigidbodyConstraints2D _savedConstraints;
     private bool _positionFrozen;
@@ -36,6 +37,7 @@ public class EnemyDashAttack : MonoBehaviour
     {
         _body = GetComponent<Rigidbody2D>();
         _health = GetComponent<EnemyHealth>();
+        _statusEffectController = GetComponent<EnemyStatusEffectController>();
         if (_targetDetector == null)
             _targetDetector = GetComponent<EnemyTargetDetector>();
 
@@ -61,9 +63,11 @@ public class EnemyDashAttack : MonoBehaviour
         EnemyHealth.OnDeath += HandleDeath;
     }
 
+    /// 사망 또는 속박 상태에서는 돌진을 취소하고 그 외에는 기존 돌진 상태를 진행한다.
     private void FixedUpdate()
     {
-        if (_health != null && _health.IsDead)
+        if ((_health != null && _health.IsDead) ||
+            (_statusEffectController != null && _statusEffectController.IsRooted))
         {
             CancelDash();
             return;

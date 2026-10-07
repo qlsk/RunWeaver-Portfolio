@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RuneStoneInventory : MonoBehaviour
+/// <summary>
+/// 플레이어가 보유한 룬 문자와 개수.
+/// PlayerRuneManager가 만들어서 들고 있으며, 다른 스크립트는 PlayerRuneManager.Instance.RuneStoneInventory로 접근한다.
+/// </summary>
+public class RuneStoneInventory
 {
-    private Dictionary<char, RuneStoneItem> _inventory = new();
+    private readonly Dictionary<char, RuneStoneItem> _inventory = new();
 
     public event Action OnInventoryChanged;
 
@@ -62,6 +66,15 @@ public class RuneStoneInventory : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>보유한 룬 문자를 모두 비운다. (새 게임)</summary>
+    public void Clear()
+    {
+        if (_inventory.Count == 0) return;
+
+        _inventory.Clear();
+        SafeEventNotifier.Notify(OnInventoryChanged);
     }
 
     public bool ConsumeRuneStones(string runeWord)

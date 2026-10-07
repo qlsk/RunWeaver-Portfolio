@@ -95,8 +95,17 @@ public class MonsterSpawner : MonoBehaviour
 
         CacheEnemyPrefabs();
 
-        int startDepth = StageManager.Instance != null ? StageManager.Instance.CurrentDepth : 1;
-        StartSpawning(startDepth);
+        // 스테이지 흐름(StageManager)이 있는 씬에서는 시작 오브젝트 상호작용으로 미션이 시작될 때
+        // StageManager가 RestartSpawner로 스폰을 시작한다. StageManager가 없는 테스트 씬에서만 바로 시작한다.
+        StageManager stageManager = FindAnyObjectByType<StageManager>();
+        if (stageManager == null)
+        {
+            StartSpawning(1);
+        }
+        else if (stageManager.Phase == StagePhase.InMission && spawnCoroutine == null)
+        {
+            StartSpawning(stageManager.CurrentDepth);
+        }
     }
 
     private void CacheEnemyPrefabs()
@@ -156,6 +165,34 @@ public class MonsterSpawner : MonoBehaviour
         _currentActiveBudget = 0;
 
         Debug.Log("[MonsterSpawner] 몬스터 스폰 코루틴 중지 및 활성 몬스터 정리 완료");
+    }
+
+    /// <summary>
+    /// 스폰만 멈춘다. 이미 나온 몬스터는 그대로 둔다. (미션 클리어 후 정화 대기, 런 종료)
+    /// </summary>
+    public void PauseSpawning()
+    {
+        if (spawnCoroutine != null)
+        {
+            StopCoroutine(spawnCoroutine);
+            spawnCoroutine = null;
+        }
+    }
+
+    /// <summary>
+    /// 등록된 몬스터 프리팹 중 첫 번째를 돌려준다. (보스 프리팹이 없을 때 임시 보스로 사용)
+    /// </summary>
+    public GameObject GetFallbackEnemyPrefab()
+    {
+        foreach (GameObject prefab in enemyPrefabs)
+        {
+            if (prefab != null)
+            {
+                return prefab;
+            }
+        }
+
+        return null;
     }
 
     public void RestartSpawner(int newDepth)

@@ -1,17 +1,51 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 // 탄환마다 독립적으로 생성하는 실행 상태. 상태 전환 시 전체를 초기화하지 않는다.
 public class BulletRuntime
 {
+    private readonly HashSet<EnemyHealth> _hitTargets = new();
+
+    public bool TryRegisterTarget(EnemyHealth target)
+    {
+        return target != null && _hitTargets.Add(target);
+    }
+
+    public bool HasHitTarget(EnemyHealth target)
+    {
+        return _hitTargets.Contains(target);
+    }
+
+    // 첫 적중은 100%, 7번째부터 70%로 유지한다.
+    public float GetDamageMultiplier(bool isPierce)
+    {
+        return isPierce ? 1f - 0.05f * Mathf.Min(HitCount, 6) : 1f;
+    }
+
+    public void RecordHit()
+    {
+        if (HitCount < int.MaxValue)
+            HitCount++;
+    }
+
     // Bullet의 현재 이동 상태
     public BulletPhase Phase;
+    // 발사 이후 반전을 반영하는 현재 진행 방향.
+    public Vector2 Direction;
     // 완료한 직접 적중 횟수. 다음 적중의 Pierce 피해 감소에 사용한다.
     public int HitCount;
     // Reverse 사용 여부. Return/Orbit 진입 후에도 유지한다.
     public bool ReverseUsed;
     // Return 진입 여부. 한 탄환에서 두 번 복귀하지 않도록 한다.
     public bool ReturnUsed;
+
+    // Reverse 직후 Seek/복귀 방향 보정을 멈추는 남은 시간.
+    public float ReverseSteeringRemaining;
     
     // Flying 중 누적 이동거리. 방향을 반전해도 감소하지 않는다.
     public float TravelDistance;
+    // Grow 연결용 전체 이동 거리. 복귀 거리와 궤도 호 길이를 포함한다.
+    public float TotalTravelDistance;
     // 성장 진행도(0~1). Flying/Returning/Orbiting 이동 모두 누적한다.
     public float GrowProgress;
     // Orbit 진입 이후 경과 시간(초).

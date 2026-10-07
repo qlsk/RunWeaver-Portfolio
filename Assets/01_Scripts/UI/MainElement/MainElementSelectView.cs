@@ -17,8 +17,8 @@ public class MainElementSelectView : MonoBehaviour
     [Serializable]
     private class ElementText
     {
-        public ReactionElement element;
-        public string effect;
+        public ReactionElement Element;
+        public string Effect;
     }
 
     [Header("원소 구슬 (원을 따라 시계 방향 순서)")]
@@ -29,10 +29,10 @@ public class MainElementSelectView : MonoBehaviour
     [SerializeField] private TMP_Text _effectText;
     [SerializeField] private ElementText[] _effects =
     {
-        new() { element = ReactionElement.Fire, effect = "Burn - damage over time" },
-        new() { element = ReactionElement.Water, effect = "Slow - reduces move speed" },
-        new() { element = ReactionElement.Earth, effect = "Stagger - interrupts actions" },
-        new() { element = ReactionElement.Wind, effect = "Knockback - pushes enemies away" }
+        new() { Element = ReactionElement.Fire, Effect = "Burn - damage over time" },
+        new() { Element = ReactionElement.Water, Effect = "Slow - reduces move speed" },
+        new() { Element = ReactionElement.Earth, Effect = "Stagger - interrupts actions" },
+        new() { Element = ReactionElement.Wind, Effect = "Knockback - pushes enemies away" }
     };
 
     [Header("버튼")]
@@ -190,10 +190,10 @@ public class MainElementSelectView : MonoBehaviour
 
     private void Confirm()
     {
-        RuneEffectLoadoutManager manager = RuneEffectLoadoutManager.Instance;
+        PlayerRuneManager manager = PlayerRuneManager.Instance;
         if (manager == null || !manager.IsInitialized)
         {
-            throw new InvalidOperationException("RuneEffectLoadoutManager가 초기화되지 않았습니다.");
+            throw new InvalidOperationException("PlayerRuneManager가 초기화되지 않았습니다.");
         }
 
         string effectId = SelectedElement switch
@@ -256,9 +256,9 @@ public class MainElementSelectView : MonoBehaviour
         {
             foreach (ElementText text in _effects)
             {
-                if (text != null && text.element == element)
+                if (text != null && text.Element == element)
                 {
-                    return text.effect;
+                    return text.Effect;
                 }
             }
         }

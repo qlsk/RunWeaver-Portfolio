@@ -35,6 +35,27 @@ public class CombatSceneTestSetup : MonoBehaviour
     [Button("Multiple"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
     private void SelectMultiple() => SelectRune(RuneEffectIds.Multiple);
 
+    [Button("Pierce"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectPierce() => SelectRune(RuneEffectIds.Pierce);
+
+    [Button("Reverse"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectReverse() => SelectRune(RuneEffectIds.Reverse);
+
+    [Button("Return"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectReturn() => SelectRune(RuneEffectIds.Return);
+
+    [Button("Seek"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectSeek() => SelectRune(RuneEffectIds.Seek);
+
+    [Button("Orbit"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectOrbit() => SelectRune(RuneEffectIds.Orbit);
+
+    [Button("Fix"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectFix() => SelectRune(RuneEffectIds.Fix);
+
+    [Button("Chain"), BoxGroup("Behaviour"), ButtonGroup("Behaviour/Selection"), EnableIf(nameof(CanSelectRune))]
+    private void SelectChain() => SelectRune(RuneEffectIds.Chain);
+
     private void SelectRune(string effectId)
     {
         ResizeEquippedEffects();
@@ -89,6 +110,11 @@ public class CombatSceneTestSetup : MonoBehaviour
         await UniTask.WaitUntil(() => _bootstrap.State == BootstrapState.Ready,
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
+        // 마을에서 넘어와 이미 장착한 룬이 있으면 그대로 쓴다. (전투 씬을 바로 실행했을 때만 테스트 장착)
+        RuneEffectLoadout loadout = PlayerRuneManager.Instance.RuneEffectLoadout;
+        if (loadout.EquippedEffectIds.Count > 0)
+            return;
+
         List<string> effectIds = new(_equippedRuneCount);
         for (int i = 0; i < _equippedRuneCount; i++)
         {
@@ -102,6 +128,6 @@ public class CombatSceneTestSetup : MonoBehaviour
             effectIds.Add(effect.Id);
         }
 
-        RuneEffectLoadoutManager.Instance.RuneEffectLoadout.ConfirmEquipment(effectIds);
+        loadout.ConfirmEquipment(effectIds);
     }
 }

@@ -100,9 +100,7 @@ public class ReturnConfirmPopupUI : MonoBehaviour
     private void OnReturnClicked()
     {
         SetVisible(false); // 클릭 즉시 팝업 닫기
-        if (StageManager.Instance != null)
-        {
-            StageManager.Instance.ReturnToLobby();
-        }
+        // 귀환 포탈은 폐기되었다. 기존 테스트 UI 호환을 위해 런을 정리하고 마을로 이동한다.
+        RunFlow.GoToLobby();
     }
 }

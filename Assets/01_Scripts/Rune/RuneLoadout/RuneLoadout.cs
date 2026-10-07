@@ -108,10 +108,6 @@ public class RuneLoadout : IDisposable
         {
             return false;
         }
-        if (!_runeBook.IsRevealed(effectId))
-        {
-            return false;
-        }
         if (_equippedEffectIds[slotIndex] == effectId)
         {
             return false;

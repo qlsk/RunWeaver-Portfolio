@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public enum MissionType
 {
@@ -14,47 +13,64 @@ public enum MissionType
 
 public class MissionManager : MonoBehaviour
 {
-    private static MissionManager s_instance;
+    private static MissionManager instance;
 
     public static MissionManager Instance
     {
         get
         {
-            if (s_instance == null)
+            if (instance == null)
             {
-                s_instance = FindAnyObjectByType<MissionManager>();
-                if (s_instance == null)
+                instance = FindAnyObjectByType<MissionManager>();
+                if (instance == null)
                 {
                     GameObject go = new GameObject("MissionManager");
-                    s_instance = go.AddComponent<MissionManager>();
+                    instance = go.AddComponent<MissionManager>();
                     Debug.Log("[MissionManager] 씬에 MissionManager가 없어 자동으로 생성하였습니다.");
                 }
             }
-            return s_instance;
+            return instance;
         }
     }
 
     [Header("미션 전용 오브젝트 프리팹")]
-    [SerializeField, FormerlySerializedAs("captureZonePrefab")] private GameObject _captureZonePrefab;      // 거점 점령용 프리팹
-    [SerializeField, FormerlySerializedAs("defenseAltarPrefab")] private GameObject _defenseAltarPrefab;     // 제단 방어용 프리팹
-    [SerializeField, FormerlySerializedAs("soulHarvestZonePrefab")] private GameObject _soulHarvestZonePrefab;  // 영혼 수집 구역용 프리팹
+    [SerializeField] private GameObject captureZonePrefab;      // 거점 점령용 프리팹
+    [SerializeField] private GameObject defenseAltarPrefab;     // 제단 방어용 프리팹
+    [SerializeField] private GameObject soulHarvestZonePrefab;  // 영혼 수집 구역용 프리팹
 
     [Header("스폰 위치 설정")]
-    [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
+    [SerializeField] private Vector3 missionObjectSpawnPosition = Vector3.zero;
 
-    private MissionBase _currentMission;
-    private GameObject _spawnedMissionObject;
+    [Header("미션 추첨")]
+    [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")]
+    [SerializeField, Range(0f, 1f)] private float _repeatedMissionWeight = 0.25f;
 
+    private MissionBase currentMission;
+    private GameObject spawnedMissionObject;
+    private MissionType? _lastMissionType;
+    private bool _isMissionRunning;
+
+    /// <summary>새 미션이 정해졌을 때 (아직 진행 전. HUD 표시용)</summary>
     public event Action<MissionBase> OnMissionInitialized;
+    /// <summary>시작 오브젝트 상호작용으로 미션 진행이 시작되었을 때</summary>
+    public event Action<MissionBase> OnMissionStarted;
     public event Action<MissionBase> OnMissionCompleted;
+    /// <summary>미션이 실패했을 때 (제단 파괴, 생존 미션 중 사망)</summary>
+    public event Action<MissionBase> OnMissionFailed;
+
+    /// <summary>현재 미션이 깔아 둔 미션 오브젝트 (거점, 제단, 영혼 수집 구역). 없으면 null</summary>
+    public GameObject CurrentMissionObject => spawnedMissionObject;
+
+    /// <summary>미션 진행 중인지 (시작 오브젝트 상호작용 후 완료/실패 전)</summary>
+    public bool IsMissionRunning => _isMissionRunning;
 
     private void Awake()
     {
-        if (s_instance == null)
+        if (instance == null)
         {
-            s_instance = this;
+            instance = this;
         }
-        else if (s_instance != this)
+        else if (instance != this)
         {
             Destroy(gameObject);
         }
@@ -67,25 +83,88 @@ public class MissionManager : MonoBehaviour
 
     /// <summary>
     /// 새로운 층수에 진입할 때 무작위 미션을 추첨하고 해당 오브젝트를 스폰합니다.
+    /// 미션 진행은 BeginCurrentMission을 부를 때 시작합니다. (시작 오브젝트 상호작용)
     /// </summary>
-    public void StartRandomMission(int depth)
+    public MissionBase PrepareRandomMission(int depth)
     {
         CleanupCurrentMission();
 
-        Array missionValues = Enum.GetValues(typeof(MissionType));
-        MissionType randomType = (MissionType)missionValues.GetValue(UnityEngine.Random.Range(0, missionValues.Length));
+        MissionType randomType = PickMissionType();
+        _lastMissionType = randomType;
 
         Debug.Log($"[MissionManager] ===== Depth {depth} 무작위 미션 추첨: {randomType} =====");
 
         SetupMissionStrategy(randomType);
 
-        if (_currentMission != null)
+        if (currentMission != null)
         {
-            _currentMission.Initialize();
-            _currentMission.OnMissionCompleted -= HandleMissionCompleted;
-            _currentMission.OnMissionCompleted += HandleMissionCompleted;
-            OnMissionInitialized?.Invoke(_currentMission);
+            OnMissionInitialized?.Invoke(currentMission);
         }
+
+        return currentMission;
+    }
+
+    /// <summary>
+    /// 준비된 미션의 진행을 시작합니다. 이때부터 처치 수, 점령 게이지, 생존 시간 등이 집계됩니다.
+    /// </summary>
+    public void BeginCurrentMission()
+    {
+        if (currentMission == null || _isMissionRunning)
+        {
+            return;
+        }
+
+        currentMission.Initialize();
+        currentMission.OnMissionCompleted -= HandleMissionCompleted;
+        currentMission.OnMissionCompleted += HandleMissionCompleted;
+        currentMission.OnMissionFailed -= HandleMissionFailed;
+        currentMission.OnMissionFailed += HandleMissionFailed;
+        _isMissionRunning = true;
+
+        Debug.Log($"[MissionManager] 미션 시작: {currentMission.GetType().Name}");
+        OnMissionStarted?.Invoke(currentMission);
+    }
+
+    /// <summary>
+    /// [기존 호환] 미션을 추첨하고 바로 시작합니다.
+    /// </summary>
+    public void StartRandomMission(int depth)
+    {
+        PrepareRandomMission(depth);
+        BeginCurrentMission();
+    }
+
+    /// <summary>
+    /// 미션 종류를 가중치로 뽑습니다. 직전 층과 같은 미션은 가중치가 낮습니다.
+    /// </summary>
+    private MissionType PickMissionType()
+    {
+        MissionType[] types = (MissionType[])Enum.GetValues(typeof(MissionType));
+        float[] weights = new float[types.Length];
+        float totalWeight = 0f;
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            weights[i] = _lastMissionType.HasValue && types[i] == _lastMissionType.Value ? _repeatedMissionWeight : 1f;
+            totalWeight += weights[i];
+        }
+
+        if (totalWeight <= 0f)
+        {
+            return types[UnityEngine.Random.Range(0, types.Length)];
+        }
+
+        float pick = UnityEngine.Random.Range(0f, totalWeight);
+        for (int i = 0; i < types.Length; i++)
+        {
+            pick -= weights[i];
+            if (pick < 0f)
+            {
+                return types[i];
+            }
+        }
+
+        return types[types.Length - 1];
     }
 
     private void SetupMissionStrategy(MissionType type)
@@ -99,15 +178,15 @@ public class MissionManager : MonoBehaviour
         switch (type)
         {
             case MissionType.EnemyKill:
-                _currentMission = gameObject.AddComponent<EnemyKillMission>();
+                currentMission = gameObject.AddComponent<EnemyKillMission>();
                 break;
 
             case MissionType.SoulCollect:
                 SoulHarvestZone spawnedHarvestZone = null;
-                if (_soulHarvestZonePrefab != null)
+                if (soulHarvestZonePrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedHarvestZone = _spawnedMissionObject.GetComponent<SoulHarvestZone>();
+                    spawnedMissionObject = Instantiate(soulHarvestZonePrefab, missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedHarvestZone = spawnedMissionObject.GetComponent<SoulHarvestZone>();
                 }
                 else
                 {
@@ -119,15 +198,15 @@ public class MissionManager : MonoBehaviour
                 {
                     soulMission.SetHarvestZone(spawnedHarvestZone); // ★ 생성된 영혼 수집 구역 직접 주입 ★
                 }
-                _currentMission = soulMission;
+                currentMission = soulMission;
                 break;
 
             case MissionType.AltarDefense:
                 DefenseAltar spawnedAltar = null;
-                if (_defenseAltarPrefab != null)
+                if (defenseAltarPrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_defenseAltarPrefab, _missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedAltar = _spawnedMissionObject.GetComponent<DefenseAltar>();
+                    spawnedMissionObject = Instantiate(defenseAltarPrefab, missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedAltar = spawnedMissionObject.GetComponent<DefenseAltar>();
                 }
                 else
                 {
@@ -139,19 +218,19 @@ public class MissionManager : MonoBehaviour
                 {
                     altarMission.SetTargetAltar(spawnedAltar); // ★ 생성된 제단 직접 주입 ★
                 }
-                _currentMission = altarMission;
+                currentMission = altarMission;
                 break;
 
             case MissionType.Survival:
-                _currentMission = gameObject.AddComponent<SurvivalMission>();
+                currentMission = gameObject.AddComponent<SurvivalMission>();
                 break;
 
             case MissionType.CaptureZone:
                 CaptureZone spawnedCaptureZone = null;
-                if (_captureZonePrefab != null)
+                if (captureZonePrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_captureZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedCaptureZone = _spawnedMissionObject.GetComponent<CaptureZone>();
+                    spawnedMissionObject = Instantiate(captureZonePrefab, missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedCaptureZone = spawnedMissionObject.GetComponent<CaptureZone>();
                 }
                 else
                 {
@@ -163,50 +242,69 @@ public class MissionManager : MonoBehaviour
                 {
                     captureMission.SetTargetZone(spawnedCaptureZone); // ★ 생성된 거점 점령 구역 직접 주입 ★
                 }
-                _currentMission = captureMission;
+                currentMission = captureMission;
                 break;
         }
     }
 
     private void Update()
     {
-        if (_currentMission != null && !_currentMission.IsCompleted && !_currentMission.IsFailed)
+        if (_isMissionRunning && currentMission != null && !currentMission.IsCompleted && !currentMission.IsFailed)
         {
-            _currentMission.UpdateMission(Time.deltaTime);
+            currentMission.UpdateMission(Time.deltaTime);
         }
     }
 
     private void HandleMissionCompleted()
     {
-        Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 포탈 생성 요청");
-        OnMissionCompleted?.Invoke(_currentMission);
+        _isMissionRunning = false;
+        Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 정화와 포탈 생성 요청");
+        OnMissionCompleted?.Invoke(currentMission);
         if (StageManager.Instance != null)
         {
             StageManager.Instance.HandleMissionCleared();
         }
     }
 
+    private void HandleMissionFailed()
+    {
+        _isMissionRunning = false;
+        Debug.Log("[MissionManager] ✖ 미션 실패! StageManager에 런 종료 요청");
+        OnMissionFailed?.Invoke(currentMission);
+    }
+
+    /// <summary>
+    /// 미션 진행을 멈춘다. (런 종료) 미션과 미션 오브젝트는 그대로 둔다.
+    /// </summary>
+    public void StopCurrentMission()
+    {
+        _isMissionRunning = false;
+    }
+
     public void CleanupMissionObject()
     {
-        if (_spawnedMissionObject != null)
+        if (spawnedMissionObject != null)
         {
-            Destroy(_spawnedMissionObject);
-            _spawnedMissionObject = null;
+            Destroy(spawnedMissionObject);
+            spawnedMissionObject = null;
             Debug.Log("[MissionManager] 필드 미션 오브젝트 제거 완료");
         }
     }
 
     public void CleanupCurrentMission()
     {
-        if (_currentMission != null)
+        _isMissionRunning = false;
+
+        if (currentMission != null)
         {
-            _currentMission.OnMissionCompleted -= HandleMissionCompleted;
-            Destroy(_currentMission);
-            _currentMission = null;
+            currentMission.OnMissionCompleted -= HandleMissionCompleted;
+            currentMission.OnMissionFailed -= HandleMissionFailed;
+            Destroy(currentMission);
+            currentMission = null;
         }
 
         CleanupMissionObject();
     }
 
-    public MissionBase GetCurrentMission() => _currentMission;
+    public MissionBase GetCurrentMission() => currentMission;
 }

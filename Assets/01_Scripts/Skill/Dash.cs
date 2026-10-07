@@ -14,15 +14,24 @@ public class Dash : MonoBehaviour
     private DashAfterimage _dashAfterimage;
     private Rigidbody2D _playerRigidbody2D;
     private PlayerHealth _playerHealth;
+    private PlayerStatusEffectController _statusEffects;
 
     private bool _isDashing = false;
     public bool IsDashing => _isDashing;
     private bool _canDash = true;
+    private float _cooldownEndTime;
+
+    /// <summary>HUD용: 다시 대시할 수 있을 때까지 남은 시간(초). 쓸 수 있으면 0</summary>
+    public float CooldownRemaining => _canDash ? 0f : Mathf.Max(0f, _cooldownEndTime - Time.time);
+
+    /// <summary>HUD용: 대시를 쓴 뒤 다시 쓸 수 있을 때까지 걸리는 전체 시간(초) (지속 시간 + 쿨타임)</summary>
+    public float CooldownDuration => _dashDuration + _dashCooldown;
 
     private void Start()
     {
         _playerRigidbody2D = GetComponent<Rigidbody2D>();
         _playerHealth = GetComponent<PlayerHealth>();
+        _statusEffects = GetComponent<PlayerStatusEffectController>();
         _dashAfterimage = GetComponent<DashAfterimage>();
     }
 
@@ -58,6 +67,7 @@ public class Dash : MonoBehaviour
     private void DoDash()
     {
         if (!_canDash || _isDashing) return;
+        if (_statusEffects != null && _statusEffects.IsStaggered) return;
         StartCoroutine(DashCoroutine());
     }
 
@@ -65,6 +75,7 @@ public class Dash : MonoBehaviour
     {
         _isDashing = true;
         _canDash = false;
+        _cooldownEndTime = Time.time + _dashDuration + _dashCooldown;
         _dashAfterimage.BeginEmission();
 
         // dash 중 무적

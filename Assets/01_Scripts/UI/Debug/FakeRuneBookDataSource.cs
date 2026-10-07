@@ -176,10 +176,8 @@ public class FakeRuneBookDataSource : RuneBookDataSource
                 Description = description,
                 Category = category,
                 CanOverlap = canOverlap,
-                // 기획서 14-2: Element와 Enhancement는 처음부터 목록에 공개된다.
-                RevealLevel = category is RuneEffectCategory.Element or RuneEffectCategory.Enhancement
-                    ? RuneWordRevealLevel.Listed
-                    : RuneWordRevealLevel.Hidden
+                // 모든 룬 워드는 처음부터 목록에 공개된다. (Hidden 폐기)
+                RevealLevel = RuneWordRevealLevel.Listed
             });
         }
 
@@ -251,7 +249,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         }
 
         FakeEntry entry = FindEntry(entryId);
-        if (entry == null || entry.RevealLevel == RuneWordRevealLevel.Hidden)
+        if (entry == null)
         {
             return false;
         }
@@ -369,14 +367,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         RuneEffectCategory category = s_categoryRevealOrder[_nextCategoryIndex];
         _nextCategoryIndex++;
 
-        foreach (FakeEntry entry in _entries)
-        {
-            if (entry.Category == category && entry.RevealLevel == RuneWordRevealLevel.Hidden)
-            {
-                entry.RevealLevel = RuneWordRevealLevel.Listed;
-            }
-        }
-
+        // 모든 룬 워드가 처음부터 공개되므로 바꿀 것이 없다. (Hidden 폐기) 테스트 키 호환용으로 남겨 둔다.
         Debug.Log($"[FakeRuneBookDataSource] {category} 카테고리 공개");
         NotifyChanged();
     }

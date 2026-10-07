@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
 /// 새 룬북(RuneBookV2)에서 룬 워드에 마우스를 올리면 뜨는 팝업.
 /// 아이콘, 이름, "카테고리 · 겹치기 가능 여부", 설명, 룬 워드(룬 문자 이미지)와 모자란 룬 문자를 보여준다.
-/// - Hidden: 이름과 설명을 ??? 로, 룬 워드는 숨긴다.
 /// - Listed: 설명만 ??? 로 숨긴다.
 /// - 완성품을 가지고 있으면 모자란 룬 문자 줄 대신 "Owned x1 - No rune stones needed"를 보여준다.
 /// 크기와 위치는 RuneBookTooltipLayout이 맞춘다.
@@ -18,9 +18,12 @@ public class RuneWordTooltipView : MonoBehaviour
     [Serializable]
     private class StoneSlot
     {
-        public Image icon;
+        // 프리팹에는 예전 이름(icon, missingRing)으로 저장되어 있어 연결이 끊기지 않도록 이전 이름을 지정한다.
+        [FormerlySerializedAs("icon")]
+        public Image Icon;
         [Tooltip("모자랄 때 켜는 붉은 고리")]
-        public GameObject missingRing;
+        [FormerlySerializedAs("missingRing")]
+        public GameObject MissingRing;
     }
 
     [SerializeField] private RuneBookTooltipLayout _layout;
@@ -43,14 +46,12 @@ public class RuneWordTooltipView : MonoBehaviour
 
     [Header("문구")]
     [SerializeField] private string _unknownText = "???";
-    [SerializeField] private string _hiddenDescription = "Not discovered yet.";
     [SerializeField] private string _stackableText = "Stackable";
     [SerializeField] private string _notStackableText = "Not stackable";
     [SerializeField] private string _ownedFormat = "Owned x{0} - No rune stones needed";
 
     [Header("색")]
     [SerializeField] private Color _iconBoxColor = new(0.894f, 0.804f, 0.678f, 1f);
-    [SerializeField] private Color _hiddenIconColor = new(0.275f, 0.216f, 0.188f, 1f);
 
     public readonly struct RuneStoneView
     {
@@ -77,7 +78,6 @@ public class RuneWordTooltipView : MonoBehaviour
             return;
         }
 
-        bool isRevealed = entry.IsRevealed;
         bool isDetailed = entry.AreDetailsRevealed;
 
         if (_iconBox != null)
@@ -89,19 +89,17 @@ public class RuneWordTooltipView : MonoBehaviour
         {
             _icon.sprite = entry.Icon;
             _icon.enabled = entry.Icon != null;
-            _icon.color = isRevealed ? Color.white : _hiddenIconColor;
+            _icon.color = Color.white;
         }
 
-        SetText(_nameText, isRevealed ? entry.EnglishName : _unknownText);
+        SetText(_nameText, entry.EnglishName);
         string category = entry.Category.ToString().ToUpperInvariant();
-        SetText(_categoryText, isRevealed
-            ? $"{category}  ·  {(canOverlap ? _stackableText : _notStackableText)}"
-            : category);
-        SetText(_descriptionText, isDetailed ? entry.Description : isRevealed ? _unknownText : _hiddenDescription);
+        SetText(_categoryText, $"{category}  ·  {(canOverlap ? _stackableText : _notStackableText)}");
+        SetText(_descriptionText, isDetailed ? entry.Description : _unknownText);
 
         if (_runeWordGroup != null)
         {
-            _runeWordGroup.SetActive(isRevealed);
+            _runeWordGroup.SetActive(true);
         }
 
         int stoneCount = stones?.Count ?? 0;
@@ -111,18 +109,18 @@ public class RuneWordTooltipView : MonoBehaviour
             {
                 StoneSlot slot = _runeWordStones[i];
                 bool visible = i < stoneCount;
-                if (slot.icon != null)
+                if (slot.Icon != null)
                 {
-                    slot.icon.gameObject.SetActive(visible);
+                    slot.Icon.gameObject.SetActive(visible);
                     if (visible)
                     {
-                        slot.icon.sprite = stones[i].Icon;
+                        slot.Icon.sprite = stones[i].Icon;
                     }
                 }
 
-                if (slot.missingRing != null)
+                if (slot.MissingRing != null)
                 {
-                    slot.missingRing.SetActive(visible && stones[i].IsMissing);
+                    slot.MissingRing.SetActive(visible && stones[i].IsMissing);
                 }
             }
         }
@@ -138,9 +136,10 @@ public class RuneWordTooltipView : MonoBehaviour
         }
 
         int missingCount = showOwned ? 0 : missingStones?.Count ?? 0;
+        EnsureMissingSlots(missingCount);
         if (_missingGroup != null)
         {
-            _missingGroup.SetActive(isRevealed && missingCount > 0);
+            _missingGroup.SetActive(missingCount > 0);
         }
 
         if (_missingStones != null)
@@ -159,6 +158,39 @@ public class RuneWordTooltipView : MonoBehaviour
         if (_layout != null)
         {
             _layout.Show(target);
+        }
+    }
+
+    /// <summary>
+    /// 모자란 룬 문자 칸이 부족하면 마지막 칸을 복제해 늘린다. (룬 워드는 최대 8글자)
+    /// </summary>
+    private void EnsureMissingSlots(int count)
+    {
+        if (_missingStones == null || _missingStones.Length == 0 || count <= _missingStones.Length)
+        {
+            return;
+        }
+
+        Image template = _missingStones[_missingStones.Length - 1];
+        if (template == null)
+        {
+            return;
+        }
+
+        // 칸들은 레이아웃 그룹 없이 일정한 간격으로 놓여 있으므로, 마지막 두 칸의 간격만큼 옆으로 이어 놓는다.
+        int oldLength = _missingStones.Length;
+        RectTransform templateRect = template.rectTransform;
+        Vector2 step = oldLength >= 2 && _missingStones[oldLength - 2] != null
+            ? templateRect.anchoredPosition - _missingStones[oldLength - 2].rectTransform.anchoredPosition
+            : new Vector2(templateRect.rect.width, 0f);
+
+        Array.Resize(ref _missingStones, count);
+        for (int i = oldLength; i < count; i++)
+        {
+            Image slot = Instantiate(template, template.transform.parent);
+            slot.name = $"{template.name} ({i + 1})";
+            slot.rectTransform.anchoredPosition = templateRect.anchoredPosition + step * (i - oldLength + 1);
+            _missingStones[i] = slot;
         }
     }
 

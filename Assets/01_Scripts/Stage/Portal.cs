@@ -5,23 +5,12 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// 포탈 종류. 귀환 / 1층 하강 / 2~3층 하강(위험)
-/// </summary>
-public enum PortalType
-{
-    Return,
-    Descend,
-    DeepDescend
-}
-
-/// <summary>
-/// 미션 클리어 후 등장하는 포탈.
-/// PortalSpawner가 Setup으로 종류와 층수를 정한 뒤 PlayFadeIn으로 등장시킨다.
+/// 미션 클리어 후 등장하는 포탈. 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
+/// PortalSpawner가 Setup으로 문구를 정한 뒤 PlayFadeIn으로 등장시킨다.
 /// FadeIn이 끝나야 Collider가 켜져서 F 상호작용(IInteractable)이 가능해진다.
-/// 포탈 위에는 종류를 알려주는 텍스트(Label)를 항상 띄우고,
+/// 포탈 위에는 문구(Label)를 항상 띄우고,
 /// 플레이어가 이 포탈을 상호작용 대상으로 잡으면 아래에 F 안내 텍스트(Prompt)를 띄운다.
-/// 위험 포탈(DeepDescend)은 붉은색 + 조금 더 큰 크기로 분위기를 준다.
-/// 플레이어가 상호작용 대상으로 잡은(가장 가까운) 포탈만 크기와 밝기가 천천히 맥동한다.
+/// 플레이어가 상호작용 대상으로 잡으면 크기와 밝기가 천천히 맥동한다.
 ///
 /// 프리팹 구성 (Label과 InteractionGuidePoint는 에디터에서 위치/크기를 바로 조정한다)
 /// Portal (이 스크립트, Collider)
@@ -37,6 +26,7 @@ public class Portal : MonoBehaviour, IInteractable
     public static event Action<Portal> OnPlayerExited;
 
     private const string InteractionText = "Enter";
+    private const string DefaultLabelText = "Descend";
 
     [Header("References")]
     [Tooltip("포탈 이미지 오브젝트. 크기 연출은 여기에만 적용된다")]
@@ -48,19 +38,12 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField] private TextMeshPro _prompt;
 
     [Header("Colors (포탈 / 텍스트)")]
-    [SerializeField] private Color _returnColor = new(0.45f, 0.7f, 1f, 1f);
-    [SerializeField] private Color _returnLabelColor = new(0.7f, 0.85f, 1f, 1f);
     [SerializeField] private Color _descendColor = Color.white;
     [SerializeField] private Color _descendLabelColor = new(1f, 0.95f, 0.85f, 1f);
-    [SerializeField] private Color _deepColor = new(1f, 0.35f, 0.3f, 1f);
-    [SerializeField] private Color _deepLabelColor = new(1f, 0.45f, 0.4f, 1f);
 
     [Header("Fade In")]
     [SerializeField, Min(0f)] private float _fadeInDuration = 0.8f;
     [SerializeField, Min(0.01f)] private float _fadeInStartScale = 0.8f;
-
-    [Header("위험 포탈 크기")]
-    [SerializeField, Min(0.01f)] private float _deepScale = 1.15f;
 
     [Header("가까이 갔을 때 맥동")]
     [SerializeField, Min(0f)] private float _pulseScale = 0.05f;
@@ -85,8 +68,8 @@ public class Portal : MonoBehaviour, IInteractable
     private bool _isFocused;
     private float _pulseWeight;
 
-    public PortalType Type { get; private set; } = PortalType.Descend;
-    public int Floors { get; private set; } = 1;
+    private string _labelText = DefaultLabelText;
+
     public bool IsReady => _isReady;
 
     public string InteractionName => InteractionText;
@@ -161,13 +144,12 @@ public class Portal : MonoBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 포탈 종류와 내려갈 층수를 정한다. (귀환 포탈은 floors를 무시한다)
+    /// 포탈 위에 띄울 문구를 정한다. (예: Descend, Face the Boss)
     /// </summary>
-    public void Setup(PortalType type, int floors)
+    public void Setup(string label)
     {
         Initialize();
-        Type = type;
-        Floors = type == PortalType.Return ? 0 : Mathf.Max(1, floors);
+        _labelText = string.IsNullOrEmpty(label) ? DefaultLabelText : label;
         ApplyType();
     }
 
@@ -254,51 +236,26 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void ApplyType()
     {
-        switch (Type)
-        {
-            case PortalType.Return:
-                _spriteColor = _returnColor;
-                _labelColor = _returnLabelColor;
-                break;
-            case PortalType.DeepDescend:
-                _spriteColor = _deepColor;
-                _labelColor = _deepLabelColor;
-                break;
-            default:
-                _spriteColor = _descendColor;
-                _labelColor = _descendLabelColor;
-                break;
-        }
+        _spriteColor = _descendColor;
+        _labelColor = _descendLabelColor;
 
         if (_label != null)
         {
-            _label.text = GetLabelText();
+            _label.text = _labelText;
         }
 
         ApplyVisual(0f);
-    }
-
-    private string GetLabelText()
-    {
-        if (Type == PortalType.Return)
-        {
-            return "Return to Town";
-        }
-
-        return Floors == 1 ? "Descend 1 Floor" : $"Descend {Floors} Floors";
     }
 
     /// <param name="pulse">0~1. 현재 맥동 크기 (맥동하지 않으면 0)</param>
     /// <param name="pulseWeight">0~1. 맥동이 켜진 정도 (밝기 변화 폭에 사용)</param>
     private void ApplyVisual(float pulse, float pulseWeight = 0f)
     {
-        bool isDeep = Type == PortalType.DeepDescend;
-        float typeScale = isDeep ? _deepScale : 1f;
         float pulseScale = 1f + _pulseScale * pulse;
 
         if (_visual != null)
         {
-            _visual.localScale = _baseScale * (typeScale * pulseScale * _scaleFactor);
+            _visual.localScale = _baseScale * (pulseScale * _scaleFactor);
         }
 
         if (_sprite != null)

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// 영혼 수집 미션을 위한 특정 수집 구역 컴포넌트.
@@ -9,8 +8,8 @@ using UnityEngine.Serialization;
 public class SoulHarvestZone : MonoBehaviour
 {
     [Header("구역 시각화 설정 (기즈모)")]
-    [SerializeField, FormerlySerializedAs("gizmoColor")] private Color _gizmoColor = new Color(0.2f, 0.8f, 1f, 0.3f);
-    [SerializeField, FormerlySerializedAs("wireColor")] private Color _wireColor = new Color(0.2f, 0.8f, 1f, 0.9f);
+    [SerializeField] private Color _gizmoColor = new Color(0.2f, 0.8f, 1f, 0.3f);
+    [SerializeField] private Color _wireColor = new Color(0.2f, 0.8f, 1f, 0.9f);
 
     private Collider2D _zoneCollider;
 

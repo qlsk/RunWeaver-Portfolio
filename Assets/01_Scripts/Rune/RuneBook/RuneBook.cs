@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// 룬 워드 공개 상태(도감). 모든 룬 워드는 처음부터 Listed이며, 장착하면 RevealDetails로 Detailed가 된다.
+/// (연구로 카테고리를 해금하는 Hidden 단계는 폐기)
+/// </summary>
 public class RuneBook
 {
     private RuneEffectDatabase _database;
@@ -47,28 +50,6 @@ public class RuneBook
         RuneBookChanged?.Invoke();
     }
 
-    public void RevealCategory(RuneEffectCategory category)
-    {
-        if (!_isInitialized)
-        {
-            throw new InvalidOperationException("Rune book is not initialized.");
-        }
-        if (!_database.TryGetByCategory(category, out IReadOnlyList<RuneEffectDefinition> runeEffectData))
-        {
-            throw new ArgumentException($"No rune effects in category: {category}", nameof(category));
-        }
-        foreach (RuneEffectDefinition data in runeEffectData)
-        {
-            if (!_runeWords.TryGetValue(data.Id, out RuneWord runeWord))
-            {
-                throw new InvalidOperationException($"Rune book entry not found: {data.Id}");
-            }
-            if (runeWord.IsRevealed) continue;
-            runeWord.Reveal(RuneWordRevealLevel.Listed);
-        }
-        RuneBookChanged?.Invoke();
-    }
-
     public void RevealDetails(string runeEffectId)
     {
         if (!_isInitialized)
@@ -86,20 +67,6 @@ public class RuneBook
         }
         runeWord.Reveal(RuneWordRevealLevel.Detailed);
         SafeEventNotifier.Notify(RuneBookChanged);
-    }
-
-    public bool IsRevealed(string runeEffectId)
-    {
-        if (!_isInitialized)
-        {
-            throw new InvalidOperationException("Rune book is not initialized.");
-        }
-        if (!_runeWords.TryGetValue(runeEffectId, out RuneWord runeWord))
-        {
-            throw new ArgumentException($"Rune book entry not found: {runeEffectId}",
-                nameof(runeEffectId));
-        }
-        return runeWord.IsRevealed;
     }
 
     public RuneWordInfo GetWord(string runeEffectId)
@@ -125,22 +92,6 @@ public class RuneBook
         if (!_isInitialized) return Array.Empty<RuneWordInfo>();
         List<RuneWordInfo> infos = new();
         foreach (RuneWord word in _runeWords.Values)
-        {
-            if (!_database.TryGetById(word.RuneEffectId, out RuneEffectDefinition data))
-            {
-                throw new InvalidOperationException($"Rune effect not found in database: {word.RuneEffectId}");
-            }
-            RuneWordInfo info = new(data, word.RevealLevel);
-            infos.Add(info);
-        }
-        return infos;
-    }
-
-    public IReadOnlyList<RuneWordInfo> GetRevealedEntries()
-    {
-        if (!_isInitialized) return Array.Empty<RuneWordInfo>();
-        List<RuneWordInfo> infos = new();
-        foreach (RuneWord word in _runeWords.Values.Where(word => word.IsRevealed))
         {
             if (!_database.TryGetById(word.RuneEffectId, out RuneEffectDefinition data))
             {

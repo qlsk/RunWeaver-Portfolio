@@ -14,6 +14,8 @@ public class PlayerHealth : MonoBehaviour
     [Header("피격 무적 지속 시간")]
     [SerializeField] private float _invincibilityDuration = 0.5f;
 
+    private Shield _shield;
+
     public event Action Died;
 
     private bool _isDead = false;
@@ -35,6 +37,11 @@ public class PlayerHealth : MonoBehaviour
     //     _canTakeDamage = canTakeDamage;
     // }
 
+    private void Start()
+    {
+        _shield = GetComponent<Shield>();
+    }
+
     private void Awake()
     {
         _currentHealth = _maxHealth;
@@ -43,15 +50,21 @@ public class PlayerHealth : MonoBehaviour
     // 피격
     public void TakeDamage(float damage)
     {
+        Debug.Log($"Current Shield = {_shield.CurrentShield}");
         if (_isDead || damage <= 0f) return;
         if (_hitInvincibility || _dashInvincibility) return;
         StartCoroutine(TakeDamageCoroutine(damage));
     }
 
-    private IEnumerator TakeDamageCoroutine(float damage)
+    /// <summary>지속 피해는 피격/대시 무적을 무시하고 새 피격 무적을 만들지 않는다.</summary>
+    public void TakeDamageOverTime(float damage)
     {
-        _hitInvincibility = true;
+        if (_isDead || damage <= 0f) return;
+        ApplyDamage(damage);
+    }
 
+    private void ApplyDamage(float damage)
+    {
         if (_currentHealth - damage <= 0f)
         {
             _currentHealth = 0f;
@@ -60,6 +73,19 @@ public class PlayerHealth : MonoBehaviour
         else
         {
             _currentHealth -= damage;
+        }
+    }
+
+    private IEnumerator TakeDamageCoroutine(float damage)
+    {
+        _hitInvincibility = true;
+        if (_shield.CurrentShield > 0)
+        {
+            _shield.DestroyShield();
+        }
+        else
+        {
+            ApplyDamage(damage);
         }
 
         yield return new WaitForSeconds(_invincibilityDuration);
