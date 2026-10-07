@@ -41,6 +41,20 @@ public class PlayerAttack : MonoBehaviour
     private bool _isReloading;
     private float _reloadTimer;
 
+    /// <summary>보상 특성용: 탄환 발사 통지 (연발 중 추가탄 제외, 1회 공격당 1회).</summary>
+    public event Action Fired;
+
+    /// <summary>보상 특성용 배율 (기본 1). 피해·발사간격에 곱해진다.</summary>
+    public float DamageMultiplier { get; set; } = 1f;
+    public float FireIntervalMultiplier { get; set; } = 1f;
+
+    private int _magazineBonus;
+    /// <summary>보상 특성용: 탄창 보너스 탄수 누적.</summary>
+    public void AddMagazineBonus(int bonus)
+    {
+        _magazineBonus = Mathf.Max(0, _magazineBonus + bonus);
+    }
+
     // Attack timing
     private float _bulletFireCoolTimer;
 
@@ -49,7 +63,7 @@ public class PlayerAttack : MonoBehaviour
     private float _multipleTimer;
     private PlayerAttackData _attackData;
 
-    public int MagazineSize => _magazineSize;
+    public int MagazineSize => _magazineSize + _magazineBonus;
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public int CurrentAmmo => _currentAmmo;
 
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public bool IsReloading => _isReloading;
@@ -79,7 +93,7 @@ public class PlayerAttack : MonoBehaviour
             throw new MissingReferenceException(
                 "PlayerAttack requires input, a main camera, a bullet prefab and a fire position.");
 
-        _currentAmmo = _magazineSize;
+        _currentAmmo = MagazineSize;
         _bulletFireCoolTimer = _bulletFireRate;
 
         InitializeAsync().Forget();
@@ -182,7 +196,8 @@ public class PlayerAttack : MonoBehaviour
     /// <summary>발사 간격에 맞춰 마우스 방향으로 주력 원소를 가진 탄환을 발사한다.</summary>
     private void Fire()
     {
-        if (_currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate)
+        float fireInterval = _bulletFireRate * FireIntervalMultiplier;
+        if (_currentAmmo <= 0 || _bulletFireCoolTimer < fireInterval)
             return;
 
         Vector2 targetPosition = _playerInputHandler.MousePosition;
@@ -191,7 +206,7 @@ public class PlayerAttack : MonoBehaviour
         if (direction == Vector2.zero)
             return;
 
-        float damage = _bulletDamage * _runeEffectConfiguration.SpreadDamageMultiplier *
+        float damage = _bulletDamage * DamageMultiplier * _runeEffectConfiguration.SpreadDamageMultiplier *
                        _runeEffectConfiguration.MultipleDamageMultiplier;
         _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration,
             transform);
@@ -200,6 +215,7 @@ public class PlayerAttack : MonoBehaviour
         _bulletFireCoolTimer = 0f;
 
         SpawnBullets(_attackData);
+        Fired?.Invoke();
 
         _remainingBurstShots = _attackData.Configuration.ShotsPerAttack - 1;
         _multipleTimer = _multipleInterval;
@@ -236,7 +252,7 @@ public class PlayerAttack : MonoBehaviour
 
     public void Reload()
     {
-        if (_remainingBurstShots > 0 || _isReloading || _currentAmmo >= _magazineSize) return;
+        if (_remainingBurstShots > 0 || _isReloading || _currentAmmo >= MagazineSize) return;
 
         _isReloading = true;
         _reloadTimer = 0f;
@@ -248,7 +264,7 @@ public class PlayerAttack : MonoBehaviour
         if (_reloadTimer < _reloadTime)
             return;
 
-        _currentAmmo = _magazineSize;
+        _currentAmmo = MagazineSize;
         _isReloading = false;
     }
 

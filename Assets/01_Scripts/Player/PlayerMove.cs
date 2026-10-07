@@ -8,6 +8,9 @@ public class PlayerMove : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
 
+    /// <summary>보상 특성용 이동속도 배율 (기본 1).</summary>
+    public float TraitMoveSpeedMultiplier { get; set; } = 1f;
+
     public bool IsMoving => _playerRigidbody2D != null && _playerRigidbody2D.linearVelocity.sqrMagnitude > 0.0001f;
 
     private void Start()
@@ -39,6 +42,6 @@ public class PlayerMove : MonoBehaviour
         Vector2 moveDirection = _playerInputHandler.MoveDirection;
 
         float multiplier = _statusEffects != null ? _statusEffects.MoveSpeedMultiplier : 1f;
-        _playerRigidbody2D.linearVelocity = moveDirection * (_playerMoveSpeed * multiplier);
+        _playerRigidbody2D.linearVelocity = moveDirection * (_playerMoveSpeed * multiplier * TraitMoveSpeedMultiplier);
     }
 }

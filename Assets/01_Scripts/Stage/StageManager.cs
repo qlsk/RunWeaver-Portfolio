@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 스테이지 진행(심도, 미션 시작, 정화, 포탈 이동, 런 종료)을 관리한다.
@@ -30,28 +31,28 @@ public class StageManager : MonoBehaviour
 
     private const float StartObjectRadius = 1.5f;
 
-    private static StageManager instance;
+    private static StageManager s_instance;
 
     public static StageManager Instance
     {
         get
         {
-            if (instance == null)
+            if (s_instance == null)
             {
-                instance = FindAnyObjectByType<StageManager>();
-                if (instance == null)
+                s_instance = FindAnyObjectByType<StageManager>();
+                if (s_instance == null)
                 {
                     GameObject go = new GameObject("StageManager");
-                    instance = go.AddComponent<StageManager>();
+                    s_instance = go.AddComponent<StageManager>();
                     Debug.Log("[StageManager] 씬에 StageManager가 없어 자동으로 생성하였습니다.");
                 }
             }
-            return instance;
+            return s_instance;
         }
     }
 
     [Header("스테이지 상태 정보")]
-    [SerializeField] private int currentDepth = 1;
+    [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
     [Header("런 구성")]
     [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
@@ -75,17 +76,17 @@ public class StageManager : MonoBehaviour
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
 
     [Header("포탈 프리팹 및 스폰 위치")]
-    [SerializeField] private GameObject portalPrefab;
+    [SerializeField, FormerlySerializedAs("portalPrefab")] private GameObject _portalPrefab;
     [Tooltip("포탈이 놓이는 위치 (맵 중앙)")]
-    [SerializeField] private Vector3 portalSpawnPosition = Vector3.zero;
+    [SerializeField, FormerlySerializedAs("portalSpawnPosition")] private Vector3 _portalSpawnPosition = Vector3.zero;
 
     [Header("상점")]
     [Tooltip("이 층수 단위를 넘어갈 때 상점을 연다 (5면 5→6 ...). 보스 스테이지로 갈 때도 연다.")]
-    [SerializeField, Min(1)] private int shopFloorInterval = 5;
+    [SerializeField, FormerlySerializedAs("shopFloorInterval"), Min(1)] private int _shopFloorInterval = 5;
     [Tooltip("비워두면 씬에서 찾는다 (꺼진 오브젝트 포함)")]
-    [SerializeField] private ShopPresenter shopPresenter;
+    [SerializeField, FormerlySerializedAs("shopPresenter")] private ShopPresenter _shopPresenter;
     [Tooltip("비워두면 씬에서 찾는다")]
-    [SerializeField] private PopupController popupController;
+    [SerializeField, FormerlySerializedAs("popupController")] private PopupController _popupController;
 
     private PortalSpawner _portalSpawner;
     private MissionManager _missionManager;
@@ -102,7 +103,7 @@ public class StageManager : MonoBehaviour
     private bool _isTransitioning;
     private bool _isWaitingShop;
 
-    public int CurrentDepth => currentDepth;
+    public int CurrentDepth => _currentDepth;
     public int MissionStageCount => _missionStageCount;
     public int BossDepth => _missionStageCount + 1;
     public StagePhase Phase => _phase;
@@ -152,11 +153,11 @@ public class StageManager : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null)
+        if (s_instance == null)
         {
-            instance = this;
+            s_instance = this;
         }
-        else if (instance != this)
+        else if (s_instance != this)
         {
             Destroy(gameObject);
             return;
@@ -168,7 +169,7 @@ public class StageManager : MonoBehaviour
             _portalSpawner = gameObject.AddComponent<PortalSpawner>();
         }
 
-        _portalSpawner.Configure(portalPrefab, portalSpawnPosition);
+        _portalSpawner.Configure(_portalPrefab, _portalSpawnPosition);
     }
 
     private void Start()
@@ -195,7 +196,7 @@ public class StageManager : MonoBehaviour
 
         // 시작 오브젝트를 누르기 전에는 적이 없어야 하므로 씬에 미리 놓인 적을 정리한다.
         ClearActiveEnemies();
-        StartStage(currentDepth);
+        StartStage(_currentDepth);
     }
 
     private void OnDestroy()
@@ -212,14 +213,14 @@ public class StageManager : MonoBehaviour
             _playerHealth.Died -= HandlePlayerDied;
         }
 
-        if (shopPresenter != null)
+        if (_shopPresenter != null)
         {
-            shopPresenter.Left -= HandleShopLeft;
+            _shopPresenter.Left -= HandleShopLeft;
         }
 
-        if (instance == this)
+        if (s_instance == this)
         {
-            instance = null;
+            s_instance = null;
         }
     }
 
@@ -379,11 +380,11 @@ public class StageManager : MonoBehaviour
             _missionManager.CleanupMissionObject();
         }
 
-        SafeEventNotifier.Notify(MissionCleared, currentDepth);
+        SafeEventNotifier.Notify(MissionCleared, _currentDepth);
 
         if (_missionRewardProvider != null)
         {
-            _missionRewardProvider.Grant(currentDepth, SpawnNextPortal);
+            _missionRewardProvider.Grant(_currentDepth, SpawnNextPortal);
         }
         else
         {
@@ -473,7 +474,7 @@ public class StageManager : MonoBehaviour
 
         if (_portalSpawner != null)
         {
-            string label = currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
+            string label = _currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
             _portalSpawner.SpawnPortal(label);
         }
     }
@@ -500,9 +501,9 @@ public class StageManager : MonoBehaviour
     {
         _isTransitioning = true;
 
-        int from = currentDepth;
-        int to = currentDepth + 1;
-        currentDepth = to;
+        int from = _currentDepth;
+        int to = _currentDepth + 1;
+        _currentDepth = to;
         Debug.Log($"[StageManager] ===== Depth {from} → {to} =====");
 
         DespawnPortal();
@@ -558,38 +559,38 @@ public class StageManager : MonoBehaviour
             return true;
         }
 
-        return (Mathf.Max(1, from) - 1) / shopFloorInterval != (to - 1) / shopFloorInterval;
+        return (Mathf.Max(1, from) - 1) / _shopFloorInterval != (to - 1) / _shopFloorInterval;
     }
 
     private bool TryOpenShop()
     {
-        if (shopPresenter == null)
+        if (_shopPresenter == null)
         {
-            shopPresenter = FindAnyObjectByType<ShopPresenter>(FindObjectsInactive.Include);
+            _shopPresenter = FindAnyObjectByType<ShopPresenter>(FindObjectsInactive.Include);
         }
 
-        if (popupController == null)
+        if (_popupController == null)
         {
-            popupController = FindAnyObjectByType<PopupController>(FindObjectsInactive.Include);
+            _popupController = FindAnyObjectByType<PopupController>(FindObjectsInactive.Include);
         }
 
-        if (shopPresenter == null)
+        if (_shopPresenter == null)
         {
             Debug.LogWarning("[StageManager] 씬에 ShopPresenter가 없어 상점을 건너뜁니다.", this);
             return false;
         }
 
         _isWaitingShop = true;
-        shopPresenter.Left -= HandleShopLeft;
-        shopPresenter.Left += HandleShopLeft;
+        _shopPresenter.Left -= HandleShopLeft;
+        _shopPresenter.Left += HandleShopLeft;
 
         // 팝업으로 열어서 상점이 열린 동안 게임 입력을 막는다.
-        if (popupController != null)
+        if (_popupController != null)
         {
-            popupController.OpenPopup(shopPresenter.gameObject);
+            _popupController.OpenPopup(_shopPresenter.gameObject);
         }
 
-        shopPresenter.OpenShop();
+        _shopPresenter.OpenShop();
         return true;
     }
 
@@ -601,11 +602,11 @@ public class StageManager : MonoBehaviour
         }
 
         _isWaitingShop = false;
-        shopPresenter.Left -= HandleShopLeft;
+        _shopPresenter.Left -= HandleShopLeft;
 
-        if (popupController != null)
+        if (_popupController != null)
         {
-            popupController.ClosePopup();
+            _popupController.ClosePopup();
         }
 
         StartNextStage();
@@ -615,7 +616,7 @@ public class StageManager : MonoBehaviour
     {
         ClearActiveEnemies();
         ResetPlayerPosition();
-        StartStage(currentDepth);
+        StartStage(_currentDepth);
     }
 
     public void DespawnPortal()
@@ -718,7 +719,7 @@ public class StageManager : MonoBehaviour
         MonsterSpawner spawner = FindSpawner();
         if (spawner != null)
         {
-            spawner.RestartSpawner(currentDepth);
+            spawner.RestartSpawner(_currentDepth);
         }
     }
 

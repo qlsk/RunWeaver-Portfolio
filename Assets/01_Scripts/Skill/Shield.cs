@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Shield : MonoBehaviour
@@ -16,6 +17,16 @@ public class Shield : MonoBehaviour
 
     /// <summary>HUD용: 다음 쉴드 스택이 생길 때까지의 진행도 (0 ~ 1)</summary>
     public float RechargeProgress => _shieldCoolTime > 0f ? Mathf.Clamp01(_shieldCoolTimer / _shieldCoolTime) : 1f;
+
+    /// <summary>보상 특성용: 쉴드 스택이 실제로 깎일 때 발행.</summary>
+    public event Action ShieldBroken;
+
+    /// <summary>보상 특성용: 충전 시간 외부 조정.</summary>
+    public float ShieldCoolTime
+    {
+        get => _shieldCoolTime;
+        set => _shieldCoolTime = Mathf.Max(0.1f, value);
+    }
 
     private StageManager _stageManager;
 
@@ -62,6 +73,7 @@ public class Shield : MonoBehaviour
         if (_currentShield > 0)
         {
             _currentShield--;
+            ShieldBroken?.Invoke();
         }
     }
 

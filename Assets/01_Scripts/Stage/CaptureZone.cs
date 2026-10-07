@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 거점 점령 미션을 위한 물리적 점령 구역 컴포넌트.
@@ -9,31 +10,31 @@ using UnityEngine;
 public class CaptureZone : MonoBehaviour
 {
     [Header("구역 시각화 (기즈모)")]
-    [SerializeField] private Color zoneColor = new Color(1f, 0.85f, 0.2f, 0.35f);
-    [SerializeField] private Color wireColor = new Color(1f, 0.85f, 0.2f, 0.95f);
+    [SerializeField, FormerlySerializedAs("zoneColor")] private Color _zoneColor = new Color(1f, 0.85f, 0.2f, 0.35f);
+    [SerializeField, FormerlySerializedAs("wireColor")] private Color _wireColor = new Color(1f, 0.85f, 0.2f, 0.95f);
 
     public event Action<bool> OnPlayerPresenceChanged;
 
-    private bool isPlayerInside = false;
-    public bool IsPlayerInside => isPlayerInside;
+    private bool _isPlayerInside = false;
+    public bool IsPlayerInside => _isPlayerInside;
 
-    private Collider2D col;
+    private Collider2D _col;
 
     private void Awake()
     {
-        col = GetComponent<Collider2D>();
-        if (col == null)
+        _col = GetComponent<Collider2D>();
+        if (_col == null)
         {
-            col = gameObject.AddComponent<CircleCollider2D>();
+            _col = gameObject.AddComponent<CircleCollider2D>();
         }
-        col.isTrigger = true;
+        _col.isTrigger = true;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
-            isPlayerInside = true;
+            _isPlayerInside = true;
             Debug.Log("[CaptureZone] 플레이어가 거점 구역에 진입했습니다.");
             OnPlayerPresenceChanged?.Invoke(true);
         }
@@ -43,7 +44,7 @@ public class CaptureZone : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            isPlayerInside = false;
+            _isPlayerInside = false;
             Debug.Log("[CaptureZone] 플레이어가 거점 구역에서 벗어났습니다.");
             OnPlayerPresenceChanged?.Invoke(false);
         }
@@ -54,17 +55,17 @@ public class CaptureZone : MonoBehaviour
         Collider2D c = GetComponent<Collider2D>();
         if (c == null) return;
 
-        Gizmos.color = zoneColor;
+        Gizmos.color = _zoneColor;
         if (c is CircleCollider2D circle)
         {
             Gizmos.DrawSphere(transform.position + (Vector3)circle.offset, circle.radius);
-            Gizmos.color = wireColor;
+            Gizmos.color = _wireColor;
             Gizmos.DrawWireSphere(transform.position + (Vector3)circle.offset, circle.radius);
         }
         else if (c is BoxCollider2D box)
         {
             Gizmos.DrawCube(transform.position + (Vector3)box.offset, box.size);
-            Gizmos.color = wireColor;
+            Gizmos.color = _wireColor;
             Gizmos.DrawWireCube(transform.position + (Vector3)box.offset, box.size);
         }
     }
