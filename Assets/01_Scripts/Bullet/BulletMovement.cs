@@ -5,10 +5,13 @@ using UnityEngine;
 // 이동, 추적, 반전. 종료 여부는 Bullet에서 결정한다.
 public sealed class BulletMovement
 {
-    private readonly Transform transform;
+    private readonly Transform _transform;
     private readonly PlayerAttackData _attackData;
     private readonly BulletRuntime _runtime;
-    private readonly float OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _seekRadius;
+    private readonly float _ownerArrivalDistance;
+    private readonly float _reverseSteeringDelay;
+    private readonly float _orbitDuration;
+    private readonly float _seekRadius;
     private readonly LayerMask _seekEnemyLayers;
     private readonly List<Collider2D> _seekCandidates = new(16);
     private readonly float _startSpeed, _endSpeed;
@@ -19,25 +22,41 @@ public sealed class BulletMovement
         float seekRadius, LayerMask seekLayers, float arrivalDistance, float reverseDelay, float orbitDuration,
         float startSpeed, float endSpeed)
     {
-        this.transform = transform;
+        this._transform = transform;
         _attackData = attackData;
         _runtime = runtime;
         _seekRadius = seekRadius;
         _seekEnemyLayers = seekLayers;
-        OwnerArrivalDistance = arrivalDistance;
-        ReverseSteeringDelay = reverseDelay;
-        OrbitDuration = orbitDuration;
+        _ownerArrivalDistance = arrivalDistance;
+        _reverseSteeringDelay = reverseDelay;
+        _orbitDuration = orbitDuration;
         _startSpeed = startSpeed;
         _endSpeed = endSpeed;
     }
+
     public void Tick(float deltaTime)
     {
         _deltaTime = Mathf.Max(0f, deltaTime);
-        if (_runtime.Phase == BulletPhase.Flying) MoveFlying();
-        else if (_runtime.Phase == BulletPhase.Returning) MoveReturning();
-        else if (_runtime.Phase == BulletPhase.Orbiting) MoveOrbiting();
+        switch (_runtime.Phase)
+        {
+            case BulletPhase.Flying:
+                MoveFlying();
+                break;
+            case BulletPhase.Returning:
+                MoveReturning();
+                break;
+            case BulletPhase.Orbiting:
+                MoveOrbiting();
+                break;
+            case BulletPhase.Ended:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
+
     private void RequestEnd(BulletEndReason reason) => EndRequested?.Invoke(reason);
+
     private void MoveFlying()
     {
         float deltaTime = _deltaTime;
@@ -65,10 +84,11 @@ public sealed class BulletMovement
         float remainingDistance = Mathf.Max(0f, _attackData.Range - _runtime.TravelDistance);
         float progress = _attackData.Range > 0f ? _runtime.TravelDistance / _attackData.Range : 1f;
         float remainingProgress = 1f - Mathf.Clamp01(progress);
-        float easedProgress = 1f - remainingProgress * remainingProgress * remainingProgress * remainingProgress * remainingProgress;
+        float easedProgress = 1f - remainingProgress * remainingProgress * remainingProgress * remainingProgress *
+            remainingProgress;
         float speed = Mathf.Lerp(_startSpeed, _endSpeed, easedProgress);
         float moveDistance = Mathf.Min(speed * deltaTime, remainingDistance);
-        transform.position += (Vector3)(_runtime.Direction * moveDistance);
+        _transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;
         _runtime.TotalTravelDistance += moveDistance;
     }
@@ -83,7 +103,7 @@ public sealed class BulletMovement
         filter.SetLayerMask(_seekEnemyLayers);
         _seekCandidates.Clear();
         // 재사용 List는 필요 시 확장되어 고정 버퍼로 인한 대상 누락을 방지한다.
-        Physics2D.OverlapCircle(transform.position, _seekRadius, filter, _seekCandidates);
+        Physics2D.OverlapCircle(_transform.position, _seekRadius, filter, _seekCandidates);
 
         EnemyHealth closest = null;
         float closestDistance = float.PositiveInfinity;
@@ -93,7 +113,7 @@ public sealed class BulletMovement
             if (enemy == null || enemy.IsDead || !enemy.isActiveAndEnabled || _runtime.HasHitTarget(enemy))
                 continue;
 
-            float distance = ((Vector2)(enemy.transform.position - transform.position)).sqrMagnitude;
+            float distance = ((Vector2)(enemy.transform.position - _transform.position)).sqrMagnitude;
             if (distance >= closestDistance)
                 continue;
 
@@ -104,7 +124,7 @@ public sealed class BulletMovement
         if (closest == null)
             return;
 
-        Vector2 offset = closest.transform.position - transform.position;
+        Vector2 offset = closest.transform.position - _transform.position;
         if (offset.sqrMagnitude <= 0f)
             return;
 
@@ -121,8 +141,8 @@ public sealed class BulletMovement
             return;
         }
 
-        Vector2 offset = owner.position - transform.position;
-        if (offset.sqrMagnitude <= OwnerArrivalDistance * OwnerArrivalDistance)
+        Vector2 offset = owner.position - _transform.position;
+        if (offset.sqrMagnitude <= _ownerArrivalDistance * _ownerArrivalDistance)
         {
             RequestEnd(BulletEndReason.OwnerReached);
             return;
@@ -132,7 +152,7 @@ public sealed class BulletMovement
         float reverseTime = Mathf.Min(deltaTime, _runtime.ReverseSteeringRemaining);
         if (reverseTime > 0f)
         {
-            transform.position += (Vector3)(_runtime.Direction * (_attackData.Speed * reverseTime));
+            _transform.position += (Vector3)(_runtime.Direction * (_attackData.Speed * reverseTime));
             _runtime.TotalTravelDistance += _attackData.Speed * reverseTime;
             _runtime.ReverseSteeringRemaining -= reverseTime;
             deltaTime -= reverseTime;
@@ -140,22 +160,22 @@ public sealed class BulletMovement
 
         if (deltaTime > 0f)
         {
-            offset = owner.position - transform.position;
+            offset = owner.position - _transform.position;
             _runtime.Direction = offset.normalized;
             float distance = Mathf.Min(_attackData.Speed * deltaTime, offset.magnitude);
-            transform.position += (Vector3)(_runtime.Direction * distance);
+            _transform.position += (Vector3)(_runtime.Direction * distance);
             _runtime.TotalTravelDistance += distance;
             UpdateRotation();
         }
 
-        if (((Vector2)(owner.position - transform.position)).sqrMagnitude <=
-            OwnerArrivalDistance * OwnerArrivalDistance)
+        if (((Vector2)(owner.position - _transform.position)).sqrMagnitude <=
+            _ownerArrivalDistance * _ownerArrivalDistance)
             RequestEnd(BulletEndReason.OwnerReached);
     }
 
     public void EnterOrbiting()
     {
-        Vector2 offset = transform.position - _attackData.Owner.position;
+        Vector2 offset = _transform.position - _attackData.Owner.position;
         _runtime.Phase = BulletPhase.Orbiting;
         _runtime.OrbitElapsed = 0f;
         _runtime.OrbitRadius = Mathf.Max(offset.magnitude, 0.01f);
@@ -173,17 +193,17 @@ public sealed class BulletMovement
             return;
         }
 
-        float deltaTime = Mathf.Min(_deltaTime, Mathf.Max(0f, OrbitDuration - _runtime.OrbitElapsed));
+        float deltaTime = Mathf.Min(_deltaTime, Mathf.Max(0f, _orbitDuration - _runtime.OrbitElapsed));
         float distance = Mathf.Max(0f, _attackData.Speed) * deltaTime;
         _runtime.OrbitAngle += distance / _runtime.OrbitRadius * _runtime.OrbitDirection;
         Vector2 radial = new Vector2(Mathf.Cos(_runtime.OrbitAngle), Mathf.Sin(_runtime.OrbitAngle));
         Vector2 nextPosition = (Vector2)_attackData.Owner.position + radial * _runtime.OrbitRadius;
-        transform.position = new Vector3(nextPosition.x, nextPosition.y, transform.position.z);
+        _transform.position = new Vector3(nextPosition.x, nextPosition.y, _transform.position.z);
         _runtime.TotalTravelDistance += distance;
         _runtime.OrbitElapsed += deltaTime;
         UpdateOrbitDirection();
 
-        if (_runtime.OrbitElapsed >= OrbitDuration)
+        if (_runtime.OrbitElapsed >= _orbitDuration)
             RequestEnd(BulletEndReason.OrbitTimeout);
     }
 
@@ -209,7 +229,7 @@ public sealed class BulletMovement
         }
 
         _runtime.Direction = -_runtime.Direction;
-        _runtime.ReverseSteeringRemaining = ReverseSteeringDelay;
+        _runtime.ReverseSteeringRemaining = _reverseSteeringDelay;
         UpdateRotation();
         return true;
     }
@@ -217,7 +237,6 @@ public sealed class BulletMovement
     public void UpdateRotation()
     {
         float angle = Mathf.Atan2(_runtime.Direction.y, _runtime.Direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        _transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
-
 }

@@ -7,35 +7,35 @@ using UnityEngine;
 [Serializable]
 public class RewardOption
 {
-    public RewardType type;
-    public PassiveData passive;
-    public int runeStoneCount;
-    public Sprite icon;
-    public string title;
-    public string description;
+    public RewardType Type;
+    public PassiveData Passive;
+    public int RuneStoneCount;
+    public Sprite Icon;
+    public string Title;
+    public string Description;
 
     public static RewardOption ForRuneStone(int count, Sprite icon)
     {
         return new RewardOption
         {
-            type = RewardType.RuneStone,
-            runeStoneCount = count,
-            icon = icon,
-            title = $"룬석 {count}개",
-            description = $"선택 즉시 플레이어 주변에 룬석 {count}개를 흩뿌립니다."
+            Type = RewardType.RuneStone,
+            RuneStoneCount = count,
+            Icon = icon,
+            Title = $"룬석 {count}개",
+            Description = $"선택 즉시 플레이어 주변에 룬석 {count}개를 흩뿌립니다."
         };
     }
 
     public static RewardOption ForPassive(PassiveData data)
     {
-        int percent = Mathf.RoundToInt(data.valuePerStack * 100f);
+        int percent = Mathf.RoundToInt(data.ValuePerStack * 100f);
         return new RewardOption
         {
-            type = RewardType.Passive,
-            passive = data,
-            icon = data.icon,
-            title = $"{data.displayName} +{percent}%",
-            description = data.description
+            Type = RewardType.Passive,
+            Passive = data,
+            Icon = data.Icon,
+            Title = $"{data.DisplayName} +{percent}%",
+            Description = data.Description
         };
     }
 }
