@@ -12,6 +12,7 @@ using UnityEngine;
 ///   포탈은 클리어 즉시 맵 중앙에 생기며 정화 중에도 쓸 수 있다. 남은 적은 계속 공격하고 처치하면 평소처럼 드롭한다.
 /// - Cleared : 정화가 끝나면 남은 적이 모두 사라진다. (드롭 없음) 포탈 사용을 기다린다.
 /// - 포탈을 쓰면 한 층 내려간다. 상점 층 단위(5층)를 넘거나 보스 스테이지로 갈 때는 상점을 먼저 연다.
+///   상점이 없으면 ScreenFader로 검은 화면 → 다음 층 준비 → 페이드 아웃 순서로 넘어간다. (상점은 나갈 때 자체 검은 화면을 쓴다)
 ///
 /// 런 구성
 /// - 미션 스테이지 _missionStageCount(10)개를 끝내면 다음 층은 보스 스테이지다.
@@ -513,7 +514,32 @@ public class StageManager : MonoBehaviour
             return; // 상점을 나오면(HandleShopLeft) 다음 층을 시작한다.
         }
 
-        StartNextStage();
+        TransitionToNextStage();
+    }
+
+    /// <summary>
+    /// 화면을 검게 덮은 동안 다음 층을 준비하고 걷어낸다.
+    /// 플레이어가 순간이동하고 카메라가 맵을 가로지르는 모습이 보이지 않게 한다.
+    /// </summary>
+    private void TransitionToNextStage()
+    {
+        ScreenFader fader = ScreenFader.Instance;
+        if (fader == null)
+        {
+            StartNextStage();
+            return;
+        }
+
+        fader.FadeThroughBlack(() =>
+        {
+            // 검은 화면 도중에 런이 끝났으면 다음 층을 시작하지 않는다.
+            if (this == null || _phase == StagePhase.Ended)
+            {
+                return;
+            }
+
+            StartNextStage();
+        });
     }
 
     /// <summary>
@@ -729,6 +755,22 @@ public class StageManager : MonoBehaviour
         if (playerObj != null)
         {
             playerObj.transform.position = Vector3.zero;
+            SnapCameraToPlayer(playerObj.transform.position);
         }
+    }
+
+    /// <summary>카메라가 맵을 가로질러 따라가지 않도록 플레이어 위치로 바로 옮긴다. (z는 유지)</summary>
+    private static void SnapCameraToPlayer(Vector3 playerPosition)
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            return;
+        }
+
+        Vector3 cameraPosition = mainCamera.transform.position;
+        cameraPosition.x = playerPosition.x;
+        cameraPosition.y = playerPosition.y;
+        mainCamera.transform.position = cameraPosition;
     }
 }

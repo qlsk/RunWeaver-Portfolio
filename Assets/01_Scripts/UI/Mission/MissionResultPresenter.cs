@@ -5,7 +5,8 @@ using UnityEngine;
 /// <summary>
 /// 미션 성공 / 런 종료 시 결과 패널을 보여준다.
 /// - 미션 성공 : 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃). 층마다 새 미션이 시작되면 다시 보여줄 수 있다.
-/// - 보스 처치(런 클리어) : 성공 패널을 "Run Clear" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다.
+///   부제(_successSubText)에 미션 클리어 소요 시간을 보여준다. (시작 오브젝트를 누른 순간부터, 일시정지 시간 제외)
+/// - 보스 처치(런 클리어) : 성공 패널을 "Run Clear" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다. (부제는 숨긴다)
 /// - 실패(사망, 미션 실패, 탐사 포기) : 실패 패널 연출 (천천히 페이드 인 → 3초) 후 결과 화면을 켠다.
 ///   실패 패널의 글자는 종료 사유에 따라 바뀐다. (You Die / Mission Failed / Run Abandoned)
 ///   실패 패널은 _failedPanelMaxAlpha(80%)까지만 진해진다.
@@ -28,6 +29,8 @@ public class MissionResultPresenter : MonoBehaviour
     [Header("패널 글자 (비워두면 패널 안의 TMP 텍스트를 찾는다)")]
     [SerializeField] private TMP_Text _successText;
     [SerializeField] private TMP_Text _failedText;
+    [Tooltip("성공 패널의 부제. 미션 클리어 소요 시간을 보여준다. 비워두면 표시하지 않는다.")]
+    [SerializeField] private TMP_Text _successSubText;
 
     [Header("문구")]
     [SerializeField] private string _missionCompleteText = "Mission Complete";
@@ -35,6 +38,10 @@ public class MissionResultPresenter : MonoBehaviour
     [SerializeField] private string _youDieText = "You Die";
     [SerializeField] private string _missionFailedText = "Mission Failed";
     [SerializeField] private string _runAbandonedText = "Run Abandoned";
+    [Tooltip("클리어 소요 시간이 1분 미만일 때. {0} 초")]
+    [SerializeField] private string _clearTimeSecondsFormat = "{0}초";
+    [Tooltip("클리어 소요 시간이 1분 이상일 때. {0} 분, {1} 초")]
+    [SerializeField] private string _clearTimeMinutesFormat = "{0}분 {1}초";
 
     [Header("실패 패널")]
     [Tooltip("실패 패널이 페이드 인으로 진해지는 최대 알파")]
@@ -46,6 +53,7 @@ public class MissionResultPresenter : MonoBehaviour
     private bool _hasShownSuccess;
     private bool _hasShownFailure;
     private bool _isShowingClear;
+    private float _missionStartTime = -1f;
 
     /// <summary>성공 패널 연출(페이드 아웃 포함)이 끝났을 때</summary>
     public event Action SuccessFinished;
@@ -100,6 +108,7 @@ public class MissionResultPresenter : MonoBehaviour
         if (_stageManager != null)
         {
             _stageManager.RunEnded += HandleRunEnded;
+            _stageManager.PhaseChanged += HandlePhaseChanged;
         }
 
         _missionManager = FindAnyObjectByType<MissionManager>();
@@ -129,6 +138,7 @@ public class MissionResultPresenter : MonoBehaviour
         if (_stageManager != null)
         {
             _stageManager.RunEnded -= HandleRunEnded;
+            _stageManager.PhaseChanged -= HandlePhaseChanged;
         }
 
         if (_missionManager != null)
@@ -149,6 +159,7 @@ public class MissionResultPresenter : MonoBehaviour
 
         _hasShownSuccess = true;
         SetText(_successText, _missionCompleteText);
+        ShowSubText(GetClearTimeText());
         _successPanel.Play();
     }
 
@@ -196,6 +207,7 @@ public class MissionResultPresenter : MonoBehaviour
         }
 
         SetText(_successText, _runClearText);
+        ShowSubText(null);
         _successPanel.Play();
     }
 
@@ -233,6 +245,49 @@ public class MissionResultPresenter : MonoBehaviour
         else
         {
             ShowFailure(reason);
+        }
+    }
+
+    /// <summary>시작 오브젝트를 눌러 미션이 시작된 시각을 기록한다. (클리어 소요 시간 계산용)</summary>
+    private void HandlePhaseChanged(StagePhase phase)
+    {
+        if (phase == StagePhase.InMission)
+        {
+            _missionStartTime = Time.time;
+        }
+    }
+
+    /// <summary>미션 클리어 소요 시간 문구. 시작 시각을 모르면 null.</summary>
+    private string GetClearTimeText()
+    {
+        if (_missionStartTime < 0f)
+        {
+            return null;
+        }
+
+        // Time.time은 일시정지(timeScale 0) 동안 흐르지 않는다.
+        int totalSeconds = Mathf.Max(0, Mathf.FloorToInt(Time.time - _missionStartTime));
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        return minutes > 0
+            ? string.Format(_clearTimeMinutesFormat, minutes, seconds)
+            : string.Format(_clearTimeSecondsFormat, seconds);
+    }
+
+    /// <summary>부제를 보여준다. 문구가 비어 있으면 숨긴다.</summary>
+    private void ShowSubText(string value)
+    {
+        if (_successSubText == null)
+        {
+            return;
+        }
+
+        bool hasText = !string.IsNullOrEmpty(value);
+        _successSubText.gameObject.SetActive(hasText);
+        if (hasText)
+        {
+            _successSubText.text = value;
         }
     }
 
