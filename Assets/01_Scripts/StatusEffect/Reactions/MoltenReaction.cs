@@ -14,11 +14,11 @@ public class MoltenReaction : MonoBehaviour
     [FoldoutGroup("Molten Settings"), SerializeField] private float _moltenDuration = 3f;
     [FoldoutGroup("Molten Settings"), SerializeField] private float _moveSpeedMultiplier = 0.5f;
 
-    public void Execute(Vector2 hitPosition, float bulletDamage)
+    public void Execute(ReactionContext context)
     {
-        float moltenTickDamage = bulletDamage * _moltenDamageMultiplier;
+        float moltenTickDamage = context.BulletDamage * _moltenDamageMultiplier;
 
-        MoltenArea moltenArea = Instantiate(_moltenAreaPrefab, hitPosition, Quaternion.identity);
+        MoltenArea moltenArea = Instantiate(_moltenAreaPrefab, context.HitPosition, Quaternion.identity);
         moltenArea.Initialize(moltenTickDamage, _moltenRadius, _moltenTickInterval, _moltenDuration,
             _moveSpeedMultiplier);
     }

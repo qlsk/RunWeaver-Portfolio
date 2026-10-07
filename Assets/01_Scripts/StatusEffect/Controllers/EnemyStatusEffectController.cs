@@ -34,6 +34,17 @@ public class EnemyStatusEffectController : MonoBehaviour
     private float _areaMoveSpeedMultiplier = 1f;
     private readonly Dictionary<int, float> _moveSpeedModifiers = new();
 
+    // Root state
+    private readonly HashSet<int> _rootModifiers = new();
+
+    // Petrify state
+    private int _petrifySourceId;
+    private float _petrifyRemaining;
+    private float _petrifyMoveSpeedMultiplier;
+    private float _petrifyDefenseMultiplier;
+    private bool _petrifyRoots;
+    private bool _hasPetrify;
+
     // Stagger state
     private float _staggerRemaining;
 
@@ -44,9 +55,14 @@ public class EnemyStatusEffectController : MonoBehaviour
     // Pull state
     private readonly Dictionary<int, (Vector2 Center, float Speed)> _pullModifiers = new();
 
+    // Push state
+    private readonly Dictionary<int, (Vector2 Center, float Speed, Vector2 FallbackDirection)> _pushModifiers = new();
+
     public float MoveSpeedMultiplier => Mathf.Min(_slowRemaining > 0f ? _slowMoveSpeedMultiplier : 1f, _areaMoveSpeedMultiplier);
     public bool IsStaggered => _staggerRemaining > 0f;
+    public bool IsRooted => _rootModifiers.Count > 0;
     public bool IsPulled => _pullModifiers.Count > 0;
+    public bool IsPushed => _pushModifiers.Count > 0;
     public Vector2 KnockbackVelocity => _knockbackRemaining > 0f ? _knockbackVelocity : Vector2.zero;
     public Vector2 PullVelocity
     {
@@ -75,6 +91,32 @@ public class EnemyStatusEffectController : MonoBehaviour
         }
     }
 
+    /// 가장 가까운 밀어내기 중심에서 바깥으로 향하는 속도를 계산하고 중심에서는 대체 방향을 사용한다.
+    public Vector2 PushVelocity
+    {
+        get
+        {
+            Vector2 position = transform.position;
+            Vector2 direction = Vector2.zero;
+            float speed = 0f;
+            float nearestDistance = float.PositiveInfinity;
+
+            foreach (var push in _pushModifiers.Values)
+            {
+                Vector2 offset = position - push.Center;
+                float distance = offset.sqrMagnitude;
+                if (distance >= nearestDistance)
+                    continue;
+
+                nearestDistance = distance;
+                direction = distance > 0f ? offset.normalized : push.FallbackDirection;
+                speed = push.Speed;
+            }
+
+            return direction * speed;
+        }
+    }
+
     /// 연소의 주기 피해를 처리하고 각 상태 효과의 남은 시간을 갱신한다.
     private void Update()
     {
@@ -94,6 +136,24 @@ public class EnemyStatusEffectController : MonoBehaviour
         _slowRemaining = Mathf.Max(_slowRemaining - deltaTime, 0f);
         _staggerRemaining = Mathf.Max(_staggerRemaining - deltaTime, 0f);
         _knockbackRemaining = Mathf.Max(_knockbackRemaining - deltaTime, 0f);
+        if (_hasPetrify)
+        {
+            _petrifyRemaining = Mathf.Max(_petrifyRemaining - deltaTime, 0f);
+            if (_petrifyRemaining <= 0f)
+                ClearPetrify();
+        }
+    }
+
+    /// 비활성화 시 석화가 등록한 이동 제한과 방어력 감소만 해제한다.
+    private void OnDisable()
+    {
+        ClearPetrify();
+    }
+
+    /// 파괴 시 남아 있는 석화 등록을 정리한다.
+    private void OnDestroy()
+    {
+        ClearPetrify();
     }
 
     /// 단일 원소에 따라 연소, 감속, 경직 또는 넉백을 적용한다.
@@ -111,12 +171,57 @@ public class EnemyStatusEffectController : MonoBehaviour
                 _staggerRemaining = _staggerDuration;
                 break;
             case ReactionElement.Wind:
-                _knockbackVelocity = bulletDirection.normalized * _knockbackSpeed;
-                _knockbackRemaining = _knockbackDuration;
+                ApplyKnockback(bulletDirection, _knockbackSpeed, _knockbackDuration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(element), element, null);
         }
+    }
+
+    /// 석화 시간을 갱신하고 재적용 시 강한 이동 제한과 방어력 감소를 유지한다.
+    public void ApplyPetrify(float duration, float moveSpeedMultiplier, bool root, float defenseMultiplier)
+    {
+        if (!_hasPetrify)
+        {
+            _petrifySourceId = GetInstanceID();
+            _petrifyMoveSpeedMultiplier = moveSpeedMultiplier;
+            _petrifyDefenseMultiplier = defenseMultiplier;
+            _petrifyRoots = root;
+        }
+        else
+        {
+            _petrifyMoveSpeedMultiplier = Mathf.Min(_petrifyMoveSpeedMultiplier, moveSpeedMultiplier);
+            _petrifyDefenseMultiplier = Mathf.Min(_petrifyDefenseMultiplier, defenseMultiplier);
+            _petrifyRoots |= root;
+        }
+
+        _hasPetrify = true;
+        _petrifyRemaining = duration;
+        AddMoveSpeedModifier(_petrifySourceId, _petrifyMoveSpeedMultiplier);
+        if (_petrifyRoots)
+            AddRootModifier(_petrifySourceId);
+        _enemyHealth.AddDefenseModifier(_petrifySourceId, _petrifyDefenseMultiplier);
+    }
+
+    /// 지정한 방향과 속도로 일정 시간 넉백을 적용한다.
+    public void ApplyKnockback(Vector2 direction, float speed, float duration)
+    {
+        _knockbackVelocity = direction.normalized * speed;
+        _knockbackRemaining = duration;
+    }
+
+    /// 석화 출처만 해제하고 지속 상태를 초기화한다.
+    private void ClearPetrify()
+    {
+        if (!_hasPetrify)
+            return;
+
+        RemoveMoveSpeedModifier(_petrifySourceId);
+        RemoveRootModifier(_petrifySourceId);
+        if (_enemyHealth != null)
+            _enemyHealth.RemoveDefenseModifier(_petrifySourceId);
+        _petrifyRemaining = 0f;
+        _hasPetrify = false;
     }
 
     /// 연소 시간을 갱신하고 재적용 시 피해 타이머를 유지하면서 더 높은 초당 피해 설정을 채택한다.
@@ -151,6 +256,18 @@ public class EnemyStatusEffectController : MonoBehaviour
         RefreshAreaMoveSpeedMultiplier();
     }
 
+    /// 속박 출처를 등록하며 같은 출처의 중복 등록은 하나로 유지한다.
+    public void AddRootModifier(int sourceId)
+    {
+        _rootModifiers.Add(sourceId);
+    }
+
+    /// 해당 출처의 속박을 해제하며 다른 출처의 속박은 유지한다.
+    public void RemoveRootModifier(int sourceId)
+    {
+        _rootModifiers.Remove(sourceId);
+    }
+
     /// 출처별 당김 중심과 속도를 등록하거나 갱신한다.
     public void AddPullModifier(int sourceId, Vector2 center, float speed)
     {
@@ -161,6 +278,18 @@ public class EnemyStatusEffectController : MonoBehaviour
     public void RemovePullModifier(int sourceId)
     {
         _pullModifiers.Remove(sourceId);
+    }
+
+    /// 출처별 밀어내기 중심, 속도와 중심에서 사용할 대체 방향을 등록하거나 갱신한다.
+    public void AddPushModifier(int sourceId, Vector2 center, float speed, Vector2 fallbackDirection)
+    {
+        _pushModifiers[sourceId] = (center, speed, fallbackDirection.normalized);
+    }
+
+    /// 해당 출처의 밀어내기를 해제하며 다른 출처의 밀어내기는 유지한다.
+    public void RemovePushModifier(int sourceId)
+    {
+        _pushModifiers.Remove(sourceId);
     }
 
     /// 등록된 영역 보정 중 가장 낮은 이동 속도 배율을 선택하고 보정이 없으면 1로 복구한다.

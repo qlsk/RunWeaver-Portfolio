@@ -11,11 +11,13 @@ public sealed class BulletMovement
     private readonly float OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _seekRadius;
     private readonly LayerMask _seekEnemyLayers;
     private readonly List<Collider2D> _seekCandidates = new(16);
+    private readonly float _startSpeed, _endSpeed;
     private float _deltaTime;
     public event Action<BulletEndReason> EndRequested;
 
     public BulletMovement(Transform transform, PlayerAttackData attackData, BulletRuntime runtime,
-        float seekRadius, LayerMask seekLayers, float arrivalDistance, float reverseDelay, float orbitDuration)
+        float seekRadius, LayerMask seekLayers, float arrivalDistance, float reverseDelay, float orbitDuration,
+        float startSpeed, float endSpeed)
     {
         this.transform = transform;
         _attackData = attackData;
@@ -25,6 +27,8 @@ public sealed class BulletMovement
         OwnerArrivalDistance = arrivalDistance;
         ReverseSteeringDelay = reverseDelay;
         OrbitDuration = orbitDuration;
+        _startSpeed = startSpeed;
+        _endSpeed = endSpeed;
     }
     public void Tick(float deltaTime)
     {
@@ -59,7 +63,11 @@ public sealed class BulletMovement
     private void MoveFlyingInDirection(float deltaTime)
     {
         float remainingDistance = Mathf.Max(0f, _attackData.Range - _runtime.TravelDistance);
-        float moveDistance = Mathf.Min(_attackData.Speed * deltaTime, remainingDistance);
+        float progress = _attackData.Range > 0f ? _runtime.TravelDistance / _attackData.Range : 1f;
+        float remainingProgress = 1f - Mathf.Clamp01(progress);
+        float easedProgress = 1f - remainingProgress * remainingProgress * remainingProgress * remainingProgress * remainingProgress;
+        float speed = Mathf.Lerp(_startSpeed, _endSpeed, easedProgress);
+        float moveDistance = Mathf.Min(speed * deltaTime, remainingDistance);
         transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;
         _runtime.TotalTravelDistance += moveDistance;
