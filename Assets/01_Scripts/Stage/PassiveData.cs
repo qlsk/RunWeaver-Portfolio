@@ -7,10 +7,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PassiveData", menuName = "Reward/PassiveData")]
 public class PassiveData : ScriptableObject
 {
-    public string id;
-    public PassiveStatType statType;
-    public string displayName;
-    [TextArea] public string description;
-    public Sprite icon;
-    public float valuePerStack = 0.05f;
+    public string Id;
+    public PassiveStatType StatType;
+    public string DisplayName;
+    [TextArea] public string Description;
+    public Sprite Icon;
+    public float ValuePerStack = 0.05f;
 }

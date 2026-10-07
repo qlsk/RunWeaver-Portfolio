@@ -129,18 +129,18 @@ public class RewardSelectUI : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             RewardOption option = _currentOptions[i];
-            _cardNames[i].text = option.title;
-            _cardDescs[i].text = option.description;
+            _cardNames[i].text = option.Title;
+            _cardDescs[i].text = option.Description;
 
-            if (option.icon != null)
+            if (option.Icon != null)
             {
-                _cardIcons[i].sprite = option.icon;
+                _cardIcons[i].sprite = option.Icon;
                 _cardIcons[i].color = Color.white;
             }
             else
             {
                 _cardIcons[i].sprite = null;
-                _cardIcons[i].color = option.type == RewardType.RuneStone ? _runePlaceholderColor : _passivePlaceholderColor;
+                _cardIcons[i].color = option.Type == RewardType.RuneStone ? _runePlaceholderColor : _passivePlaceholderColor;
             }
 
             _cardBackgrounds[i].color = _normalCardColor;
@@ -202,7 +202,7 @@ public class RewardSelectUI : MonoBehaviour
 
         _confirmLocked = true;
         RewardOption option = _currentOptions[_selectedIndex];
-        Debug.Log($"[RewardSelectUI] 보상 확정: {option.title}");
+        Debug.Log($"[RewardSelectUI] 보상 확정: {option.Title}");
         OnOptionConfirmed?.Invoke(option);
     }
 
@@ -216,7 +216,7 @@ public class RewardSelectUI : MonoBehaviour
         if (_confirmLabel != null)
         {
             _confirmLabel.text = _selectedIndex >= 0
-                ? $"확정: {_currentOptions[_selectedIndex].title}"
+                ? $"확정: {_currentOptions[_selectedIndex].Title}"
                 : "카드를 선택하세요";
         }
     }
@@ -380,8 +380,8 @@ public class RewardSelectUI : MonoBehaviour
         List<RewardOption> preview = new()
         {
             RewardOption.ForRuneStone(5, null),
-            new RewardOption { type = RewardType.Passive, title = "데미지 +5%", description = "데미지 +5%" },
-            new RewardOption { type = RewardType.Passive, title = "이동속도 +5%", description = "이동속도 +5%" }
+            new RewardOption { Type = RewardType.Passive, Title = "데미지 +5%", Description = "데미지 +5%" },
+            new RewardOption { Type = RewardType.Passive, Title = "이동속도 +5%", Description = "이동속도 +5%" }
         };
         // 미리보기도 실전처럼 섞는다 (더미 순서 고정 방지).
         for (int i = preview.Count - 1; i > 0; i--)

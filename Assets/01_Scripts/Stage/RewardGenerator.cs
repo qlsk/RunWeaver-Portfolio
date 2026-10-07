@@ -81,6 +81,24 @@ public class RewardGenerator : MonoBehaviour
         for (int i = 0; i < take; i++)
         {
             options.Add(candidates[i]);
+            if (options.Count >= 3)
+            {
+                break;
+            }
+
+            if (kind == 0)
+            {
+                options.Add(RewardOption.ForRuneStone(runeCount, _runeStoneIcon));
+            }
+            else
+            {
+                PassiveData data = pool[kind - 1];
+                // 같은 스탯 중복 금지 (풀이 1~2종뿐이면 부족분은 아래에서 중복 허용으로 채운다).
+                if (usedStats.Add(data.StatType))
+                {
+                    options.Add(RewardOption.ForPassive(data));
+                }
+            }
         }
 
         // 후보가 3종 미만이면 중복 허용으로 3개를 채운다.
@@ -158,11 +176,11 @@ public class RewardGenerator : MonoBehaviour
     private PassiveData MakeFallbackPassive(string id, PassiveStatType type, string displayName, string description)
     {
         PassiveData data = ScriptableObject.CreateInstance<PassiveData>();
-        data.id = id;
-        data.statType = type;
-        data.displayName = displayName;
-        data.description = description;
-        data.valuePerStack = 0.05f;
+        data.Id = id;
+        data.StatType = type;
+        data.DisplayName = displayName;
+        data.Description = description;
+        data.ValuePerStack = 0.05f;
         return data;
     }
 

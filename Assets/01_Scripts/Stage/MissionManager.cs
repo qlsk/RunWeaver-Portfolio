@@ -5,11 +5,11 @@ using UnityEngine.Serialization;
 
 public enum MissionType
 {
-    EnemyKill,   // 1. 적 처치
+    EnemyKill, // 1. 적 처치
     SoulCollect, // 2. 영혼 수집 (구역 필요)
-    AltarDefense,// 3. 제단 방어 (제단 필요)
-    Survival,    // 4. 제한시간 생존
-    CaptureZone  // 5. 거점 점령 (거점 필요)
+    AltarDefense, // 3. 제단 방어 (제단 필요)
+    Survival, // 4. 제한시간 생존
+    CaptureZone // 5. 거점 점령 (거점 필요)
 }
 
 public class MissionManager : MonoBehaviour
@@ -43,8 +43,8 @@ public class MissionManager : MonoBehaviour
     [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
 
     [Header("미션 추첨")]
-    [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")]
-    [SerializeField, Range(0f, 1f)] private float _repeatedMissionWeight = 0.25f;
+    [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")][SerializeField, Range(0f, 1f)]
+    private float _repeatedMissionWeight = 0.25f;
 
     private MissionBase _currentMission;
     private GameObject _spawnedMissionObject;
@@ -186,7 +186,8 @@ public class MissionManager : MonoBehaviour
                 SoulHarvestZone spawnedHarvestZone = null;
                 if (_soulHarvestZonePrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    _spawnedMissionObject = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition,
+                        Quaternion.identity);
                     spawnedHarvestZone = _spawnedMissionObject.GetComponent<SoulHarvestZone>();
                 }
                 else
@@ -206,7 +207,8 @@ public class MissionManager : MonoBehaviour
                 DefenseAltar spawnedAltar = null;
                 if (_defenseAltarPrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_defenseAltarPrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    _spawnedMissionObject = Instantiate(_defenseAltarPrefab, _missionObjectSpawnPosition,
+                        Quaternion.identity);
                     spawnedAltar = _spawnedMissionObject.GetComponent<DefenseAltar>();
                 }
                 else
@@ -230,7 +232,8 @@ public class MissionManager : MonoBehaviour
                 CaptureZone spawnedCaptureZone = null;
                 if (_captureZonePrefab != null)
                 {
-                    _spawnedMissionObject = Instantiate(_captureZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    _spawnedMissionObject =
+                        Instantiate(_captureZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
                     spawnedCaptureZone = _spawnedMissionObject.GetComponent<CaptureZone>();
                 }
                 else
