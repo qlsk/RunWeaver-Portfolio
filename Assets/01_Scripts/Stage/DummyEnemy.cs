@@ -1,20 +1,21 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class DummyEnemy : MonoBehaviour
 {
     public static event Action<DummyEnemy> OnEnemyDied;
 
     [Header("몬스터 속성")]
-    [SerializeField] private bool isElite = false;
-    [SerializeField] private float maxHp = 10f; // 기본 HP
-    private float currentHp;
+    [SerializeField, FormerlySerializedAs("isElite")] private bool _isElite = false;
+    [SerializeField, FormerlySerializedAs("maxHp")] private float _maxHp = 10f; // 기본 HP
+    private float _currentHp;
 
-    [SerializeField] private float moveSpeed = 2.5f;
-    [SerializeField] private float stoppingDistance = 0.5f;
+    [SerializeField, FormerlySerializedAs("moveSpeed")] private float _moveSpeed = 2.5f;
+    [SerializeField, FormerlySerializedAs("stoppingDistance")] private float _stoppingDistance = 0.5f;
 
     [Header("타겟 설정 (비워둘 경우 Player 태그 자동 탐색)")]
-    [SerializeField] private Transform targetTransform;
+    [SerializeField, FormerlySerializedAs("targetTransform")] private Transform _targetTransform;
 
     public bool IsElite
     {
@@ -25,32 +26,32 @@ public class DummyEnemy : MonoBehaviour
             {
                 return info.IsElite;
             }
-            return isElite;
+            return _isElite;
         }
     }
 
     private void Start()
     {
-        currentHp = maxHp;
+        _currentHp = _maxHp;
         FindTarget();
     }
 
     private void Update()
     {
-        if (targetTransform == null)
+        if (_targetTransform == null)
         {
             FindTarget();
         }
 
-        if (targetTransform != null)
+        if (_targetTransform != null)
         {
-            float distance = Vector2.Distance(transform.position, targetTransform.position);
-            if (distance > stoppingDistance)
+            float distance = Vector2.Distance(transform.position, _targetTransform.position);
+            if (distance > _stoppingDistance)
             {
                 transform.position = Vector3.MoveTowards(
                     transform.position,
-                    targetTransform.position,
-                    moveSpeed * Time.deltaTime
+                    _targetTransform.position,
+                    _moveSpeed * Time.deltaTime
                 );
             }
         }
@@ -61,14 +62,14 @@ public class DummyEnemy : MonoBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
-            targetTransform = playerObj.transform;
+            _targetTransform = playerObj.transform;
             return;
         }
 
         DefenseAltar altar = FindAnyObjectByType<DefenseAltar>();
         if (altar != null)
         {
-            targetTransform = altar.transform;
+            _targetTransform = altar.transform;
         }
     }
 
@@ -77,12 +78,12 @@ public class DummyEnemy : MonoBehaviour
     /// </summary>
     public void TakeDamage(float damage)
     {
-        if (currentHp <= 0f) return;
+        if (_currentHp <= 0f) return;
 
-        currentHp -= damage;
-        Debug.Log($"[DummyEnemy] {gameObject.name} 피격! 남은 HP: {currentHp}/{maxHp}");
+        _currentHp -= damage;
+        Debug.Log($"[DummyEnemy] {gameObject.name} 피격! 남은 HP: {_currentHp}/{_maxHp}");
 
-        if (currentHp <= 0f)
+        if (_currentHp <= 0f)
         {
             Die();
         }

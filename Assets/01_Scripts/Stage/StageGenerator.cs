@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class StageGenerator : MonoBehaviour
 {
-    [SerializeField] private StageGenerationConfigSO config;
+    [SerializeField, FormerlySerializedAs("config")] private StageGenerationConfigSO _config;
 
     /// <summary>
     /// 전달받은 심도(depth) 기반으로 StageRuntimeData를 계산해 반환
     /// </summary>
     public StageRuntimeData GenerateStageData(int depth)
     {
-        if (config == null)
+        if (_config == null)
         {
             Debug.LogError("[StageGenerator] StageGenerationConfigSO가 연결되지 않았습니다!");
             return null;
@@ -20,20 +21,20 @@ public class StageGenerator : MonoBehaviour
         StageRuntimeData runtimeData = new StageRuntimeData
         {
             depth = depth,
-            maxActiveMonsters = config.maxActiveMonsters,
-            initialSpawnCount = config.initialSpawnCount,
-            spawnInterval = config.spawnInterval,
-            spawnBatchCount = config.spawnBatchCount
+            maxActiveMonsters = _config.maxActiveMonsters,
+            initialSpawnCount = _config.initialSpawnCount,
+            spawnInterval = _config.spawnInterval,
+            spawnBatchCount = _config.spawnBatchCount
         };
 
         // 1. 특수 몬스터 비율 계산 (심도당 스케일링)
-        float calculatedSpecialRatio = config.baseSpecialRatio + (depth - 1) * config.specialRatioPerDepth;
-        runtimeData.specialMonsterRatio = Mathf.Min(calculatedSpecialRatio, config.maxSpecialRatio);
+        float calculatedSpecialRatio = _config.baseSpecialRatio + (depth - 1) * _config.specialRatioPerDepth;
+        runtimeData.specialMonsterRatio = Mathf.Min(calculatedSpecialRatio, _config.maxSpecialRatio);
 
         // 2. 고정 일반 몬스터 필수 등록
-        if (config.fixedNormalMonster != null)
+        if (_config.fixedNormalMonster != null)
         {
-            runtimeData.selectedMonsters.Add(config.fixedNormalMonster);
+            runtimeData.selectedMonsters.Add(_config.fixedNormalMonster);
         }
         else
         {
@@ -42,11 +43,11 @@ public class StageGenerator : MonoBehaviour
 
         // 3. 심도별 목표 몬스터 종수 계산 (1 ~ 3종)
         int targetTotalTypeCount = 1;
-        if (depth >= config.depthForThreeTypes) targetTotalTypeCount = 3;
-        else if (depth >= config.depthForTwoTypes) targetTotalTypeCount = 2;
+        if (depth >= _config.depthForThreeTypes) targetTotalTypeCount = 3;
+        else if (depth >= _config.depthForTwoTypes) targetTotalTypeCount = 2;
 
         // 4. 추가 몬스터 풀에서 출현 가능한 후보 추출 (최소 심도 만족 & 고정 몹 제외)
-        var availableAdditionalPool = config.additionalMonsterPool
+        var availableAdditionalPool = _config.additionalMonsterPool
             .Where(m => m != null && m.minSpawnDepth <= depth && !runtimeData.selectedMonsters.Contains(m))
             .ToList();
 

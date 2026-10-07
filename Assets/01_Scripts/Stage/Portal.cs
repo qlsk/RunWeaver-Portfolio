@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 포탈 종류. 귀환 / 1층 하강 / 2~3층 하강(위험)
@@ -69,7 +70,7 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField, Min(0.01f)] private float _pulseBlendDuration = 0.25f;
 
     [Header("Gizmo")]
-    [SerializeField] private Color gizmoColor = new(0f, 1f, 1f, 0.4f);
+    [SerializeField, FormerlySerializedAs("gizmoColor")] private Color _gizmoColor = new(0f, 1f, 1f, 0.4f);
 
     private Vector3 _baseScale = Vector3.one;
     private Color _spriteColor = Color.white;
@@ -359,7 +360,7 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = gizmoColor;
+        Gizmos.color = _gizmoColor;
         Gizmos.DrawWireSphere(transform.position, 1f);
     }
 }

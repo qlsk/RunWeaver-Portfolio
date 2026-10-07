@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum MissionType
 {
@@ -13,47 +14,47 @@ public enum MissionType
 
 public class MissionManager : MonoBehaviour
 {
-    private static MissionManager instance;
+    private static MissionManager s_instance;
 
     public static MissionManager Instance
     {
         get
         {
-            if (instance == null)
+            if (s_instance == null)
             {
-                instance = FindAnyObjectByType<MissionManager>();
-                if (instance == null)
+                s_instance = FindAnyObjectByType<MissionManager>();
+                if (s_instance == null)
                 {
                     GameObject go = new GameObject("MissionManager");
-                    instance = go.AddComponent<MissionManager>();
+                    s_instance = go.AddComponent<MissionManager>();
                     Debug.Log("[MissionManager] 씬에 MissionManager가 없어 자동으로 생성하였습니다.");
                 }
             }
-            return instance;
+            return s_instance;
         }
     }
 
     [Header("미션 전용 오브젝트 프리팹")]
-    [SerializeField] private GameObject captureZonePrefab;      // 거점 점령용 프리팹
-    [SerializeField] private GameObject defenseAltarPrefab;     // 제단 방어용 프리팹
-    [SerializeField] private GameObject soulHarvestZonePrefab;  // 영혼 수집 구역용 프리팹
+    [SerializeField, FormerlySerializedAs("captureZonePrefab")] private GameObject _captureZonePrefab;      // 거점 점령용 프리팹
+    [SerializeField, FormerlySerializedAs("defenseAltarPrefab")] private GameObject _defenseAltarPrefab;     // 제단 방어용 프리팹
+    [SerializeField, FormerlySerializedAs("soulHarvestZonePrefab")] private GameObject _soulHarvestZonePrefab;  // 영혼 수집 구역용 프리팹
 
     [Header("스폰 위치 설정")]
-    [SerializeField] private Vector3 missionObjectSpawnPosition = Vector3.zero;
+    [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
 
-    private MissionBase currentMission;
-    private GameObject spawnedMissionObject;
+    private MissionBase _currentMission;
+    private GameObject _spawnedMissionObject;
 
     public event Action<MissionBase> OnMissionInitialized;
     public event Action<MissionBase> OnMissionCompleted;
 
     private void Awake()
     {
-        if (instance == null)
+        if (s_instance == null)
         {
-            instance = this;
+            s_instance = this;
         }
-        else if (instance != this)
+        else if (s_instance != this)
         {
             Destroy(gameObject);
         }
@@ -78,12 +79,12 @@ public class MissionManager : MonoBehaviour
 
         SetupMissionStrategy(randomType);
 
-        if (currentMission != null)
+        if (_currentMission != null)
         {
-            currentMission.Initialize();
-            currentMission.OnMissionCompleted -= HandleMissionCompleted;
-            currentMission.OnMissionCompleted += HandleMissionCompleted;
-            OnMissionInitialized?.Invoke(currentMission);
+            _currentMission.Initialize();
+            _currentMission.OnMissionCompleted -= HandleMissionCompleted;
+            _currentMission.OnMissionCompleted += HandleMissionCompleted;
+            OnMissionInitialized?.Invoke(_currentMission);
         }
     }
 
@@ -98,15 +99,15 @@ public class MissionManager : MonoBehaviour
         switch (type)
         {
             case MissionType.EnemyKill:
-                currentMission = gameObject.AddComponent<EnemyKillMission>();
+                _currentMission = gameObject.AddComponent<EnemyKillMission>();
                 break;
 
             case MissionType.SoulCollect:
                 SoulHarvestZone spawnedHarvestZone = null;
-                if (soulHarvestZonePrefab != null)
+                if (_soulHarvestZonePrefab != null)
                 {
-                    spawnedMissionObject = Instantiate(soulHarvestZonePrefab, missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedHarvestZone = spawnedMissionObject.GetComponent<SoulHarvestZone>();
+                    _spawnedMissionObject = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedHarvestZone = _spawnedMissionObject.GetComponent<SoulHarvestZone>();
                 }
                 else
                 {
@@ -118,15 +119,15 @@ public class MissionManager : MonoBehaviour
                 {
                     soulMission.SetHarvestZone(spawnedHarvestZone); // ★ 생성된 영혼 수집 구역 직접 주입 ★
                 }
-                currentMission = soulMission;
+                _currentMission = soulMission;
                 break;
 
             case MissionType.AltarDefense:
                 DefenseAltar spawnedAltar = null;
-                if (defenseAltarPrefab != null)
+                if (_defenseAltarPrefab != null)
                 {
-                    spawnedMissionObject = Instantiate(defenseAltarPrefab, missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedAltar = spawnedMissionObject.GetComponent<DefenseAltar>();
+                    _spawnedMissionObject = Instantiate(_defenseAltarPrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedAltar = _spawnedMissionObject.GetComponent<DefenseAltar>();
                 }
                 else
                 {
@@ -138,19 +139,19 @@ public class MissionManager : MonoBehaviour
                 {
                     altarMission.SetTargetAltar(spawnedAltar); // ★ 생성된 제단 직접 주입 ★
                 }
-                currentMission = altarMission;
+                _currentMission = altarMission;
                 break;
 
             case MissionType.Survival:
-                currentMission = gameObject.AddComponent<SurvivalMission>();
+                _currentMission = gameObject.AddComponent<SurvivalMission>();
                 break;
 
             case MissionType.CaptureZone:
                 CaptureZone spawnedCaptureZone = null;
-                if (captureZonePrefab != null)
+                if (_captureZonePrefab != null)
                 {
-                    spawnedMissionObject = Instantiate(captureZonePrefab, missionObjectSpawnPosition, Quaternion.identity);
-                    spawnedCaptureZone = spawnedMissionObject.GetComponent<CaptureZone>();
+                    _spawnedMissionObject = Instantiate(_captureZonePrefab, _missionObjectSpawnPosition, Quaternion.identity);
+                    spawnedCaptureZone = _spawnedMissionObject.GetComponent<CaptureZone>();
                 }
                 else
                 {
@@ -162,23 +163,23 @@ public class MissionManager : MonoBehaviour
                 {
                     captureMission.SetTargetZone(spawnedCaptureZone); // ★ 생성된 거점 점령 구역 직접 주입 ★
                 }
-                currentMission = captureMission;
+                _currentMission = captureMission;
                 break;
         }
     }
 
     private void Update()
     {
-        if (currentMission != null && !currentMission.IsCompleted && !currentMission.IsFailed)
+        if (_currentMission != null && !_currentMission.IsCompleted && !_currentMission.IsFailed)
         {
-            currentMission.UpdateMission(Time.deltaTime);
+            _currentMission.UpdateMission(Time.deltaTime);
         }
     }
 
     private void HandleMissionCompleted()
     {
         Debug.Log("[MissionManager] ★ 미션 달성! StageManager에 포탈 생성 요청");
-        OnMissionCompleted?.Invoke(currentMission);
+        OnMissionCompleted?.Invoke(_currentMission);
         if (StageManager.Instance != null)
         {
             StageManager.Instance.HandleMissionCleared();
@@ -187,25 +188,25 @@ public class MissionManager : MonoBehaviour
 
     public void CleanupMissionObject()
     {
-        if (spawnedMissionObject != null)
+        if (_spawnedMissionObject != null)
         {
-            Destroy(spawnedMissionObject);
-            spawnedMissionObject = null;
+            Destroy(_spawnedMissionObject);
+            _spawnedMissionObject = null;
             Debug.Log("[MissionManager] 필드 미션 오브젝트 제거 완료");
         }
     }
 
     public void CleanupCurrentMission()
     {
-        if (currentMission != null)
+        if (_currentMission != null)
         {
-            currentMission.OnMissionCompleted -= HandleMissionCompleted;
-            Destroy(currentMission);
-            currentMission = null;
+            _currentMission.OnMissionCompleted -= HandleMissionCompleted;
+            Destroy(_currentMission);
+            _currentMission = null;
         }
 
         CleanupMissionObject();
     }
 
-    public MissionBase GetCurrentMission() => currentMission;
+    public MissionBase GetCurrentMission() => _currentMission;
 }

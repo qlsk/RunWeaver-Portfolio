@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 영혼 수집 미션을 위한 특정 수집 구역 컴포넌트.
@@ -8,17 +9,17 @@ using UnityEngine;
 public class SoulHarvestZone : MonoBehaviour
 {
     [Header("구역 시각화 설정 (기즈모)")]
-    [SerializeField] private Color gizmoColor = new Color(0.2f, 0.8f, 1f, 0.3f);
-    [SerializeField] private Color wireColor = new Color(0.2f, 0.8f, 1f, 0.9f);
+    [SerializeField, FormerlySerializedAs("gizmoColor")] private Color _gizmoColor = new Color(0.2f, 0.8f, 1f, 0.3f);
+    [SerializeField, FormerlySerializedAs("wireColor")] private Color _wireColor = new Color(0.2f, 0.8f, 1f, 0.9f);
 
-    private Collider2D zoneCollider;
+    private Collider2D _zoneCollider;
 
     private void Awake()
     {
-        zoneCollider = GetComponent<Collider2D>();
-        if (!zoneCollider.isTrigger)
+        _zoneCollider = GetComponent<Collider2D>();
+        if (!_zoneCollider.isTrigger)
         {
-            zoneCollider.isTrigger = true;
+            _zoneCollider.isTrigger = true;
         }
     }
 
@@ -27,14 +28,14 @@ public class SoulHarvestZone : MonoBehaviour
     /// </summary>
     public bool IsInsideZone(Vector2 worldPosition)
     {
-        if (zoneCollider == null)
+        if (_zoneCollider == null)
         {
-            zoneCollider = GetComponent<Collider2D>();
+            _zoneCollider = GetComponent<Collider2D>();
         }
 
-        if (zoneCollider == null) return false;
+        if (_zoneCollider == null) return false;
 
-        return zoneCollider.OverlapPoint(worldPosition);
+        return _zoneCollider.OverlapPoint(worldPosition);
     }
 
     private void OnDrawGizmos()
@@ -42,17 +43,17 @@ public class SoulHarvestZone : MonoBehaviour
         Collider2D col = GetComponent<Collider2D>();
         if (col == null) return;
 
-        Gizmos.color = gizmoColor;
+        Gizmos.color = _gizmoColor;
         if (col is CircleCollider2D circle)
         {
             Gizmos.DrawSphere(transform.position + (Vector3)circle.offset, circle.radius);
-            Gizmos.color = wireColor;
+            Gizmos.color = _wireColor;
             Gizmos.DrawWireSphere(transform.position + (Vector3)circle.offset, circle.radius);
         }
         else if (col is BoxCollider2D box)
         {
             Gizmos.DrawCube(transform.position + (Vector3)box.offset, box.size);
-            Gizmos.color = wireColor;
+            Gizmos.color = _wireColor;
             Gizmos.DrawWireCube(transform.position + (Vector3)box.offset, box.size);
         }
     }

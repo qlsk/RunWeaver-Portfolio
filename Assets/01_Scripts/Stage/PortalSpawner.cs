@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,6 +36,11 @@ public class PortalSpawner : MonoBehaviour
     private MissionManager _missionManager;
     private Coroutine _waitRoutine;
     private bool _isWaiting;
+
+    /// <summary>
+    /// 포탈 3개 생성이 끝났을 때. RewardController가 보상 UI 오픈 시점으로 구독한다.
+    /// </summary>
+    public event Action OnPortalsSpawned;
 
     /// <summary>
     /// StageManager의 포탈 설정을 넘겨받는다. 인스펙터에 직접 넣은 값이 있으면 프리팹은 그것을 쓴다.
@@ -142,16 +148,19 @@ public class PortalSpawner : MonoBehaviour
 
         if (_portalPrefab == null)
         {
+            OnPortalsSpawned?.Invoke();
             return;
         }
 
         int minFloors = Mathf.Max(1, Mathf.Min(_deepFloorRange.x, _deepFloorRange.y));
         int maxFloors = Mathf.Max(minFloors, Mathf.Max(_deepFloorRange.x, _deepFloorRange.y));
-        int deepFloors = Random.Range(minFloors, maxFloors + 1);
+        int deepFloors = UnityEngine.Random.Range(minFloors, maxFloors + 1);
 
         Spawn(PortalType.Return, 0, -_spacing);
         Spawn(PortalType.Descend, 1, 0f);
         Spawn(PortalType.DeepDescend, deepFloors, _spacing);
+
+        OnPortalsSpawned?.Invoke();
     }
 
     private void Spawn(PortalType type, int floors, float offsetX)
