@@ -23,10 +23,18 @@ public class RewardGenerator : MonoBehaviour
     [SerializeField, FormerlySerializedAs("passivePool")] private PassiveData[] _passivePool;
     [Tooltip("룬석 카드 아이콘. 비워두면 UI에서 색상 플레이스홀더로 표시된다.")]
     [SerializeField, FormerlySerializedAs("runeStoneIcon")] private Sprite _runeStoneIcon;
+    [Tooltip("룬석 카드 제목 형식 ({0} = 개수)")]
+    [SerializeField] private string _runeStoneTitleFormat = "룬석 {0}개";
+    [Tooltip("룬석 카드 설명 형식 ({0} = 개수)")]
+    [SerializeField] private string _runeStoneDescriptionFormat = "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.";
 
     [Header("특성 풀 (20종, 비워두면 내장 기본값 사용)")]
     [Tooltip("보유한 특성은 추첨에서 제외된다.")]
     [SerializeField] private TraitData[] _traitPool;
+
+    [Header("테스트용")]
+    [Tooltip("켜면 3개 중 1개가 항상 룬석. 기본값off, 출시는 끄고 나갈 것.")]
+    [SerializeField] private bool _alwaysIncludeRuneStone;
 
     /// <summary>
     /// UI를 열기 직전에 한 번 호출한다. 항상 3개를 반환한다.
@@ -44,12 +52,12 @@ public class RewardGenerator : MonoBehaviour
         // 후보 종류를 섞어서 서로 다른 3종을 뽑는다.
         List<RewardOption> candidates = new(passives.Count + traits.Count + 1)
         {
-            RewardOption.ForRuneStone(runeCount, _runeStoneIcon)
+            RewardOption.ForRuneStone(runeCount, _runeStoneIcon, _runeStoneTitleFormat, _runeStoneDescriptionFormat)
         };
         HashSet<PassiveStatType> usedStats = new();
         foreach (PassiveData passive in passives)
         {
-            if (usedStats.Add(passive.statType))
+            if (usedStats.Add(passive.StatType))
             {
                 candidates.Add(RewardOption.ForPassive(passive));
             }
@@ -81,24 +89,6 @@ public class RewardGenerator : MonoBehaviour
         for (int i = 0; i < take; i++)
         {
             options.Add(candidates[i]);
-            if (options.Count >= 3)
-            {
-                break;
-            }
-
-            if (kind == 0)
-            {
-                options.Add(RewardOption.ForRuneStone(runeCount, _runeStoneIcon));
-            }
-            else
-            {
-                PassiveData data = pool[kind - 1];
-                // 같은 스탯 중복 금지 (풀이 1~2종뿐이면 부족분은 아래에서 중복 허용으로 채운다).
-                if (usedStats.Add(data.StatType))
-                {
-                    options.Add(RewardOption.ForPassive(data));
-                }
-            }
         }
 
         // 후보가 3종 미만이면 중복 허용으로 3개를 채운다.
@@ -111,7 +101,15 @@ public class RewardGenerator : MonoBehaviour
 
         // 최종 순서도 섞는다 (룬석 위치 고정 방지).
         Shuffle(options);
-        Debug.Log($"[RewardGenerator] 후보 {candidates.Count}종(패시브 {passives.Count}, 특성 {traits.Count}) → 선택: {string.Join(", ", options.ConvertAll(o => o.title))}", this);
+
+        // 테스트용: 룬석 보장은 하되 자리는 섞는다.
+        if (_alwaysIncludeRuneStone && !options.Exists(o => o.Type == RewardType.RuneStone))
+        {
+            options[Random.Range(0, options.Count)] = RewardOption.ForRuneStone(
+                runeCount, _runeStoneIcon, _runeStoneTitleFormat, _runeStoneDescriptionFormat);
+        }
+
+        Debug.Log($"[RewardGenerator] 후보 {candidates.Count}종(패시브 {passives.Count}, 특성 {traits.Count}) → 선택: {string.Join(", ", options.ConvertAll(o => o.Title))}", this);
         return options;
     }
 

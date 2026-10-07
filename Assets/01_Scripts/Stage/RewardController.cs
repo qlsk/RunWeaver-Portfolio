@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 /// 임무 클리어 보상 흐름 조율. StageManager의 공식 확장점(IMissionRewardProvider) 구현.
 ///
 /// ```
-/// 미션 클리어 → HandleMissionCleared → Grant(depth, onFinished) → 보상 UI 오픈
+/// 미션 클리어 → 클리어 메시지 → 메시지 종료 후 보상 UI 오픈
 ///   → 선택 + 확정 → 보상 지급 → UI 닫힘, 게임 재개 → onFinished() → 포탈 생성
 /// ```
 ///
@@ -23,6 +23,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     private enum RewardState
     {
         Idle,
+        WaitingMessage,
         UIOpen,
         Done
     }
@@ -36,8 +37,11 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
 
     private MissionManager _missionManager;
     private StageManager _stageManager;
+    private readonly System.Collections.Generic.List<MissionResultPresenter> _resultPresenters = new();
     private RewardState _state = RewardState.Idle;
     private Action _pendingFinish;
+    private int _pendingDepth;
+    private Coroutine _messageWaitRoutine;
     private bool _pausedByReward;
 
     private void Start()
@@ -124,11 +128,13 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
             _rewardUI.OnOptionConfirmed -= HandleOptionConfirmed;
         }
 
+        StopMessageWait();
         RestoreTimeScale();
     }
 
     /// <summary>
     /// StageManager가 미션 클리어 후 포탈 전에 부른다.
+    /// 클리어 연출(MissionResultPresenter 성공 패널)이 끝난 뒤에 UI를 연다.
     /// 보상 처리가 끝나면 onFinished를 불러야 포탈이 나온다.
     /// </summary>
     public void Grant(int depth, Action onFinished)
@@ -156,7 +162,92 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         _pendingFinish = onFinished;
-        _rewardUI.Open(_generator.GenerateOptions(Mathf.Max(1, depth)));
+        _pendingDepth = Mathf.Max(1, depth);
+        _state = RewardState.WaitingMessage;
+
+        // 클리어 메시지가 끝나면 연다. 발표자가 없으면 바로 연다.
+        // 발표자가 여러 개면(중복 배치) 전부 구독해서 먼저 끝나는 쪽을 쓴다.
+        MissionResultPresenter[] presenters =
+            FindObjectsByType<MissionResultPresenter>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (presenters == null || presenters.Length == 0)
+        {
+            OpenReward();
+            return;
+        }
+
+        Debug.Log($"[RewardController] 클리어 연출 대기 (발표자 {presenters.Length}개)", this);
+        foreach (MissionResultPresenter presenter in presenters)
+        {
+            if (presenter == null || _resultPresenters.Contains(presenter))
+            {
+                continue;
+            }
+
+            presenter.SuccessFinished -= HandleSuccessFinished;
+            presenter.SuccessFinished += HandleSuccessFinished;
+            _resultPresenters.Add(presenter);
+        }
+
+        StopMessageWaitTimer();
+        _messageWaitRoutine = StartCoroutine(MessageTimeoutRoutine());
+    }
+
+    /// <summary>
+    /// 클리어 연출이 끝나지 않아도 보상 흐름이 멈추지 않게 하는 안전장치.
+    /// </summary>
+    private System.Collections.IEnumerator MessageTimeoutRoutine()
+    {
+        yield return new WaitForSecondsRealtime(10f);
+        _messageWaitRoutine = null;
+        OpenReward();
+    }
+
+    private void StopMessageWait()
+    {
+        StopMessageWaitTimer();
+
+        foreach (MissionResultPresenter presenter in _resultPresenters)
+        {
+            if (presenter != null)
+            {
+                presenter.SuccessFinished -= HandleSuccessFinished;
+            }
+        }
+
+        _resultPresenters.Clear();
+    }
+
+    private void StopMessageWaitTimer()
+    {
+        if (_messageWaitRoutine != null)
+        {
+            StopCoroutine(_messageWaitRoutine);
+            _messageWaitRoutine = null;
+        }
+    }
+
+    private void HandleSuccessFinished()
+    {
+        OpenReward();
+    }
+
+    private void OpenReward()
+    {
+        if (_state != RewardState.WaitingMessage)
+        {
+            return;
+        }
+
+        StopMessageWait();
+
+        if (IsPlayerDead())
+        {
+            _state = RewardState.Done;
+            FinishGrant();
+            return;
+        }
+
+        _rewardUI.Open(_generator.GenerateOptions(_pendingDepth));
 
         _state = RewardState.UIOpen;
         PauseGame();
@@ -188,6 +279,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         // 새 층이 시작되면 다음 보상을 받을 수 있게 리셋한다.
         _state = RewardState.Idle;
         _pendingFinish = null;
+        StopMessageWait();
 
         if (_rewardUI != null && _rewardUI.IsOpen)
         {
@@ -201,6 +293,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     {
         // 런이 끝나면 보상 대기/UI를 정리한다. 포탈은 Ended 단계라 나오지 않는다.
         _state = RewardState.Done;
+        StopMessageWait();
 
         if (_rewardUI != null && _rewardUI.IsOpen)
         {
@@ -245,12 +338,12 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
                 Debug.LogWarning("[RewardController] RuneStoneDropper가 없어 룬석을 지급하지 못했습니다.", this);
             }
         }
-        else if (option.type == RewardType.Trait)
+        else if (option.Type == RewardType.Trait)
         {
-            if (_traits != null && option.trait != null)
+            if (_traits != null && option.Trait != null)
             {
                 // 선택 확정 이후에만 보유에 반영된다. shield_01은 1회성 최대치 증가라 즉시 적용.
-                if (_traits.AcquireTrait(option.trait) && option.trait.id == "shield_01")
+                if (_traits.AcquireTrait(option.Trait) && option.Trait.id == "shield_01")
                 {
                     Shield shield = FindAnyObjectByType<Shield>();
                     if (shield != null)
