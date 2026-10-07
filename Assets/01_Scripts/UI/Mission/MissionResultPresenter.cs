@@ -58,6 +58,9 @@ public class MissionResultPresenter : MonoBehaviour
     /// <summary>성공 패널 연출(페이드 아웃 포함)이 끝났을 때</summary>
     public event Action SuccessFinished;
 
+    /// <summary>미션 성공 연출이 진행 중인지 (포탈은 이 연출이 끝난 뒤에 나온다)</summary>
+    public bool IsShowingSuccess => !_isShowingClear && _successPanel != null && _successPanel.IsPlaying;
+
     private void Awake()
     {
         // 씬에 켜진 상태로 저장되어 있어도 결과 화면은 꺼진 상태로 시작한다.
