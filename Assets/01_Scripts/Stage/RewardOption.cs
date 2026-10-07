@@ -79,9 +79,9 @@ public class RewardOption
         {
             Type = RewardType.Trait,
             Trait = data,
-            Icon = data.icon,
-            Title = data.displayName,
-            Description = data.description
+            Icon = data.Icon,
+            Title = data.DisplayName,
+            Description = data.Description
         };
     }
 }

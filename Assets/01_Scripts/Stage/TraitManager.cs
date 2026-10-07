@@ -76,19 +76,19 @@ public class TraitManager : MonoBehaviour
     /// <summary>선택 확정 이후에만 호출한다. 중복 획득은 무시된다.</summary>
     public bool AcquireTrait(TraitData data)
     {
-        if (data == null || string.IsNullOrWhiteSpace(data.id))
+        if (data == null || string.IsNullOrWhiteSpace(data.Id))
         {
             return false;
         }
 
-        if (!_acquiredIds.Add(data.id))
+        if (!_acquiredIds.Add(data.Id))
         {
             return false;
         }
 
-        _acquiredData[data.id] = data;
-        Debug.Log($"[TraitManager] 특성 획득: {data.id}");
-        OnAcquired?.Invoke(data.id);
+        _acquiredData[data.Id] = data;
+        Debug.Log($"[TraitManager] 특성 획득: {data.Id}");
+        OnAcquired?.Invoke(data.Id);
         return true;
     }
 
@@ -106,13 +106,13 @@ public class TraitManager : MonoBehaviour
     /// <summary>보유 특성의 수치. 없으면 fallback.</summary>
     public float GetMagnitude(string id, float fallback)
     {
-        return TryGet(id, out TraitData data) ? data.magnitude : fallback;
+        return TryGet(id, out TraitData data) ? data.Magnitude : fallback;
     }
 
     /// <summary>보유 특성의 지속 시간. 없으면 fallback.</summary>
     public float GetDuration(string id, float fallback)
     {
-        return TryGet(id, out TraitData data) && data.duration > 0f ? data.duration : fallback;
+        return TryGet(id, out TraitData data) && data.Duration > 0f ? data.Duration : fallback;
     }
 
     public void ResetAll()
