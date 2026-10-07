@@ -1,59 +1,33 @@
 using UnityEngine;
 
 /// 마지막으로 관측한 대상 위치를 기준으로 접근하거나 최소 거리 안에서 후퇴한다.
+[RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class RangeEnemyMovement : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private float _minRange = 5f;
-
-    // Movement references
     private EnemyTargetDetector _targetDetector;
-    private Rigidbody2D _enemyRigidbody2D;
-    private EnemyStatusEffectController _statusEffectController;
+    private EnemyMotor _motor;
 
-    // Attack references
-    private EnemyTankAttack _tankAttack;
-
-    /// 접근·후퇴 이동과 상태 효과 처리에 필요한 컴포넌트 참조를 확보한다.
-    private void Start()
+    private void Awake()
     {
-        _enemyRigidbody2D = GetComponent<Rigidbody2D>();
-        _tankAttack = GetComponent<EnemyTankAttack>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
-        _statusEffectController = GetComponent<EnemyStatusEffectController>();
+        _motor = GetComponent<EnemyMotor>();
     }
 
-    /// 당김·속박 중 접근과 후퇴를 멈추고 외부 이동 효과를 합산하며 탱크 공격 중 속도 제어를 유지한다.
     private void FixedUpdate()
     {
-        if (_tankAttack != null && _tankAttack.IsAttackActive)
-            return;
-
-        Transform target = _targetDetector.Target;
-        bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
-        bool isPushed = _statusEffectController != null && _statusEffectController.IsPushed;
-        Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
-        if (target == null && !isPulled && !isPushed && knockback == Vector2.zero)
+        Vector2 velocity = Vector2.zero;
+        if (_targetDetector.Target != null && _enemyData != null && _enemyData.Stat != null)
         {
-            _enemyRigidbody2D.linearVelocity = Vector2.zero;
-            return;
+            Vector2 offset = _targetDetector.LastKnownTargetPosition - (Vector2)transform.position;
+            Vector2 direction = offset.normalized;
+            if (offset.magnitude < _minRange) direction = -direction;
+            {
+                velocity = direction * _enemyData.Stat.MoveSpeed;
+            }
         }
 
-        Vector2 moveVelocity = Vector2.zero;
-        bool isRooted = _statusEffectController != null && _statusEffectController.IsRooted;
-        if (target != null && !isPulled && !isRooted)
-        {
-            Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
-            Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
-            if (Vector2.Distance(transform.position, targetPosition) < _minRange)
-                direction = -direction;
-
-            float speedMultiplier = _statusEffectController != null ? _statusEffectController.MoveSpeedMultiplier : 1f;
-            moveVelocity = direction * (_enemyData.Stat.MoveSpeed * speedMultiplier);
-        }
-
-        Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
-        Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
-        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
+        _motor.ApplyMovement(velocity);
     }
 }
