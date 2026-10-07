@@ -93,11 +93,8 @@ public class AltarDefenseMission : MissionBase
 
             DefenseAltar.OnAltarDestroyed -= HandleAltarDestroyed;
 
-            if (_targetAltar != null)
-            {
-                Destroy(_targetAltar.gameObject);
-                _targetAltar = null;
-            }
+            // 제단은 삭제하지 않고 남겨 둔다. (포탈이 제단 아래에 나오고, 다음 층을 시작할 때 MissionManager가 정리한다)
+            _targetAltar = null;
 
             CompleteMission();
         }
