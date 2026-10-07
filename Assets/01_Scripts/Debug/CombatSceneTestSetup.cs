@@ -110,10 +110,18 @@ public class CombatSceneTestSetup : MonoBehaviour
         await UniTask.WaitUntil(() => _bootstrap.State == BootstrapState.Ready,
             cancellationToken: this.GetCancellationTokenOnDestroy());
 
-        // 마을에서 넘어와 이미 장착한 룬이 있으면 그대로 쓴다. (전투 씬을 바로 실행했을 때만 테스트 장착)
+        // 마을에서 출발한 원정 중이면 테스트 장착을 하지 않는다. (전투 씬을 바로 실행했을 때만 테스트 장착)
+        // 원정 중에 장착 룬이 비어 있는 순간이 있어도 테스트 룬으로 덮어쓰지 않게 한다.
+        GameSession session = GameSession.Instance;
+        if (session != null && session.Current != null && session.Current.Holdings.IsOnExpedition)
+            return;
+
+        // 이미 장착한 룬이 있으면 그대로 쓴다.
         RuneEffectLoadout loadout = PlayerRuneManager.Instance.RuneEffectLoadout;
         if (loadout.EquippedEffectIds.Count > 0)
             return;
+
+        Debug.Log($"[CombatSceneTestSetup] 테스트 룬을 장착합니다. ({string.Join(", ", _equippedEffectIds)}, {Time.time:0.0}초)", this);
 
         List<string> effectIds = new(_equippedRuneCount);
         for (int i = 0; i < _equippedRuneCount; i++)
