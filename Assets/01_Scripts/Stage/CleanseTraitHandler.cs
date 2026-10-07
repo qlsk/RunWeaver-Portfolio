@@ -97,10 +97,10 @@ public class CleanseTraitHandler : MonoBehaviour
             float ratio = 0.8f;
             if (_traits.TryGet("clease_05", out TraitData data))
             {
-                ratio = data.magnitude;
-                if (data.radius > 0f)
+                ratio = data.Magnitude;
+                if (data.Radius > 0f)
                 {
-                    radius = data.radius;
+                    radius = data.Radius;
                 }
             }
 

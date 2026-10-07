@@ -51,9 +51,9 @@ public class AttackTraitHandler : MonoBehaviour
 
         _fireCount++;
         int every = 5;
-        if (_traits.TryGet("attack_04", out TraitData data) && data.count > 0)
+        if (_traits.TryGet("attack_04", out TraitData data) && data.Count > 0)
         {
-            every = data.count;
+            every = data.Count;
         }
 
         if (_fireCount % every == 0)

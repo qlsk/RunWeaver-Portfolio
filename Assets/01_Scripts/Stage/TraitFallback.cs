@@ -58,15 +58,15 @@ public static class TraitFallback
         string displayName, string description, float magnitude, float duration, int count, float radius)
     {
         TraitData data = ScriptableObject.CreateInstance<TraitData>();
-        data.id = id;
-        data.category = category;
-        data.effectKind = kind;
-        data.displayName = displayName;
-        data.description = description;
-        data.magnitude = magnitude;
-        data.duration = duration;
-        data.count = Mathf.Max(1, count);
-        data.radius = radius;
+        data.Id = id;
+        data.Category = category;
+        data.EffectKind = kind;
+        data.DisplayName = displayName;
+        data.Description = description;
+        data.Magnitude = magnitude;
+        data.Duration = duration;
+        data.Count = Mathf.Max(1, count);
+        data.Radius = radius;
         return data;
     }
 }

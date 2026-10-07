@@ -47,9 +47,9 @@ public class ShieldTraitHandler : MonoBehaviour
         }
 
         float radius = 4f;
-        if (_traits.TryGet("shield_04", out TraitData data) && data.radius > 0f)
+        if (_traits.TryGet("shield_04", out TraitData data) && data.Radius > 0f)
         {
-            radius = data.radius;
+            radius = data.Radius;
         }
 
         Vector2 center = _playerTransform.position;

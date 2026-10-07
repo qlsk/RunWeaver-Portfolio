@@ -66,17 +66,17 @@ public class RewardGenerator : MonoBehaviour
         HashSet<string> usedTraitIds = new(System.StringComparer.Ordinal);
         foreach (TraitData trait in traits)
         {
-            if (trait == null || string.IsNullOrWhiteSpace(trait.id))
+            if (trait == null || string.IsNullOrWhiteSpace(trait.Id))
             {
                 continue;
             }
 
-            if (manager != null && manager.Has(trait.id))
+            if (manager != null && manager.Has(trait.Id))
             {
                 continue;
             }
 
-            if (usedTraitIds.Add(trait.id))
+            if (usedTraitIds.Add(trait.Id))
             {
                 candidates.Add(RewardOption.ForTrait(trait));
             }

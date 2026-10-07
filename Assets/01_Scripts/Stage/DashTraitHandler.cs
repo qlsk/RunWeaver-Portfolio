@@ -126,10 +126,10 @@ public class DashTraitHandler : MonoBehaviour
         float damage = _attack.BulletDamage * 0.6f;
         if (_traits.TryGet("dash_04", out TraitData data))
         {
-            damage = _attack.BulletDamage * data.magnitude;
-            if (data.radius > 0f)
+            damage = _attack.BulletDamage * data.Magnitude;
+            if (data.Radius > 0f)
             {
-                radius = data.radius;
+                radius = data.Radius;
             }
         }
 
