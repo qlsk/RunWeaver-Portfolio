@@ -14,11 +14,11 @@ public class SteamReaction : MonoBehaviour
     [FoldoutGroup("Steam Settings"), SerializeField] private float _steamDuration = 3f;
     [FoldoutGroup("Steam Settings"), SerializeField] private float _trackingIntervalMultiplier = 10f;
 
-    public void Execute(Vector2 hitPosition, float bulletDamage)
+    public void Execute(ReactionContext context)
     {
-        float steamTickDamage = bulletDamage * _steamDamageMultiplier;
+        float steamTickDamage = context.BulletDamage * _steamDamageMultiplier;
 
-        SteamArea steamArea = Instantiate(_steamAreaPrefab, hitPosition, Quaternion.identity);
+        SteamArea steamArea = Instantiate(_steamAreaPrefab, context.HitPosition, Quaternion.identity);
         steamArea.Initialize(steamTickDamage, _steamRadius, _steamTickInterval, _steamDuration,
             _trackingIntervalMultiplier);
     }
