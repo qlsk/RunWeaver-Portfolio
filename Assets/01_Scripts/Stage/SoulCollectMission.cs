@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 미션 2: 영혼 수집 (지정된 특정 구역 내에서 사망한 적에게서만 영혼 추출 및 수집)
@@ -7,14 +8,14 @@ public class SoulCollectMission : MissionBase
 {
     [Header("수집 목표")]
     [Tooltip("모아야 하는 영혼의 수")]
-    [SerializeField] private int targetSoulCount = 5;
-    private int currentSoulCount = 0;
+    [SerializeField, FormerlySerializedAs("targetSoulCount")] private int _targetSoulCount = 5;
+    private int _currentSoulCount = 0;
 
-    public int CurrentSoulCount => currentSoulCount;
-    public int TargetSoulCount => targetSoulCount;
+    public int CurrentSoulCount => _currentSoulCount;
+    public int TargetSoulCount => _targetSoulCount;
 
     [Header("영혼 수집 구역 (비워두면 씬의 SoulHarvestZone 자동 탐색)")]
-    [SerializeField] private SoulHarvestZone harvestZone;
+    [SerializeField, FormerlySerializedAs("harvestZone")] private SoulHarvestZone _harvestZone;
 
     /// <summary>
     /// MissionManager가 직전에 생성한 구역을 직접 연결합니다.
@@ -22,28 +23,28 @@ public class SoulCollectMission : MissionBase
     /// </summary>
     public void SetHarvestZone(SoulHarvestZone zone)
     {
-        harvestZone = zone;
+        _harvestZone = zone;
     }
 
     public override void Initialize()
     {
-        currentSoulCount = 0;
+        _currentSoulCount = 0;
         IsCompleted = false;
         IsFailed = false;
 
         // 구역 자동 탐색 (직접 연결되지 않은 경우에만)
-        if (harvestZone == null)
+        if (_harvestZone == null)
         {
-            harvestZone = FindAnyObjectByType<SoulHarvestZone>();
+            _harvestZone = FindAnyObjectByType<SoulHarvestZone>();
         }
 
-        if (harvestZone == null)
+        if (_harvestZone == null)
         {
             Debug.LogWarning("[SoulCollectMission] 씬에 SoulHarvestZone 오브젝트가 없습니다! 영혼 수집 구역을 생성해 주세요.");
         }
         else
         {
-            Debug.Log($"[SoulCollectMission] 영혼 수집 구역 연결 완료: {harvestZone.name}");
+            Debug.Log($"[SoulCollectMission] 영혼 수집 구역 연결 완료: {_harvestZone.name}");
         }
 
         // 정적 이벤트 중복 구독 방지
@@ -75,9 +76,9 @@ public class SoulCollectMission : MissionBase
         Vector2 deathPos = enemy.transform.position;
 
         // 구역 내 사망 여부 판정
-        if (harvestZone != null)
+        if (_harvestZone != null)
         {
-            if (harvestZone.IsInsideZone(deathPos))
+            if (_harvestZone.IsInsideZone(deathPos))
             {
                 Debug.Log($"[SoulCollectMission] ★ 구역 내 처치 성공! 위치: {deathPos}");
                 AddSoul(1);
@@ -97,12 +98,12 @@ public class SoulCollectMission : MissionBase
     {
         if (IsCompleted || IsFailed) return;
 
-        currentSoulCount += amount;
-        Debug.Log($"[SoulCollectMission] 영혼 수집 진행: {currentSoulCount} / {targetSoulCount}");
+        _currentSoulCount += amount;
+        Debug.Log($"[SoulCollectMission] 영혼 수집 진행: {_currentSoulCount} / {_targetSoulCount}");
 
         NotifyProgressUpdated();
 
-        if (currentSoulCount >= targetSoulCount)
+        if (_currentSoulCount >= _targetSoulCount)
         {
             CompleteMission();
         }
@@ -110,12 +111,12 @@ public class SoulCollectMission : MissionBase
 
     public override float GetProgressRatio()
     {
-        if (targetSoulCount <= 0) return 1f;
-        return Mathf.Clamp01((float)currentSoulCount / targetSoulCount);
+        if (_targetSoulCount <= 0) return 1f;
+        return Mathf.Clamp01((float)_currentSoulCount / _targetSoulCount);
     }
 
     public override string GetProgressText()
     {
-        return $"영혼 수집 (구역 내): {currentSoulCount} / {targetSoulCount}";
+        return $"영혼 수집 (구역 내): {_currentSoulCount} / {_targetSoulCount}";
     }
 }

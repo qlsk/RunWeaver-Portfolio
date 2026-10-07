@@ -30,6 +30,7 @@ public class PlayerStatusEffectController : MonoBehaviour
     private float _slowRemaining;
     private float _attackSlowRemaining;
     private float _staggerRemaining;
+    private float _immuneUntil;
 
     public float MoveSpeedMultiplier => isActiveAndEnabled && _slowRemaining > 0f
         ? Mathf.Clamp01(_slowMoveSpeedMultiplier) : 1f;
@@ -49,6 +50,10 @@ public class PlayerStatusEffectController : MonoBehaviour
     public void ApplyElementEffect(ReactionElement element, float damage)
     {
         if (!isActiveAndEnabled || _playerHealth.IsDead)
+            return;
+
+        // 보상 특성용 면역 (clease_01). 면역 중에는 새 상태이상을 받지 않는다.
+        if (Time.time < _immuneUntil)
             return;
 
         switch (element)
@@ -118,12 +123,21 @@ public class PlayerStatusEffectController : MonoBehaviour
         return hadEffect;
     }
 
-    public void ClearAllEffects()
+    /// <summary>보상 특성용: 새 해로운 상태에 면역. duration초 동안 ApplyElementEffect를 무시한다.</summary>
+    public void GrantImmunity(float duration)
     {
-        RemoveEffect(ReactionElement.Fire);
-        RemoveEffect(ReactionElement.Water);
-        RemoveEffect(ReactionElement.Wind);
-        RemoveEffect(ReactionElement.Earth);
+        _immuneUntil = Mathf.Max(_immuneUntil, Time.time + Mathf.Max(0f, duration));
+    }
+
+    /// <summary>모든 상태이상을 해제하고 해제한 개수를 반환한다.</summary>
+    public int ClearAllEffects()
+    {
+        int cleared = 0;
+        if (RemoveEffect(ReactionElement.Fire)) cleared++;
+        if (RemoveEffect(ReactionElement.Water)) cleared++;
+        if (RemoveEffect(ReactionElement.Wind)) cleared++;
+        if (RemoveEffect(ReactionElement.Earth)) cleared++;
+        return cleared;
     }
 
     private void OnDisable() => ClearAllEffects();

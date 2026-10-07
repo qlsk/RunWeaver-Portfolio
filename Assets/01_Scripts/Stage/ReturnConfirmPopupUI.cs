@@ -1,37 +1,38 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class ReturnConfirmPopupUI : MonoBehaviour
 {
     [Header("UI 패널")]
     [Tooltip("비워두거나 본인을 연결하면 CanvasGroup을 통해 안전하게 표시/숨김 처리됩니다.")]
-    [SerializeField] private GameObject popupPanel;
+    [SerializeField, FormerlySerializedAs("popupPanel")] private GameObject _popupPanel;
 
     [Header("조작 버튼")]
-    [SerializeField] private Button proceedButton;  // [계속 진행] 버튼
-    [SerializeField] private Button returnButton;   // [복귀] 버튼
+    [SerializeField, FormerlySerializedAs("proceedButton")] private Button _proceedButton;  // [계속 진행] 버튼
+    [SerializeField, FormerlySerializedAs("returnButton")] private Button _returnButton;   // [복귀] 버튼
 
-    private CanvasGroup canvasGroup;
+    private CanvasGroup _canvasGroup;
 
     private void Awake()
     {
         // CanvasGroup을 통해 투명도/상호작용으로 제어하여 GameObject 비활성화로 인한 이벤트 수신 중단을 방지합니다.
-        canvasGroup = GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            _canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
 
         SetVisible(false);
 
-        if (proceedButton != null)
+        if (_proceedButton != null)
         {
-            proceedButton.onClick.AddListener(OnProceedClicked);
+            _proceedButton.onClick.AddListener(OnProceedClicked);
         }
 
-        if (returnButton != null)
+        if (_returnButton != null)
         {
-            returnButton.onClick.AddListener(OnReturnClicked);
+            _returnButton.onClick.AddListener(OnReturnClicked);
         }
     }
 
@@ -49,14 +50,14 @@ public class ReturnConfirmPopupUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (proceedButton != null)
+        if (_proceedButton != null)
         {
-            proceedButton.onClick.RemoveListener(OnProceedClicked);
+            _proceedButton.onClick.RemoveListener(OnProceedClicked);
         }
 
-        if (returnButton != null)
+        if (_returnButton != null)
         {
-            returnButton.onClick.RemoveListener(OnReturnClicked);
+            _returnButton.onClick.RemoveListener(OnReturnClicked);
         }
     }
 
@@ -74,16 +75,16 @@ public class ReturnConfirmPopupUI : MonoBehaviour
 
     public void SetVisible(bool isVisible)
     {
-        if (canvasGroup != null)
+        if (_canvasGroup != null)
         {
-            canvasGroup.alpha = isVisible ? 1f : 0f;
-            canvasGroup.interactable = isVisible;
-            canvasGroup.blocksRaycasts = isVisible;
+            _canvasGroup.alpha = isVisible ? 1f : 0f;
+            _canvasGroup.interactable = isVisible;
+            _canvasGroup.blocksRaycasts = isVisible;
         }
 
-        if (popupPanel != null && popupPanel != gameObject)
+        if (_popupPanel != null && _popupPanel != gameObject)
         {
-            popupPanel.SetActive(isVisible);
+            _popupPanel.SetActive(isVisible);
         }
     }
 
@@ -102,5 +103,4 @@ public class ReturnConfirmPopupUI : MonoBehaviour
         // 귀환 포탈은 폐기되었다. 기존 테스트 UI 호환을 위해 런을 정리하고 마을로 이동한다.
         RunFlow.GoToLobby();
     }
-    
 }

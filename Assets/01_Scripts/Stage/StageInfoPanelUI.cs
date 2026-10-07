@@ -1,27 +1,28 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class StageInfoPanelUI : MonoBehaviour
 {
     [Header("UI 패널")]
     [Tooltip("비워두거나 본인을 연결하면 CanvasGroup을 통해 안전하게 표시/숨김 처리됩니다.")]
-    [SerializeField] private GameObject infoPanel;
+    [SerializeField, FormerlySerializedAs("infoPanel")] private GameObject _infoPanel;
 
     [Header("스테이지 정보 텍스트 (TMP) - 비워두면 자식 오브젝트에서 이름으로 자동 탐색")]
-    [SerializeField] private TMP_Text depthText;
-    [SerializeField] private TMP_Text stageNameText;
-    [SerializeField] private TMP_Text elementText;
-    [SerializeField] private TMP_Text dangerLevelText;
-    [SerializeField] private TMP_Text monsterInfoText;
+    [SerializeField, FormerlySerializedAs("depthText")] private TMP_Text _depthText;
+    [SerializeField, FormerlySerializedAs("stageNameText")] private TMP_Text _stageNameText;
+    [SerializeField, FormerlySerializedAs("elementText")] private TMP_Text _elementText;
+    [SerializeField, FormerlySerializedAs("dangerLevelText")] private TMP_Text _dangerLevelText;
+    [SerializeField, FormerlySerializedAs("monsterInfoText")] private TMP_Text _monsterInfoText;
 
     [Header("기본 더미 데이터 (비워둘 경우 자동 디폴트값 적용)")]
-    [SerializeField] private string defaultDepth = "Depth 2";
-    [SerializeField] private string defaultStageName = "Blazing Corridor";
-    [SerializeField] private string defaultElement = "Fire Element";
-    [SerializeField] private string defaultDangerLevel = "Danger ★★★☆☆";
-    [SerializeField] private string defaultMonsterInfo = "Fire Slime, Flame Imp";
+    [SerializeField, FormerlySerializedAs("defaultDepth")] private string _defaultDepth = "Depth 2";
+    [SerializeField, FormerlySerializedAs("defaultStageName")] private string _defaultStageName = "Blazing Corridor";
+    [SerializeField, FormerlySerializedAs("defaultElement")] private string _defaultElement = "Fire Element";
+    [SerializeField, FormerlySerializedAs("defaultDangerLevel")] private string _defaultDangerLevel = "Danger ★★★☆☆";
+    [SerializeField, FormerlySerializedAs("defaultMonsterInfo")] private string _defaultMonsterInfo = "Fire Slime, Flame Imp";
 
-    private CanvasGroup canvasGroup;
+    private CanvasGroup _canvasGroup;
 
     private void Awake()
     {
@@ -29,10 +30,10 @@ public class StageInfoPanelUI : MonoBehaviour
         EnsureDefaultValues();
 
         // CanvasGroup을 통해 투명도/상호작용으로 제어하여 GameObject 비활성화로 인한 이벤트 수신 중단을 방지합니다.
-        canvasGroup = GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            _canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
 
         // 인스펙터 슬롯이 비어(Null) 있다면 자식 오브젝트에서 이름(DepthText, ElementText 등)으로 자동 연결!
@@ -43,11 +44,11 @@ public class StageInfoPanelUI : MonoBehaviour
 
     private void EnsureDefaultValues()
     {
-        if (string.IsNullOrWhiteSpace(defaultDepth)) defaultDepth = "Depth 2";
-        if (string.IsNullOrWhiteSpace(defaultStageName)) defaultStageName = "Blazing Corridor";
-        if (string.IsNullOrWhiteSpace(defaultElement)) defaultElement = "Fire Element";
-        if (string.IsNullOrWhiteSpace(defaultDangerLevel)) defaultDangerLevel = "Danger ★★★☆☆";
-        if (string.IsNullOrWhiteSpace(defaultMonsterInfo)) defaultMonsterInfo = "Fire Slime, Flame Imp";
+        if (string.IsNullOrWhiteSpace(_defaultDepth)) _defaultDepth = "Depth 2";
+        if (string.IsNullOrWhiteSpace(_defaultStageName)) _defaultStageName = "Blazing Corridor";
+        if (string.IsNullOrWhiteSpace(_defaultElement)) _defaultElement = "Fire Element";
+        if (string.IsNullOrWhiteSpace(_defaultDangerLevel)) _defaultDangerLevel = "Danger ★★★☆☆";
+        if (string.IsNullOrWhiteSpace(_defaultMonsterInfo)) _defaultMonsterInfo = "Fire Slime, Flame Imp";
     }
 
     private void OnEnable()
@@ -66,7 +67,7 @@ public class StageInfoPanelUI : MonoBehaviour
     {
         EnsureDefaultValues();
         Debug.Log("[StageInfoPanelUI] 포탈 진입 이벤트 수신 -> 정보 UI 표시");
-        SetStageInfo(defaultDepth, defaultStageName, defaultElement, defaultDangerLevel, defaultMonsterInfo);
+        SetStageInfo(_defaultDepth, _defaultStageName, _defaultElement, _defaultDangerLevel, _defaultMonsterInfo);
         SetVisible(true);
     }
 
@@ -78,16 +79,16 @@ public class StageInfoPanelUI : MonoBehaviour
 
     public void SetVisible(bool isVisible)
     {
-        if (canvasGroup != null)
+        if (_canvasGroup != null)
         {
-            canvasGroup.alpha = isVisible ? 1f : 0f;
-            canvasGroup.interactable = isVisible;
-            canvasGroup.blocksRaycasts = isVisible;
+            _canvasGroup.alpha = isVisible ? 1f : 0f;
+            _canvasGroup.interactable = isVisible;
+            _canvasGroup.blocksRaycasts = isVisible;
         }
 
-        if (infoPanel != null && infoPanel != gameObject)
+        if (_infoPanel != null && _infoPanel != gameObject)
         {
-            infoPanel.SetActive(isVisible);
+            _infoPanel.SetActive(isVisible);
         }
     }
 
@@ -102,34 +103,34 @@ public class StageInfoPanelUI : MonoBehaviour
         if (string.IsNullOrWhiteSpace(dangerLevel)) dangerLevel = "Danger ★★★☆☆";
         if (string.IsNullOrWhiteSpace(monsterInfo)) monsterInfo = "Fire Slime, Flame Imp";
 
-        if (depthText == null || elementText == null)
+        if (_depthText == null || _elementText == null)
         {
             AutoFindTextReferences();
         }
 
-        if (depthText != null)
+        if (_depthText != null)
         {
-            depthText.text = depth;
+            _depthText.text = depth;
             // 텍스트가 흰색 패널에 묻히지 않도록 가시성 보장
-            if (depthText.color == Color.white) depthText.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+            if (_depthText.color == Color.white) _depthText.color = new Color(0.1f, 0.1f, 0.15f, 1f);
             Debug.Log($"[StageInfoPanelUI] DepthText 적용 완료: '{depth}'");
         }
 
-        if (stageNameText != null)
+        if (_stageNameText != null)
         {
-            stageNameText.text = stageName;
-            if (stageNameText.color == Color.white) stageNameText.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+            _stageNameText.text = stageName;
+            if (_stageNameText.color == Color.white) _stageNameText.color = new Color(0.1f, 0.1f, 0.15f, 1f);
         }
 
-        if (elementText != null)
+        if (_elementText != null)
         {
-            elementText.text = element;
-            if (elementText.color == Color.white) elementText.color = new Color(0.8f, 0.2f, 0.1f, 1f); // 속성 강조색
+            _elementText.text = element;
+            if (_elementText.color == Color.white) _elementText.color = new Color(0.8f, 0.2f, 0.1f, 1f); // 속성 강조색
             Debug.Log($"[StageInfoPanelUI] ElementText 적용 완료: '{element}'");
         }
 
-        if (dangerLevelText != null) dangerLevelText.text = dangerLevel;
-        if (monsterInfoText != null) monsterInfoText.text = monsterInfo;
+        if (_dangerLevelText != null) _dangerLevelText.text = dangerLevel;
+        if (_monsterInfoText != null) _monsterInfoText.text = monsterInfo;
     }
 
     /// <summary>
@@ -141,25 +142,25 @@ public class StageInfoPanelUI : MonoBehaviour
         foreach (var t in texts)
         {
             string lowerName = t.gameObject.name.ToLower();
-            if (depthText == null && lowerName.Contains("depth"))
+            if (_depthText == null && lowerName.Contains("depth"))
             {
-                depthText = t;
+                _depthText = t;
             }
-            else if (elementText == null && lowerName.Contains("element"))
+            else if (_elementText == null && lowerName.Contains("element"))
             {
-                elementText = t;
+                _elementText = t;
             }
-            else if (stageNameText == null && (lowerName.Contains("stagename") || lowerName.Contains("title")))
+            else if (_stageNameText == null && (lowerName.Contains("stagename") || lowerName.Contains("title")))
             {
-                stageNameText = t;
+                _stageNameText = t;
             }
-            else if (dangerLevelText == null && lowerName.Contains("danger"))
+            else if (_dangerLevelText == null && lowerName.Contains("danger"))
             {
-                dangerLevelText = t;
+                _dangerLevelText = t;
             }
-            else if (monsterInfoText == null && lowerName.Contains("monster"))
+            else if (_monsterInfoText == null && lowerName.Contains("monster"))
             {
-                monsterInfoText = t;
+                _monsterInfoText = t;
             }
         }
     }

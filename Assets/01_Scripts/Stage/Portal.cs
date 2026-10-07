@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 미션 클리어 후 등장하는 포탈. 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
@@ -52,7 +53,7 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField, Min(0.01f)] private float _pulseBlendDuration = 0.25f;
 
     [Header("Gizmo")]
-    [SerializeField] private Color gizmoColor = new(0f, 1f, 1f, 0.4f);
+    [SerializeField, FormerlySerializedAs("gizmoColor")] private Color _gizmoColor = new(0f, 1f, 1f, 0.4f);
 
     private Vector3 _baseScale = Vector3.one;
     private Color _spriteColor = Color.white;
@@ -316,7 +317,7 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = gizmoColor;
+        Gizmos.color = _gizmoColor;
         Gizmos.DrawWireSphere(transform.position, 1f);
     }
 }

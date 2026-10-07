@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -19,6 +20,14 @@ public class Dash : MonoBehaviour
     private bool _isDashing = false;
     public bool IsDashing => _isDashing;
     private bool _canDash = true;
+
+    /// <summary>보상 특성용: 대시 시작/종료 통지. 종료는 이동 끝 시점(쿨타임 전)에 나간다.</summary>
+    public event Action DashStarted;
+    public event Action DashFinished;
+
+    /// <summary>보상 특성용 배율 (기본 1). 대시 거리·쿨타임에 곱해진다.</summary>
+    public float DashPowerMultiplier { get; set; } = 1f;
+    public float DashCooldownMultiplier { get; set; } = 1f;
     private float _cooldownEndTime;
 
     /// <summary>HUD용: 다시 대시할 수 있을 때까지 남은 시간(초). 쓸 수 있으면 0</summary>
@@ -68,6 +77,7 @@ public class Dash : MonoBehaviour
     {
         if (!_canDash || _isDashing) return;
         if (_statusEffects != null && _statusEffects.IsStaggered) return;
+        DashStarted?.Invoke();
         StartCoroutine(DashCoroutine());
     }
 
@@ -75,7 +85,7 @@ public class Dash : MonoBehaviour
     {
         _isDashing = true;
         _canDash = false;
-        _cooldownEndTime = Time.time + _dashDuration + _dashCooldown;
+        _cooldownEndTime = Time.time + _dashDuration + _dashCooldown * DashCooldownMultiplier;
         _dashAfterimage.BeginEmission();
 
         // dash 중 무적
@@ -94,7 +104,7 @@ public class Dash : MonoBehaviour
         }
 
         // dash 수행
-        _playerRigidbody2D.linearVelocity = dashDirection * _dashPower;
+        _playerRigidbody2D.linearVelocity = dashDirection * (_dashPower * DashPowerMultiplier);
 
         // dash 유지 시간
         yield return new WaitForSeconds(_dashDuration);
@@ -104,9 +114,10 @@ public class Dash : MonoBehaviour
         _dashAfterimage.StopEmission();
         // dash 후 조작 가능
         _isDashing = false;
+        DashFinished?.Invoke();
 
         // dash 쿨타임
-        yield return new WaitForSeconds(_dashCooldown);
+        yield return new WaitForSeconds(_dashCooldown * DashCooldownMultiplier);
         _canDash = true;
     }
 
