@@ -18,7 +18,7 @@ public class EnemyContactAttack : MonoBehaviour
         if (_statusEffectController.IsStaggered)
             return;
 
-        if (!collision.gameObject.CompareTag("Player"))
+        if (!collision.TryGetComponent(out PlayerHitbox hitbox))
         {
             return;
         }
@@ -28,7 +28,7 @@ public class EnemyContactAttack : MonoBehaviour
             return;
         }
 
-        PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
+        PlayerHealth playerHealth = hitbox.Health;
 
         if (playerHealth == null)
         {
