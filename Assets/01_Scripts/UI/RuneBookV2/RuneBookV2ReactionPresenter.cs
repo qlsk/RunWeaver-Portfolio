@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -25,7 +26,11 @@ public class RuneBookV2ReactionPresenter : MonoBehaviour
     [SerializeField] private ElementReactionDetailView _detailView;
     [SerializeField] private RuneBookTooltipLayout _tooltip;
 
+    [Tooltip("장착 조합을 읽을 룬북. 비워두면 부모에서 찾는다")]
+    [SerializeField] private RuneBookV2Presenter _runeBookPresenter;
+
     private bool _isInitialized;
+    private string _equippedKey;
 
     private void Awake()
     {
@@ -44,7 +49,104 @@ public class RuneBookV2ReactionPresenter : MonoBehaviour
             }
         }
 
+        _equippedKey = null;
+        RefreshEquipped();
         HideTooltip();
+    }
+
+    private void LateUpdate()
+    {
+        // 룬북 칸을 바꾸면 (Confirm 전이어도) 바로 강조를 옮긴다.
+        RefreshEquipped();
+    }
+
+    /// <summary>
+    /// 지금 장착한 원소 조합 칸을 강조한다.
+    /// 주력 원소(1번 칸)와 보조 원소(2번 칸)가 모두 있으면 두 원소의 반응 칸, 주력 원소만 있으면 그 원소의 머리 칸.
+    /// </summary>
+    private void RefreshEquipped()
+    {
+        ReactionElement? main = null;
+        ReactionElement? sub = null;
+        IReadOnlyList<string> slotIds = GetSlotIds();
+        if (slotIds != null)
+        {
+            if (slotIds.Count > RuneEffectLoadout.PrimaryElementSlotIndex)
+            {
+                main = ToElement(slotIds[RuneEffectLoadout.PrimaryElementSlotIndex]);
+            }
+
+            if (slotIds.Count > RuneEffectLoadout.ElementRuneEffectSlotIndex)
+            {
+                sub = ToElement(slotIds[RuneEffectLoadout.ElementRuneEffectSlotIndex]);
+            }
+        }
+
+        string key = $"{main}|{sub}";
+        if (key == _equippedKey)
+        {
+            return;
+        }
+
+        _equippedKey = key;
+        foreach (ElementReactionCellView cell in _cells)
+        {
+            if (cell == null)
+            {
+                continue;
+            }
+
+            bool isEquipped;
+            if (!main.HasValue)
+            {
+                isEquipped = false;
+            }
+            else if (!sub.HasValue)
+            {
+                isEquipped = cell.IsBaseElement && cell.ElementA == main.Value;
+            }
+            else
+            {
+                isEquipped = !cell.IsBaseElement &&
+                             ((cell.ElementA == main.Value && cell.ElementB == sub.Value) ||
+                              (cell.ElementA == sub.Value && cell.ElementB == main.Value));
+            }
+
+            cell.SetEquipped(isEquipped);
+        }
+    }
+
+    private IReadOnlyList<string> GetSlotIds()
+    {
+        if (_runeBookPresenter == null)
+        {
+            _runeBookPresenter = GetComponentInParent<RuneBookV2Presenter>(true);
+            if (_runeBookPresenter == null)
+            {
+                _runeBookPresenter = FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
+            }
+        }
+
+        if (_runeBookPresenter != null)
+        {
+            return _runeBookPresenter.SlotIds;
+        }
+
+        // 룬북 화면이 없으면 확정된 장착 상태를 쓴다.
+        PlayerRuneManager manager = PlayerRuneManager.Instance;
+        return manager != null && manager.IsInitialized ? manager.RuneEffectLoadout.EquippedEffectIds : null;
+    }
+
+    private static ReactionElement? ToElement(string effectId)
+    {
+        return effectId switch
+        {
+            RuneEffectIds.Fire => ReactionElement.Fire,
+            RuneEffectIds.Water => ReactionElement.Water,
+            RuneEffectIds.Earth => ReactionElement.Earth,
+            RuneEffectIds.Wind => ReactionElement.Wind,
+            _ => null
+        };
     }
 
     private void OnDisable()
@@ -85,7 +187,9 @@ public class RuneBookV2ReactionPresenter : MonoBehaviour
 
         if (_dataSource == null)
         {
-            Debug.LogError("[RuneBookV2ReactionPresenter] ElementReactionDataSource를 찾을 수 없습니다.", this);
+            // 씬과 프리팹 어디에도 데이터 소스가 없으면 반응 칸이 전부 ???로 보인다.
+            // 코드에 담긴 기본 데이터(StaticElementReactionDataSource)를 이 오브젝트에 붙여 쓴다.
+            _dataSource = gameObject.AddComponent<StaticElementReactionDataSource>();
         }
 
         if (_cells == null)

@@ -96,6 +96,9 @@ public class RuneBookV2Presenter : MonoBehaviour
     /// <summary>보기 전용이면 룬 워드를 넣거나 빼거나 Confirm할 수 없다.</summary>
     public bool IsViewOnly => _isViewOnly;
 
+    /// <summary>지금 룬북 칸에 놓인 룬 효과 ID (Confirm 전 변경 포함, 빈 칸은 null). Reactions 탭이 장착 조합을 강조할 때 쓴다.</summary>
+    public IReadOnlyList<string> SlotIds => _slotIds;
+
     /// <summary>Confirm으로 장착을 확정했을 때 (시작 석상이 받아 출발 연출을 시작한다)</summary>
     public event Action Confirmed;
 
