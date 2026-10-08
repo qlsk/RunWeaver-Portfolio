@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 한 판(런)의 시작과 끝을 정리한다.
 /// - 런이 끝난 사유를 한 곳에 기록한다. (처음 기록된 사유만 남는다)
-/// - 결과창의 To Lobby / ReStart 버튼이 부르는 마을 이동을 담당한다.
+/// - 결과창의 To Lobby / ReStart 버튼이 부르는 마을 이동과, 타이틀로 돌아가기를 담당한다.
 ///   마을로 가기 전에 원정 데이터(골드)와 장착 룬을 비운다. 보유 룬 문자는 그대로 남는다.
 /// - ReStart로 마을에 가면 마을에서 원소 선택 창을 바로 열 수 있도록 요청을 남긴다.
 /// </summary>
@@ -12,6 +12,9 @@ public static class RunFlow
 {
     /// <summary>원정을 시작할 때 지갑에 넣어 주는 골드. 마을에서는 이 값을 보여준다.</summary>
     public const int StartingGold = 1000;
+
+    /// <summary>타이틀 씬 이름 (결과창의 타이틀로 돌아가기)</summary>
+    private const string TitleSceneName = "StartScene";
 
     private static RunEndReason? s_endReason;
     private static bool s_isRestartRequested;
@@ -71,6 +74,13 @@ public static class RunFlow
     {
         FinishRun();
         SceneLoader.LoadTownScene();
+    }
+
+    /// <summary>결과창 타이틀로 돌아가기 : 런을 정리하고 타이틀(StartScene)로 간다.</summary>
+    public static void GoToTitle()
+    {
+        FinishRun();
+        UnityEngine.SceneManagement.SceneManager.LoadScene(TitleSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     /// <summary>결과창 ReStart : 런을 정리하고 마을로 간 뒤 원소 선택 창을 바로 연다.</summary>
