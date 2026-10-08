@@ -89,11 +89,11 @@ public class EnemyNavigation : MonoBehaviour
         }
 
         Vector2 next = _path[_waypointIndex];
-        if (!_grid.CanMoveDirectly(position, next))
-        {
-            _path.Clear();
-            return Vector2.zero;
-        }
+        // if (!_grid.CanMoveDirectly(position, next))
+        // {
+        //     _path.Clear();
+        //     return Vector2.zero;
+        // }
 
         Vector2 delta = next - position;
         float distance = delta.magnitude;
