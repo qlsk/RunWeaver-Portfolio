@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(-100)]
-[RequireComponent(typeof(Rigidbody2D), typeof(EnemyTargetDetector))]
+[RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class EnemyTankAttack : MonoBehaviour
 {
     [SerializeField, Min(0f)] private float _detectionRange = 3f;
@@ -26,13 +26,11 @@ public class EnemyTankAttack : MonoBehaviour
     public EnemyAttackState State { get; private set; } = EnemyAttackState.Idle;
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
 
-    private Rigidbody2D _body;
-    private RigidbodyConstraints2D _savedConstraints;
-    private bool _positionFrozen;
+    private EnemyMotor _motor;
 
     private void Awake()
     {
-        _body = GetComponent<Rigidbody2D>();
+        _motor = GetComponent<EnemyMotor>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _health = GetComponent<EnemyHealth>();
         _statusEffects = GetComponentInParent<EnemyStatusEffectController>();
@@ -95,10 +93,7 @@ public class EnemyTankAttack : MonoBehaviour
         _pendingRadius = _attackRadius;
         _attackTime = Time.time + _warningDuration;
         State = EnemyAttackState.Preparing;
-        _body.linearVelocity = Vector2.zero;
-        _savedConstraints = _body.constraints;
-        _positionFrozen = true;
-        _body.constraints |= RigidbodyConstraints2D.FreezePosition;
+        _motor.AcquirePositionLock(this);
 
         Bounds bounds = _indicator.sprite.bounds;
         float diameter = _pendingRadius * 2f;
@@ -115,7 +110,6 @@ public class EnemyTankAttack : MonoBehaviour
 
     private void ExecuteAttack()
     {
-        _body.linearVelocity = Vector2.zero;
         _damagedPlayers.Clear();
 
         // 피격 영역만 검사하고 같은 플레이어의 중복 피해를 방지한다.
@@ -139,23 +133,13 @@ public class EnemyTankAttack : MonoBehaviour
     {
         if (State != EnemyAttackState.Idle)
         {
-            if (_body != null)
-                _body.linearVelocity = Vector2.zero;
             _nextAttackTime = Time.time + _attackCooldown;
         }
 
-        RestoreConstraints();
+        _motor?.ReleasePositionLock(this);
         if (_indicator != null)
             _indicator.enabled = false;
         State = EnemyAttackState.Idle;
-    }
-
-    private void RestoreConstraints()
-    {
-        if (!_positionFrozen || _body == null)
-            return;
-        _body.constraints = _savedConstraints;
-        _positionFrozen = false;
     }
 
     private void CreateIndicator()

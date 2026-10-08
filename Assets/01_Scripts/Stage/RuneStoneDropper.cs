@@ -64,6 +64,13 @@ public class RuneStoneDropper : MonoBehaviour
             return;
         }
 
+        PlayerRuneManager runeManager = PlayerRuneManager.Instance;
+        if (runeManager == null || !runeManager.IsInitialized)
+        {
+            Debug.LogError("[RuneStoneDropper] PlayerRuneManager 미초기화. 부트스트랩→마을→전투 흐름으로 진입해야 획득됩니다. (전투씬 직접 실행 시 획득 불가)", this);
+            return;
+        }
+
         Vector3 center = GetDropCenter();
         float minR = Mathf.Min(_scatterRadiusMin, _scatterRadiusMax);
         float maxR = Mathf.Max(_scatterRadiusMin, _scatterRadiusMax);

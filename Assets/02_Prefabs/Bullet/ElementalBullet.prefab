@@ -41,8 +41,7 @@ Transform:
   m_LocalPosition: {x: -1.86, y: 0.73, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
-  m_Children:
-  - {fileID: 8837510688787299305}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1065958527626800737
@@ -116,9 +115,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97dfdaeb5e04e534890f7d7cfcebf1f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
-  _petrifyReaction: {fileID: 7216901170541185805}
-  _cycloneReaction: {fileID: 7216901170541185806}
-  _sandstormReaction: {fileID: 7216901170541185807}
   _overHeatReaction: {fileID: 4621851132757544785}
   _steamReaction: {fileID: 8652517633453959891}
   _moltenReaction: {fileID: 3481771100437686312}
@@ -126,14 +122,20 @@ MonoBehaviour:
   _delugeReaction: {fileID: 7216901170541185802}
   _mireReaction: {fileID: 7216901170541185803}
   _tempestReaction: {fileID: 7216901170541185804}
-  _castEffectPrefab: {fileID: 3615579479220034597, guid: a1f8d8aa14428af42809cddeac1f6381, type: 3}
-  _castEffectScale: 1
-  _castEffectLifetime: 3
+  _petrifyReaction: {fileID: 7216901170541185805}
+  _cycloneReaction: {fileID: 7216901170541185806}
+  _sandstormReaction: {fileID: 7216901170541185807}
+  _startSpeed: 20
+  _endSpeed: 10
   _seekRadius: 5
   _seekEnemyLayers:
     serializedVersion: 2
     m_Bits: 1015
   _fixTrapPrefab: {fileID: 0}
+  _chainRadius: 5
+  _chainEnemyLayers:
+    serializedVersion: 2
+    m_Bits: 2039
 --- !u!61 &-1367794926946469454
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -168,7 +170,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0007561147, y: -0.0015121326}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0.086799994, y: 0.19, z: 0.0708, w: 0.2024}
     pivot: {x: 0.5, y: 0.5}
@@ -178,7 +180,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.18112904, y: 0.09920539}
+  m_Size: {x: 0.1, y: 0.1}
   m_EdgeRadius: 0
 --- !u!114 &4621851132757544785
 MonoBehaviour:
@@ -266,7 +268,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 97179f7a54a84bd3a8804be2f3ed52d4, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DelugeReaction
   _delugeAreaPrefab: {fileID: 2896922333138103206, guid: 9fdd64fdbf7c48efa7c40276b9cd9228, type: 3}
   _delugeRadius: 3
@@ -283,7 +285,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1554cdc98f0e409db656c105f0d8f26e, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MireReaction
   _mireAreaPrefab: {fileID: 2896922333138103206, guid: 071070c872d54897879f69d093f96919, type: 3}
   _mireRadius: 3
@@ -300,7 +302,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbd111d75782461e92bdf84191d367b7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TempestReaction
   _tempestAreaPrefab: {fileID: 2896922333138103206, guid: e8bf4b7a50a2444a84b565c2e7f835a5, type: 3}
   _tempestRadius: 3
@@ -308,81 +310,6 @@ MonoBehaviour:
   _tickDamageMultiplier: 0.2
   _tickInterval: 0.5
   _pullSpeed: 2
---- !u!1001 &7001000000000000001
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 4460692351979282860}
-    m_Modifications:
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7866002994442904433, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
---- !u!4 &8837510688787299305 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1985429162397072360, guid: ce5e6c05cc9837b4e8e08e6507db9d07, type: 3}
-  m_PrefabInstance: {fileID: 7001000000000000001}
-  m_PrefabAsset: {fileID: 0}
-
 --- !u!114 &7216901170541185805
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -393,14 +320,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a16f56af8e7145488a81d27878dbee5a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetrifyReaction
   _petrifyRadius: 2
   _petrifyDuration: 3
   _moveSpeedMultiplier: 0.2
   _root: 1
   _defenseMultiplier: 0.5
-
 --- !u!114 &7216901170541185806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -411,7 +337,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5050f9beebbb47fe827c8a63a2ecb527, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CycloneReaction
   _cycloneAreaPrefab: {fileID: 2896922333138103206, guid: fb9a2c2fcf2e4ae79c635444decdd35d, type: 3}
   _cycloneRadius: 3
@@ -421,7 +347,6 @@ MonoBehaviour:
   _pullSpeed: 2
   _knockbackSpeed: 5
   _knockbackDuration: 0.3
-
 --- !u!114 &7216901170541185807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -432,7 +357,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 36283b04ede44c6e8e957e11a5983309, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SandstormReaction
   _sandstormAreaPrefab: {fileID: 2896922333138103206, guid: 63bdedbe65f144e0b8a469d57bfc9068, type: 3}
   _sandstormRadius: 3

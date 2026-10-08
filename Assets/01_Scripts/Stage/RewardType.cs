@@ -4,5 +4,7 @@
 public enum RewardType
 {
     RuneStone,
-    Passive
+    Passive,
+    Trait,
+    SlotExpansion
 }

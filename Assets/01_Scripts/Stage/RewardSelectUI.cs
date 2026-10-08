@@ -30,6 +30,14 @@ public class RewardSelectUI : MonoBehaviour
     [SerializeField] private Button _externalConfirmButton;
     [Tooltip("확정 버튼 라벨 (선택 사항)")]
     [SerializeField] private Text _externalConfirmLabel;
+    [Tooltip("리롤 버튼 (테스트용, 선택 사항. 비우면 리롤 없음)")]
+    [SerializeField] private Button _externalRerollButton;
+
+    [Header("열 때 표시할 문구 (비워두면 씬에 적힌 그대로 유지)")]
+    [Tooltip("보상 UI가 열릴 때 제목에 표시할 글자")]
+    [SerializeField] private string _openTitleText = "보상을 선택하세요 (반드시 1개)";
+    [Tooltip("미선택 상태에서 확정 버튼에 표시할 글자")]
+    [SerializeField] private string _noSelectionText = "카드를 선택하세요";
 
     [Header("카드 색상 (플레이스홀더)")]
     [SerializeField, FormerlySerializedAs("normalCardColor")] private Color _normalCardColor = new(0.16f, 0.17f, 0.22f, 1f);
@@ -49,15 +57,20 @@ public class RewardSelectUI : MonoBehaviour
     [Tooltip("확정 버튼 크기")]
     [SerializeField] private Vector2 _confirmButtonSize = new(440f, 64f);
     [Tooltip("제목 / 카드이름 / 카드설명 / 확정버튼 글자 크기")]
-    [SerializeField, Min(8)] private int _titleFontSize = 30;
-    [SerializeField, Min(8)] private int _cardNameFontSize = 22;
+    [SerializeField, Min(8)] private int _titleFontSize = 30;    [SerializeField, Min(8)] private int _cardNameFontSize = 22;
     [SerializeField, Min(8)] private int _cardDescFontSize = 16;
     [SerializeField, Min(8)] private int _confirmFontSize = 24;
 
     /// <summary>확정 버튼을 누르면 발행된다. 닫기/시간복구는 구독자(RewardController)가 한다.</summary>
     public event Action<RewardOption> OnOptionConfirmed;
 
+    /// <summary>리롤 버튼을 누르면 발행된다. 새 선택지 표시는 구독자가 한다.</summary>
+    public event Action OnRerollRequested;
+
     public bool IsOpen => _root != null && _root.activeSelf;
+
+    /// <summary>팝업 등록용 루트 (입력 차단). Open 전에는 null일 수 있다.</summary>
+    public GameObject RootObject => _root;
 
     private GameObject _root;
     private GameObject _autoBuiltRoot;
@@ -72,6 +85,7 @@ public class RewardSelectUI : MonoBehaviour
     private readonly List<Image> _cardIcons = new();
     private readonly List<Text> _cardNames = new();
     private readonly List<Text> _cardDescs = new();
+    private readonly List<Text> _cardCategories = new();
 
     private int _selectedIndex = -1;
     private bool _confirmLocked;
@@ -100,6 +114,7 @@ public class RewardSelectUI : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 2) % 3);
         else if (Input.GetKeyDown(KeyCode.RightArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 1) % 3);
         else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) ConfirmSelected();
+        else if (Input.GetKeyDown(KeyCode.R)) RequestReroll();
     }
 
     /// <summary>
@@ -131,6 +146,10 @@ public class RewardSelectUI : MonoBehaviour
             RewardOption option = _currentOptions[i];
             _cardNames[i].text = option.Title;
             _cardDescs[i].text = option.Description;
+            if (i < _cardCategories.Count && _cardCategories[i] != null)
+            {
+                _cardCategories[i].text = option.CategoryLabel ?? string.Empty;
+            }
 
             if (option.Icon != null)
             {
@@ -146,7 +165,10 @@ public class RewardSelectUI : MonoBehaviour
             _cardBackgrounds[i].color = _normalCardColor;
         }
 
-        _titleText.text = "보상을 선택하세요 (반드시 1개)";
+        if (!string.IsNullOrEmpty(_openTitleText))
+        {
+            _titleText.text = _openTitleText;
+        }
         RefreshConfirmButton();
         _root.SetActive(true);
     }
@@ -174,6 +196,7 @@ public class RewardSelectUI : MonoBehaviour
             _cardBackgrounds[i].color = i == _selectedIndex ? _selectedCardColor : _normalCardColor;
         }
 
+        Debug.Log($"[RewardSelectUI] 카드 선택: {index} ({_currentOptions[index].Title})", this);
         RefreshConfirmButton();
 
         // 게임패드/키보드 포커스도 따라가게 한다.
@@ -205,6 +228,20 @@ public class RewardSelectUI : MonoBehaviour
         OnOptionConfirmed?.Invoke(option);
     }
 
+    /// <summary>
+    /// 리롤 버튼(또는 R키). 새 선택지 표시는 구독자(RewardController)가 한다.
+    /// </summary>
+    public void RequestReroll()
+    {
+        if (!IsOpen || _confirmLocked)
+        {
+            return;
+        }
+
+        Debug.Log("[RewardSelectUI] 리롤 요청", this);
+        OnRerollRequested?.Invoke();
+    }
+
     private void RefreshConfirmButton()
     {
         if (_confirmButton != null)
@@ -214,9 +251,14 @@ public class RewardSelectUI : MonoBehaviour
 
         if (_confirmLabel != null)
         {
-            _confirmLabel.text = _selectedIndex >= 0
-                ? $"확정: {_currentOptions[_selectedIndex].Title}"
-                : "카드를 선택하세요";
+            if (_selectedIndex >= 0)
+            {
+                _confirmLabel.text = $"확정: {_currentOptions[_selectedIndex].Title}";
+            }
+            else if (!string.IsNullOrEmpty(_noSelectionText))
+            {
+                _confirmLabel.text = _noSelectionText;
+            }
         }
     }
 
@@ -305,6 +347,8 @@ public class RewardSelectUI : MonoBehaviour
             _cardIcons.Add(card.Icon);
             _cardNames.Add(card.Name);
             _cardDescs.Add(card.Desc);
+            // 카테고리 텍스트는 선택 사항. 네가 추가하면 채워준다.
+            _cardCategories.Add(card.Category);
 
             int captured = i;
             card.Button.onClick.RemoveAllListeners();
@@ -313,6 +357,12 @@ public class RewardSelectUI : MonoBehaviour
 
         _confirmButton.onClick.RemoveAllListeners();
         _confirmButton.onClick.AddListener(ConfirmSelected);
+
+        if (_externalRerollButton != null)
+        {
+            _externalRerollButton.onClick.RemoveAllListeners();
+            _externalRerollButton.onClick.AddListener(RequestReroll);
+        }
 
         Debug.Log("[RewardSelectUI] 외부 연결 UI 사용", this);
         return true;
@@ -341,6 +391,7 @@ public class RewardSelectUI : MonoBehaviour
         _cardIcons.Clear();
         _cardNames.Clear();
         _cardDescs.Clear();
+        _cardCategories.Clear();
         _selectedIndex = -1;
         _confirmLocked = false;
     }
@@ -382,6 +433,12 @@ public class RewardSelectUI : MonoBehaviour
             new RewardOption { Type = RewardType.Passive, Title = "데미지 +5%", Description = "데미지 +5%" },
             new RewardOption { Type = RewardType.Passive, Title = "이동속도 +5%", Description = "이동속도 +5%" }
         };
+        // 미리보기도 실전처럼 섞는다 (더미 순서 고정 방지).
+        for (int i = preview.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (preview[i], preview[j]) = (preview[j], preview[i]);
+        }
         Open(preview);
     }
 
@@ -519,6 +576,7 @@ public class RewardSelectUI : MonoBehaviour
         _cardIcons.Add(icon);
         _cardNames.Add(nameText);
         _cardDescs.Add(descText);
+        _cardCategories.Add(null);
     }
 
     private Image CreateImage(Transform parent, string objectName, Color color)

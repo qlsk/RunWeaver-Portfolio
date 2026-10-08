@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using MoreMountains.Feedbacks;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,6 +10,14 @@ public class PlayerAttack : MonoBehaviour
 {
     [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
     [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _shootFeedbacks;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _hitFeedbacks;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _killFeedbacks;
+
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _earthVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _windVfx = new();
 
     [FoldoutGroup("Bullet Settings")] [SerializeField] private float _bulletFireRate = 1f;
     [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletDamage = 10f;
@@ -64,6 +73,8 @@ public class PlayerAttack : MonoBehaviour
     private PlayerAttackData _attackData;
 
     public int MagazineSize => _magazineSize + _magazineBonus;
+    /// <summary>보상 특성용: 기본 탄환 피해.</summary>
+    public float BulletDamage => _bulletDamage;
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public int CurrentAmmo => _currentAmmo;
 
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public bool IsReloading => _isReloading;
@@ -135,6 +146,11 @@ public class PlayerAttack : MonoBehaviour
     private void OnDisable()
     {
         _remainingBurstShots = 0;
+        if (_shootFeedbacks != null)
+        {
+            _shootFeedbacks.StopFeedbacks();
+            _shootFeedbacks.RestoreInitialValues();
+        }
 
         if (_playerRuneManager == null)
             return;
@@ -235,6 +251,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void SpawnBullets(PlayerAttackData attackData)
     {
+        BulletVisualEffects visualEffects = GetVisualEffects(attackData.Configuration.PrimaryElement);
         for (var i = 0; i < attackData.Configuration.BulletsPerShot; i++)
         {
             float angle = attackData.Configuration.IsSpread ? (i - 1) * _spreadAngle : 0f;
@@ -245,10 +262,33 @@ public class PlayerAttack : MonoBehaviour
             Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position, bulletRotation);
 
             PlayerAttackData bulletData = attackData.WithDirection(bulletDirection);
-            bullet.Initialize(bulletData);
-            bullet.PlayCastEffect(_firePosition.transform);
+            bullet.Initialize(bulletData, visualEffects);
         }
+
+        // 산탄 수와 관계없이 한 발사당 한 번 재생한다. 연발은 각 발사마다 이 메서드를 호출한다.
+        if (visualEffects != null)
+            BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
+                visualEffects.CastScale, visualEffects.CastLifetime);
+        _shootFeedbacks?.PlayFeedbacks(_firePosition.transform.position);
     }
+
+    /// 탄환 적중음과 처치 연출을 몬스터 수명과 독립적으로 재생한다.
+    public void PlayHitFeedback(Vector2 position, bool killed)
+    {
+        _hitFeedbacks?.PlayFeedbacks(position);
+        if (killed)
+            _killFeedbacks?.PlayFeedbacks(position);
+    }
+
+    /// 피해 및 상태 효과와 동일하게 첫 번째 원소 룬을 기준으로 연출을 선택한다.
+    private BulletVisualEffects GetVisualEffects(ReactionElement? element) => element switch
+    {
+        ReactionElement.Fire => _fireVfx,
+        ReactionElement.Water => _waterVfx,
+        ReactionElement.Earth => _earthVfx,
+        ReactionElement.Wind => _windVfx,
+        _ => null
+    };
 
     public void Reload()
     {
@@ -256,6 +296,27 @@ public class PlayerAttack : MonoBehaviour
 
         _isReloading = true;
         _reloadTimer = 0f;
+    }
+
+    /// <summary>
+    /// 보상 특성용: 마지막 공격과 같은 방향으로 추가 탄환을 발사한다.
+    /// 공격 횟수에 포함되지 않고 Fired를 발행하지 않는다.
+    /// </summary>
+    public void FireExtraShot(float damageScale)
+    {
+        if (!_isInitialized || _attackData.Configuration == null)
+        {
+            return;
+        }
+
+        PlayerAttackData bonus = new PlayerAttackData(
+            _attackData.Direction,
+            _attackData.Damage * Mathf.Max(0f, damageScale),
+            _attackData.Speed,
+            _attackData.Range,
+            _attackData.Configuration,
+            _attackData.Owner != null ? _attackData.Owner : transform);
+        SpawnBullets(bonus);
     }
 
     private void UpdateReload()
