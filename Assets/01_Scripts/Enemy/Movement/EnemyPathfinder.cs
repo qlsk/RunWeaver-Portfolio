@@ -14,10 +14,14 @@ public class EnemyPathfinder
 
     public bool TryFindPath(EnemyNavigationGrid grid, Vector2 start, Vector2 destination, List<Vector2> result)
     {
-        if (result == null) throw new ArgumentNullException(nameof(result));
+        if (result == null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
         result.Clear();
         if (grid == null || !grid.IsBuilt || !grid.TryWorldToCell(start, out Vector2Int first) ||
-            !grid.TryWorldToCell(destination, out Vector2Int last) || !grid.IsPositionClear(destination))
+            !grid.TryWorldToCell(destination, out Vector2Int last))
         {
             return false;
         }
@@ -30,11 +34,15 @@ public class EnemyPathfinder
 
         if (!grid.IsWalkable(first))
         {
-            first = FindNearestWalkableCell(grid, first);
+            first = FindNearestWalkableCell(grid, first, 2);
         }
 
-        if (!grid.IsWalkable(first) || !grid.IsWalkable(last) ||
-            !grid.CanMoveDirectly(grid.CellToWorld(last), destination)) return false;
+        if (!grid.IsWalkable(last))
+        {
+            last = FindNearestWalkableCell(grid, last, 5);
+        }
+
+        if (!grid.IsWalkable(first) || !grid.IsWalkable(last)) return false;
 
         var open = new SortedSet<Entry>(Comparer<Entry>.Create((a, b) =>
         {
@@ -51,7 +59,11 @@ public class EnemyPathfinder
         {
             Entry current = open.Min;
             open.Remove(current);
-            if (!closed.Add(current.Cell)) continue;
+            if (!closed.Add(current.Cell))
+            {
+                continue;
+            }
+
             if (current.Cell == last)
             {
                 Vector2Int cell = last;
@@ -63,43 +75,74 @@ public class EnemyPathfinder
                 }
 
                 result.Reverse();
-                result.Add(destination);
+                if (grid.IsPositionClear(destination))
+                {
+                    result.Add(destination);
+                }
+
                 return true;
             }
 
             for (int dx = -1; dx <= 1; dx++)
-            for (int dy = -1; dy <= 1; dy++)
             {
-                if (dx == 0 && dy == 0) continue;
-                var next = current.Cell + new Vector2Int(dx, dy);
-                if (closed.Contains(next) || !grid.CanTraverse(current.Cell, next)) continue;
-                float cost = current.G + (dx != 0 && dy != 0 ? 1.41421356f : 1f);
-                if (costs.TryGetValue(next, out float known) && cost >= known) continue;
-                costs[next] = cost;
-                parents[next] = current.Cell;
-                open.Add(new Entry { Cell = next, G = cost, F = cost + Heuristic(next, last), Sequence = sequence++ });
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0)
+                    {
+                        continue;
+                    }
+
+                    var next = current.Cell + new Vector2Int(dx, dy);
+                    if (closed.Contains(next) || !grid.CanTraverse(current.Cell, next))
+                    {
+                        continue;
+                    }
+
+                    float cost = current.G + (dx != 0 && dy != 0 ? 1.41421356f : 1f);
+                    if (costs.TryGetValue(next, out float known) && cost >= known)
+                    {
+                        continue;
+                    }
+
+                    costs[next] = cost;
+                    parents[next] = current.Cell;
+                    open.Add(new Entry
+                        { Cell = next, G = cost, F = cost + Heuristic(next, last), Sequence = sequence++ });
+                }
             }
         }
 
         return false;
     }
 
-    // 주변 8칸을 검사해 가장 가까운 걸어갈 수 있는(초록색) 칸을 찾아 반환
-    private Vector2Int FindNearestWalkableCell(EnemyNavigationGrid grid, Vector2Int center)
+    private Vector2Int FindNearestWalkableCell(EnemyNavigationGrid grid, Vector2Int center, int maxRadius)
     {
-        for (int dx = -1; dx <= 1; dx++)
+        if (grid.IsWalkable(center))
         {
-            for (int dy = -1; dy <= 1; dy++)
+            return center;
+        }
+
+        for (int r = 1; r <= maxRadius; r++)
+        {
+            for (int dx = -r; dx <= r; dx++)
             {
-                Vector2Int neighbor = center + new Vector2Int(dx, dy);
-                if (grid.IsWalkable(neighbor))
+                for (int dy = -r; dy <= r; dy++)
                 {
-                    return neighbor; // 주변 초록색 타일 발견 시 탈출구로 지정
+                    if (Mathf.Abs(dx) != r && Mathf.Abs(dy) != r)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int neighbor = center + new Vector2Int(dx, dy);
+                    if (grid.IsWalkable(neighbor))
+                    {
+                        return neighbor;
+                    }
                 }
             }
         }
 
-        return center; // 주변도 다 막혀있다면 원본 반환
+        return center;
     }
 
     private static float Heuristic(Vector2Int a, Vector2Int b)
