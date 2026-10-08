@@ -42,6 +42,12 @@ public class MissionManager : MonoBehaviour
     [Header("스폰 위치 설정")]
     [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
 
+    [Header("영혼 수집 구역 배치")]
+    [Tooltip("한 번에 스폰하는 구역 수")]
+    [SerializeField, Min(1)] private int _soulZoneCount = 3;
+    [Tooltip("중심에서 떨어진 거리. 3개가 삼각형 꼭짓점에 놓인다")]
+    [SerializeField, Min(0f)] private float _soulZoneTriangleRadius = 6f;
+
     [Header("미션 추첨")]
     [Tooltip("켜면 항상 Forced Mission Type 미션만 나온다. (테스트용)")]
     [SerializeField] private bool _useForcedMissionType;
@@ -178,6 +184,45 @@ public class MissionManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 영혼 수집 구역을 중심에서 떨어진 삼각형 꼭짓점에 스폰한다.
+    /// 컨테이너 하나로 묶어 CleanupMissionObject에서 한 번에 정리한다.
+    /// </summary>
+    private List<SoulHarvestZone> SpawnSoulHarvestZones()
+    {
+        List<SoulHarvestZone> zones = new();
+        if (_soulHarvestZonePrefab == null)
+        {
+            return zones;
+        }
+
+        int count = Mathf.Max(1, _soulZoneCount);
+        GameObject container = new("SoulHarvestZones");
+        container.transform.position = _missionObjectSpawnPosition;
+        _spawnedMissionObject = container;
+
+        // 컨테이너에 표시자를 달아 포탈 위치 계산에서 자식 범위 그림을 제외시킨다.
+        // (StageManager가 SoulHarvestZone의 자식은 범위 표시로 보고 bounds에서 뺀다)
+        // 이 표시자는 콜라이더가 없어 구역 판정에 쓰이지 않는다.
+        container.AddComponent<SoulHarvestZone>();
+        Debug.Log("[MissionManager] SoulHarvestZones 컨테이너 생성 + 표시자 부착", this);
+
+        for (int i = 0; i < count; i++)
+        {
+            float angle = (90f + i * (360f / count)) * Mathf.Deg2Rad;
+            Vector3 offset = new(Mathf.Cos(angle) * _soulZoneTriangleRadius, Mathf.Sin(angle) * _soulZoneTriangleRadius, 0f);
+            GameObject go = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition + offset, Quaternion.identity, container.transform);
+            SoulHarvestZone zone = go.GetComponent<SoulHarvestZone>();
+            if (zone != null)
+            {
+                zones.Add(zone);
+            }
+        }
+
+        Debug.Log($"[MissionManager] 영혼 수집 구역 {zones.Count}개 삼각 배치 완료");
+        return zones;
+    }
+
     private void SetupMissionStrategy(MissionType type)
     {
         MissionBase[] oldMissions = GetComponents<MissionBase>();
@@ -193,23 +238,18 @@ public class MissionManager : MonoBehaviour
                 break;
 
             case MissionType.SoulCollect:
-                SoulHarvestZone spawnedHarvestZone = null;
-                if (_soulHarvestZonePrefab != null)
+                List<SoulHarvestZone> spawnedHarvestZones = SpawnSoulHarvestZones();
+
+                var soulMission = gameObject.AddComponent<SoulCollectMission>();
+                if (spawnedHarvestZones.Count > 0)
                 {
-                    _spawnedMissionObject = Instantiate(_soulHarvestZonePrefab, _missionObjectSpawnPosition,
-                        Quaternion.identity);
-                    spawnedHarvestZone = _spawnedMissionObject.GetComponent<SoulHarvestZone>();
+                    soulMission.SetHarvestZones(spawnedHarvestZones); // ★ 생성된 영혼 수집 구역들 직접 주입 ★
                 }
                 else
                 {
                     Debug.LogWarning("[MissionManager] soulHarvestZonePrefab이 연결되지 않았습니다!");
                 }
 
-                var soulMission = gameObject.AddComponent<SoulCollectMission>();
-                if (spawnedHarvestZone != null)
-                {
-                    soulMission.SetHarvestZone(spawnedHarvestZone); // ★ 생성된 영혼 수집 구역 직접 주입 ★
-                }
                 _currentMission = soulMission;
                 break;
 
