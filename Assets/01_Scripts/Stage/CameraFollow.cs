@@ -32,6 +32,7 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private Transform _backgroundRoot;
 
     private Camera _camera;
+    private float _defaultOrthographicSize;
     private Renderer[] _backgroundRenderers;
 
     private void Awake()
@@ -39,6 +40,9 @@ public class CameraFollow : MonoBehaviour
         _camera = GetComponent<Camera>();
         if (_camera == null)
             _camera = GetComponentInChildren<Camera>();
+
+        if (_camera != null)
+            _defaultOrthographicSize = _camera.orthographicSize;
 
         if (_backgroundRoot != null)
             _backgroundRenderers = _backgroundRoot.GetComponentsInChildren<Renderer>();
@@ -105,9 +109,9 @@ public class CameraFollow : MonoBehaviour
         if (bounds.size.x <= 0f || bounds.size.y <= 0f || aspect <= 0f)
             return position;
 
-        // 배경보다 화면이 크면 위치 제한만으로 해결할 수 없으므로 화면 크기를 맞춘다.
+        // 초기 크기를 기준으로 계산하여 화면 비율이 바뀌면 줄어든 크기도 복원한다.
         float maxSize = Mathf.Min(bounds.extents.y, bounds.extents.x / aspect);
-        _camera.orthographicSize = Mathf.Min(_camera.orthographicSize, maxSize);
+        _camera.orthographicSize = Mathf.Min(_defaultOrthographicSize, maxSize);
 
         float halfHeight = _camera.orthographicSize;
         float halfWidth = halfHeight * aspect;
