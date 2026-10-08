@@ -9,7 +9,7 @@ public class EnemyAnimation : MonoBehaviour
 
     private void Start()
     {
-        _enemySpriteRenderer = GetComponent<SpriteRenderer>();
+        _enemySpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         _tankAttack = GetComponent<EnemyTankAttack>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _dashAttack = GetComponent<EnemyDashAttack>();

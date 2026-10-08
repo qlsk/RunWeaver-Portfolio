@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private float _currentHealth = 10f;
+    [SerializeField] private MMF_Player _damageFeedbacks;
 
     private float _maxHealth;
     private bool _isDead = false;
@@ -51,6 +53,7 @@ public class EnemyHealth : MonoBehaviour
         bool killed = _currentHealth <= 0f;
         if (killed) _isDead = true;
 
+        _damageFeedbacks?.PlayFeedbacks(transform.position);
         OnDamaged?.Invoke();
         OnDamageDealt?.Invoke(this, actualDamage);
 

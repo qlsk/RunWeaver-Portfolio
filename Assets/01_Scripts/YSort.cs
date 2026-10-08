@@ -13,7 +13,7 @@ public class YSort : MonoBehaviour
     private void Awake()
     {
         _sortingGroup = GetComponent<SortingGroup>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void LateUpdate()
