@@ -28,12 +28,12 @@ public class ShopPresenter : MonoBehaviour
     [Tooltip("포션 설명 아래에 붙는 체력 변화. {0} 현재 체력, {1} 구매 후 체력, {2} 최대 체력")]
     [SerializeField] private string _potionHealthFormat = "({0}/{2}) -> <color=#7FD38A>({1}/{2})</color>";
     [Tooltip("체력이 가득 찼을 때 포션 설명 아래에 붙는 안내. 이때는 포션을 살 수 없다")]
-    [SerializeField] private string _fullHealthText = "<color=#E07A7A>Health is already full.</color>";
+    [SerializeField] private string _fullHealthText = "<color=#E07A7A>체력이 이미 가득 찼습니다.</color>";
 
     [Header("Reroll")]
     [SerializeField] private Button _rerollButton;
     [SerializeField] private TMP_Text _rerollText;
-    [SerializeField] private string _rerollFormat = "Reroll - Cost <{0}>";
+    [SerializeField] private string _rerollFormat = "새로고침 - 비용 <{0}>";
 
     [Header("Leave")]
     [SerializeField] private Button _leaveButton;

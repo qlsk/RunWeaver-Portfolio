@@ -13,11 +13,11 @@ using UnityEngine.UI;
 /// - 원소를 넣으면 앞의 두 칸에 순서대로 삽입하고 기존 비원소 룬은 뒤로 민다.
 /// - 1번 칸(MAIN)의 주 원소는 오른쪽 클릭으로 해제할 수 없다.
 ///   원소를 넣을 때 MAIN이 비어 있으면 MAIN에 넣는다.
-/// - 서브 원소는 1개까지(MAIN과 같은 원소도 가능). 두 번째를 넣으면 "Only one sub element can be set".
-/// - 원소가 아닌 룬은 마지막 장착 룬 뒤에 들어간다. 빈 칸이 없으면 "All slots are full".
-/// - 겹치기가 안 되는 룬을 이미 넣었으면 "This rune cannot be stacked".
+/// - 서브 원소는 1개까지(MAIN과 같은 원소도 가능). 두 번째를 넣으면 "보조 원소는 하나만 장착할 수 있습니다".
+/// - 원소가 아닌 룬은 마지막 장착 룬 뒤에 들어간다. 빈 칸이 없으면 "모든 칸이 찼습니다".
+/// - 겹치기가 안 되는 룬을 이미 넣었으면 "이 룬은 중첩할 수 없습니다".
 /// - 장착 칸을 오른쪽 클릭하면 뺀다. 이미 확정된 룬을 빼도 룬 문자는 돌려주지 않는다.
-/// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "Not enough rune stones"를 띄운다.
+/// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "룬석이 부족합니다"를 띄운다.
 /// - Confirm 없이 룬북을 닫으면(이 오브젝트가 꺼지면) 바꾼 내용은 버린다.
 ///
 /// 완성품 (상점에서 산 룬 워드)
@@ -34,7 +34,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     [SerializeField] private bool _loadCombatSceneOnConfirm = true;
 
     [Tooltip("보기 전용으로 열었을 때 Confirm 자리에 보여줄 안내 (마을에서 Tab으로 연 룬북)")]
-    [SerializeField] private string _viewOnlyText = "View only - equip runes at the gate";
+    [SerializeField] private string _viewOnlyText = "보기 전용 - 룬 장착은 게이트에서";
 
     [Header("Rune Words")]
     [SerializeField] private RuneWordTileView[] _tiles;
@@ -46,7 +46,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     [Header("Activated")]
     [SerializeField] private RuneSocketView[] _sockets;
     [SerializeField] private TMP_Text _activatedText;
-    [SerializeField] private string _activatedFormat = "Activated  {0} / {1}";
+    [SerializeField] private string _activatedFormat = "활성화  {0} / {1}";
 
     [Header("확정 버튼")]
     [SerializeField] private Button _confirmButton;
@@ -59,14 +59,14 @@ public class RuneBookV2Presenter : MonoBehaviour
     [SerializeField] private RuneBookToastView _toast;
 
     [Header("문구")]
-    [SerializeField] private string _usesFormat = "Uses {0} rune stones";
-    [SerializeField] private string _usesOneText = "Uses 1 rune stone";
-    [SerializeField] private string _usesOwnedText = "Uses owned rune word";
-    [SerializeField] private string _notEnoughText = "Not enough rune stones";
-    [SerializeField] private string _mainRequiredText = "Set a main element";
-    [SerializeField] private string _subElementLimitText = "Only one sub element can be set";
-    [SerializeField] private string _slotsFullText = "All slots are full";
-    [SerializeField] private string _notStackableText = "This rune cannot be stacked";
+    [SerializeField] private string _usesFormat = "룬석 {0}개 사용";
+    [SerializeField] private string _usesOneText = "룬석 1개 사용";
+    [SerializeField] private string _usesOwnedText = "보유한 룬 워드 사용";
+    [SerializeField] private string _notEnoughText = "룬석이 부족합니다";
+    [SerializeField] private string _mainRequiredText = "주력 원소를 먼저 장착하세요";
+    [SerializeField] private string _subElementLimitText = "보조 원소는 하나만 장착할 수 있습니다";
+    [SerializeField] private string _slotsFullText = "모든 칸이 찼습니다";
+    [SerializeField] private string _notStackableText = "이 룬은 중첩할 수 없습니다";
 
     private readonly string[] _slotIds = new string[RuneBookV2DataSource.SlotLimit];
     private readonly bool[] _isNew = new bool[RuneBookV2DataSource.SlotLimit];

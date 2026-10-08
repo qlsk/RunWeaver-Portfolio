@@ -139,8 +139,8 @@ public class StageManager : MonoBehaviour
     /// </summary>
     public float RemainingTime => _remainingTime;
 
-    /// <summary>현재 목표 이름 (HUD 표시용, 영문)</summary>
-    public string ObjectiveName => _isBossStage ? "Defeat the Boss" : GetMissionName(_currentMission);
+    /// <summary>현재 목표 이름 (HUD 표시용)</summary>
+    public string ObjectiveName => _isBossStage ? "보스 처치" : GetMissionName(_currentMission);
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
@@ -752,7 +752,7 @@ public class StageManager : MonoBehaviour
 
         if (_portalSpawner != null)
         {
-            string label = _currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
+            string label = _currentDepth + 1 >= BossDepth ? "보스에게로" : "하강";
             _portalSpawner.SpawnPortal(label, _portalPosition);
             _isPortalOpen = true;
         }
@@ -979,13 +979,13 @@ public class StageManager : MonoBehaviour
     {
         return mission switch
         {
-            EnemyKillMission => "Defeat Enemies",
-            SoulCollectMission => "Kill in the Zone",
-            AltarDefenseMission => "Defend the Altar",
-            SurvivalMission => "Survive",
-            CaptureZoneMission => "Capture the Zone",
+            EnemyKillMission => "적 처치",
+            SoulCollectMission => "구역 안의 적 처치",
+            AltarDefenseMission => "제단 방어",
+            SurvivalMission => "생존",
+            CaptureZoneMission => "거점 점령",
             null => string.Empty,
-            _ => "Mission"
+            _ => "임무"
         };
     }
 

@@ -142,12 +142,12 @@ public class MissionHudBinder : MonoBehaviour
     {
         return mission switch
         {
-            EnemyKillMission => "Defeat Enemies",
-            SoulCollectMission => "Collect Souls",
-            AltarDefenseMission => "Defend the Altar",
-            SurvivalMission => "Survive",
-            CaptureZoneMission => "Capture the Zone",
-            _ => "Mission"
+            EnemyKillMission => "적 처치",
+            SoulCollectMission => "영혼 수집",
+            AltarDefenseMission => "제단 방어",
+            SurvivalMission => "생존",
+            CaptureZoneMission => "거점 점령",
+            _ => "임무"
         };
     }
 }

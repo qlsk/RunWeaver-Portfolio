@@ -18,19 +18,19 @@ public class EndingResultView : MonoBehaviour
     [SerializeField] private TMP_Text _maxDepthText;
     [SerializeField] private TMP_Text _totalDamageText;
     [SerializeField] private TMP_Text _killCountText;
-    [SerializeField] private string _survivingTimeFormat = "Surviving Time: {0}";
-    [SerializeField] private string _maxDepthFormat = "Max Depth: Floor {0}";
-    [SerializeField] private string _totalDamageFormat = "Total Damage: {0}";
-    [SerializeField] private string _killCountFormat = "Kill Count: {0}";
+    [SerializeField] private string _survivingTimeFormat = "생존 시간: {0}";
+    [SerializeField] private string _maxDepthFormat = "최고 층: {0}층";
+    [SerializeField] private string _totalDamageFormat = "총 피해량: {0}";
+    [SerializeField] private string _killCountFormat = "처치 수: {0}";
 
     [Header("종료 사유 문구")]
     [SerializeField] private TMP_Text _endReasonText;
     [SerializeField, TextArea] private string _diedText =
-        "You danced with the Spirit of Flame and were reduced to a handful of ashes!";
+        "불의 정령과 춤추다 한 줌의 재가 되었습니다!";
     [SerializeField, TextArea] private string _missionFailedText =
-        "The mission failed, and the depths swallowed you whole!";
-    [SerializeField, TextArea] private string _abandonedText = "You abandoned the run.";
-    [SerializeField, TextArea] private string _clearedText = "You defeated the guardian and purified the Spirit Realm!";
+        "임무에 실패해 심연에 삼켜지고 말았습니다!";
+    [SerializeField, TextArea] private string _abandonedText = "탐사를 포기했습니다.";
+    [SerializeField, TextArea] private string _clearedText = "수호자를 쓰러뜨리고 정령계를 정화했습니다!";
 
     [Header("칸의 부모")]
     [SerializeField] private Transform _activatedRuneContainer;
