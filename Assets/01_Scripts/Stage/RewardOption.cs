@@ -15,6 +15,9 @@ public class RewardOption
     public string Description;
     public TraitData Trait;
 
+    /// <summary>카드에 표시할 카테고리 텍스트 (룬석/패시브/특성/슬롯 확장).</summary>
+    public string CategoryLabel;
+
     public static RewardOption ForRuneStone(int count, Sprite icon)
     {
         return ForRuneStone(count, icon, "룬석 {0}개", "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.");
@@ -38,26 +41,34 @@ public class RewardOption
             RuneStoneCount = count,
             Icon = icon,
             Title = string.Format(titleFormat, count),
-            Description = string.Format(descriptionFormat, count)
+            Description = string.Format(descriptionFormat, count),
+            CategoryLabel = "룬석"
         };
     }
 
-    public static RewardOption ForPassive(PassiveData data)
+    /// <summary>
+    /// currentStacks = 현재 보유 레벨. 선택 시 도달할 레벨과 그때 총합을 미리 보여준다.
+    /// 예: 1레벨 보유 중이면 제목 "데미지 2레벨", 설명 "데미지 +5% (10%)".
+    /// </summary>
+    public static RewardOption ForPassive(PassiveData data, int currentStacks)
     {
+        int nextLevel = Mathf.Max(0, currentStacks) + 1;
         int percent = Mathf.RoundToInt(data.ValuePerStack * 100f);
+        int totalPercent = Mathf.RoundToInt(data.ValuePerStack * nextLevel * 100f);
         string name = string.IsNullOrWhiteSpace(data.DisplayName)
             ? GetDefaultPassiveName(data.StatType)
             : data.DisplayName;
         string description = string.IsNullOrWhiteSpace(data.Description)
-            ? $"{name} +{percent}%"
-            : data.Description;
+            ? $"{name} +{percent}% ({totalPercent}%)"
+            : $"{data.Description} ({totalPercent}%)";
         return new RewardOption
         {
             Type = RewardType.Passive,
             Passive = data,
             Icon = data.Icon,
-            Title = $"{name} +{percent}%",
-            Description = description
+            Title = $"{name} {nextLevel}레벨",
+            Description = description,
+            CategoryLabel = "패시브"
         };
     }
 
@@ -81,7 +92,20 @@ public class RewardOption
             Trait = data,
             Icon = data.Icon,
             Title = data.DisplayName,
-            Description = data.Description
+            Description = data.Description,
+            CategoryLabel = "특성"
+        };
+    }
+
+    public static RewardOption ForSlotExpansion(int currentSlots, int maxSlots, Sprite icon)
+    {
+        return new RewardOption
+        {
+            Type = RewardType.SlotExpansion,
+            Icon = icon,
+            Title = $"룬 슬롯 확장 ({currentSlots}→{Mathf.Min(maxSlots, currentSlots + 1)}칸)",
+            Description = "룬 장착 슬롯이 1칸 열린다.",
+            CategoryLabel = "슬롯 확장"
         };
     }
 }

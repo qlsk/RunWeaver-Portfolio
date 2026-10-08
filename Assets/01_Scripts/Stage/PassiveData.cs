@@ -13,4 +13,7 @@ public class PassiveData : ScriptableObject
     [TextArea] public string Description;
     public Sprite Icon;
     public float ValuePerStack = 0.05f;
+
+    [Tooltip("최대 레벨(스택). 이 횟수만큼 선택되면 추첨에서 제외된다.")]
+    [Min(1)] public int MaxLevel = 5;
 }

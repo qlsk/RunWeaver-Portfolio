@@ -37,6 +37,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
 
     private MissionManager _missionManager;
     private StageManager _stageManager;
+    private PopupController _popupController;
     private readonly System.Collections.Generic.List<MissionResultPresenter> _resultPresenters = new();
     private RewardState _state = RewardState.Idle;
     private Action _pendingFinish;
@@ -88,6 +89,9 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         _stageManager = StageManager.Instance;
+
+        _popupController = FindAnyObjectByType<PopupController>(FindObjectsInactive.Include);
+
         if (_stageManager != null)
         {
             _stageManager.RunEnded -= HandleRunEnded;
@@ -103,6 +107,8 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         {
             _rewardUI.OnOptionConfirmed -= HandleOptionConfirmed;
             _rewardUI.OnOptionConfirmed += HandleOptionConfirmed;
+            _rewardUI.OnRerollRequested -= HandleRerollRequested;
+            _rewardUI.OnRerollRequested += HandleRerollRequested;
         }
         else
         {
@@ -127,6 +133,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         if (_rewardUI != null)
         {
             _rewardUI.OnOptionConfirmed -= HandleOptionConfirmed;
+            _rewardUI.OnRerollRequested -= HandleRerollRequested;
         }
 
         StopMessageWait();
@@ -297,6 +304,20 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         PauseGame();
     }
 
+    /// <summary>
+    /// 리롤: 같은 층 기준으로 새 선택지 3장을 다시 뽑아 표시한다. 확정 전이라 지급 없음.
+    /// </summary>
+    private void HandleRerollRequested()
+    {
+        if (_state != RewardState.UIOpen || _generator == null || _rewardUI == null)
+        {
+            return;
+        }
+
+        Debug.Log("[RewardController] 리롤: 새 선택지 생성", this);
+        _rewardUI.Open(_generator.GenerateOptions(_pendingDepth));
+    }
+
     private void HandleOptionConfirmed(RewardOption option)
     {
         if (_state != RewardState.UIOpen)
@@ -403,12 +424,30 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
                 Debug.LogWarning("[RewardController] TraitManager/데이터가 없어 특성을 지급하지 못했습니다.", this);
             }
         }
+        else if (option.Type == RewardType.SlotExpansion)
+        {
+            RuneEffectLoadout loadout = PlayerRuneManager.Instance != null
+                ? PlayerRuneManager.Instance.RuneEffectLoadout
+                : null;
+            if (loadout != null)
+            {
+                // 선택 확정 이후에만 반영된다. 가득 찼으면 미적용.
+                if (loadout.ExpandSlots())
+                {
+                    Debug.Log($"[RewardController] 룬 슬롯 확장: {loadout.ActiveSlotCount}칸", this);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[RewardController] RuneEffectLoadout이 없어 슬롯을 확장하지 못했습니다.", this);
+            }
+        }
         else
         {
             if (_passives != null && option.Passive != null)
             {
-                // 선택 확정 이후에만 스택이 반영된다.
-                _passives.AddStack(option.Passive.StatType, option.Passive.ValuePerStack);
+                // 선택 확정 이후에만 스택이 반영된다. 최대 레벨이면 미적용.
+                _passives.AddStack(option.Passive.StatType, option.Passive.ValuePerStack, Mathf.Max(1, option.Passive.MaxLevel));
             }
             else
             {
@@ -431,6 +470,13 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         _pausedByReward = true;
+
+        // 팝업으로 열어 게임 입력(이동 제외 사격/스킬 등)을 막는다.
+        if (_popupController != null && _rewardUI != null && _rewardUI.RootObject != null)
+        {
+            _popupController.OpenPopup(_rewardUI.RootObject);
+        }
+
         Time.timeScale = 0f;
     }
 
@@ -442,6 +488,12 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         _pausedByReward = false;
+
+        if (_popupController != null)
+        {
+            _popupController.ClosePopup();
+        }
+
         Time.timeScale = 1f;
     }
 }
