@@ -30,6 +30,8 @@ public class RewardSelectUI : MonoBehaviour
     [SerializeField] private Button _externalConfirmButton;
     [Tooltip("확정 버튼 라벨 (선택 사항)")]
     [SerializeField] private Text _externalConfirmLabel;
+    [Tooltip("리롤 버튼 (테스트용, 선택 사항. 비우면 리롤 없음)")]
+    [SerializeField] private Button _externalRerollButton;
 
     [Header("열 때 표시할 문구 (비워두면 씬에 적힌 그대로 유지)")]
     [Tooltip("보상 UI가 열릴 때 제목에 표시할 글자")]
@@ -62,7 +64,13 @@ public class RewardSelectUI : MonoBehaviour
     /// <summary>확정 버튼을 누르면 발행된다. 닫기/시간복구는 구독자(RewardController)가 한다.</summary>
     public event Action<RewardOption> OnOptionConfirmed;
 
+    /// <summary>리롤 버튼을 누르면 발행된다. 새 선택지 표시는 구독자가 한다.</summary>
+    public event Action OnRerollRequested;
+
     public bool IsOpen => _root != null && _root.activeSelf;
+
+    /// <summary>팝업 등록용 루트 (입력 차단). Open 전에는 null일 수 있다.</summary>
+    public GameObject RootObject => _root;
 
     private GameObject _root;
     private GameObject _autoBuiltRoot;
@@ -105,6 +113,7 @@ public class RewardSelectUI : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 2) % 3);
         else if (Input.GetKeyDown(KeyCode.RightArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 1) % 3);
         else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) ConfirmSelected();
+        else if (Input.GetKeyDown(KeyCode.R)) RequestReroll();
     }
 
     /// <summary>
@@ -212,6 +221,20 @@ public class RewardSelectUI : MonoBehaviour
         RewardOption option = _currentOptions[_selectedIndex];
         Debug.Log($"[RewardSelectUI] 보상 확정: {option.Title}");
         OnOptionConfirmed?.Invoke(option);
+    }
+
+    /// <summary>
+    /// 리롤 버튼(또는 R키). 새 선택지 표시는 구독자(RewardController)가 한다.
+    /// </summary>
+    public void RequestReroll()
+    {
+        if (!IsOpen || _confirmLocked)
+        {
+            return;
+        }
+
+        Debug.Log("[RewardSelectUI] 리롤 요청", this);
+        OnRerollRequested?.Invoke();
     }
 
     private void RefreshConfirmButton()
@@ -327,6 +350,12 @@ public class RewardSelectUI : MonoBehaviour
 
         _confirmButton.onClick.RemoveAllListeners();
         _confirmButton.onClick.AddListener(ConfirmSelected);
+
+        if (_externalRerollButton != null)
+        {
+            _externalRerollButton.onClick.RemoveAllListeners();
+            _externalRerollButton.onClick.AddListener(RequestReroll);
+        }
 
         Debug.Log("[RewardSelectUI] 외부 연결 UI 사용", this);
         return true;

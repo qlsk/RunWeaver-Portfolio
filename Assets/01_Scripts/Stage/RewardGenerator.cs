@@ -48,6 +48,7 @@ public class RewardGenerator : MonoBehaviour
         List<TraitData> traits = GetEffectiveTraitPool();
 
         TraitManager manager = TraitManager.Instance;
+        PassiveStatManager statManager = PassiveStatManager.Instance;
 
         // 후보 종류를 섞어서 서로 다른 3종을 뽑는다.
         List<RewardOption> candidates = new(passives.Count + traits.Count + 1)
@@ -57,10 +58,20 @@ public class RewardGenerator : MonoBehaviour
         HashSet<PassiveStatType> usedStats = new();
         foreach (PassiveData passive in passives)
         {
-            if (usedStats.Add(passive.StatType))
+            if (passive == null || !usedStats.Add(passive.StatType))
             {
-                candidates.Add(RewardOption.ForPassive(passive));
+                continue;
             }
+
+            // 최대 레벨 도달 패시브는 추첨에서 제외한다.
+            int maxLevel = Mathf.Max(1, passive.MaxLevel);
+            int stacks = statManager != null ? statManager.GetStacks(passive.StatType) : 0;
+            if (stacks >= maxLevel)
+            {
+                continue;
+            }
+
+            candidates.Add(RewardOption.ForPassive(passive, stacks));
         }
 
         HashSet<string> usedTraitIds = new(System.StringComparer.Ordinal);

@@ -42,21 +42,27 @@ public class RewardOption
         };
     }
 
-    public static RewardOption ForPassive(PassiveData data)
+    /// <summary>
+    /// currentStacks = 현재 보유 레벨. 선택 시 도달할 레벨과 그때 총합을 미리 보여준다.
+    /// 예: 1레벨 보유 중이면 제목 "데미지 2레벨", 설명 "데미지 +5% (10%)".
+    /// </summary>
+    public static RewardOption ForPassive(PassiveData data, int currentStacks)
     {
+        int nextLevel = Mathf.Max(0, currentStacks) + 1;
         int percent = Mathf.RoundToInt(data.ValuePerStack * 100f);
+        int totalPercent = Mathf.RoundToInt(data.ValuePerStack * nextLevel * 100f);
         string name = string.IsNullOrWhiteSpace(data.DisplayName)
             ? GetDefaultPassiveName(data.StatType)
             : data.DisplayName;
         string description = string.IsNullOrWhiteSpace(data.Description)
-            ? $"{name} +{percent}%"
-            : data.Description;
+            ? $"{name} +{percent}% ({totalPercent}%)"
+            : $"{data.Description} ({totalPercent}%)";
         return new RewardOption
         {
             Type = RewardType.Passive,
             Passive = data,
             Icon = data.Icon,
-            Title = $"{name} +{percent}%",
+            Title = $"{name} {nextLevel}레벨",
             Description = description
         };
     }
