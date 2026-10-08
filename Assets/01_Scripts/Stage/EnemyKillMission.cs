@@ -7,6 +7,8 @@ using UnityEngine.Serialization;
 /// </summary>
 public class EnemyKillMission : MissionBase
 {
+    public override MissionType Type => MissionType.EnemyKill;
+
     [Header("일반 몬스터 목표")]
     [SerializeField, FormerlySerializedAs("targetNormalKillCount")] private int _targetNormalKillCount = 5;
     private int _currentNormalKillCount = 0;

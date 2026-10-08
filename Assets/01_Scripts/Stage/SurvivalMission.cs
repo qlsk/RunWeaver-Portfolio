@@ -3,6 +3,8 @@ using UnityEngine.Serialization;
 
 public class SurvivalMission : MissionBase
 {
+    public override MissionType Type => MissionType.Survival;
+
     [Header("생존 미션 설정")]
     [SerializeField, FormerlySerializedAs("survivalDuration")] private float _survivalDuration = 10f; // 목표 생존 시간 (초)
 

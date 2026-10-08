@@ -6,8 +6,7 @@ using UnityEngine;
 /// 스테이지 남은 제한 시간을 MM:SS로 표시한다. (기획서 8-3)
 /// 10초 이하: 빨간색 / 5초 이하: 1초마다 글자가 커졌다 돌아오는 강조 / 제한 시간 없음: 별도 문구
 /// 경고(빨간색, 강조)는 상태 소스가 허용할 때만 켠다. (정화 카운트다운, 생존 미션에서는 끈다)
-/// 타이머 아래에는 현재 목표 이름(Survive)과 달성도(42%)를 한 줄씩 표시한다. (미션 두루마리 대체)
-/// 목표 텍스트는 씬에 둔 텍스트 오브젝트를 연결한다. (크기, 폰트, 위치는 씬에서 조절)
+/// 목표 이름·설명·달성도는 씬에 연결된 텍스트에 표시한다. (크기, 폰트, 위치는 씬에서 조절)
 /// </summary>
 [DisallowMultipleComponent]
 public class TimerPanelPresenter : MonoBehaviour
@@ -27,11 +26,17 @@ public class TimerPanelPresenter : MonoBehaviour
     [Header("제한 시간 없음")]
     [SerializeField] private string _noTimeLimitText = "--:--";
 
-    [Header("목표 (타이머 아래)")]
-    [Tooltip("목표 이름 (예: Survive)")]
+    [Header("목표")]
+    [Tooltip("목표 이름")]
     [SerializeField] private TMP_Text _objectiveNameText;
+    [Tooltip("임무 안내 설명")]
+    [SerializeField] private TMP_Text _objectiveDescriptionText;
     [Tooltip("목표 달성도 (예: 42%)")]
     [SerializeField] private TMP_Text _objectiveProgressText;
+    [Tooltip("진행률 0%일 때의 텍스트 색상")]
+    [SerializeField] private Color _objectiveStartColor = new(0.9f, 0.15f, 0.1f, 1f);
+    [Tooltip("진행률 100%일 때의 텍스트 색상")]
+    [SerializeField] private Color _objectiveCompleteColor = new(0.2f, 0.85f, 0.3f, 1f);
 
     private Color _normalColor = Color.white;
     private Vector3 _normalScale = Vector3.one;
@@ -128,6 +133,13 @@ public class TimerPanelPresenter : MonoBehaviour
         if (_objectiveProgressText != null)
         {
             _objectiveProgressText.text = progressText;
+            float progress = _source != null ? Mathf.Clamp01(_source.ObjectiveProgress) : 0f;
+            _objectiveProgressText.color = Color.Lerp(_objectiveStartColor, _objectiveCompleteColor, progress);
+        }
+
+        if (_objectiveDescriptionText != null)
+        {
+            _objectiveDescriptionText.text = _source != null ? _source.ObjectiveDescription : string.Empty;
         }
     }
 

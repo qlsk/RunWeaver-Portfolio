@@ -6,6 +6,8 @@ using UnityEngine.Serialization;
 /// </summary>
 public class CaptureZoneMission : MissionBase
 {
+    public override MissionType Type => MissionType.CaptureZone;
+
     [Header("점령 설정")]
     [Tooltip("점령 완료(100%)에 필요한 구역 내 총 체류 시간 (초)")]
     [SerializeField, FormerlySerializedAs("targetCaptureTime")] private float _targetCaptureTime = 10f;

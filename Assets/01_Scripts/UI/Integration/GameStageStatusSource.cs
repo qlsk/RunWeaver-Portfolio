@@ -13,7 +13,7 @@ using UnityEngine;
 public class GameStageStatusSource : StageStatusSource
 {
     [Tooltip("스테이지 이름 데이터가 생기기 전까지 사용할 이름")]
-    [SerializeField] private string _stageName = "Spirit Realm";
+    [SerializeField] private string _stageName = "영혼계";
 
     [Header("목표 문구")]
     [SerializeField] private string _purificationName = "Purification";
@@ -30,6 +30,13 @@ public class GameStageStatusSource : StageStatusSource
 
     /// <summary>이번 판에서 도달한 가장 깊은 심도</summary>
     public int MaxDepth => _maxDepth;
+
+    public override float ObjectiveProgress => _stageManager != null ? _stageManager.ObjectiveProgress : 0f;
+
+    public override string ObjectiveDescription =>
+        _stageManager != null && _stageManager.Phase is StagePhase.Ready or StagePhase.InMission
+            ? _stageManager.ObjectiveDescription
+            : string.Empty;
 
     public override bool IsTimeWarningEnabled =>
         _stageManager != null && _stageManager.Phase == StagePhase.InMission &&
