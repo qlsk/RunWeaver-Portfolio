@@ -1,59 +1,42 @@
 using UnityEngine;
 
 /// 마지막으로 관측한 대상 위치를 기준으로 접근하거나 최소 거리 안에서 후퇴한다.
-public class RangeEnemyMovement : MonoBehaviour
+[RequireComponent(typeof(EnemyMovementController), typeof(EnemyTargetDetector))]
+public class RangeEnemyMovement : MonoBehaviour, IEnemyMovementBehavior
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private float _minRange = 5f;
-
-    // Movement references
     private EnemyTargetDetector _targetDetector;
-    private Rigidbody2D _enemyRigidbody2D;
-    private EnemyStatusEffectController _statusEffectController;
+    public float MoveSpeed => _enemyData != null && _enemyData.Stat != null ? _enemyData.Stat.MoveSpeed : 0f;
 
-    // Attack references
-    private EnemyTankAttack _tankAttack;
-
-    /// 접근·후퇴 이동과 상태 효과 처리에 필요한 컴포넌트 참조를 확보한다.
-    private void Start()
+    private void Awake()
     {
-        _enemyRigidbody2D = GetComponent<Rigidbody2D>();
-        _tankAttack = GetComponent<EnemyTankAttack>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
-        _statusEffectController = GetComponent<EnemyStatusEffectController>();
+        // 기존 프리팹에도 새 Controller를 연결한다.
+        if (!TryGetComponent<EnemyMovementController>(out _))
+        {
+            gameObject.AddComponent<EnemyMovementController>();
+        }
     }
 
-    /// 당김·속박 중 접근과 후퇴를 멈추고 외부 이동 효과를 합산하며 탱크 공격 중 속도 제어를 유지한다.
-    private void FixedUpdate()
+    /// 목적지와 정지 여부만 결정하며 실제 이동은 수행하지 않는다.
+    public MovementGoal CalculateGoal()
     {
-        if (_tankAttack != null && _tankAttack.IsAttackActive)
-            return;
-
-        Transform target = _targetDetector.Target;
-        bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
-        bool isPushed = _statusEffectController != null && _statusEffectController.IsPushed;
-        Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
-        if (target == null && !isPulled && !isPushed && knockback == Vector2.zero)
+        Vector2 position = transform.position;
+        if (_targetDetector == null || _targetDetector.Target == null || _enemyData == null || _enemyData.Stat == null)
         {
-            _enemyRigidbody2D.linearVelocity = Vector2.zero;
-            return;
+            return new MovementGoal { Destination = position, ShouldStop = true };
         }
 
-        Vector2 moveVelocity = Vector2.zero;
-        bool isRooted = _statusEffectController != null && _statusEffectController.IsRooted;
-        if (target != null && !isPulled && !isRooted)
+        Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
+        Vector2 offset = targetPosition - position;
+        // 최소 거리 안에서는 대상의 반대편을 목적지로 삼아 기존 후퇴 방향을 유지한다.
+        Vector2 destination = offset.magnitude < _minRange ? position - offset : targetPosition;
+        return new MovementGoal
         {
-            Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
-            Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
-            if (Vector2.Distance(transform.position, targetPosition) < _minRange)
-                direction = -direction;
-
-            float speedMultiplier = _statusEffectController != null ? _statusEffectController.MoveSpeedMultiplier : 1f;
-            moveVelocity = direction * (_enemyData.Stat.MoveSpeed * speedMultiplier);
-        }
-
-        Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
-        Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
-        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
+            Destination = destination,
+            StoppingDistance = 0f,
+            ShouldStop = false
+        };
     }
 }

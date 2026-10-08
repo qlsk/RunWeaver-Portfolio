@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd41d06913034aafa70a65fec46871f7, type: 3}
+  m_Name: MissionCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::MissionCatalogSO
+  _missions:
+  - Type: 0
+    Text:
+      DisplayName: 적 처치
+      Description: 목표 수만큼 적을 처치하세요.
+  - Type: 1
+    Text:
+      DisplayName: 영혼 수집
+      Description: 영혼 수집 구역 안에서 적을 처치해 목표 수만큼 영혼을 모으세요.
+  - Type: 2
+    Text:
+      DisplayName: 제단 방어
+      Description: 목표 시간 동안 제단이 파괴되지 않도록 지키세요.
+  - Type: 3
+    Text:
+      DisplayName: 생존
+      Description: 목표 시간 동안 살아남으세요.
+  - Type: 4
+    Text:
+      DisplayName: 거점 점령
+      Description: 거점 안에 머물러 점령 게이지를 채우세요.
+  _bossMission:
+    DisplayName: 보스 처치
+    Description: 보스를 처치하고 탐사를 완료하세요.

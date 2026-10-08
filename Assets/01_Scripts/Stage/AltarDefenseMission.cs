@@ -3,6 +3,8 @@ using UnityEngine.Serialization;
 
 public class AltarDefenseMission : MissionBase
 {
+    public override MissionType Type => MissionType.AltarDefense;
+
     [Header("제단 방어 미션 설정")]
     [SerializeField, FormerlySerializedAs("defenseDuration")] private float _defenseDuration = 20f; // 목표 제단 생존 시간 (20초)
     private float _currentTimer = 0f;

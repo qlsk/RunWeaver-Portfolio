@@ -13,7 +13,7 @@ public class FakeStageStatusSource : StageStatusSource
 {
     [SerializeField, Min(0f)] private float _timeLimit = 120f;
     [SerializeField] private bool _hasTimeLimit = true;
-    [SerializeField] private string[] _stageNames = { "Realm of Flames", "Frozen Depths", "Howling Wilds", "Stone Abyss" };
+    [SerializeField] private string[] _stageNames = { "불꽃의 영역", "얼어붙은 심층", "울부짖는 황야", "돌의 심연" };
 
     [Header("테스트 키")]
     [SerializeField] private KeyCode _nextDepthKey = KeyCode.Minus;
@@ -70,7 +70,7 @@ public class FakeStageStatusSource : StageStatusSource
 
         string stageName = _stageNames != null && _stageNames.Length > 0
             ? _stageNames[(_depth - 1) % _stageNames.Length]
-            : "Stage";
+            : "스테이지";
 
         RaiseStageEntered(_depth, stageName);
         RaiseRemainingTimeChanged(_hasTimeLimit ? _remainingSeconds : NoTimeLimit);

@@ -256,6 +256,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
   _enemyHealth: {fileID: 8960704426864751323}
+  _burnVfxPrefab: {fileID: 198422418847770196, guid: 84f4edd970854058b232471a40568bf0, type: 3}
+  _burnVfxTarget: {fileID: 4414621380582943817}
+  _burnVfxScale: 0.35
+  _burnVfxOffset: {x: 0, y: 0, z: 0}
   _burnDuration: 3
   _burnInterval: 1
   _burnDamageMultiplier: 0.2
