@@ -217,7 +217,7 @@ public class PlayerAttack : MonoBehaviour
             return;
 
         Vector2 targetPosition = _playerInputHandler.MousePosition;
-        Vector2 direction = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
+        Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
 
         if (direction == Vector2.zero)
             return;
