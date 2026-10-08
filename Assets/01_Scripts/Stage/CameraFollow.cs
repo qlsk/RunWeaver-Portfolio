@@ -123,7 +123,7 @@ public class CameraFollow : MonoBehaviour
         return position;
     }
 
-    private bool TryGetBackgroundBounds(out Bounds bounds)
+    public bool TryGetBackgroundBounds(out Bounds bounds)
     {
         bounds = default;
         if (_backgroundRoot == null)
