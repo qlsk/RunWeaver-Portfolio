@@ -1,54 +1,40 @@
 using UnityEngine;
 
-/// 마지막으로 관측한 대상 위치를 향해 이동하고 이동 상태 효과를 적용한다.
-public class MeleeEnemyMovement : MonoBehaviour
+/// 마지막으로 관측한 대상 위치를 향한 일반 이동을 요청한다.
+[RequireComponent(typeof(EnemyMovementController), typeof(EnemyTargetDetector))]
+public class MeleeEnemyMovement : MonoBehaviour, IEnemyMovementBehavior
 {
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private bool _enemyMove = true;
-
-    // Movement references
     private EnemyTargetDetector _targetDetector;
-    private Rigidbody2D _enemyRigidbody2D;
-    private EnemyStatusEffectController _statusEffectController;
+    public float MoveSpeed => _enemyData != null && _enemyData.Stat != null ? _enemyData.Stat.MoveSpeed : 0f;
 
-    // Attack references
-    private EnemyTankAttack _tankAttack;
-    private EnemyDashAttack _dashAttack;
-
-    /// 이동, 상태 효과 및 공격 상태 확인에 필요한 컴포넌트 참조를 확보한다.
     private void Awake()
     {
-        _tankAttack = GetComponent<EnemyTankAttack>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
-        _enemyRigidbody2D = GetComponent<Rigidbody2D>();
-        _dashAttack = GetComponent<EnemyDashAttack>();
-        _statusEffectController = GetComponent<EnemyStatusEffectController>();
+        // 기존 프리팹에도 새 Controller를 연결한다.
+        if (!TryGetComponent<EnemyMovementController>(out _))
+        {
+            gameObject.AddComponent<EnemyMovementController>();
+        }
     }
 
-    /// 당김·속박 중 추적을 멈추고 외부 이동 효과를 합산하며 공격·대시 중 기존 속도 제어를 유지한다.
-    private void FixedUpdate()
+    /// 목적지와 정지 여부만 결정하며 실제 이동은 수행하지 않는다.
+    public MovementGoal CalculateGoal()
     {
-        if (_tankAttack != null && _tankAttack.IsAttackActive)
-            return;
-
-        if (_dashAttack != null && _dashAttack.IsDashActive)
-            return;
-
-        Vector2 moveVelocity = Vector2.zero;
-        Transform target = _targetDetector.Target;
-        bool isStaggered = _statusEffectController != null && _statusEffectController.IsStaggered;
-        bool isPulled = _statusEffectController != null && _statusEffectController.IsPulled;
-        bool isRooted = _statusEffectController != null && _statusEffectController.IsRooted;
-        if (_enemyMove && !isStaggered && !isPulled && !isRooted && target != null && _enemyData != null && _enemyData.Stat != null)
+        Vector2 position = transform.position;
+        if (!_enemyMove || _targetDetector == null || _targetDetector.Target == null || _enemyData == null ||
+            _enemyData.Stat == null)
         {
-            Vector2 direction = (_targetDetector.LastKnownTargetPosition - (Vector2)transform.position).normalized;
-            float speedMultiplier = _statusEffectController != null ? _statusEffectController.MoveSpeedMultiplier : 1f;
-            moveVelocity = direction * (_enemyData.Stat.MoveSpeed * speedMultiplier);
+            return new MovementGoal { Destination = position, ShouldStop = true };
         }
 
-        Vector2 knockback = _statusEffectController != null ? _statusEffectController.KnockbackVelocity : Vector2.zero;
-        Vector2 pull = _statusEffectController != null ? _statusEffectController.PullVelocity : Vector2.zero;
-        Vector2 push = _statusEffectController != null ? _statusEffectController.PushVelocity : Vector2.zero;
-        _enemyRigidbody2D.linearVelocity = moveVelocity + knockback + pull + push;
+        Vector2 destination = _targetDetector.LastKnownTargetPosition;
+        return new MovementGoal
+        {
+            Destination = destination,
+            StoppingDistance = 0f,
+            ShouldStop = false
+        };
     }
 }

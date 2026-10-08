@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1588407664403273556, guid: 75a0960d4b65d524ebf9e22dd29919f2, type: 3}
+  m_Sprite: {fileID: 5423167464123742615, guid: 112c9ee5a28d83646a32f7ea29282bf6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -511,6 +511,9 @@ GameObject:
   - component: {fileID: 1191855456333718874}
   - component: {fileID: 8041545278497892238}
   - component: {fileID: 8298365980880420227}
+  - component: {fileID: 7844724774766397485}
+  - component: {fileID: 2672886583753762692}
+  - component: {fileID: 6723807525666544776}
   m_Layer: 8
   m_Name: QuadrupedEnemy
   m_TagString: Enemy
@@ -688,7 +691,7 @@ MonoBehaviour:
   _arrivalDistance: 0.05
   _obstacleLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   _rangeImage: {fileID: 2887546521715123605, guid: c2ac29f0cb8a5cb4cb867f40cb9f43ad, type: 3}
   _rangeWidth: 0.8
   _rangeColor: {r: 1, g: 1, b: 1, a: 0.35}
@@ -745,6 +748,45 @@ MonoBehaviour:
   _staggerDuration: 0.5
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
+--- !u!114 &7844724774766397485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2644439620610260465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e39eedb8cb72d2d4e9a857d5ccbcaddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMotor
+--- !u!114 &2672886583753762692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2644439620610260465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0818cbea7c0a6b44b9cdaebff022233, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyNavigation
+  _grid: {fileID: 0}
+  _agentRadius: 0.3
+  _repathInterval: 0.4
+--- !u!114 &6723807525666544776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2644439620610260465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fb126a1ad04bd0429033f84d6a60cb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovementController
 --- !u!1 &7552434801245011993
 GameObject:
   m_ObjectHideFlags: 0
