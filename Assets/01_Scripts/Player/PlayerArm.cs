@@ -9,6 +9,8 @@ public class PlayerArm : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     [SerializeField] private SpriteRenderer _playerRifle;
     [SerializeField] private SpriteRenderer _playerSupportArm;
+    [Tooltip("Feel이 움직이는 반동 상태. 로컬 X는 조준 방향 이동, Z 회전은 팔 들림입니다.")]
+    [SerializeField] private Transform _recoilState;
 
     [Header("설정")]
     [Tooltip("기본 소총과 보조 팔 스프라이트가 왼쪽을 바라보면 활성화합니다.")][SerializeField] private bool _reverse = true;
@@ -50,19 +52,24 @@ public class PlayerArm : MonoBehaviour
 
         // 좌우 대칭에서는 기본 기울기도 반전해야 같은 자세를 유지한다.
         float baseAngle = flipX ? -BaseAngle : BaseAngle;
+        float recoilAngle = _recoilState != null ? Mathf.DeltaAngle(0f, _recoilState.localEulerAngles.z) : 0f;
+        baseAngle += isFacingRight ? recoilAngle : -recoilAngle;
         Quaternion armRotation = transform.rotation * Quaternion.Euler(0f, 0f, angle + baseAngle);
+        Vector3 recoilOffset = _recoilState != null
+            ? transform.TransformVector((Vector3)direction.normalized * _recoilState.localPosition.x)
+            : Vector3.zero;
 
-        ApplyArmPose(_playerRifle, _rifleOrigin + movementOffset, flipX, armRotation);
-        ApplyArmPose(_playerSupportArm, _supportArmOrigin + movementOffset, flipX, armRotation);
+        ApplyArmPose(_playerRifle, _rifleOrigin + movementOffset, flipX, armRotation, recoilOffset);
+        ApplyArmPose(_playerSupportArm, _supportArmOrigin + movementOffset, flipX, armRotation, recoilOffset);
     }
 
-    private void ApplyArmPose(SpriteRenderer arm, Vector3 origin, bool flipX, Quaternion armRotation)
+    private void ApplyArmPose(SpriteRenderer arm, Vector3 origin, bool flipX, Quaternion armRotation, Vector3 recoilOffset)
     {
         // 조준 회전은 각 팔의 피벗에만 적용하고, 위치는 좌우 반전할 때만 대칭 이동한다.
         if (flipX)
             origin.x = -origin.x;
 
-        Vector3 position = transform.TransformPoint(origin);
+        Vector3 position = transform.TransformPoint(origin) + recoilOffset;
         arm.transform.SetPositionAndRotation(position, armRotation);
         arm.flipX = flipX;
         arm.flipY = false;

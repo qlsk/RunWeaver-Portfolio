@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using MoreMountains.Feedbacks;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ public class PlayerAttack : MonoBehaviour
 {
     [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
     [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _shootFeedbacks;
 
     [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
     [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
@@ -140,6 +142,11 @@ public class PlayerAttack : MonoBehaviour
     private void OnDisable()
     {
         _remainingBurstShots = 0;
+        if (_shootFeedbacks != null)
+        {
+            _shootFeedbacks.StopFeedbacks();
+            _shootFeedbacks.RestoreInitialValues();
+        }
 
         if (_playerRuneManager == null)
             return;
@@ -258,6 +265,7 @@ public class PlayerAttack : MonoBehaviour
         if (visualEffects != null)
             BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
                 visualEffects.CastScale, visualEffects.CastLifetime);
+        _shootFeedbacks?.PlayFeedbacks(_firePosition.transform.position);
     }
 
     /// 피해 및 상태 효과와 동일하게 첫 번째 원소 룬을 기준으로 연출을 선택한다.

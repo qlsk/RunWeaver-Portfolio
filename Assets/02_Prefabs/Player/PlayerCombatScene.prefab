@@ -489,6 +489,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 980387713}
   - {fileID: 960000002}
   - {fileID: 6669511425904496852}
   - {fileID: 7891652087493435678}
@@ -667,6 +668,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   _bulletPrefab: {fileID: 1808444329942870919, guid: ab00c7ac76b34ab7851d67224d9f2880, type: 3}
   _firePosition: {fileID: 8755656963266282849}
+  _shootFeedbacks: {fileID: 985951809}
   _fireVfx:
     CastPrefab: {fileID: 3615579479220034597, guid: 300413773c6744328d7232c6e74c645f, type: 3}
     ProjectilePrefab: {fileID: 7866002994442904433, guid: a59b6d282b364e8fba320d3f86877b95, type: 3}
@@ -779,6 +781,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerArm
   _playerRifle: {fileID: 3553827385922233564}
   _playerSupportArm: {fileID: 2709980381585373437}
+  _recoilState: {fileID: 980387712}
   _reverse: 1
   _offsetY: 0
   _offsetX: -0.078
@@ -962,3 +965,101 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7891652087493435678}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &980000001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5897215615387760818}
+    m_Modifications:
+    - target: {fileID: 100000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_Name
+      value: ShootingFeedbacks
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: m_Resource
+      value: 
+      objectReference: {fileID: 8300000, guid: 7a295ad41c7bdcf488cd3e1364fdd32a, type: 3}
+    - target: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: managedReferences[1].OriginalLabel
+      value: Position
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: managedReferences[2].OriginalLabel
+      value: Rotation
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: managedReferences[3].OriginalLabel
+      value: AudioSource
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+      propertyPath: managedReferences[4].OriginalLabel
+      value: Camera Shake
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+--- !u!4 &980387712 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400001, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &980387713 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &985951809 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

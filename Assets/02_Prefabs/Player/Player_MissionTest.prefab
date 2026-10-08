@@ -75,6 +75,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 980000002}
   - {fileID: 4353578317361503239}
   - {fileID: 8408192967395980671}
   m_Father: {fileID: 0}
@@ -148,7 +149,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ce8e670f274d5d49be376cbb71bb5a1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
 --- !u!114 &340774800492513042
 MonoBehaviour:
@@ -160,12 +161,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fbe66fbfe0d9cd438c852bbebbd809a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   _bulletFireRate: 1
   _magazineSize: 10
   _reloadTime: 2
   _bulletPrefab: {fileID: 1808444329942870919, guid: ab00c7ac76b34ab7851d67224d9f2880, type: 3}
+  _shootFeedbacks: {fileID: 980000003}
   _firePosition: {fileID: 2639883728027744658}
   _fireVfx:
     CastPrefab: {fileID: 3615579479220034597, guid: 300413773c6744328d7232c6e74c645f, type: 3}
@@ -220,7 +222,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3d8cd1194c4df342832e9d7434fc196, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Dash
   _playerInputHandler: {fileID: 5863673722175249506}
   _dashDuration: 0.2
@@ -236,7 +238,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b23477fe347edb3468f5eeb121852a73, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
   _playerOpenRuneBookKeyCode: 9
   _playerDashKeyCode: 32
@@ -253,7 +255,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   _maxHealth: 100
   _currentHealth: 0
@@ -332,9 +334,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e2d68dbb0e750a94ca674d2fbaeef749, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerArm
-  _arm: {fileID: 9221443727073153913}
+  _playerRifle: {fileID: 227534212621198233}
+  _playerSupportArm: {fileID: 7120921233138825178}
+  _recoilState: {fileID: 980000004}
+  _reverse: 1
   _offsetY: 0.05
   _offsetX: 0.08
 --- !u!114 &2551697017257419659
@@ -347,7 +352,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e2d68dbb0e750a94ca674d2fbaeef749, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerArm
   _arm: {fileID: 8620150176453649939}
   _offsetY: 0.05
@@ -362,7 +367,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84f300a2c72735e4aa899e98ec52eeb6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAcquire
 --- !u!114 &5932498905831329072
 MonoBehaviour:
@@ -374,7 +379,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 67f0a745d82b42199e6364b1a78d915f, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLifecycle
   _disableOnDeath:
   - {fileID: 2179557753070468687}
@@ -398,7 +403,7 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -413,7 +418,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 63c628b8032c8d14ba9f6d3fec1f1839, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimation
 --- !u!114 &8800439020481767035
 MonoBehaviour:
@@ -425,7 +430,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 589d1764c7e6b6d4ba84e80b31562728, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBulletPosition
   _playerBulletPosition: {fileID: 2639883728027744658}
   _armSpriteRenderer: {fileID: 227534212621198233}
@@ -614,3 +619,37 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1001 &980000001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7746560776598131813}
+    m_Modifications: []
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+--- !u!4 &980000002 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &980000003 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11400000, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+--- !u!4 &980000004 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400001, guid: f1ac71ecf4f84542bc3cf7177db05a38, type: 3}
+  m_PrefabInstance: {fileID: 980000001}
+  m_PrefabAsset: {fileID: 0}
