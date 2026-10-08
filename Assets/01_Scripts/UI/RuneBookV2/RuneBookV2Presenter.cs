@@ -96,6 +96,9 @@ public class RuneBookV2Presenter : MonoBehaviour
     /// <summary>보기 전용이면 룬 워드를 넣거나 빼거나 Confirm할 수 없다.</summary>
     public bool IsViewOnly => _isViewOnly;
 
+    /// <summary>Confirm으로 장착을 확정했을 때 (시작 석상이 받아 출발 연출을 시작한다)</summary>
+    public event Action Confirmed;
+
     private void Awake()
     {
         Initialize();
@@ -498,6 +501,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             if (_loadout != null)
             {
                 _loadout.ConfirmEquipment(_slotIds);
+                Confirmed?.Invoke();
                 if (_loadCombatSceneOnConfirm)
                 {
                     // 마을에서 출발 : 원정(지갑, 시작 골드)을 시작하고 전투 씬으로 간다.

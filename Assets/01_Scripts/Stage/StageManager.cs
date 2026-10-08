@@ -51,6 +51,10 @@ public class StageManager : MonoBehaviour
     [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")]
     [SerializeField] private int _startObjectLayer = 6;
 
+    [Header("출발 준비")]
+    [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")]
+    [SerializeField] private bool _waitForPreparation = true;
+
     [Header("정화")]
     [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")]
     [SerializeField, Min(0f)] private float _purificationDuration = 10f;
@@ -238,6 +242,32 @@ public class StageManager : MonoBehaviour
 
         // 시작 오브젝트를 누르기 전에는 적이 없어야 하므로 씬에 미리 놓인 적을 정리한다.
         ClearActiveEnemies();
+
+        // 시작 석상에서 원소와 룬을 고르기 전에는 1층 미션을 준비하지 않는다.
+        if (_waitForPreparation)
+        {
+            IsWaitingForPreparation = true;
+            return;
+        }
+
+        StartStage(_currentDepth);
+    }
+
+    /// <summary>출발 준비(시작 석상)를 기다리는 중인지</summary>
+    public bool IsWaitingForPreparation { get; private set; }
+
+    /// <summary>
+    /// 출발 준비가 끝났을 때 시작 석상이 부른다. 1층 미션을 준비하고 시작 오브젝트를 만든다. (StageStarted 발생)
+    /// 기다리는 중이 아니면 아무것도 하지 않는다.
+    /// </summary>
+    public void BeginPreparedRun()
+    {
+        if (!IsWaitingForPreparation)
+        {
+            return;
+        }
+
+        IsWaitingForPreparation = false;
         StartStage(_currentDepth);
     }
 
