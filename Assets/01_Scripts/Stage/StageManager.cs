@@ -706,6 +706,14 @@ public class StageManager : MonoBehaviour
     private Vector3 GetPortalPosition()
     {
         GameObject missionObject = _missionManager != null ? _missionManager.CurrentMissionObject : null;
+
+        // 영혼 미션: 삼각형 중심(컨테이너 위치)에 고정. bounds 계산을 타지 않는다.
+        if (missionObject != null && missionObject.name == "SoulHarvestZones")
+        {
+            Vector3 center = missionObject.transform.position;
+            return new Vector3(center.x, center.y, 0f);
+        }
+
         if (missionObject == null)
         {
             return new Vector3(_waveOrigin.x, _waveOrigin.y - _portalOffsetBelow, 0f);
