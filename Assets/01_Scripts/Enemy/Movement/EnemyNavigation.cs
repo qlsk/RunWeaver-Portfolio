@@ -4,6 +4,7 @@ using UnityEngine;
 /// 자신의 경로를 갱신하고 다음 경유 지점으로 향하는 희망 속도를 반환한다.
 public class EnemyNavigation : MonoBehaviour
 {
+    [Tooltip("씬에 배치된 Grid를 연결하세요. 비어 있거나 프리팹 에셋이면 씬에서 자동 선택합니다.")]
     [SerializeField] private EnemyNavigationGrid _grid;
     [SerializeField] private float _agentRadius = 0.3f;
     [SerializeField] private float _repathInterval = 0.4f;
@@ -107,6 +108,10 @@ public class EnemyNavigation : MonoBehaviour
 
     private bool ResolveGrid(Vector2 position)
     {
+        // 프리팹 에셋은 Start가 실행되지 않으므로 런타임 격자로 사용할 수 없다.
+        if (_grid != null && !_grid.gameObject.scene.IsValid())
+            _grid = null;
+
         if (_grid == null)
         {
             // 실패 시 매 프레임 검색하지 않고 재시도 간격을 둔다.

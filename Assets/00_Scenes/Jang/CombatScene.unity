@@ -683,7 +683,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyNavigationGrid
   _worldSize: {x: 35, y: 20}
-  _cellSize: 0.5
+  _cellSize: 0.2
   _agentRadius: 0.53
   _obstacleLayers:
     serializedVersion: 2
@@ -998,6 +998,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   _enemyData: {fileID: 11400000, guid: 7a69d66de2c99684ab32ef7c65b206ac, type: 2}
   _currentHealth: 0
+  _damageFeedbacks: {fileID: 0}
 --- !u!61 &1313729122
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1920,11 +1921,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.51
+      value: -3.65
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.56
+      value: 3.87
       objectReference: {fileID: 0}
     - target: {fileID: 7746560776598131813, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
       propertyPath: m_LocalPosition.z
