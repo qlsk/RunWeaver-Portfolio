@@ -335,6 +335,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a09538a4ba5240fb8f3cb3bcd7c6304d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameBootstrap
+  _csvLoadPolicy: 0
   _gold: {fileID: 11400000, guid: 1b913da2351634c4f8b58164eacf2871, type: 2}
   _resources:
   - {fileID: 11400000, guid: 667dd032be2f5e046a8b248fd683f140, type: 2}
@@ -18794,6 +18795,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 538103108649232349, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -7369411670832489668, guid: 8cc863608ff7c6844b03f3f9f7fb2765, type: 3}
     - target: {fileID: 3754110856340387365, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
       propertyPath: _popupController
       value: 
