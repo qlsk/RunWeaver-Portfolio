@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 /// 지정한 대상(Target)을 일정 오프셋 간격으로 부드럽게 따라가는 카메라 컴포넌트.
 /// Main Camera 오브젝트에 부착하여 사용합니다.
 /// </summary>
+[DefaultExecutionOrder(10000)]
 public class CameraFollow : MonoBehaviour
 {
     [Header("추적 대상")]
@@ -18,6 +19,33 @@ public class CameraFollow : MonoBehaviour
     [Header("오프셋")]
     [Tooltip("카메라 위치 오프셋 (z값은 2D에서 카메라 거리이므로 건드리지 않는 것을 권장)")]
     [SerializeField, FormerlySerializedAs("offset")] private Vector3 _offset = new Vector3(0f, 0f, -10f);
+
+    [Header("마우스 방향 이동")]
+    [SerializeField] private bool _mouseLookAhead;
+    [SerializeField] private PlayerInputHandler _playerInputHandler;
+    [SerializeField, Range(0f, 0.5f)] private float _mouseLookAheadRatio = 0.15f;
+    [SerializeField, Min(0f)] private float _mouseLookAheadDistance = 1.5f;
+
+    [Header("배경 경계")]
+    [SerializeField] private Renderer _backgroundRenderer;
+
+    [SerializeField] private Transform _backgroundRoot;
+
+    private Camera _camera;
+    private Renderer[] _backgroundRenderers;
+
+    private void Awake()
+    {
+        _camera = GetComponent<Camera>();
+        if (_camera == null)
+            _camera = GetComponentInChildren<Camera>();
+
+        if (_backgroundRoot != null)
+            _backgroundRenderers = _backgroundRoot.GetComponentsInChildren<Renderer>();
+
+        if (_camera == null)
+            Debug.LogWarning("[CameraFollow] 이 오브젝트 또는 자식에서 Camera를 찾지 못했습니다.", this);
+    }
 
     private void Start()
     {
@@ -35,14 +63,87 @@ public class CameraFollow : MonoBehaviour
                 Debug.LogWarning("[CameraFollow] Player 태그를 가진 오브젝트를 찾을 수 없습니다. 인스펙터에서 Target을 직접 지정해 주세요.");
             }
         }
+
+        if (_playerInputHandler == null && _target != null)
+        {
+            _playerInputHandler = _target.GetComponentInParent<PlayerInputHandler>();
+            if (_playerInputHandler == null)
+                _playerInputHandler = _target.GetComponentInChildren<PlayerInputHandler>();
+        }
+
+        transform.position = ClampToBackground(transform.position);
     }
 
     private void LateUpdate()
     {
-        if (_target == null) return;
-
-        Vector3 desiredPosition = _target.position + _offset;
+        Vector3 desiredPosition = _target != null
+            ? ClampToBackground(_target.position + _offset + GetMouseLookAheadOffset())
+            : transform.position;
         // Lerp로 부드럽게 이동 (smoothSpeed * deltaTime을 사용하여 프레임레이트 독립)
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
+        Vector3 nextPosition = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
+        // 시작 위치나 화면 비율이 바뀌어도 보간 중 배경 밖이 보이지 않도록 최종 위치도 제한한다.
+        transform.position = ClampToBackground(nextPosition);
+    }
+
+    private Vector3 GetMouseLookAheadOffset()
+    {
+        if (!_mouseLookAhead || _playerInputHandler == null || _target == null || !Application.isFocused)
+            return Vector3.zero;
+
+        // PlayerInputHandler가 Update에서 갱신한 월드 좌표를 LateUpdate에서 사용한다.
+        Vector2 direction = _playerInputHandler.MousePosition - (Vector2)_target.position;
+        Vector2 offset = Vector2.ClampMagnitude(direction * _mouseLookAheadRatio, _mouseLookAheadDistance);
+        return new Vector3(offset.x, offset.y, 0f);
+    }
+
+    private Vector3 ClampToBackground(Vector3 position)
+    {
+        if (_camera == null || !_camera.orthographic || !TryGetBackgroundBounds(out Bounds bounds))
+            return position;
+
+        float aspect = _camera.aspect;
+        if (bounds.size.x <= 0f || bounds.size.y <= 0f || aspect <= 0f)
+            return position;
+
+        // 배경보다 화면이 크면 위치 제한만으로 해결할 수 없으므로 화면 크기를 맞춘다.
+        float maxSize = Mathf.Min(bounds.extents.y, bounds.extents.x / aspect);
+        _camera.orthographicSize = Mathf.Min(_camera.orthographicSize, maxSize);
+
+        float halfHeight = _camera.orthographicSize;
+        float halfWidth = halfHeight * aspect;
+        float minX = bounds.min.x + halfWidth;
+        float maxX = bounds.max.x - halfWidth;
+        float minY = bounds.min.y + halfHeight;
+        float maxY = bounds.max.y - halfHeight;
+
+        // 부모 Rig를 움직일 때도 자식 카메라의 실제 화면 중심을 제한한다.
+        Vector3 cameraOffset = _camera.transform.position - transform.position;
+        position.x = (minX < maxX ? Mathf.Clamp(position.x + cameraOffset.x, minX, maxX) : bounds.center.x) - cameraOffset.x;
+        position.y = (minY < maxY ? Mathf.Clamp(position.y + cameraOffset.y, minY, maxY) : bounds.center.y) - cameraOffset.y;
+        return position;
+    }
+
+    private bool TryGetBackgroundBounds(out Bounds bounds)
+    {
+        bounds = default;
+        if (_backgroundRoot == null)
+        {
+            if (_backgroundRenderer == null) return false;
+            bounds = _backgroundRenderer.bounds;
+            return true;
+        }
+
+        if (_backgroundRenderers == null) return false;
+        bool found = false;
+        foreach (Renderer background in _backgroundRenderers)
+        {
+            if (background == null || !background.enabled || !background.gameObject.activeInHierarchy)
+                continue;
+
+            if (found) bounds.Encapsulate(background.bounds);
+            else bounds = background.bounds;
+            found = true;
+        }
+        return found;
     }
 }
