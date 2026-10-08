@@ -566,6 +566,9 @@ GameObject:
   - component: {fileID: 1198183762916471408}
   - component: {fileID: -351535894501172995}
   - component: {fileID: 2829335154018247551}
+  - component: {fileID: 8468574152832339474}
+  - component: {fileID: 2527799871609909900}
+  - component: {fileID: 5347450298949797985}
   m_Layer: 8
   m_Name: JangEnemy
   m_TagString: Enemy
@@ -790,3 +793,42 @@ MonoBehaviour:
   _staggerDuration: 0.5
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
+--- !u!114 &8468574152832339474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e39eedb8cb72d2d4e9a857d5ccbcaddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMotor
+--- !u!114 &2527799871609909900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0818cbea7c0a6b44b9cdaebff022233, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyNavigation
+  _grid: {fileID: 9127768411809009162, guid: 7c14aa619259ce94d93152bd2434e979, type: 3}
+  _agentRadius: 0.3
+  _repathInterval: 0.4
+--- !u!114 &5347450298949797985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fb126a1ad04bd0429033f84d6a60cb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovementController
