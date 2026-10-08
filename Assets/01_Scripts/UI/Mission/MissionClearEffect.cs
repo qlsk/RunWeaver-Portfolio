@@ -130,7 +130,12 @@ public class MissionClearEffect : MonoBehaviour
             UpdateSub(elapsed);
             UpdateEmbers(elapsed);
 
-            elapsed += Time.unscaledDeltaTime;
+            // 일시정지 메뉴가 열려 있는 동안에는 연출을 멈춘다.
+            if (!PauseController.IsGamePaused)
+            {
+                elapsed += Time.unscaledDeltaTime;
+            }
+
             yield return null;
         }
     }
