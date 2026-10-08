@@ -22,12 +22,6 @@ public class Bullet : MonoBehaviour
     [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
     [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
 
-    [Header("Cast Effect")] [SerializeField]
-    private ParticleSystem _castEffectPrefab;
-
-    [SerializeField, Min(0.01f)] private float _castEffectScale = 1f;
-    [SerializeField, Min(0.1f)] private float _castEffectLifetime = 3f;
-
     [Header("Seek")] [SerializeField, Min(0f)]
     private float _seekRadius = 5f;
 
@@ -42,6 +36,8 @@ public class Bullet : MonoBehaviour
 
     private BulletMovement _movement;
     private BulletHitEffects _hitEffects;
+    private BulletVisualEffects _visualEffects;
+    private GameObject _projectileVisual;
     public event Action<BulletEndReason> Ended;
 
     // Attack data
@@ -53,7 +49,7 @@ public class Bullet : MonoBehaviour
     private bool _processingHit;
 
     /// 공격 데이터를 저장하고 이동 거리와 적중 처리 상태를 초기화한다.
-    public void Initialize(PlayerAttackData attackData)
+    public void Initialize(PlayerAttackData attackData, BulletVisualEffects visualEffects = null)
     {
         if (_movement != null) _movement.EndRequested -= RequestEnd;
         _attackData = attackData.WithDirection(attackData.Direction.normalized);
@@ -72,12 +68,47 @@ public class Bullet : MonoBehaviour
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
-            _chainRadius, _chainEnemyLayers);
+            _chainRadius, _chainEnemyLayers, PlayHitEffect);
         _movement.UpdateRotation();
+        InitializeVisuals(visualEffects);
     }
 
-    public void PlayCastEffect(Transform muzzle) =>
-        BulletCastEffect.Play(muzzle, _castEffectPrefab, _castEffectScale, _castEffectLifetime);
+    /// 선택된 원소의 비행 효과를 탄환 자식으로 재생한다.
+    private void InitializeVisuals(BulletVisualEffects visualEffects)
+    {
+        _visualEffects = visualEffects;
+        if (_projectileVisual != null)
+        {
+            _projectileVisual.SetActive(false);
+            Destroy(_projectileVisual);
+            _projectileVisual = null;
+        }
+
+        if (visualEffects?.ProjectilePrefab == null)
+            return;
+
+        if (TryGetComponent(out SpriteRenderer sprite)) sprite.enabled = false;
+
+        _projectileVisual = Instantiate(visualEffects.ProjectilePrefab, transform, false);
+        _projectileVisual.transform.localPosition = Vector3.zero;
+        _projectileVisual.transform.localRotation = Quaternion.Euler(0f, visualEffects.ProjectileRotationY, 0f);
+        _projectileVisual.transform.localScale *= visualEffects.ProjectileScale;
+        _projectileVisual.SetActive(true);
+        foreach (ParticleSystem particles in _projectileVisual.GetComponentsInChildren<ParticleSystem>())
+        {
+            var main = particles.main;
+            main.stopAction = ParticleSystemStopAction.None;
+            particles.Play(false);
+        }
+    }
+
+    /// 적중 효과는 탄환과 독립적으로 재생하여 탄환이 제거된 뒤에도 남는다.
+    private void PlayHitEffect(Vector2 position, Vector2 direction)
+    {
+        if (_visualEffects == null) return;
+        BulletCastEffect.PlayAt(position, direction, _visualEffects.HitPrefab,
+            _visualEffects.HitScale, _visualEffects.HitLifetime);
+    }
 
     /// 비행 상태에 따라 일반 이동, 플레이어 복귀 또는 궤도 회전을 처리한다.
     private void Update()
@@ -115,7 +146,11 @@ public class Bullet : MonoBehaviour
         _processingHit = true;
         try
         {
-            enemyHealth.TakeDamage(hitDamage);
+            PlayHitEffect(hitPosition, _runtime.Direction);
+            float actualDamage = enemyHealth.ApplyDamage(hitDamage);
+            if (actualDamage > 0f && _attackData.Owner != null &&
+                _attackData.Owner.TryGetComponent(out PlayerAttack playerAttack))
+                playerAttack.PlayHitFeedback(hitPosition, enemyHealth.IsDead);
             _hitEffects.ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
             _hitEffects.ApplyChain(enemyHealth, hitPosition, hitDamage);
             reversedThisHit = _movement.ApplyReverse();

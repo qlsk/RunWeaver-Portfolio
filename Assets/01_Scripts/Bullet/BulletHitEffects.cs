@@ -10,16 +10,18 @@ public sealed class BulletHitEffects
     private readonly Action<ReactionElement, ReactionElement, ReactionContext> _executeReaction;
     private readonly float _chainRadius;
     private readonly LayerMask _chainEnemyLayers;
+    private readonly Action<Vector2, Vector2> _playHitEffect;
     private readonly List<Collider2D> _chainCandidates = new(16);
     public BulletHitEffects(PlayerAttackData attackData, BulletRuntime runtime,
         Action<ReactionElement, ReactionElement, ReactionContext> executeReaction,
-        float chainRadius, LayerMask chainLayers)
+        float chainRadius, LayerMask chainLayers, Action<Vector2, Vector2> playHitEffect = null)
     {
         _attackData = attackData;
         _runtime = runtime;
         _executeReaction = executeReaction;
         _chainRadius = chainRadius;
         _chainEnemyLayers = chainLayers;
+        _playHitEffect = playHitEffect;
     }
     /// 두 원소의 반응을 실행하거나 살아 있는 적에게 단일 원소 효과를 적용한다.
     public void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage)
@@ -64,6 +66,7 @@ public sealed class BulletHitEffects
 
         Vector2 direction = (Vector2)target.transform.position - hitPosition;
         direction = direction.sqrMagnitude > 0f ? direction.normalized : _runtime.Direction;
+        _playHitEffect?.Invoke(target.transform.position, direction);
         ApplyElementEffect(target, target.transform.position, hitDamage, direction);
     }
 
