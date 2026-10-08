@@ -147,7 +147,10 @@ public class Bullet : MonoBehaviour
         try
         {
             PlayHitEffect(hitPosition, _runtime.Direction);
-            enemyHealth.TakeDamage(hitDamage);
+            float actualDamage = enemyHealth.ApplyDamage(hitDamage);
+            if (actualDamage > 0f && _attackData.Owner != null &&
+                _attackData.Owner.TryGetComponent(out PlayerAttack playerAttack))
+                playerAttack.PlayHitFeedback(hitPosition, enemyHealth.IsDead);
             _hitEffects.ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
             _hitEffects.ApplyChain(enemyHealth, hitPosition, hitDamage);
             reversedThisHit = _movement.ApplyReverse();

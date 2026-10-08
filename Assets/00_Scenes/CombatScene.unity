@@ -14857,6 +14857,57 @@ MonoBehaviour:
   Channel: 41
   MMChannelDefinition: {fileID: 0}
   CooldownBetweenShakes: 0
+--- !u!1 &980003001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 980003002}
+  - component: {fileID: 980003003}
+  m_Layer: 0
+  m_Name: FeelTimeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &980003002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980003001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &980003003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980003001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f7de9ef06f04864391a928af29f4b46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NormalTimeScale: 1
+  UpdateTimescale: 1
+  UpdateFixedDeltaTime: 1
+  UpdateMaximumDeltaTime: 1
+  CurrentTimeScale: 1
+  TargetTimeScale: 1
+  TestButton: 0
 --- !u!4 &1025816092 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 996b1e88458e4c1ca56a7b12905394ab, type: 3}
@@ -20048,26 +20099,27 @@ SceneRoots:
   m_Roots:
   - {fileID: 74425229}
   - {fileID: 1489287713}
+  - {fileID: 2074085735}
   - {fileID: 1295258187}
   - {fileID: 1797925608}
   - {fileID: 429440507}
   - {fileID: 373322918}
   - {fileID: 856864073}
-  - {fileID: 2074085735}
+  - {fileID: 591202267690117478}
   - {fileID: 817703559}
-  - {fileID: 980001002}
-  - {fileID: 709986238}
-  - {fileID: 4711444}
-  - {fileID: 1394627152}
-  - {fileID: 2240439854702175636}
-  - {fileID: 777816919021414354}
-  - {fileID: 7502686300656740308}
-  - {fileID: 276226060761301678}
+  - {fileID: 5434363257504237404}
+  - {fileID: 363528010}
   - {fileID: 307671942}
   - {fileID: 28388522}
-  - {fileID: 363528010}
-  - {fileID: 5434363257504237404}
-  - {fileID: 910000002}
-  - {fileID: 591202267690117478}
-  - {fileID: 1756967186}
+  - {fileID: 1394627152}
+  - {fileID: 7502686300656740308}
+  - {fileID: 980001002}
   - {fileID: 393689114}
+  - {fileID: 980003002}
+  - {fileID: 709986238}
+  - {fileID: 4711444}
+  - {fileID: 276226060761301678}
+  - {fileID: 2240439854702175636}
+  - {fileID: 777816919021414354}
+  - {fileID: 910000002}
+  - {fileID: 1756967186}

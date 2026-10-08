@@ -11,6 +11,8 @@ public class PlayerAttack : MonoBehaviour
     [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
     [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
     [FoldoutGroup("References")] [SerializeField] private MMF_Player _shootFeedbacks;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _hitFeedbacks;
+    [FoldoutGroup("References")] [SerializeField] private MMF_Player _killFeedbacks;
 
     [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
     [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
@@ -266,6 +268,14 @@ public class PlayerAttack : MonoBehaviour
             BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
                 visualEffects.CastScale, visualEffects.CastLifetime);
         _shootFeedbacks?.PlayFeedbacks(_firePosition.transform.position);
+    }
+
+    /// 탄환 적중음과 처치 연출을 몬스터 수명과 독립적으로 재생한다.
+    public void PlayHitFeedback(Vector2 position, bool killed)
+    {
+        _hitFeedbacks?.PlayFeedbacks(position);
+        if (killed)
+            _killFeedbacks?.PlayFeedbacks(position);
     }
 
     /// 피해 및 상태 효과와 동일하게 첫 번째 원소 룬을 기준으로 연출을 선택한다.
