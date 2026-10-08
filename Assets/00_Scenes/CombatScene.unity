@@ -227,7 +227,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c169190e51e89934f993f46ed3f29fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawner
-  _enemyPrefabs: []
+  _enemyPrefabs:
+  - {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
+  - {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
+  - {fileID: 7997101506716382822, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
+  - {fileID: 3047915922552554939, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
   _baseBudget: 20
   _budgetPerDepth: 10
   _baseMaxMonsterCount: 15
@@ -2784,12 +2788,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSceneTestSetup
   _bootstrap: {fileID: 74425228}
-  _equippedRuneCount: 3
+  _equippedRuneCount: 5
   _equippedEffectIds:
   - rune_wind
   - rune_spread
   - rune_multiple
-  _selectedSlot: 2
+  - rune_chain
+  - rune_seek
+  _selectedSlot: 3
 --- !u!114 &910000004 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4647797982282231975, guid: c9887089c9581a345ba9e4513c686b5d, type: 3}
@@ -17589,63 +17595,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1001 &2859060209558831655
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2736172002666791356, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_Name
-      value: DefaultEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 5.61
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.76
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5463869956087863265, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c0b64eaab0c375e45b0b7099b80d794e, type: 3}
 --- !u!1 &3018427331002856601
 GameObject:
   m_ObjectHideFlags: 0
@@ -18795,10 +18744,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 538103108649232349, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: -7369411670832489668, guid: 8cc863608ff7c6844b03f3f9f7fb2765, type: 3}
     - target: {fileID: 3754110856340387365, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
       propertyPath: _popupController
       value: 
@@ -19280,7 +19225,6 @@ SceneRoots:
   - {fileID: 777816919021414354}
   - {fileID: 7502686300656740308}
   - {fileID: 276226060761301678}
-  - {fileID: 2859060209558831655}
   - {fileID: 307671942}
   - {fileID: 28388522}
   - {fileID: 363528010}

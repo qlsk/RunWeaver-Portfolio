@@ -10,6 +10,11 @@ public class PlayerAttack : MonoBehaviour
     [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
     [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
 
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _earthVfx = new();
+    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _windVfx = new();
+
     [FoldoutGroup("Bullet Settings")] [SerializeField] private float _bulletFireRate = 1f;
     [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletDamage = 10f;
     [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
@@ -235,6 +240,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void SpawnBullets(PlayerAttackData attackData)
     {
+        BulletVisualEffects visualEffects = GetVisualEffects(attackData.Configuration.PrimaryElement);
         for (var i = 0; i < attackData.Configuration.BulletsPerShot; i++)
         {
             float angle = attackData.Configuration.IsSpread ? (i - 1) * _spreadAngle : 0f;
@@ -245,10 +251,24 @@ public class PlayerAttack : MonoBehaviour
             Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position, bulletRotation);
 
             PlayerAttackData bulletData = attackData.WithDirection(bulletDirection);
-            bullet.Initialize(bulletData);
-            bullet.PlayCastEffect(_firePosition.transform);
+            bullet.Initialize(bulletData, visualEffects);
         }
+
+        // 산탄 수와 관계없이 한 발사당 한 번 재생한다. 연발은 각 발사마다 이 메서드를 호출한다.
+        if (visualEffects != null)
+            BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
+                visualEffects.CastScale, visualEffects.CastLifetime);
     }
+
+    /// 피해 및 상태 효과와 동일하게 첫 번째 원소 룬을 기준으로 연출을 선택한다.
+    private BulletVisualEffects GetVisualEffects(ReactionElement? element) => element switch
+    {
+        ReactionElement.Fire => _fireVfx,
+        ReactionElement.Water => _waterVfx,
+        ReactionElement.Earth => _earthVfx,
+        ReactionElement.Wind => _windVfx,
+        _ => null
+    };
 
     public void Reload()
     {
