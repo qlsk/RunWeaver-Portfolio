@@ -6,6 +6,8 @@ using UnityEngine.Serialization;
 /// </summary>
 public class SoulCollectMission : MissionBase
 {
+    public override MissionType Type => MissionType.SoulCollect;
+
     [Header("수집 목표")]
     [Tooltip("모아야 하는 영혼의 수")]
     [SerializeField, FormerlySerializedAs("targetSoulCount")] private int _targetSoulCount = 5;

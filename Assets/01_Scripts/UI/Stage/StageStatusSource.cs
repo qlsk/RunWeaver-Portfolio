@@ -39,6 +39,12 @@ public abstract class StageStatusSource : MonoBehaviour
     /// </summary>
     public virtual bool IsTimeWarningEnabled => true;
 
+    /// <summary>현재 임무의 안내 설명</summary>
+    public virtual string ObjectiveDescription => string.Empty;
+
+    /// <summary>현재 임무 진행률 (0 ~ 1)</summary>
+    public virtual float ObjectiveProgress => 0f;
+
     protected void RaiseStageEntered(int depth, string stageName)
     {
         StageEntered?.Invoke(depth, stageName);

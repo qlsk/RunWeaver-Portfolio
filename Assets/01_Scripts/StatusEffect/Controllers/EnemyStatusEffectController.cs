@@ -11,6 +11,10 @@ public class EnemyStatusEffectController : MonoBehaviour
     [SerializeField] private float _burnDuration = 3f;
     [SerializeField] private float _burnInterval = 1f;
     [SerializeField] private float _burnDamageMultiplier = 0.2f;
+    [SerializeField] private ParticleSystem _burnVfxPrefab;
+    [SerializeField] private SpriteRenderer _burnVfxTarget;
+    [SerializeField, Min(0.01f)] private float _burnVfxScale = 0.35f;
+    [SerializeField] private Vector3 _burnVfxOffset;
 
     [Header("Slow")]
     [SerializeField] private float _slowDuration = 3f;
@@ -28,6 +32,8 @@ public class EnemyStatusEffectController : MonoBehaviour
     private float _activeBurnInterval;
     private float _burnRemaining;
     private float _burnTickTimer;
+    private ParticleSystem _burnVfxInstance;
+    private ParticleSystemRenderer[] _burnVfxRenderers;
 
     // Slow state
     private float _slowRemaining;
@@ -131,6 +137,8 @@ public class EnemyStatusEffectController : MonoBehaviour
                 _burnTickTimer -= _activeBurnInterval;
                 _enemyHealth.TakeDamage(_burnDamage);
             }
+            if (_burnRemaining <= 0f)
+                StopBurnVisual(false);
         }
 
         _slowRemaining = Mathf.Max(_slowRemaining - deltaTime, 0f);
@@ -144,9 +152,12 @@ public class EnemyStatusEffectController : MonoBehaviour
         }
     }
 
-    /// 비활성화 시 석화가 등록한 이동 제한과 방어력 감소만 해제한다.
+    /// 비활성화 시 화상 연출과 석화가 등록한 보정을 정리한다.
     private void OnDisable()
     {
+        _burnRemaining = 0f;
+        _burnTickTimer = 0f;
+        StopBurnVisual(true);
         ClearPetrify();
     }
 
@@ -240,6 +251,65 @@ public class EnemyStatusEffectController : MonoBehaviour
         }
 
         _burnRemaining = duration;
+        if (_burnRemaining > 0f)
+            PlayBurnVisual();
+        else
+            StopBurnVisual(false);
+    }
+
+    /// 화상 시작 시 하나의 이펙트를 생성하며 재적용은 기존 이펙트를 유지한다.
+    private void PlayBurnVisual()
+    {
+        if (_burnVfxPrefab == null)
+            return;
+
+        if (_burnVfxInstance == null)
+        {
+            _burnVfxInstance = Instantiate(_burnVfxPrefab, transform, false);
+            Vector3 center = _burnVfxTarget != null
+                ? transform.InverseTransformPoint(_burnVfxTarget.bounds.center)
+                : Vector3.zero;
+            _burnVfxInstance.transform.localPosition = center + _burnVfxOffset;
+            _burnVfxInstance.transform.localScale *= _burnVfxScale;
+            _burnVfxRenderers = _burnVfxInstance.GetComponentsInChildren<ParticleSystemRenderer>(true);
+            foreach (ParticleSystem particles in _burnVfxInstance.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var main = particles.main;
+                main.stopAction = ParticleSystemStopAction.None;
+                main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            }
+        }
+
+        UpdateBurnSorting();
+        if (!_burnVfxInstance.isEmitting)
+            _burnVfxInstance.Play(true);
+    }
+
+    /// 종료 시 새 불꽃 방출을 멈추며 비활성화 시에는 남은 입자도 제거한다.
+    private void StopBurnVisual(bool clear)
+    {
+        if (_burnVfxInstance != null)
+            _burnVfxInstance.Stop(true, clear
+                ? ParticleSystemStopBehavior.StopEmittingAndClear
+                : ParticleSystemStopBehavior.StopEmitting);
+    }
+
+    private void LateUpdate()
+    {
+        UpdateBurnSorting();
+    }
+
+    /// 몬스터의 Y 정렬에 맞춰 불꽃을 몸체 바로 앞에 표시한다.
+    private void UpdateBurnSorting()
+    {
+        if (_burnVfxTarget == null || _burnVfxRenderers == null)
+            return;
+
+        foreach (ParticleSystemRenderer renderer in _burnVfxRenderers)
+        {
+            renderer.sortingLayerID = _burnVfxTarget.sortingLayerID;
+            renderer.sortingOrder = _burnVfxTarget.sortingOrder + 1;
+        }
     }
 
     /// 출처별 이동 속도 배율을 등록하거나 갱신하고 적용할 감속 배율을 계산한다.
