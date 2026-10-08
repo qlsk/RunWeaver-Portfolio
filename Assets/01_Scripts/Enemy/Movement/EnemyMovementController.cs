@@ -1,18 +1,23 @@
 using UnityEngine;
 
-/// 활성 이동 행동의 목적지를 직선 이동 속도로 바꾸어 Motor에 전달한다.
+/// 활성 이동 행동의 목적지를 Navigation에 전달하고 계산된 속도를 Motor에 요청한다.
 [DefaultExecutionOrder(50)]
 [DisallowMultipleComponent]
-[RequireComponent(typeof(EnemyMotor))]
+[RequireComponent(typeof(EnemyMotor), typeof(EnemyNavigation))]
 public class EnemyMovementController : MonoBehaviour
 {
     private EnemyMotor _motor;
+    private EnemyNavigation _navigation;
     private MonoBehaviour[] _behaviors;
     private bool _warnedMultipleBehaviors;
 
     private void Awake()
     {
         _motor = GetComponent<EnemyMotor>();
+        if (!TryGetComponent(out _navigation))
+        {
+            _navigation = gameObject.AddComponent<EnemyNavigation>();
+        }
     }
 
     private void Start()
@@ -28,14 +33,12 @@ public class EnemyMovementController : MonoBehaviour
         if (behavior != null)
         {
             MovementGoal goal = behavior.CalculateGoal();
-            if (!goal.ShouldStop)
-            {
-                Vector2 offset = goal.Destination - (Vector2)transform.position;
-                if (offset.magnitude > Mathf.Max(0f, goal.StoppingDistance))
-                {
-                    velocity = offset.normalized * Mathf.Max(0f, behavior.MoveSpeed);
-                }
-            }
+            velocity = _navigation.CalculateVelocity(goal, behavior.MoveSpeed);
+        }
+
+        if (behavior == null)
+        {
+            _navigation.ClearPath();
         }
 
         _motor.ApplyMovement(velocity);
@@ -44,12 +47,17 @@ public class EnemyMovementController : MonoBehaviour
     private IEnemyMovementBehavior FindActiveBehavior()
     {
         IEnemyMovementBehavior selected = null;
-        if (_behaviors == null) return null;
+        if (_behaviors == null)
+        {
+            return null;
+        }
 
         foreach (MonoBehaviour component in _behaviors)
         {
-            if (component == null || !(component is IEnemyMovementBehavior behavior))
+            if (component == null || !component.isActiveAndEnabled || !(component is IEnemyMovementBehavior behavior))
+            {
                 continue;
+            }
 
             if (selected != null)
             {
@@ -71,6 +79,9 @@ public class EnemyMovementController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_motor != null) _motor.ApplyMovement(Vector2.zero);
+        if (_motor != null)
+        {
+            _motor.ApplyMovement(Vector2.zero);
+        }
     }
 }
