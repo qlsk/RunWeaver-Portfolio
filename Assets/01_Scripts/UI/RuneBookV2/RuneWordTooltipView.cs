@@ -46,9 +46,9 @@ public class RuneWordTooltipView : MonoBehaviour
 
     [Header("문구")]
     [SerializeField] private string _unknownText = "???";
-    [SerializeField] private string _stackableText = "Stackable";
-    [SerializeField] private string _notStackableText = "Not stackable";
-    [SerializeField] private string _ownedFormat = "Owned x{0} - No rune stones needed";
+    [SerializeField] private string _stackableText = "중첩 가능";
+    [SerializeField] private string _notStackableText = "중첩 불가";
+    [SerializeField] private string _ownedFormat = "보유 x{0} - 룬석 필요 없음";
 
     [Header("색")]
     [SerializeField] private Color _iconBoxColor = new(0.894f, 0.804f, 0.678f, 1f);
@@ -92,8 +92,8 @@ public class RuneWordTooltipView : MonoBehaviour
             _icon.color = Color.white;
         }
 
-        SetText(_nameText, entry.EnglishName);
-        string category = entry.Category.ToString().ToUpperInvariant();
+        SetText(_nameText, entry.DisplayName);
+        string category = GetCategoryName(entry.Category);
         SetText(_categoryText, $"{category}  ·  {(canOverlap ? _stackableText : _notStackableText)}");
         SetText(_descriptionText, isDetailed ? entry.Description : _unknownText);
 
@@ -208,5 +208,18 @@ public class RuneWordTooltipView : MonoBehaviour
         {
             text.text = value;
         }
+    }
+
+    private static string GetCategoryName(RuneEffectCategory category)
+    {
+        return category switch
+        {
+            RuneEffectCategory.Element => "원소",
+            RuneEffectCategory.Enhancement => "강화",
+            RuneEffectCategory.Behaviour => "동작",
+            RuneEffectCategory.Control => "제어",
+            RuneEffectCategory.Special => "특수",
+            _ => category.ToString()
+        };
     }
 }

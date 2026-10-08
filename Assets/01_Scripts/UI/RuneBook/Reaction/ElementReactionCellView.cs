@@ -35,6 +35,15 @@ public class ElementReactionCellView : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Color _slotColor = new(0.894f, 0.804f, 0.678f, 1f);
     [SerializeField, Range(0f, 1f)] private float _elementTint = 0.28f;
 
+    [Header("장착 중 강조")]
+    [Tooltip("지금 장착한 원소 조합 칸에 두르는 테두리 색. 선택 테두리를 복제해 이 색으로 칠한다")]
+    [SerializeField] private Color _equippedColor = new(1f, 0.8f, 0.32f, 1f);
+    [SerializeField, Min(0f)] private float _equippedPulseSpeed = 3f;
+
+    private GameObject _equippedMark;
+    private UnityEngine.UI.Graphic[] _equippedGraphics;
+    private bool _isEquipped;
+
     public event Action<ElementReactionCellView> Clicked;
 
     public ReactionElement ElementA => _elementA;
@@ -91,6 +100,64 @@ public class ElementReactionCellView : MonoBehaviour, IPointerClickHandler
         {
             _nameText.gameObject.SetActive(true);
             _nameText.text = data != null ? data.DisplayName : "???";
+        }
+    }
+
+    /// <summary>지금 장착한 원소 조합이면 금색 테두리를 두르고 은은하게 깜빡인다.</summary>
+    public void SetEquipped(bool isEquipped)
+    {
+        _isEquipped = isEquipped;
+        if (isEquipped)
+        {
+            EnsureEquippedMark();
+        }
+
+        if (_equippedMark != null)
+        {
+            _equippedMark.SetActive(isEquipped);
+        }
+    }
+
+    private void Update()
+    {
+        if (!_isEquipped || _equippedGraphics == null)
+        {
+            return;
+        }
+
+        float alpha = 0.65f + 0.35f * (Mathf.Sin(Time.unscaledTime * _equippedPulseSpeed) * 0.5f + 0.5f);
+        foreach (UnityEngine.UI.Graphic graphic in _equippedGraphics)
+        {
+            if (graphic != null)
+            {
+                Color color = _equippedColor;
+                color.a *= alpha;
+                graphic.color = color;
+            }
+        }
+    }
+
+    private void EnsureEquippedMark()
+    {
+        if (_equippedMark != null)
+        {
+            return;
+        }
+
+        GameObject source = _selectedMark != null ? _selectedMark : _frame;
+        if (source == null)
+        {
+            return;
+        }
+
+        _equippedMark = Instantiate(source, source.transform.parent);
+        _equippedMark.name = "EquippedMark";
+        _equippedMark.transform.SetAsLastSibling();
+        _equippedGraphics = _equippedMark.GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
+        foreach (UnityEngine.UI.Graphic graphic in _equippedGraphics)
+        {
+            graphic.raycastTarget = false;
+            graphic.color = _equippedColor;
         }
     }
 

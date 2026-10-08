@@ -42,7 +42,7 @@ public class ElementReactionDetailView : MonoBehaviour
 
     [Header("피해량 / 지속시간")]
     [SerializeField] private TMP_Text _statsText;
-    [SerializeField] private string _emptyStatsText = "Damage / Duration: shown once decided";
+    [SerializeField] private string _emptyStatsText = "피해량 / 지속 시간: 미정";
 
     public void Show(ElementReactionData data, Func<ReactionElement, Sprite> getIcon,
         Func<ReactionElement, ElementReactionData> getBaseEffect)
@@ -96,12 +96,12 @@ public class ElementReactionDetailView : MonoBehaviour
             string stats = string.Empty;
             if (!string.IsNullOrEmpty(data.Damage))
             {
-                stats += $"Damage  {data.Damage}";
+                stats += $"피해량  {data.Damage}";
             }
 
             if (!string.IsNullOrEmpty(data.Duration))
             {
-                stats += (stats.Length > 0 ? "     " : string.Empty) + $"Duration  {data.Duration}";
+                stats += (stats.Length > 0 ? "     " : string.Empty) + $"지속 시간  {data.Duration}";
             }
 
             _statsText.text = stats.Length > 0 ? stats : _emptyStatsText;

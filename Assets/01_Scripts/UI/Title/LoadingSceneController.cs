@@ -4,8 +4,8 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 로딩 화면 (Jang/LoadingScene). 타이틀(StartScene)에서 시작 버튼을 누르면 이 씬으로 온다.
-/// 같은 씬의 GameBootstrap이 데이터베이스를 모두 불러올 때까지 로딩 화면을 보여준 뒤 마을(TownScene)로 넘어간다.
-/// 마을 씬을 불러오는 동안에도 로딩 화면이 그대로 보인다. (비동기로 불러온 뒤 전환)
+/// 같은 씬의 GameBootstrap이 데이터베이스를 모두 불러올 때까지 로딩 화면을 보여준 뒤 전투 씬(CombatScene)으로 넘어간다. (마을 씬은 쓰지 않는다)
+/// 다음 씬을 불러오는 동안에도 로딩 화면이 그대로 보인다. (비동기로 불러온 뒤 전환)
 /// - 너무 빨리 끝나 화면이 깜빡이지 않도록 최소 표시 시간 동안은 유지한다.
 /// - 초기화에 실패하면(CSV 다운로드 실패 등) 잠시 후 다시 시도한다.
 /// </summary>
@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 public class LoadingSceneController : MonoBehaviour
 {
     [SerializeField] private GameBootstrap _bootstrap;
-    [SerializeField] private string _nextSceneName = "TownScene";
+    [SerializeField] private string _nextSceneName = "CombatScene";
     [SerializeField, Min(0f)] private float _minimumDisplaySeconds = 1.5f;
     [SerializeField, Min(0.5f)] private float _retryDelaySeconds = 3f;
 

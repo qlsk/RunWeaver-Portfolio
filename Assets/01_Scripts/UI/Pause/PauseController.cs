@@ -320,9 +320,9 @@ public class PauseController : MonoBehaviour
             return;
         }
 
-        ShowConfirm("Abandon Run?",
-            "This run will <color=#FF6B5A>end</color> here.\nYour equipped runes and gold will be lost.",
-            "Abandon",
+        ShowConfirm("탐사를 포기할까요?",
+            "이번 탐사가 여기서 <color=#FF6B5A>끝납니다</color>.\n장착한 룬과 골드를 잃게 됩니다.",
+            "포기",
             AbandonRun);
     }
 
@@ -334,9 +334,9 @@ public class PauseController : MonoBehaviour
         }
 
         string body = _isExpedition
-            ? "The current expedition will <color=#FF6B5A>not be saved</color>.\nQuit to desktop?"
-            : "Quit to desktop?";
-        ShowConfirm("Quit Game?", body, "Quit", QuitGame);
+            ? "현재 탐사는 <color=#FF6B5A>저장되지 않습니다</color>.\n게임을 종료할까요?"
+            : "게임을 종료할까요?";
+        ShowConfirm("게임 종료", body, "종료", QuitGame);
     }
 
     private void ShowConfirm(string title, string body, string confirmLabel, System.Action onConfirm)
@@ -416,11 +416,11 @@ public class PauseController : MonoBehaviour
     {
         if (!_isExpedition)
         {
-            return "Town";
+            return "마을";
         }
 
         int depth = StageManager.Instance != null ? StageManager.Instance.CurrentDepth : 1;
-        return $"Expedition · Depth {depth}";
+        return $"탐사 · {depth}층";
     }
 
     private void HideAll()

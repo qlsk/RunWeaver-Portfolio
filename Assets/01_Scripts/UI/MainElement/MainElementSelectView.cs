@@ -29,10 +29,10 @@ public class MainElementSelectView : MonoBehaviour
     [SerializeField] private TMP_Text _effectText;
     [SerializeField] private ElementText[] _effects =
     {
-        new() { Element = ReactionElement.Fire, Effect = "Burn - damage over time" },
-        new() { Element = ReactionElement.Water, Effect = "Slow - reduces move speed" },
-        new() { Element = ReactionElement.Earth, Effect = "Stagger - interrupts actions" },
-        new() { Element = ReactionElement.Wind, Effect = "Knockback - pushes enemies away" }
+        new() { Element = ReactionElement.Fire, Effect = "화상 - 지속 피해" },
+        new() { Element = ReactionElement.Water, Effect = "감속 - 이동 속도 감소" },
+        new() { Element = ReactionElement.Earth, Effect = "경직 - 행동 중단" },
+        new() { Element = ReactionElement.Wind, Effect = "넉백 - 적을 밀쳐냄" }
     };
 
     [Header("버튼")]
