@@ -6,6 +6,7 @@ using UnityEngine;
 /// 페이드 인 → 유지 → (선택) 페이드 아웃 순서로 패널을 보여준다.
 /// 미션 성공/실패 패널처럼 한 번 띄우고 사라지는 연출에 사용한다.
 /// 게임이 일시정지(timeScale 0)여도 연출이 진행되도록 unscaled 시간을 사용한다.
+/// 단, 일시정지 메뉴가 열려 있는 동안에는 연출도 멈춘다.
 /// </summary>
 [DisallowMultipleComponent]
 public class FadePanelView : MonoBehaviour
@@ -95,7 +96,12 @@ public class FadePanelView : MonoBehaviour
     {
         yield return Animate(_fadeInDuration, Mathf.Min(_startAlpha, _maxAlpha), _maxAlpha, _startScale, 1f);
 
-        yield return new WaitForSecondsRealtime(_holdDuration);
+        float held = 0f;
+        while (held < _holdDuration)
+        {
+            held += GetDeltaTime();
+            yield return null;
+        }
 
         if (_fadeOutDuration > NoFadeOut)
         {
@@ -116,11 +122,17 @@ public class FadePanelView : MonoBehaviour
             // 끝으로 갈수록 느려지는 곡선으로 빠르게 등장하는 느낌을 준다.
             float eased = 1f - (1f - t) * (1f - t);
             Apply(Mathf.Lerp(fromAlpha, toAlpha, eased), Mathf.Lerp(fromScale, toScale, eased));
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += GetDeltaTime();
             yield return null;
         }
 
         Apply(toAlpha, toScale);
+    }
+
+    /// <summary>일시정지 메뉴가 열려 있으면 0, 아니면 unscaled 시간</summary>
+    private static float GetDeltaTime()
+    {
+        return PauseController.IsGamePaused ? 0f : Time.unscaledDeltaTime;
     }
 
     private void Apply(float alpha, float scale)

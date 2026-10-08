@@ -42,6 +42,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     private Action _pendingFinish;
     private int _pendingDepth;
     private Coroutine _messageWaitRoutine;
+    private Coroutine _pauseWaitRoutine;
     private bool _pausedByReward;
 
     private void Start()
@@ -129,6 +130,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         StopMessageWait();
+        StopPauseWait();
         RestoreTimeScale();
     }
 
@@ -197,7 +199,18 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     /// </summary>
     private System.Collections.IEnumerator MessageTimeoutRoutine()
     {
-        yield return new WaitForSecondsRealtime(10f);
+        // 일시정지 메뉴가 열려 있는 동안에는 클리어 연출도 멈추므로 시간을 세지 않는다.
+        float waited = 0f;
+        while (waited < 10f)
+        {
+            if (!PauseController.IsGamePaused)
+            {
+                waited += Time.unscaledDeltaTime;
+            }
+
+            yield return null;
+        }
+
         _messageWaitRoutine = null;
         OpenReward();
     }
@@ -215,6 +228,26 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         _resultPresenters.Clear();
+    }
+
+    private System.Collections.IEnumerator WaitForUnpauseRoutine()
+    {
+        while (PauseController.IsGamePaused)
+        {
+            yield return null;
+        }
+
+        _pauseWaitRoutine = null;
+        OpenReward();
+    }
+
+    private void StopPauseWait()
+    {
+        if (_pauseWaitRoutine != null)
+        {
+            StopCoroutine(_pauseWaitRoutine);
+            _pauseWaitRoutine = null;
+        }
     }
 
     private void StopMessageWaitTimer()
@@ -239,6 +272,17 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         }
 
         StopMessageWait();
+
+        // 일시정지 메뉴가 열려 있으면 완전히 풀릴 때까지(카운트다운 포함) 기다렸다가 연다.
+        if (PauseController.IsGamePaused)
+        {
+            if (_pauseWaitRoutine == null)
+            {
+                _pauseWaitRoutine = StartCoroutine(WaitForUnpauseRoutine());
+            }
+
+            return;
+        }
 
         if (IsPlayerDead())
         {
@@ -280,6 +324,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         _state = RewardState.Idle;
         _pendingFinish = null;
         StopMessageWait();
+        StopPauseWait();
 
         if (_rewardUI != null && _rewardUI.IsOpen)
         {
@@ -294,6 +339,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         // 런이 끝나면 보상 대기/UI를 정리한다. 포탈은 Ended 단계라 나오지 않는다.
         _state = RewardState.Done;
         StopMessageWait();
+        StopPauseWait();
 
         if (_rewardUI != null && _rewardUI.IsOpen)
         {
