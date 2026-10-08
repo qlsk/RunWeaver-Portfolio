@@ -359,8 +359,9 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     {
         // 런이 끝나면 보상 대기/UI를 정리한다. 포탈은 Ended 단계라 나오지 않는다.
         _state = RewardState.Done;
-        StopMessageWait();
-        StopPauseWait();
+
+        // 사망·재시작·클리어 관계없이 런 한정 보상을 전부 초기화한다 (타운 복귀 대비).
+        ResetRunRewards();
 
         if (_rewardUI != null && _rewardUI.IsOpen)
         {
@@ -369,6 +370,31 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
 
         RestoreTimeScale();
         FinishGrant();
+    }
+
+    /// <summary>
+    /// 패시브·특성·슬롯 확장·적용 스탯을 런 시작 상태로 되돌린다.
+    /// 적용 스탯은 전투 씬 언로드 시 같이 사라지고, 수치형은 매니저 초기화로 풀린다.
+    /// </summary>
+    private void ResetRunRewards()
+    {
+        if (_passives != null)
+        {
+            _passives.ResetAll();
+        }
+
+        if (_traits != null)
+        {
+            _traits.ResetAll();
+        }
+
+        RuneEffectLoadout loadout = PlayerRuneManager.Instance != null
+            ? PlayerRuneManager.Instance.RuneEffectLoadout
+            : null;
+        if (loadout != null)
+        {
+            loadout.ResetSlots();
+        }
     }
 
     private void FinishGrant()

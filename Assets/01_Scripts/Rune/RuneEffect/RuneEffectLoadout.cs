@@ -155,6 +155,15 @@ public class RuneEffectLoadout
     }
 
     /// <summary>
+    /// 보상 특성용: 활성 슬롯을 기본값(2칸)으로 되돌린다. 런 종료 시 호출.
+    /// </summary>
+    public void ResetSlots()
+    {
+        ActiveSlotCount = 2;
+        LoadoutChanged?.Invoke(_equippedEffectIds);
+    }
+
+    /// <summary>
     /// 슬롯의 룬 효과를 해제하고 장착 변경을 알린다.
     /// </summary>
     public void UnEquip(int slotIndex)
