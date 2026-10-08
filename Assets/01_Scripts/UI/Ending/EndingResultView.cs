@@ -11,6 +11,7 @@ using UnityEngine.UI;
 /// - 왼쪽 보고서 : 조사 개체 번호, 기록 다섯 줄, 사용한 룬 구성, 소견, 결과 도장
 /// - 오른쪽 : 결과 제목과 한 줄 설명, 메뉴(다음 개체 투입 / 타이틀로 돌아가기)
 /// 열릴 때 보고서가 아래에서 올라오고, 잠시 뒤 도장이 쾅 찍힌다. (실제 시간)
+/// 도장이 닿는 순간 종이가 살짝 떨리고, 도장 가장자리에서 먼지가 옅게 피어올라 흩어진다.
 /// 버튼은 이벤트만 발생시키고, 실제 씬 이동은 EndingResultPresenter가 담당한다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -100,7 +101,26 @@ public class EndingResultView : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _stampDuration = 0.18f;
     [SerializeField] private float _stampStartScale = 1.8f;
 
+    [Header("도장 먼지")]
+    [Tooltip("먼지 알갱이 이미지 (부드러운 원형). 비워두면 먼지를 만들지 않는다")]
+    [SerializeField] private Sprite _dustSprite;
+    [SerializeField] private Color _dustColor = new(0.67f, 0.57f, 0.44f, 0.6f);
+    [SerializeField, Min(0)] private int _dustCount = 18;
+    [Tooltip("먼지 크기 (최소, 최대)")]
+    [SerializeField] private Vector2 _dustSize = new(20f, 42f);
+    [Tooltip("먼지가 퍼지는 처음 속도 (최소, 최대)")]
+    [SerializeField] private Vector2 _dustSpeed = new(70f, 170f);
+    [Tooltip("먼지가 사라지기까지 (최소, 최대)")]
+    [SerializeField] private Vector2 _dustLifetime = new(0.45f, 0.85f);
+    [Tooltip("먼지가 나오는 테두리 (도장 크기 대비 비율)")]
+    [SerializeField] private Vector2 _dustSpread = new(0.42f, 0.32f);
+    [Tooltip("도장이 닿을 때 종이가 떨리는 폭")]
+    [SerializeField] private float _impactShake = 3f;
+    [SerializeField, Min(0.01f)] private float _impactShakeDuration = 0.16f;
+
     private Coroutine _appearRoutine;
+    private Coroutine _dustRoutine;
+    private readonly List<RectTransform> _dustParticles = new();
     private Vector2 _reportBasePosition;
     private Vector3 _stampBaseScale = Vector3.one;
     private bool _isInitialized;
@@ -140,6 +160,8 @@ public class EndingResultView : MonoBehaviour
         }
 
         _appearRoutine = null;
+        _dustRoutine = null;
+        ClearDust();
     }
 
     /// <param name="homunculusNumber">보고서의 "제 N호"</param>
@@ -243,6 +265,7 @@ public class EndingResultView : MonoBehaviour
 
         float total = Mathf.Max(_reportDuration, _sideDelay + _sideDuration, _stampDelay + _stampDuration);
         float elapsed = 0f;
+        bool hasImpacted = false;
         while (elapsed < total)
         {
             elapsed += Time.unscaledDeltaTime;
@@ -260,6 +283,11 @@ public class EndingResultView : MonoBehaviour
             if (elapsed >= _stampDelay)
             {
                 SetStamp(Mathf.Clamp01(stampT * 1.5f), Mathf.Lerp(_stampStartScale, 1f, ShopEase.InCubic(stampT)));
+                if (!hasImpacted && stampT >= 1f)
+                {
+                    hasImpacted = true;
+                    PlayStampImpact();
+                }
             }
 
             yield return null;
@@ -273,7 +301,151 @@ public class EndingResultView : MonoBehaviour
             report.anchoredPosition = _reportBasePosition;
         }
 
+        if (!hasImpacted)
+        {
+            PlayStampImpact();
+        }
+
         _appearRoutine = null;
+    }
+
+    /// <summary>도장이 종이에 닿은 순간 : 종이가 살짝 떨리고 먼지가 피어오른다.</summary>
+    private void PlayStampImpact()
+    {
+        if (_dustRoutine != null)
+        {
+            StopCoroutine(_dustRoutine);
+        }
+
+        ClearDust();
+        _dustRoutine = StartCoroutine(StampImpactRoutine());
+    }
+
+    private IEnumerator StampImpactRoutine()
+    {
+        var particles = new List<DustParticle>();
+        if (_stampImage != null && _dustSprite != null)
+        {
+            RectTransform stamp = _stampImage.rectTransform;
+            Transform parent = stamp.parent;
+            Vector2 center = stamp.anchoredPosition;
+            Vector2 half = Vector2.Scale(stamp.rect.size, _dustSpread);
+
+            for (int i = 0; i < _dustCount; i++)
+            {
+                // 도장 테두리를 따라 고르게 놓고, 바깥쪽으로 퍼지게 한다.
+                float angle = (i + UnityEngine.Random.Range(-0.35f, 0.35f)) / _dustCount * Mathf.PI * 2f;
+                Vector2 direction = new(Mathf.Cos(angle), Mathf.Sin(angle));
+
+                var go = new GameObject("StampDust", typeof(RectTransform), typeof(Image));
+                var rect = (RectTransform)go.transform;
+                rect.SetParent(parent, false);
+                rect.SetSiblingIndex(stamp.GetSiblingIndex()); // 도장 아래에서 새어 나오게
+                rect.anchorMin = rect.anchorMax = stamp.anchorMin;
+                rect.anchoredPosition = center + Vector2.Scale(direction, half);
+
+                var image = go.GetComponent<Image>();
+                image.sprite = _dustSprite;
+                image.raycastTarget = false;
+                image.color = new Color(_dustColor.r, _dustColor.g, _dustColor.b, 0f);
+
+                float size = UnityEngine.Random.Range(_dustSize.x, _dustSize.y);
+                rect.sizeDelta = new Vector2(size, size * UnityEngine.Random.Range(0.7f, 1f));
+                rect.localEulerAngles = new Vector3(0f, 0f, UnityEngine.Random.Range(0f, 360f));
+
+                _dustParticles.Add(rect);
+                particles.Add(new DustParticle
+                {
+                    Rect = rect,
+                    Image = image,
+                    Velocity = direction * UnityEngine.Random.Range(_dustSpeed.x, _dustSpeed.y),
+                    Life = UnityEngine.Random.Range(_dustLifetime.x, _dustLifetime.y),
+                    Spin = UnityEngine.Random.Range(-90f, 90f),
+                    BaseSize = rect.sizeDelta,
+                });
+            }
+        }
+
+        RectTransform report = _reportGroup != null ? _reportGroup.transform as RectTransform : null;
+        float elapsed = 0f;
+        bool isAlive = true;
+        while (isAlive || elapsed < _impactShakeDuration)
+        {
+            float deltaTime = Time.unscaledDeltaTime;
+            elapsed += deltaTime;
+
+            // 종이 떨림 : 짧고 빠르게 줄어든다.
+            if (report != null)
+            {
+                float k = Mathf.Clamp01(elapsed / _impactShakeDuration);
+                Vector2 shake = k < 1f
+                    ? new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f)) * _impactShake * (1f - k)
+                    : Vector2.zero;
+                report.anchoredPosition = _reportBasePosition + shake;
+            }
+
+            isAlive = false;
+            foreach (DustParticle particle in particles)
+            {
+                float t = elapsed / particle.Life;
+                if (t >= 1f || particle.Rect == null)
+                {
+                    if (particle.Image != null)
+                    {
+                        particle.Image.enabled = false;
+                    }
+
+                    continue;
+                }
+
+                isAlive = true;
+
+                // 빠르게 퍼졌다가 공기에 막혀 느려지고, 살짝 떠오른다.
+                particle.Velocity *= Mathf.Exp(-5f * deltaTime);
+                particle.Velocity.y += 18f * deltaTime;
+                particle.Rect.anchoredPosition += particle.Velocity * deltaTime;
+                particle.Rect.localEulerAngles += new Vector3(0f, 0f, particle.Spin * deltaTime);
+                particle.Rect.sizeDelta = particle.BaseSize * Mathf.Lerp(0.8f, 1.7f, ShopEase.OutCubic(t));
+
+                float alpha = Mathf.Min(1f, t / 0.12f) * Mathf.Pow(1f - t, 1.5f);
+                Color color = _dustColor;
+                color.a *= alpha;
+                particle.Image.color = color;
+            }
+
+            yield return null;
+        }
+
+        if (report != null)
+        {
+            report.anchoredPosition = _reportBasePosition;
+        }
+
+        ClearDust();
+        _dustRoutine = null;
+    }
+
+    private void ClearDust()
+    {
+        foreach (RectTransform particle in _dustParticles)
+        {
+            if (particle != null)
+            {
+                Destroy(particle.gameObject);
+            }
+        }
+
+        _dustParticles.Clear();
+    }
+
+    private class DustParticle
+    {
+        public RectTransform Rect;
+        public Image Image;
+        public Vector2 Velocity;
+        public float Life;
+        public float Spin;
+        public Vector2 BaseSize;
     }
 
     private void SetStamp(float alpha, float scale)
