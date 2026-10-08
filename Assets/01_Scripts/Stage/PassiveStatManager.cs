@@ -81,11 +81,16 @@ public class PassiveStatManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 선택 확정 이후에만 호출한다. 스택 +1 후 변경 이벤트를 발행한다.
+    /// 선택 확정 이후에만 호출한다. 최대 레벨에 도달하면 무시하고 false.
     /// </summary>
-    public void AddStack(PassiveStatType type, float valuePerStack = DefaultValuePerStack)
+    public bool AddStack(PassiveStatType type, float valuePerStack = DefaultValuePerStack, int maxStacks = int.MaxValue)
     {
         _stacks.TryGetValue(type, out int count);
+        if (count >= Mathf.Max(1, maxStacks))
+        {
+            return false;
+        }
+
         _stacks[type] = count + 1;
 
         if (valuePerStack > 0f)
@@ -99,6 +104,7 @@ public class PassiveStatManager : MonoBehaviour
 
         Debug.Log($"[PassiveStatManager] {type} 스택 {_stacks[type]} (배율 {GetMultiplier(type):F3})");
         OnStatChanged?.Invoke(type);
+        return true;
     }
 
     public int GetStacks(PassiveStatType type)

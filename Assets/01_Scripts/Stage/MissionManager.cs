@@ -43,12 +43,14 @@ public class MissionManager : MonoBehaviour
     [SerializeField, FormerlySerializedAs("missionObjectSpawnPosition")] private Vector3 _missionObjectSpawnPosition = Vector3.zero;
 
     [Header("미션 추첨")]
-    [Tooltip("직전 층과 같은 미션이 뽑힐 가중치 (다른 미션은 1). 0이면 연속으로 나오지 않는다.")][SerializeField, Range(0f, 1f)]
-    private float _repeatedMissionWeight = 0.25f;
+    [Tooltip("켜면 항상 Forced Mission Type 미션만 나온다. (테스트용)")]
+    [SerializeField] private bool _useForcedMissionType;
+    [SerializeField] private MissionType _forcedMissionType = MissionType.SoulCollect;
 
     private MissionBase _currentMission;
     private GameObject _spawnedMissionObject;
     private MissionType? _lastMissionType;
+    private readonly List<MissionType> _missionBag = new List<MissionType>();
     private bool _isMissionRunning;
 
     /// <summary>새 미션이 정해졌을 때 (아직 진행 전. HUD 표시용)</summary>
@@ -136,36 +138,44 @@ public class MissionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 미션 종류를 가중치로 뽑습니다. 직전 층과 같은 미션은 가중치가 낮습니다.
+    /// 미션 종류를 셔플 백으로 뽑습니다. 모든 미션을 섞어 하나씩 꺼내고, 다 꺼내면 다시 섞습니다.
+    /// 미션 종류 수만큼의 층마다 모든 미션이 한 번씩 나오며, 직전 층과 같은 미션은 연속으로 나오지 않습니다.
     /// </summary>
     private MissionType PickMissionType()
     {
-        MissionType[] types = (MissionType[])Enum.GetValues(typeof(MissionType));
-        float[] weights = new float[types.Length];
-        float totalWeight = 0f;
-
-        for (int i = 0; i < types.Length; i++)
+        if (_useForcedMissionType)
         {
-            weights[i] = _lastMissionType.HasValue && types[i] == _lastMissionType.Value ? _repeatedMissionWeight : 1f;
-            totalWeight += weights[i];
+            return _forcedMissionType;
         }
 
-        if (totalWeight <= 0f)
+        if (_missionBag.Count == 0)
         {
-            return types[UnityEngine.Random.Range(0, types.Length)];
+            RefillMissionBag();
         }
 
-        float pick = UnityEngine.Random.Range(0f, totalWeight);
-        for (int i = 0; i < types.Length; i++)
+        int lastIndex = _missionBag.Count - 1;
+        MissionType picked = _missionBag[lastIndex];
+        _missionBag.RemoveAt(lastIndex);
+        return picked;
+    }
+
+    private void RefillMissionBag()
+    {
+        _missionBag.Clear();
+        _missionBag.AddRange((MissionType[])Enum.GetValues(typeof(MissionType)));
+
+        for (int i = _missionBag.Count - 1; i > 0; i--)
         {
-            pick -= weights[i];
-            if (pick < 0f)
-            {
-                return types[i];
-            }
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (_missionBag[i], _missionBag[j]) = (_missionBag[j], _missionBag[i]);
         }
 
-        return types[types.Length - 1];
+        // 백의 마지막 원소부터 꺼내므로, 첫 번째로 나올 미션이 직전 미션과 같으면 맨 앞과 바꿉니다.
+        int firstIndex = _missionBag.Count - 1;
+        if (_lastMissionType.HasValue && firstIndex > 0 && _missionBag[firstIndex] == _lastMissionType.Value)
+        {
+            (_missionBag[0], _missionBag[firstIndex]) = (_missionBag[firstIndex], _missionBag[0]);
+        }
     }
 
     private void SetupMissionStrategy(MissionType type)

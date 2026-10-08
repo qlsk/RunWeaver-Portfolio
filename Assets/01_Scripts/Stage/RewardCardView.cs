@@ -14,6 +14,9 @@ public struct RewardCardView
     public Text Name;
     public Text Desc;
 
+    /// <summary>카테고리 표시 텍스트 (선택 사항, 비우면 표시 생략).</summary>
+    public Text Category;
+
     public bool IsValid =>
         Background != null &&
         Button != null &&

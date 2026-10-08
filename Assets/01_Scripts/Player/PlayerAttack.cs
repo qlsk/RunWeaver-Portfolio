@@ -73,6 +73,8 @@ public class PlayerAttack : MonoBehaviour
     private PlayerAttackData _attackData;
 
     public int MagazineSize => _magazineSize + _magazineBonus;
+    /// <summary>보상 특성용: 기본 탄환 피해.</summary>
+    public float BulletDamage => _bulletDamage;
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public int CurrentAmmo => _currentAmmo;
 
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public bool IsReloading => _isReloading;
@@ -294,6 +296,27 @@ public class PlayerAttack : MonoBehaviour
 
         _isReloading = true;
         _reloadTimer = 0f;
+    }
+
+    /// <summary>
+    /// 보상 특성용: 마지막 공격과 같은 방향으로 추가 탄환을 발사한다.
+    /// 공격 횟수에 포함되지 않고 Fired를 발행하지 않는다.
+    /// </summary>
+    public void FireExtraShot(float damageScale)
+    {
+        if (!_isInitialized || _attackData.Configuration == null)
+        {
+            return;
+        }
+
+        PlayerAttackData bonus = new PlayerAttackData(
+            _attackData.Direction,
+            _attackData.Damage * Mathf.Max(0f, damageScale),
+            _attackData.Speed,
+            _attackData.Range,
+            _attackData.Configuration,
+            _attackData.Owner != null ? _attackData.Owner : transform);
+        SpawnBullets(bonus);
     }
 
     private void UpdateReload()
