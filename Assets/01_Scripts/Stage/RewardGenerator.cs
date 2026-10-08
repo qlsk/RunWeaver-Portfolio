@@ -93,6 +93,15 @@ public class RewardGenerator : MonoBehaviour
             }
         }
 
+        // 슬롯 확장: 5칸 미만일 때만 후보. 기본 2칸이라 최대 3번 선택된다.
+        RuneEffectLoadout loadout = PlayerRuneManager.Instance != null
+            ? PlayerRuneManager.Instance.RuneEffectLoadout
+            : null;
+        if (loadout != null && loadout.ActiveSlotCount < RuneEffectLoadout.MaxSlotCount)
+        {
+            candidates.Add(RewardOption.ForSlotExpansion(loadout.ActiveSlotCount, RuneEffectLoadout.MaxSlotCount, null));
+        }
+
         Shuffle(candidates);
 
         List<RewardOption> options = new(3);

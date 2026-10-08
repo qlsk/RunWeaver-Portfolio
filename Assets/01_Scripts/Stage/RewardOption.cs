@@ -15,6 +15,9 @@ public class RewardOption
     public string Description;
     public TraitData Trait;
 
+    /// <summary>카드에 표시할 카테고리 텍스트 (룬석/패시브/특성/슬롯 확장).</summary>
+    public string CategoryLabel;
+
     public static RewardOption ForRuneStone(int count, Sprite icon)
     {
         return ForRuneStone(count, icon, "룬석 {0}개", "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.");
@@ -38,7 +41,8 @@ public class RewardOption
             RuneStoneCount = count,
             Icon = icon,
             Title = string.Format(titleFormat, count),
-            Description = string.Format(descriptionFormat, count)
+            Description = string.Format(descriptionFormat, count),
+            CategoryLabel = "룬석"
         };
     }
 
@@ -63,7 +67,8 @@ public class RewardOption
             Passive = data,
             Icon = data.Icon,
             Title = $"{name} {nextLevel}레벨",
-            Description = description
+            Description = description,
+            CategoryLabel = "패시브"
         };
     }
 
@@ -87,7 +92,20 @@ public class RewardOption
             Trait = data,
             Icon = data.Icon,
             Title = data.DisplayName,
-            Description = data.Description
+            Description = data.Description,
+            CategoryLabel = "특성"
+        };
+    }
+
+    public static RewardOption ForSlotExpansion(int currentSlots, int maxSlots, Sprite icon)
+    {
+        return new RewardOption
+        {
+            Type = RewardType.SlotExpansion,
+            Icon = icon,
+            Title = $"룬 슬롯 확장 ({currentSlots}→{Mathf.Min(maxSlots, currentSlots + 1)}칸)",
+            Description = "룬 장착 슬롯이 1칸 열린다.",
+            CategoryLabel = "슬롯 확장"
         };
     }
 }

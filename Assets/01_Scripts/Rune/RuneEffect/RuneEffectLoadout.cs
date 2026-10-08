@@ -20,7 +20,10 @@ public class RuneEffectLoadout
     public IReadOnlyList<string> EquippedEffectIds => _equippedEffectIds;
     public event Action<IReadOnlyList<string>> LoadoutChanged;
 
-    public int ActiveSlotCount { get; }
+    public int ActiveSlotCount { get; private set; }
+
+    /// <summary>보상 특성용: 슬롯 최대치. 기본 2칸에서 시작한다.</summary>
+    public const int MaxSlotCount = 5;
 
     /// <summary>
     /// 기본 활성 슬롯 두 칸을 가진 빈 룬 효과 로드아웃을 생성한다.
@@ -134,6 +137,21 @@ public class RuneEffectLoadout
         _equippedEffectIds.Clear();
         _equippedEffectIds.AddRange(confirmed);
         LoadoutChanged?.Invoke(_equippedEffectIds);
+    }
+
+    /// <summary>
+    /// 보상 특성용: 활성 슬롯을 1칸 늘린다. 최대 MaxSlotCount까지. 성공 시 true.
+    /// </summary>
+    public bool ExpandSlots()
+    {
+        if (ActiveSlotCount >= MaxSlotCount)
+        {
+            return false;
+        }
+
+        ActiveSlotCount++;
+        LoadoutChanged?.Invoke(_equippedEffectIds);
+        return true;
     }
 
     /// <summary>

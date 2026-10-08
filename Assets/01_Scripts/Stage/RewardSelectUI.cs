@@ -85,6 +85,7 @@ public class RewardSelectUI : MonoBehaviour
     private readonly List<Image> _cardIcons = new();
     private readonly List<Text> _cardNames = new();
     private readonly List<Text> _cardDescs = new();
+    private readonly List<Text> _cardCategories = new();
 
     private int _selectedIndex = -1;
     private bool _confirmLocked;
@@ -145,6 +146,10 @@ public class RewardSelectUI : MonoBehaviour
             RewardOption option = _currentOptions[i];
             _cardNames[i].text = option.Title;
             _cardDescs[i].text = option.Description;
+            if (i < _cardCategories.Count && _cardCategories[i] != null)
+            {
+                _cardCategories[i].text = option.CategoryLabel ?? string.Empty;
+            }
 
             if (option.Icon != null)
             {
@@ -342,6 +347,8 @@ public class RewardSelectUI : MonoBehaviour
             _cardIcons.Add(card.Icon);
             _cardNames.Add(card.Name);
             _cardDescs.Add(card.Desc);
+            // 카테고리 텍스트는 선택 사항. 네가 추가하면 채워준다.
+            _cardCategories.Add(card.Category);
 
             int captured = i;
             card.Button.onClick.RemoveAllListeners();
@@ -384,6 +391,7 @@ public class RewardSelectUI : MonoBehaviour
         _cardIcons.Clear();
         _cardNames.Clear();
         _cardDescs.Clear();
+        _cardCategories.Clear();
         _selectedIndex = -1;
         _confirmLocked = false;
     }
@@ -568,6 +576,7 @@ public class RewardSelectUI : MonoBehaviour
         _cardIcons.Add(icon);
         _cardNames.Add(nameText);
         _cardDescs.Add(descText);
+        _cardCategories.Add(null);
     }
 
     private Image CreateImage(Transform parent, string objectName, Color color)
