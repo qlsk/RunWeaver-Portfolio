@@ -1,23 +1,22 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 /// <summary>
-/// 타이틀(StartScene) 메뉴 버튼을 연결한다.
-/// - New Game : 새 게임을 시작하고 로딩 화면(LoadingScene)을 거쳐 전투 씬(시작 석상)으로 간다.
-/// - Continue Game : 저장 기능이 없어 지금은 누를 수 없게 둔다.
-/// - Setting : 설정 창(SettingsUI)을 연다.
-/// - Quit Game : 게임을 끝낸다.
-/// 버튼 오브젝트는 버튼 프리팹의 루트를 넣는다. (Button이 자식에 있어도 찾는다)
+/// 타이틀(StartScene) 메뉴를 연결한다. 메뉴 항목 순서는 아래와 같다.
+/// - 0 새 게임 : 새 게임을 시작하고, 시작 연출(TitleSequence)이 끝나면 로딩 화면(LoadingScene)을 거쳐 전투 씬으로 간다.
+/// - 1 이어하기 : 저장 기능이 없어 지금은 누를 수 없다. (메뉴 항목에서 Disabled)
+/// - 2 설정 : 설정 창(SettingsUI)을 연다. 창이 열린 동안 메뉴는 잠기고, Esc는 취소와 같다.
+/// - 3 게임 종료 : 게임을 끝낸다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TitleMenuController : MonoBehaviour
 {
-    [Header("버튼")]
-    [SerializeField] private GameObject _newGameButton;
-    [SerializeField] private GameObject _continueButton;
-    [SerializeField] private GameObject _settingsButton;
-    [SerializeField] private GameObject _quitButton;
+    private const int NewGameIndex = 0;
+    private const int SettingsIndex = 2;
+    private const int QuitIndex = 3;
+
+    [SerializeField] private TitleMenuView _menu;
+    [SerializeField] private TitleSequence _sequence;
 
     [Tooltip("시작 버튼을 누르면 갈 로딩 씬. 로딩 씬이 데이터를 불러온 뒤 전투 씬으로 넘어간다.")]
     [SerializeField] private string _loadingSceneName = "LoadingScene";
@@ -25,34 +24,48 @@ public class TitleMenuController : MonoBehaviour
     [Header("설정 창 (SettingsUI 루트)")]
     [SerializeField] private GameObject _settingsPanel;
 
-    private Button _newGame;
-    private Button _continue;
-    private Button _settings;
-    private Button _quit;
     private SettingsPanelView _settingsView;
     private bool _isStarting;
 
     private void Awake()
     {
-        _newGame = FindButton(_newGameButton);
-        _continue = FindButton(_continueButton);
-        _settings = FindButton(_settingsButton);
-        _quit = FindButton(_quitButton);
         _settingsView = _settingsPanel != null ? _settingsPanel.GetComponentInChildren<SettingsPanelView>(true) : null;
 
-        if (_newGame != null) _newGame.onClick.AddListener(StartNewGame);
-        if (_settings != null) _settings.onClick.AddListener(OpenSettings);
-        if (_quit != null) _quit.onClick.AddListener(QuitGame);
-
-        // TODO: 저장 기능이 생기면 이어하기를 연결한다.
-        if (_continue != null) _continue.interactable = false;
+        if (_menu != null) _menu.Confirmed += HandleConfirmed;
+        if (_settingsView != null) _settingsView.Closed += HandleSettingsClosed;
     }
 
     private void OnDestroy()
     {
-        if (_newGame != null) _newGame.onClick.RemoveListener(StartNewGame);
-        if (_settings != null) _settings.onClick.RemoveListener(OpenSettings);
-        if (_quit != null) _quit.onClick.RemoveListener(QuitGame);
+        if (_menu != null) _menu.Confirmed -= HandleConfirmed;
+        if (_settingsView != null) _settingsView.Closed -= HandleSettingsClosed;
+    }
+
+    private void Update()
+    {
+        if (_settingsView != null && _settingsView.IsOpen && Input.GetKeyDown(KeyCode.Escape))
+        {
+            _settingsView.Cancel();
+        }
+    }
+
+    private void HandleConfirmed(int index)
+    {
+        switch (index)
+        {
+            case NewGameIndex:
+                StartNewGame();
+                break;
+            case SettingsIndex:
+                OpenSettings();
+                break;
+            case QuitIndex:
+                QuitGame();
+                break;
+            default:
+                if (_menu != null) _menu.SetLocked(false);
+                break;
+        }
     }
 
     private void StartNewGame()
@@ -70,6 +83,19 @@ public class TitleMenuController : MonoBehaviour
         }
 
         OwnedRuneWords.Clear();
+
+        if (_sequence != null)
+        {
+            _sequence.PlayStart(NewGameIndex, LoadNextScene);
+        }
+        else
+        {
+            LoadNextScene();
+        }
+    }
+
+    private void LoadNextScene()
+    {
         SceneManager.LoadScene(_loadingSceneName, LoadSceneMode.Single);
     }
 
@@ -78,6 +104,18 @@ public class TitleMenuController : MonoBehaviour
         if (_settingsView != null && !_settingsView.IsOpen)
         {
             _settingsView.Open();
+        }
+        else if (_menu != null)
+        {
+            _menu.SetLocked(false);
+        }
+    }
+
+    private void HandleSettingsClosed()
+    {
+        if (_menu != null && !_isStarting)
+        {
+            _menu.SetLocked(false);
         }
     }
 
@@ -88,10 +126,5 @@ public class TitleMenuController : MonoBehaviour
 #else
         Application.Quit();
 #endif
-    }
-
-    private static Button FindButton(GameObject target)
-    {
-        return target != null ? target.GetComponentInChildren<Button>(true) : null;
     }
 }
