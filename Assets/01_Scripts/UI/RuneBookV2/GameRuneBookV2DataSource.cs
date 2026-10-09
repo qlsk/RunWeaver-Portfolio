@@ -154,10 +154,12 @@ public class GameRuneBookV2DataSource : RuneBookV2DataSource
                 reveal = RuneWordRevealLevel.Detailed;
             }
 
-            // DB 설명은 한글이라 룬북 폰트(영문)로 표시할 수 없으므로 영문 설명을 쓴다.
-            string description = RuneEffectText.GetDescription(effect.Id, effect.Description);
+            // 폰트가 한글을 지원하므로 DB의 한글 이름과 설명을 쓴다. DB 설명이 비어 있으면 기본 설명을 쓴다.
+            string description = !string.IsNullOrWhiteSpace(effect.Description)
+                ? effect.Description
+                : RuneEffectText.GetDescription(effect.Id, effect.Description);
             entries.Add(new RuneBookEntryData(effect.Id, effect.RuneWord, effect.EnglishName, description,
-                effect.Category, reveal, FindEffectIcon(effect)));
+                effect.Category, reveal, FindEffectIcon(effect), effect.DisplayName));
         }
 
         return entries;

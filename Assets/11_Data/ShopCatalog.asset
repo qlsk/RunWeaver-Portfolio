@@ -14,208 +14,239 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShopCatalogSO
   _items:
   - Id: rw_fire
-    DisplayName: 'RuneWord: Fire'
-    Description: Adds the Fire element to bullets.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uBD88"
+    Description: "\uD0C4\uD658\uC5D0 \uBD88 \uC6D0\uC18C\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
     Icon: {fileID: -5686324843479974724, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1100
     RuneEffectId: rune_fire
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_water
-    DisplayName: 'RuneWord: Water'
-    Description: Adds the Water element to bullets.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uBB3C"
+    Description: "\uD0C4\uD658\uC5D0 \uBB3C \uC6D0\uC18C\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
     Icon: {fileID: -7212943909279140981, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1100
     RuneEffectId: rune_water
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_earth
-    DisplayName: 'RuneWord: Earth'
-    Description: Adds the Earth element to bullets.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD759"
+    Description: "\uD0C4\uD658\uC5D0 \uD759 \uC6D0\uC18C\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
     Icon: {fileID: -3526115792135047502, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1100
     RuneEffectId: rune_earth
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_wind
-    DisplayName: 'RuneWord: Wind'
-    Description: Adds the Wind element to bullets.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uBC14\uB78C"
+    Description: "\uD0C4\uD658\uC5D0 \uBC14\uB78C \uC6D0\uC18C\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
     Icon: {fileID: -8298205407634032285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1100
     RuneEffectId: rune_wind
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_power
-    DisplayName: 'RuneWord: Power'
-    Description: Increases the power of bullets and elemental reactions by 50%.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC704\uB825"
+    Description: "\uD0C4\uD658\uACFC \uC6D0\uC18C \uBC18\uC751\uC758 \uC704\uB825\uC774
+      50% \uC99D\uAC00\uD569\uB2C8\uB2E4."
     Icon: {fileID: -1708668002, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1000
     RuneEffectId: rune_power
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_speed
-    DisplayName: 'RuneWord: Speed'
-    Description: Increases bullet speed by 50%.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uAC00\uC18D"
+    Description: "\uD0C4\uD658 \uC18D\uB3C4\uAC00 50% \uC99D\uAC00\uD569\uB2C8\uB2E4."
     Icon: {fileID: -1201954233, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1000
     RuneEffectId: rune_speed
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_range
-    DisplayName: 'RuneWord: Range'
-    Description: Increases bullet range by 50%.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC5F0\uC7A5"
+    Description: "\uD0C4\uD658 \uC0AC\uAC70\uB9AC\uAC00 50% \uC99D\uAC00\uD569\uB2C8\uB2E4."
     Icon: {fileID: 874300285, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1000
     RuneEffectId: rune_range
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_grow
-    DisplayName: 'RuneWord: Grow'
-    Description: Bullet power gradually increases while traveling, up to 200%.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC131\uC7A5"
+    Description: "\uD0C4\uD658\uC774 \uB0A0\uC544\uAC00\uB294 \uB3D9\uC548 \uC704\uB825\uC774
+      \uC810\uC810 \uCEE4\uC838 \uCD5C\uB300 200%\uAE4C\uC9C0 \uC99D\uAC00\uD569\uB2C8\uB2E4."
     Icon: {fileID: 1568585635, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1000
     RuneEffectId: rune_grow
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_duration
-    DisplayName: 'RuneWord: Duration'
-    Description: Increases the duration of elemental reaction effects.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC9C0\uC18D"
+    Description: "\uC6D0\uC18C \uBC18\uC751 \uD6A8\uACFC\uC758 \uC9C0\uC18D \uC2DC\uAC04\uC774
+      \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
     Icon: {fileID: -633696880, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1000
     RuneEffectId: rune_duration
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_return
-    DisplayName: 'RuneWord: Return'
-    Description: Bullets return to the player after reaching maximum range.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD68C\uADC0"
+    Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0 \uB2FF\uC740 \uD0C4\uD658\uC774
+      \uD50C\uB808\uC774\uC5B4\uC5D0\uAC8C \uB3CC\uC544\uC635\uB2C8\uB2E4."
     Icon: {fileID: -1513176336, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1200
     RuneEffectId: rune_return
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_seek
-    DisplayName: 'RuneWord: Seek'
-    Description: Bullets automatically track enemies within a certain range.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC720\uB3C4"
+    Description: "\uD0C4\uD658\uC774 \uC77C\uC815 \uBC94\uC704 \uC548\uC758 \uC801\uC744
+      \uC790\uB3D9\uC73C\uB85C \uCD94\uC801\uD569\uB2C8\uB2E4."
     Icon: {fileID: 1362566179, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1200
     RuneEffectId: rune_seek
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_pierce
-    DisplayName: 'RuneWord: Pierce'
-    Description: Bullets pierce enemies instead of disappearing. Damage drops 5%
-      per pierce (up to 30%).
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uAD00\uD1B5"
+    Description: "\uD0C4\uD658\uC774 \uC801\uC744 \uAD00\uD1B5\uD569\uB2C8\uB2E4.
+      \uAD00\uD1B5\uD560 \uB54C\uB9C8\uB2E4 \uD53C\uD574\uB7C9\uC774 5%\uC529 \uC904\uC5B4\uB4ED\uB2C8\uB2E4(\uCD5C\uB300
+      30%)."
     Icon: {fileID: 1527658911, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1200
     RuneEffectId: rune_pierce
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_chain
-    DisplayName: 'RuneWord: Chain'
-    Description: On hit, the elemental reaction chains once to nearby enemies at
-      50% damage.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC5F0\uC1C4"
+    Description: "\uC801\uC911 \uC2DC \uC6D0\uC18C \uBC18\uC751\uC774 \uC8FC\uBCC0
+      \uC801\uC5D0\uAC8C \uD55C \uBC88 \uC5F0\uC1C4\uB418\uBA70, \uC5F0\uC1C4 \uD53C\uD574\uB7C9\uC740
+      50%\uC785\uB2C8\uB2E4."
     Icon: {fileID: 1515027171, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1400
     RuneEffectId: rune_chain
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_fix
-    DisplayName: 'RuneWord: Fix'
-    Description: At maximum range, bullets stay in place for 10 seconds before disappearing.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uACE0\uC815"
+    Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uD0C4\uD658\uC774
+      10\uCD08 \uB3D9\uC548 \uADF8 \uC790\uB9AC\uC5D0 \uBA38\uBB38 \uB4A4 \uC0AC\uB77C\uC9D1\uB2C8\uB2E4."
     Icon: {fileID: -1051220346, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_fix
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_orbit
-    DisplayName: 'RuneWord: Orbit'
-    Description: At maximum range, bullets orbit the player for 5 seconds.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uADA4\uB3C4"
+    Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uD0C4\uD658\uC774
+      5\uCD08 \uB3D9\uC548 \uD50C\uB808\uC774\uC5B4 \uC8FC\uC704\uB97C \uB3D5\uB2C8\uB2E4."
     Icon: {fileID: 212567177, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_orbit
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_spread
-    DisplayName: 'RuneWord: Spread'
-    Description: Fires 3 bullets in a fan. Each bullet deals 50% less damage.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD655\uC0B0"
+    Description: "\uD0C4\uD658 3\uBC1C\uC744 \uBD80\uCC44\uAF34\uB85C \uBC1C\uC0AC\uD569\uB2C8\uB2E4.
+      \uAC01 \uD0C4\uD658\uC758 \uD53C\uD574\uB7C9\uC740 50% \uAC10\uC18C\uD569\uB2C8\uB2E4."
     Icon: {fileID: 862109683, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1500
     RuneEffectId: rune_spread
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_multiple
-    DisplayName: 'RuneWord: Multiple'
-    Description: Fires bullets twice in a row. Each bullet deals 40% less damage.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC5F0\uC0AC"
+    Description: "\uD0C4\uD658\uC744 \uC5F0\uC18D 2\uD68C \uBC1C\uC0AC\uD569\uB2C8\uB2E4.
+      \uAC01 \uD0C4\uD658\uC758 \uD53C\uD574\uB7C9\uC740 40% \uAC10\uC18C\uD569\uB2C8\uB2E4."
     Icon: {fileID: -1826348027, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1500
     RuneEffectId: rune_multiple
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_bind
-    DisplayName: 'RuneWord: Bind'
-    Description: Binds enemies hit for 1 second, restricting their movement.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC18D\uBC15"
+    Description: "\uB9DE\uC740 \uC801\uC744 1\uCD08 \uB3D9\uC548 \uC18D\uBC15\uD574
+      \uC774\uB3D9\uC744 \uB9C9\uC2B5\uB2C8\uB2E4."
     Icon: {fileID: -608979020, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_bind
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_absorb
-    DisplayName: 'RuneWord: Absorb'
-    Description: Restores health equal to 10% of the damage dealt on hit.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD761\uC218"
+    Description: "\uC801\uC911 \uC2DC \uAC00\uD55C \uD53C\uD574\uC758 10%\uB9CC\uD07C
+      \uCCB4\uB825\uC744 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
     Icon: {fileID: -1158828805, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_absorb
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_break
-    DisplayName: 'RuneWord: Break'
-    Description: On hit, destroys enemy shields or applies a weakening effect.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD30C\uAD34"
+    Description: "\uC801\uC911 \uC2DC \uC801\uC758 \uBCF4\uD638\uB9C9\uC744 \uD30C\uAD34\uD558\uAC70\uB098
+      \uC57D\uD654 \uD6A8\uACFC\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
     Icon: {fileID: 527459426, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_break
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_reverse
-    DisplayName: 'RuneWord: Reverse'
-    Description: Bullets survive their first hit and reverse direction once.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uBC18\uC804"
+    Description: "\uCCAB \uC801\uC911 \uD6C4\uC5D0\uB3C4 \uD0C4\uD658\uC774 \uC0AC\uB77C\uC9C0\uC9C0
+      \uC54A\uACE0 \uD55C \uBC88 \uBC29\uD5A5\uC744 \uBC18\uB300\uB85C \uBC14\uAFC9\uB2C8\uB2E4."
     Icon: {fileID: 1656741038, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1600
     RuneEffectId: rune_reverse
     HealRatio: 0
+    RuneStoneAmount: 5
   - Id: rw_echo
-    DisplayName: 'RuneWord: Echo'
-    Description: After an elemental reaction occurs, the same reaction triggers once
-      more after a delay.
+    DisplayName: "\uB8EC \uC6CC\uB4DC: \uBC18\uD5A5"
+    Description: "\uC6D0\uC18C \uBC18\uC751\uC774 \uC77C\uC5B4\uB09C \uB4A4 \uC7A0\uC2DC
+      \uD6C4 \uAC19\uC740 \uBC18\uC751\uC774 \uD55C \uBC88 \uB354 \uBC1C\uB3D9\uD569\uB2C8\uB2E4."
     Icon: {fileID: 713557240, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
     Type: 0
     BasePrice: 1600
     RuneEffectId: rune_echo
     HealRatio: 0
-  - Id: rs_pouch_small
-    DisplayName: Rune Stone Pouch
-    Description: Gain 5 random rune stones.
-    Icon: {fileID: -5925839551017428873, guid: e47bd0a6f47ccfe41b13e9c9fb36a461, type: 3}
-    Type: 1
-    BasePrice: 400
-    RuneEffectId: 
-    HealRatio: 0
+    RuneStoneAmount: 5
   - Id: po_health
-    DisplayName: Health Potion
-    Description: Restores 30% of maximum health.
+    DisplayName: "\uCCB4\uB825 \uBB3C\uC57D"
+    Description: "\uCD5C\uB300 \uCCB4\uB825\uC758 30%\uB97C \uD68C\uBCF5\uD569\uB2C8\uB2E4."
     Icon: {fileID: 3384543554474837776, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
     Type: 3
     BasePrice: 300
     RuneEffectId: 
     HealRatio: 0.3
+    RuneStoneAmount: 5
   - Id: po_health_large
-    DisplayName: Greater Health Potion
-    Description: Restores 50% of maximum health.
+    DisplayName: "\uACE0\uAE09 \uCCB4\uB825 \uBB3C\uC57D"
+    Description: "\uCD5C\uB300 \uCCB4\uB825\uC758 50%\uB97C \uD68C\uBCF5\uD569\uB2C8\uB2E4."
     Icon: {fileID: -5472931847263231318, guid: 24cf63fe36989454a9abbe3ae1b3013a, type: 3}
     Type: 3
     BasePrice: 550
     RuneEffectId: 
     HealRatio: 0.5
+    RuneStoneAmount: 5
   _slotCount: 3
   _priceVariance: 0.2
   _priceRoundUnit: 10

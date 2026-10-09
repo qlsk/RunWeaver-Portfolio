@@ -15,38 +15,38 @@ public static class MissionHudText
 
         if (mission.IsFailed)
         {
-            return "Mission failed";
+            return "임무 실패";
         }
 
         if (mission.IsCompleted)
         {
-            return "Mission complete!";
+            return "임무 완료!";
         }
 
         switch (mission)
         {
             case EnemyKillMission kill:
                 return kill.TargetEliteKillCount > 0
-                    ? $"Enemies: {kill.CurrentNormalKillCount}/{kill.TargetNormalKillCount}  Elites: {kill.CurrentEliteKillCount}/{kill.TargetEliteKillCount}"
-                    : $"Enemies defeated: {kill.CurrentNormalKillCount}/{kill.TargetNormalKillCount}";
+                    ? $"적: {kill.CurrentNormalKillCount}/{kill.TargetNormalKillCount}  정예: {kill.CurrentEliteKillCount}/{kill.TargetEliteKillCount}"
+                    : $"처치한 적: {kill.CurrentNormalKillCount}/{kill.TargetNormalKillCount}";
 
             case SoulCollectMission soul:
-                return $"Souls collected: {soul.CurrentSoulCount}/{soul.TargetSoulCount}";
+                return $"모은 영혼: {soul.CurrentSoulCount}/{soul.TargetSoulCount}";
 
             case SurvivalMission survival:
-                return $"Survive: {GetSecondsLeft(survival.SurvivalDuration, survival.CurrentTimer)}s left";
+                return $"생존: {GetSecondsLeft(survival.SurvivalDuration, survival.CurrentTimer)}초 남음";
 
             case AltarDefenseMission altar:
-                return $"Defend the altar: {GetSecondsLeft(altar.DefenseDuration, altar.CurrentTimer)}s left";
+                return $"제단 방어: {GetSecondsLeft(altar.DefenseDuration, altar.CurrentTimer)}초 남음";
 
             case CaptureZoneMission capture:
                 int percent = Mathf.FloorToInt(Mathf.Clamp01(capture.GetProgressRatio()) * 100f);
                 return capture.IsPlayerInZone
-                    ? $"Capturing: {percent}%"
-                    : $"Capture the zone: {percent}%";
+                    ? $"점령 중: {percent}%"
+                    : $"거점 점령: {percent}%";
 
             default:
-                return $"Progress: {Mathf.RoundToInt(Mathf.Clamp01(mission.GetProgressRatio()) * 100f)}%";
+                return $"진행도: {Mathf.RoundToInt(Mathf.Clamp01(mission.GetProgressRatio()) * 100f)}%";
         }
     }
 

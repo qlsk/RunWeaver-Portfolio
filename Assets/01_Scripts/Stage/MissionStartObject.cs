@@ -81,7 +81,7 @@ public class MissionStartObject : MonoBehaviour, IInteractable
         promptObject.transform.SetParent(root.transform, false);
         TextMeshPro prompt = promptObject.AddComponent<TextMeshPro>();
         prompt.rectTransform.localPosition = new Vector3(0f, radius + 0.6f, 0f);
-        prompt.text = "F - Start";
+        prompt.text = "F - 시작";
         prompt.fontSize = 5f;
         prompt.alignment = TextAlignmentOptions.Center;
         prompt.color = new Color(1f, 0.95f, 0.8f, 1f);

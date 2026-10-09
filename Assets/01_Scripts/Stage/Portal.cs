@@ -25,8 +25,8 @@ public class Portal : MonoBehaviour, IInteractable
     public static event Action<Portal> OnPlayerEntered;
     public static event Action<Portal> OnPlayerExited;
 
-    private const string InteractionText = "Enter";
-    private const string DefaultLabelText = "Descend";
+    private const string InteractionText = "들어가기";
+    private const string DefaultLabelText = "하강";
 
     [Header("References")]
     [Tooltip("포탈 이미지 오브젝트. 크기 연출은 여기에만 적용된다")][SerializeField] private Transform _visual;

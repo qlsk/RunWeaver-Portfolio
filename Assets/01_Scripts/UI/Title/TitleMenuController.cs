@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 타이틀(StartScene) 메뉴 버튼을 연결한다.
-/// - New Game : 새 게임을 시작하고 로딩 화면(LoadingScene)을 거쳐 마을로 간다.
+/// - New Game : 새 게임을 시작하고 로딩 화면(LoadingScene)을 거쳐 전투 씬(시작 석상)으로 간다.
 /// - Continue Game : 저장 기능이 없어 지금은 누를 수 없게 둔다.
 /// - Setting : 설정 창(SettingsUI)을 연다.
 /// - Quit Game : 게임을 끝낸다.
@@ -19,7 +19,7 @@ public class TitleMenuController : MonoBehaviour
     [SerializeField] private GameObject _settingsButton;
     [SerializeField] private GameObject _quitButton;
 
-    [Tooltip("시작 버튼을 누르면 갈 로딩 씬. 로딩 씬이 데이터를 불러온 뒤 마을로 넘어간다.")]
+    [Tooltip("시작 버튼을 누르면 갈 로딩 씬. 로딩 씬이 데이터를 불러온 뒤 전투 씬으로 넘어간다.")]
     [SerializeField] private string _loadingSceneName = "LoadingScene";
 
     [Header("설정 창 (SettingsUI 루트)")]
