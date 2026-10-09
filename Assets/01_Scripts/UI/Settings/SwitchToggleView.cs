@@ -1,9 +1,11 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Nordic UI의 Switcher(트랙 + 손잡이) 이미지를 Toggle 상태에 맞춰 보여준다.
+/// 스위치(트랙 + 손잡이) 이미지를 Toggle 상태에 맞춰 보여준다.
 /// 켜짐 : 손잡이가 오른쪽, 트랙이 밝은 색 / 꺼짐 : 손잡이가 왼쪽, 트랙이 어두운 색
+/// 상태 글자(켜짐 / 꺼짐)를 넣으면 같이 바꾼다.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Toggle))]
@@ -19,6 +21,13 @@ public class SwitchToggleView : MonoBehaviour
     [Header("꺼짐")]
     [SerializeField] private float _offKnobX = -26f;
     [SerializeField] private Color _offTrackColor = new(0.17f, 0.17f, 0.18f, 1f);
+
+    [Header("상태 글자 (선택)")]
+    [SerializeField] private TMP_Text _stateText;
+    [SerializeField] private string _onText = "켜짐";
+    [SerializeField] private string _offText = "꺼짐";
+    [SerializeField] private Color _onTextColor = new(0.925f, 0.902f, 0.863f, 1f);
+    [SerializeField] private Color _offTextColor = new(0.5f, 0.53f, 0.6f, 1f);
 
     private Toggle _toggle;
 
@@ -62,6 +71,12 @@ public class SwitchToggleView : MonoBehaviour
         if (_track != null)
         {
             _track.color = isOn ? _onTrackColor : _offTrackColor;
+        }
+
+        if (_stateText != null)
+        {
+            _stateText.text = isOn ? _onText : _offText;
+            _stateText.color = isOn ? _onTextColor : _offTextColor;
         }
     }
 }
