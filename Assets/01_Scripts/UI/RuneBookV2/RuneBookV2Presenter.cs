@@ -692,7 +692,8 @@ public class RuneBookV2Presenter : MonoBehaviour
             if (tile != null)
             {
                 _entries.TryGetValue(tile.EntryId, out RuneBookEntryData entry);
-                tile.Show(entry, GetElementColor(entry), entry != null ? GetRemainingOwned(entry.Id) : 0);
+                tile.Show(entry, GetElementColor(entry), entry != null ? GetRemainingOwned(entry.Id) : 0,
+                    entry != null && IsInSlots(entry.Id));
             }
         }
 
@@ -888,6 +889,11 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             _toast.Show(message);
         }
+    }
+
+    private bool IsInSlots(string id)
+    {
+        return Array.IndexOf(_slotIds, id) >= 0;
     }
 
     private static Color? GetElementColor(RuneBookEntryData entry)
