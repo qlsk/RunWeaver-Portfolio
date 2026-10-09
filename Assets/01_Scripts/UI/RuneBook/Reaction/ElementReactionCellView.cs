@@ -39,8 +39,11 @@ public class ElementReactionCellView : MonoBehaviour, IPointerClickHandler
     [Tooltip("지금 장착한 원소 조합 칸에 두르는 테두리 색. 선택 테두리를 복제해 이 색으로 칠한다")]
     [SerializeField] private Color _equippedColor = new(1f, 0.8f, 0.32f, 1f);
     [SerializeField, Min(0f)] private float _equippedPulseSpeed = 3f;
+    [Tooltip("장착 중일 때 켜는 표시. 비우면 선택 테두리를 복사해서 만든다")]
+    [SerializeField] private GameObject _equippedMark;
+    [Tooltip("깜빡일 그래픽. 비우면 장착 표시 안의 그래픽 전부")]
+    [SerializeField] private UnityEngine.UI.Graphic[] _equippedPulseGraphics;
 
-    private GameObject _equippedMark;
     private UnityEngine.UI.Graphic[] _equippedGraphics;
     private bool _isEquipped;
 
@@ -141,6 +144,13 @@ public class ElementReactionCellView : MonoBehaviour, IPointerClickHandler
     {
         if (_equippedMark != null)
         {
+            if (_equippedGraphics == null)
+            {
+                _equippedGraphics = _equippedPulseGraphics != null && _equippedPulseGraphics.Length > 0
+                    ? _equippedPulseGraphics
+                    : _equippedMark.GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
+            }
+
             return;
         }
 

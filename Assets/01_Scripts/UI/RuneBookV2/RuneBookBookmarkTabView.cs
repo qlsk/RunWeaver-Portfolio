@@ -20,6 +20,8 @@ public class RuneBookBookmarkTabView : MonoBehaviour
         public Image icon;
         public TMP_Text label;
         public GameObject[] pages;
+        [Tooltip("책갈피(리본) 색. 투명이면 바꾸지 않는다")]
+        public Color ribbonColor = Color.clear;
     }
 
     [SerializeField] private Tab[] _tabs;
@@ -37,6 +39,9 @@ public class RuneBookBookmarkTabView : MonoBehaviour
     [SerializeField] private float _inactiveWidth;
     [SerializeField] private Color _activeColor = new(0.980f, 0.925f, 0.808f, 1f);
     [SerializeField] private Color _inactiveColor = new(0.745f, 0.627f, 0.549f, 1f);
+    [Tooltip("선택하지 않은 리본을 이 색 쪽으로 바랜다")]
+    [SerializeField] private Color _fadedRibbonColor = new(0.78f, 0.7f, 0.6f, 1f);
+    [SerializeField, Range(0f, 1f)] private float _inactiveRibbonFade = 0.45f;
 
     private int _currentIndex;
     private bool _isInitialized;
@@ -122,6 +127,13 @@ public class RuneBookBookmarkTabView : MonoBehaviour
                 if (sprite != null)
                 {
                     tab.bookmarkImage.sprite = sprite;
+                }
+
+                if (tab.ribbonColor.a > 0f)
+                {
+                    tab.bookmarkImage.color = isActive
+                        ? tab.ribbonColor
+                        : Color.Lerp(tab.ribbonColor, _fadedRibbonColor, _inactiveRibbonFade);
                 }
 
                 float width = isActive ? _activeWidth : _inactiveWidth;
