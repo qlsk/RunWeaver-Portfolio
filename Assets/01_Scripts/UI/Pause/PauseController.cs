@@ -321,7 +321,7 @@ public class PauseController : MonoBehaviour
         }
 
         ShowConfirm("탐사를 포기할까요?",
-            "이번 탐사가 여기서 <color=#FF6B5A>끝납니다</color>.\n장착한 룬과 골드를 잃게 됩니다.",
+            "포기하면 이 개체는 <color=#96281E>소실된 것으로</color> 처리됩니다.\n장착한 룬과 골드를 잃게 됩니다.",
             "포기",
             AbandonRun);
     }
@@ -334,7 +334,7 @@ public class PauseController : MonoBehaviour
         }
 
         string body = _isExpedition
-            ? "현재 탐사는 <color=#FF6B5A>저장되지 않습니다</color>.\n게임을 종료할까요?"
+            ? "현재 탐사는 <color=#96281E>저장되지 않습니다</color>.\n게임을 종료할까요?"
             : "게임을 종료할까요?";
         ShowConfirm("게임 종료", body, "종료", QuitGame);
     }
@@ -420,7 +420,7 @@ public class PauseController : MonoBehaviour
         }
 
         int depth = StageManager.Instance != null ? StageManager.Instance.CurrentDepth : 1;
-        return $"탐사 · {depth}층";
+        return $"정령계 탐사  /  {depth}층";
     }
 
     private void HideAll()
