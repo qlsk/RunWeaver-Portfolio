@@ -239,6 +239,7 @@ GameObject:
   - component: {fileID: 7103598565761034705}
   - component: {fileID: 2966473973474912720}
   - component: {fileID: 1937226291352675191}
+  - component: {fileID: 3632584565657494470}
   m_Layer: 5
   m_Name: SettingsUI
   m_TagString: Untagged
@@ -2599,6 +2600,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2885629944902471651}
+  - component: {fileID: 3266649961392883320}
+  - component: {fileID: 6944012430502524274}
+  - component: {fileID: 1984359912906467035}
   m_Layer: 5
   m_Name: Row_Fullscreen
   m_TagString: Untagged
@@ -5158,3 +5162,85 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3632584565657494470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 591202267690117478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07db127ca34849dc8e791907ba06c452, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsKeyboardNavigator
+  _rows:
+  - items:
+    - {fileID: 728176502612652884}
+  - items:
+    - {fileID: 473469896367001406}
+  - items:
+    - {fileID: 3819050465312902035}
+  - items:
+    - {fileID: 8205983825582236423}
+  - items:
+    - {fileID: 5969460996615625947}
+    - {fileID: 2508454619114383777}
+  _sliderStep: 0.05
+  _repeatDelay: 0.35
+  _repeatInterval: 0.06
+--- !u!222 &3266649961392883320
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8156574953755912087}
+  m_CullTransparentMesh: 1
+--- !u!114 &6944012430502524274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8156574953755912087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1984359912906467035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8156574953755912087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56f076659dad43969d994c7c3e80f8d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsRowHighlightView
+  _target: {fileID: 8205983825582236423}
+  _label: {fileID: 8794763393993052774}
+  _labelColor: {r: 0.659, g: 0.69, b: 0.761, a: 1}
+  _activeLabelColor: {r: 0.925, g: 0.902, b: 0.863, a: 1}
+  _sharpness: 14

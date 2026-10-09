@@ -92,6 +92,11 @@ public class RuneMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (_selectOnHover && !_isDisabled)
         {
             IsSelected = true;
+            // 키보드로 고른 항목과 둘 다 선택돼 보이지 않게, 마우스를 올린 항목을 선택 항목으로 만든다.
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != gameObject)
+            {
+                EventSystem.current.SetSelectedGameObject(gameObject);
+            }
         }
 
         Hovered?.Invoke(this);

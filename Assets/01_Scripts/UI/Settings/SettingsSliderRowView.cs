@@ -35,6 +35,11 @@ public class SettingsSliderRowView : MonoBehaviour, IPointerEnterHandler, IPoint
     public void OnPointerEnter(PointerEventData eventData)
     {
         _isHovered = true;
+        // 키보드로 고른 줄과 둘 다 밝아지지 않게, 마우스를 올린 줄의 슬라이더를 선택 항목으로 만든다.
+        if (_slider != null && EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(_slider.gameObject);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
