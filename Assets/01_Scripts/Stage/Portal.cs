@@ -244,6 +244,12 @@ public class Portal : MonoBehaviour, IInteractable
             return;
         }
 
+        if (PortalArrival.UseFadeStyle)
+        {
+            EnterWithFade(stageManager);
+            return;
+        }
+
         StartCoroutine(EnterRoutine());
     }
 
@@ -299,6 +305,23 @@ public class Portal : MonoBehaviour, IInteractable
     }
 
     /// <summary>플레이어가 빨려 들어간 뒤 균열이 닫히고 한 층 내려간다.</summary>
+    /// <summary>
+    /// 페이드 방식 : 플레이어는 그 자리에 둔 채 조작만 막고 바로 층을 옮긴다. (화면은 StageManager가 검게 덮는다)
+    /// 포탈은 층 이동과 함께 정리되므로, 같은 모양의 균열을 남겨 화면이 다 덮일 때까지 일렁이게 한다.
+    /// 다음 층에서는 PortalPlayerHider가 화면이 걷힐 때 도착 연출(열린 균열 앞에 선 플레이어)을 시작한다.
+    /// </summary>
+    private void EnterWithFade(StageManager stageManager)
+    {
+        PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"), true, true);
+        PortalArrival.LingerExitRift(_sprite, _idleFrames, _framesPerSecond);
+        if (_sprite != null)
+        {
+            _sprite.enabled = false;
+        }
+
+        stageManager.UsePortal(this);
+    }
+
     private IEnumerator EnterRoutine()
     {
         Vector3 center = transform.position + (Vector3)_riftCenterOffset;

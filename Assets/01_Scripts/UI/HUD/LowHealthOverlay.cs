@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 체력 위험 연출. 체력이 낮으면 화면 가장자리가 천천히 붉어졌다 가라앉고(약 2초),
-/// 가장자리에서 안쪽으로 연한 붉은 혈관 같은 금이 함께 짙어졌다 옅어진다. 체력바도 같은 호흡으로 밝아진다.
+/// 체력 위험 연출. 체력이 낮으면 화면 가장자리가 옅게 붉어졌다 가라앉는다(약 3초). 체력바도 같은 호흡으로 밝아진다.
+/// - 눈이 피로하지 않도록 붉은 정도와 깜빡임 폭을 작게 둔다. 혈관(_showVeins)은 기본으로 끈다.
 /// - _startRatio(35%) 아래에서 서서히 나타나 _fullRatio(15%)에서 가장 진하다. 회복하면 사라진다.
 /// - 이미지는 Resources/LowHealth에서 불러와 씬 최상위의 전용 캔버스(HUD보다 아래 순서)에 깐다. 씬이나 프리팹을 고치지 않아도 된다.
 /// - PlayerHealthHudBinder가 붙이고 Initialize로 체력과 체력바를 넘겨준다.
@@ -16,10 +16,12 @@ public class LowHealthOverlay : MonoBehaviour
 
     [SerializeField, Range(0f, 1f)] private float _startRatio = 0.35f;
     [SerializeField, Range(0f, 1f)] private float _fullRatio = 0.15f;
-    [SerializeField, Min(0.1f)] private float _breathPeriod = 2f;
+    [SerializeField, Min(0.1f)] private float _breathPeriod = 3f;
     [SerializeField] private Color _vignetteColor = new(0.6f, 0.04f, 0.06f, 1f);
-    [SerializeField, Range(0f, 1f)] private float _vignetteMin = 0.22f;
-    [SerializeField, Range(0f, 1f)] private float _vignetteMax = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float _vignetteMin = 0.2f;
+    [SerializeField, Range(0f, 1f)] private float _vignetteMax = 0.34f;
+    [Tooltip("가장자리 혈관 무늬. 과하다는 피드백으로 기본은 끈다")]
+    [SerializeField] private bool _showVeins;
     [SerializeField, Range(0f, 1f)] private float _veinsMin = 0.35f;
     [SerializeField, Range(0f, 1f)] private float _veinsMax = 0.8f;
     [SerializeField] private Color _barBrightColor = new(1f, 0.67f, 0.63f, 1f);
@@ -65,7 +67,11 @@ public class LowHealthOverlay : MonoBehaviour
         canvas.sortingOrder = _canvasSortingOrder;
 
         _vignette = CreateLayer(canvasObject.transform, "Vignette", Resources.Load<Sprite>(VignettePath));
-        _veins = CreateLayer(canvasObject.transform, "Veins", Resources.Load<Sprite>(VeinsPath));
+        if (_showVeins)
+        {
+            _veins = CreateLayer(canvasObject.transform, "Veins", Resources.Load<Sprite>(VeinsPath));
+        }
+
         Apply(0f, 0f);
     }
 
@@ -120,7 +126,7 @@ public class LowHealthOverlay : MonoBehaviour
 
         if (_barFill != null)
         {
-            _barFill.color = Color.Lerp(_barBaseColor, _barBrightColor, breath * weight * 0.8f);
+            _barFill.color = Color.Lerp(_barBaseColor, _barBrightColor, breath * weight * 0.6f);
         }
     }
 

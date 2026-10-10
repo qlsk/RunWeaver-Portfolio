@@ -7,6 +7,8 @@ using UnityEngine;
 /// - 런 시작(시작 석상 앞)과 포탈로 다음 층에 내려왔을 때 쓴다.
 /// - 균열이 열리는 동안 플레이어는 숨겨지고 조작이 막힌다. (PortalPlayerHider)
 /// - 균열 프레임은 Resources/PortalRiftFrames에서 불러온다. 없으면 플레이어를 바로 보여준다.
+/// - 페이드 방식(PortalRiftFrames.Style = Fade) : 플레이어 뒤에 균열이 열린 채로 화면이 밝아지고,
+///   완전히 밝아지면 조작을 돌려주고 균열이 닫힌다. 포탈에 들어갈 때도 플레이어를 숨기지 않는다.
 /// 게임 시간으로 움직인다. (일시정지하면 멈춘다)
 /// </summary>
 public class PortalArrival : MonoBehaviour
@@ -15,6 +17,12 @@ public class PortalArrival : MonoBehaviour
     private const float CloseFramesPerSecond = 14f;
     private const float IdleHold = 0.15f;
     private const float SpitDuration = 0.45f;
+    /// <summary>페이드 방식 : 완전히 밝아진 뒤 균열이 닫히기까지 기다리는 시간</summary>
+    private const float FadeCloseDelay = 0.15f;
+    /// <summary>페이드 방식 : 균열 바닥을 플레이어 발보다 이만큼 위(뒤)에 둔다. 플레이어가 균열 앞에 선다.</summary>
+    private const float FadeRiftLift = 0.5f;
+    /// <summary>포탈에 들어갈 때 남겨 두는 균열이 화면이 검게 되지 않아도 사라지는 시간 (실제 시간)</summary>
+    private const float ExitLingerTimeout = 4f;
     /// <summary>
     /// 바닥 기준점(groundY)으로 정렬 순서를 정한다. 씬의 YSort와 같은 식(10000 - y*100)에
     /// 공중에 떠 있는 만큼 조금 앞으로 당긴다. (석상, 미션 오브젝트 등 YSort를 쓰는 것과 앞뒤가 맞는다)
@@ -29,11 +37,66 @@ public class PortalArrival : MonoBehaviour
     private PortalPlayerHider _hider;
     private float _delay;
 
-    /// <summary>플레이어를 숨기고 delay 뒤 도착 연출을 시작한다. (런 시작)</summary>
+    /// <summary>층 이동을 페이드 방식으로 하는지 (균열 프레임이 없으면 false)</summary>
+    public static bool UseFadeStyle
+    {
+        get
+        {
+            PortalRiftFrames frames = Frames;
+            return frames != null && frames.Style == PortalTransitionStyle.Fade;
+        }
+    }
+
+    /// <summary>플레이어를 숨기고(페이드 방식은 조작만 막고) delay 뒤 도착 연출을 시작한다. (런 시작)</summary>
     public static void PlayFor(GameObject player, float delay)
     {
-        PortalPlayerHider hider = PortalPlayerHider.Hide(player, false);
+        PortalPlayerHider hider = PortalPlayerHider.Hide(player, false, UseFadeStyle);
         Play(hider, delay);
+    }
+
+    /// <summary>
+    /// 페이드 방식으로 포탈에 들어갈 때 : 포탈은 층 이동과 함께 바로 사라지므로,
+    /// 같은 모양의 균열을 따로 남겨 화면이 완전히 검게 될 때까지 계속 일렁이게 한다.
+    /// </summary>
+    public static void LingerExitRift(SpriteRenderer source, Sprite[] idleFrames, float framesPerSecond)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        var go = new GameObject("PortalExitRift");
+        go.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
+        go.transform.localScale = source.transform.lossyScale;
+        var rift = go.AddComponent<SpriteRenderer>();
+        rift.sprite = source.sprite;
+        rift.color = source.color;
+        rift.sharedMaterial = source.sharedMaterial;
+        rift.sortingLayerID = source.sortingLayerID;
+        rift.sortingOrder = source.sortingOrder;
+        rift.spriteSortPoint = source.spriteSortPoint;
+        rift.flipX = source.flipX;
+        go.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(go, rift, idleFrames, framesPerSecond));
+    }
+
+    private static IEnumerator LingerRoutine(GameObject owner, SpriteRenderer rift, Sprite[] idleFrames,
+        float framesPerSecond)
+    {
+        float time = 0f;
+        float waited = 0f;
+        while (!ScreenFader.IsBlack && waited < ExitLingerTimeout)
+        {
+            time += Time.deltaTime;
+            waited += Time.unscaledDeltaTime;
+            if (idleFrames != null && idleFrames.Length > 0)
+            {
+                rift.sprite = idleFrames[(int)(time * framesPerSecond) % idleFrames.Length];
+            }
+
+            yield return null;
+        }
+
+        Destroy(owner);
     }
 
     /// <summary>이미 숨겨진 플레이어로 도착 연출을 시작한다. (층 이동 뒤)</summary>
@@ -64,7 +127,54 @@ public class PortalArrival : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(PlayRoutine());
+        if (_hider == null)
+        {
+            return; // LingerExitRift로 만든 경우
+        }
+
+        StartCoroutine(UseFadeStyle ? FadeRoutine() : PlayRoutine());
+    }
+
+    /// <summary>
+    /// 페이드 방식 : 플레이어 뒤에 열린 균열을 바로 띄워 두고, 화면이 완전히 밝아지면 조작을 돌려주고 닫는다.
+    /// </summary>
+    private IEnumerator FadeRoutine()
+    {
+        PortalRiftFrames frames = Frames;
+        Vector3 ground = _hider.PlayerPosition + Vector3.up * FadeRiftLift;
+        transform.position = ground;
+        var rift = gameObject.AddComponent<SpriteRenderer>();
+        if (frames.Material != null)
+        {
+            rift.sharedMaterial = frames.Material;
+        }
+
+        rift.spriteSortPoint = SpriteSortPoint.Pivot;
+        // 바닥 기준점이 플레이어보다 위라서 YSort상 플레이어 뒤에 그려진다.
+        rift.sortingOrder = RiftSortingOrder(ground.y);
+
+        float time = 0f;
+        float waited = 0f;
+        while (waited < _delay || ScreenFader.IsFading || SceneTransition.IsRunning)
+        {
+            time += Time.deltaTime;
+            waited += Time.deltaTime;
+            SetIdle(rift, frames, time);
+            yield return null;
+        }
+
+        float hold = 0f;
+        while (hold < FadeCloseDelay)
+        {
+            hold += Time.deltaTime;
+            time += Time.deltaTime;
+            SetIdle(rift, frames, time);
+            yield return null;
+        }
+
+        _hider.RestoreNow();
+        yield return PlayFrames(rift, frames.CloseFrames, CloseFramesPerSecond);
+        Destroy(gameObject);
     }
 
     private IEnumerator PlayRoutine()

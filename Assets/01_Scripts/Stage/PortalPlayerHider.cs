@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 /// - 층 전환 화면(ScreenFader)이 덮였다가 걷히기 시작하면, 새 위치에서 도착 연출(PortalArrival)을 시작한다.
 ///   도착 연출이 플레이어를 뱉어낼 때 RestoreNow로 되돌린다.
 /// - 직접 숨긴 경우(watchTransition = false)에는 RestoreNow를 부를 때까지 숨겨 둔다. (런 시작 도착 연출)
+/// - keepVisible이면 그림은 그대로 보이고 조작만 막는다. (페이드 방식 층 이동)
 /// - 전환이 시작되지 않으면(포탈 사용 실패 등) 잠시 뒤 되돌린다.
 /// 포탈은 층 이동 때 파괴되므로 이 컴포넌트는 따로 만든 오브젝트에서 돈다.
 /// </summary>
@@ -31,7 +32,8 @@ public class PortalPlayerHider : MonoBehaviour
     public Vector3 PlayerPosition => _player != null ? _player.position : transform.position;
 
     /// <param name="watchTransition">true면 층 전환이 걷힐 때 도착 연출을 시작한다. false면 RestoreNow까지 숨겨 둔다.</param>
-    public static PortalPlayerHider Hide(GameObject player, bool watchTransition = true)
+    /// <param name="keepVisible">true면 그림을 숨기지 않고 조작만 막는다. (페이드 방식)</param>
+    public static PortalPlayerHider Hide(GameObject player, bool watchTransition = true, bool keepVisible = false)
     {
         if (player == null)
         {
@@ -40,7 +42,7 @@ public class PortalPlayerHider : MonoBehaviour
 
         var hider = new GameObject("PortalPlayerHider").AddComponent<PortalPlayerHider>();
         hider._watchTransition = watchTransition;
-        hider.Initialize(player);
+        hider.Initialize(player, keepVisible);
         return hider;
     }
 
@@ -50,11 +52,13 @@ public class PortalPlayerHider : MonoBehaviour
         Restore(true);
     }
 
-    private void Initialize(GameObject player)
+    private void Initialize(GameObject player, bool keepVisible)
     {
         _player = player.transform;
         _sortingGroup = player.GetComponent<SortingGroup>();
-        foreach (SpriteRenderer renderer in player.GetComponentsInChildren<SpriteRenderer>())
+        foreach (SpriteRenderer renderer in keepVisible
+                     ? System.Array.Empty<SpriteRenderer>()
+                     : player.GetComponentsInChildren<SpriteRenderer>())
         {
             if (renderer.enabled)
             {
