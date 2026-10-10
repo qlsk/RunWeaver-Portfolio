@@ -6,7 +6,8 @@ using UnityEngine;
 /// 미션 성공 / 런 종료 시 결과 패널을 보여준다.
 /// - 미션 성공 : 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃). 층마다 새 미션이 시작되면 다시 보여줄 수 있다.
 ///   부제(_successSubText)에 미션 클리어 소요 시간을 보여준다. (시작 오브젝트를 누른 순간부터, 일시정지 시간 제외)
-/// - 보스 처치(런 클리어) : 성공 패널을 "탐사 완료" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다. (부제는 숨긴다)
+/// - 보스 처치(런 클리어) : _clearSequence가 있으면 보스 처치 연출(RunClearSequence) 후 결과 화면(EndingUI)을 켠다.
+///   없으면 성공 패널을 "탐사 완료" 문구로 보여준 뒤 결과 화면을 켠다. (부제는 숨긴다)
 /// - 실패(사망, 미션 실패, 탐사 포기) : _failureSequence가 있으면 종료 사유별 실패 연출(RunFailureSequence) 후 결과 화면을 켠다.
 ///   없으면 실패 패널 연출 (천천히 페이드 인 → 3초) 후 결과 화면을 켠다.
 ///   실패 패널의 글자는 종료 사유에 따라 바뀐다. (You Die / Mission Failed / Run Abandoned)
@@ -23,6 +24,9 @@ public class MissionResultPresenter : MonoBehaviour
 
     [Tooltip("할당하면 실패 패널 대신 종료 사유별 실패 연출을 보여준다. (피격 사망 / 탐사 포기 / 임무 실패)")]
     [SerializeField] private RunFailureSequence _failureSequence;
+
+    [Tooltip("할당하면 보스 처치 시 \"탐사 완료\" 패널 대신 보스 처치 연출을 보여준다.")]
+    [SerializeField] private RunClearSequence _clearSequence;
 
     [Tooltip("실패 연출이 끝나면 켤 결과 화면. 꺼진 상태로 씬에 배치한다.")]
     [SerializeField] private GameObject _endingUI;
@@ -213,6 +217,17 @@ public class MissionResultPresenter : MonoBehaviour
 
         _isShowingClear = true;
 
+        if (_clearSequence != null)
+        {
+            if (_successPanel != null && _successPanel.gameObject.activeSelf)
+            {
+                _successPanel.Hide();
+            }
+
+            _clearSequence.Play(ShowEnding);
+            return;
+        }
+
         if (_successPanel == null)
         {
             ShowEnding();
@@ -246,6 +261,11 @@ public class MissionResultPresenter : MonoBehaviour
         if (_failureSequence != null)
         {
             _failureSequence.ResetForTest();
+        }
+
+        if (_clearSequence != null)
+        {
+            _clearSequence.ResetForTest();
         }
 
         if (_endingUI != null)

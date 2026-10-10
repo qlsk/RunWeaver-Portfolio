@@ -24,6 +24,11 @@ public static class FailureSpriteMaterial
     public static readonly int RevealCenter = Shader.PropertyToID("_RevealCenter");
     public static readonly int RevealRadius = Shader.PropertyToID("_RevealRadius");
     public static readonly int RevealSoftness = Shader.PropertyToID("_RevealSoftness");
+    public static readonly int GlowColor = Shader.PropertyToID("_GlowColor");
+    public static readonly int GlowCenter = Shader.PropertyToID("_GlowCenter");
+    public static readonly int GlowRadius = Shader.PropertyToID("_GlowRadius");
+    public static readonly int GlowSoftness = Shader.PropertyToID("_GlowSoftness");
+    public static readonly int GlowAmount = Shader.PropertyToID("_GlowAmount");
     public static readonly int Alpha = Shader.PropertyToID("_Alpha");
 
     private static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");

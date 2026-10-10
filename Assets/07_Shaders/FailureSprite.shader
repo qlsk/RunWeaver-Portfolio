@@ -4,6 +4,7 @@
 // - 물듦 : 발부터 _StainColor로 물든다. 경계는 _StainEdgeColor로 빛난다. (_Stain 0 → 1)
 // - 사라짐 : 아래(또는 위)부터 픽셀 단위 노이즈로 사라진다. 경계는 _EdgeColor로 빛난다. (_Dissolve 0 → 1)
 // - 드러남 : _RevealCenter에서 _RevealRadius 안쪽만 보인다. (바닥 줄기가 퍼지는 연출)
+// - 안쪽 빛 : _GlowCenter에서 _GlowRadius 안쪽이 _GlowColor로 밝아진다. (보스 처치 때 몸 안에서 빛이 차오르는 연출)
 // 높이 기준(_BoundsY)과 픽셀 크기(_PixelSize)는 월드 좌표로 스크립트가 넣어 준다.
 Shader "RuneWeaver/FailureSprite"
 {
@@ -27,6 +28,11 @@ Shader "RuneWeaver/FailureSprite"
         _RevealCenter ("Reveal Center (xy) / Axis Scale (zw)", Vector) = (0, 0, 1, 1)
         _RevealRadius ("Reveal Radius", Float) = 100000
         _RevealSoftness ("Reveal Softness", Float) = 0.3
+        _GlowColor ("Inner Glow Color", Color) = (0.9, 0.95, 1, 1)
+        _GlowCenter ("Inner Glow Center (xy)", Vector) = (0, 0, 0, 0)
+        _GlowRadius ("Inner Glow Radius", Float) = 0
+        _GlowSoftness ("Inner Glow Softness", Float) = 0.5
+        _GlowAmount ("Inner Glow Amount", Range(0, 1)) = 0
         _Alpha ("Alpha", Range(0, 1)) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10
@@ -57,6 +63,11 @@ Shader "RuneWeaver/FailureSprite"
         float4 _RevealCenter;
         float _RevealRadius;
         float _RevealSoftness;
+        half4 _GlowColor;
+        float4 _GlowCenter;
+        float _GlowRadius;
+        float _GlowSoftness;
+        half _GlowAmount;
         half _Alpha;
     CBUFFER_END
 
@@ -113,6 +124,11 @@ Shader "RuneWeaver/FailureSprite"
         color.rgb = lerp(color.rgb, _StainColor.rgb * (0.55 + luma * 0.9), stain);
         float stainActive = step(0.001, _Stain) * step(_Stain, 0.999);
         color.rgb += _StainEdgeColor.rgb * (stain * (1.0 - stain) * 4.0) * 0.8 * stainActive;
+
+        // 안쪽 빛 (중심에서 바깥으로 차오른다)
+        float glowDistance = length(input.positionWS.xy - _GlowCenter.xy);
+        float glow = saturate((_GlowRadius - glowDistance) / max(_GlowSoftness, 1e-4)) * _GlowAmount;
+        color.rgb = lerp(color.rgb, _GlowColor.rgb, glow);
 
         // 번쩍임
         color.rgb = lerp(color.rgb, _FlashColor.rgb, _Flash);

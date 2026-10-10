@@ -123,6 +123,9 @@ public class StageManager : MonoBehaviour
     public int BossDepth => _missionStageCount + 1;
     public StagePhase Phase => _phase;
     public bool IsBossStage => _isBossStage;
+
+    /// <summary>이번 층의 보스. 보스 층이 아니거나 아직 나오지 않았으면 null (보스 처치 연출이 처치된 보스를 찾을 때 쓴다)</summary>
+    public EnemyHealth BossHealth => _bossHealth;
     public MissionBase CurrentMission => _currentMission;
 
     /// <summary>다음 층으로 가는 포탈이 나와 있는지</summary>

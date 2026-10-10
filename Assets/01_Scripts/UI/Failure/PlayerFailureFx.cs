@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// 실패 연출 동안 플레이어 겉모습을 바꾼다. (플레이어 스크립트와 프리팹은 고치지 않는다)
+/// 보스 처치 연출에서는 처치된 보스를 복제한 스프라이트에도 같은 방식으로 쓴다.
 /// 만들 때 플레이어의 스프라이트들에 연출용 머티리얼을 끼우고, Restore로 원래 머티리얼을 돌려놓는다.
 /// 높이 기준은 만들 때의 몸통 스프라이트 범위로 정한다. (연출 중에는 플레이어가 움직이지 않는다)
 /// </summary>
@@ -148,6 +149,21 @@ public sealed class PlayerFailureFx
         _material.SetFloat(FailureSpriteMaterial.DissolveNoise, noise);
         _material.SetColor(FailureSpriteMaterial.EdgeColor, edgeColor);
         _material.SetFloat(FailureSpriteMaterial.EdgeWidth, edgeWidth);
+    }
+
+    /// <summary>center에서 radius 안쪽이 color로 밝아진다. (amount 0이면 꺼짐)</summary>
+    public void SetInnerGlow(Vector2 center, float radius, float softness, Color color, float amount)
+    {
+        if (_material == null)
+        {
+            return;
+        }
+
+        _material.SetVector(FailureSpriteMaterial.GlowCenter, new Vector4(center.x, center.y, 0f, 0f));
+        _material.SetFloat(FailureSpriteMaterial.GlowRadius, radius);
+        _material.SetFloat(FailureSpriteMaterial.GlowSoftness, softness);
+        _material.SetColor(FailureSpriteMaterial.GlowColor, color);
+        _material.SetFloat(FailureSpriteMaterial.GlowAmount, Mathf.Clamp01(amount));
     }
 
     /// <summary>사라지는 경계의 대략적인 월드 높이 (입자를 뿌릴 위치)</summary>
