@@ -5,6 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class EnemyTankAttack : MonoBehaviour
 {
+    [SerializeField] private bool _externallyControlled;
+    public event System.Action<EnemyAttackEndReason> AttackEnded;
+
+    public void SetExternalControl(bool value)
+    {
+        if (_externallyControlled == value) return;
+        CancelAttack();
+        _externallyControlled = value;
+    }
     [SerializeField, Min(0f)] private float _detectionRange = 3f;
     [SerializeField, Min(0.01f)] private float _attackRadius = 2f;
     [SerializeField, Min(0f)] private float _damage = 20f;
@@ -25,6 +34,7 @@ public class EnemyTankAttack : MonoBehaviour
     private float _nextAttackTime;
     public EnemyAttackState State { get; private set; } = EnemyAttackState.Idle;
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
+    public float DetectionRange => _detectionRange;
 
     private EnemyMotor _motor;
 
@@ -61,7 +71,7 @@ public class EnemyTankAttack : MonoBehaviour
         switch (State)
         {
             case EnemyAttackState.Idle:
-                TryPrepare();
+                if (!_externallyControlled) TryStartAttack();
                 break;
             case EnemyAttackState.Preparing:
                 if (Time.time >= _attackTime)
@@ -73,20 +83,24 @@ public class EnemyTankAttack : MonoBehaviour
 
                 break;
             case EnemyAttackState.Attacking:
-                CancelAttack();
+                EndAttack(EnemyAttackEndReason.Completed);
                 break;
         }
     }
 
-    private void TryPrepare()
+    public bool TryStartAttack()
     {
+        if (!isActiveAndEnabled || State != EnemyAttackState.Idle || _indicator == null ||
+            (_health != null && _health.IsDead) ||
+            (_statusEffects != null && _statusEffects.IsStaggered))
+            return false;
         Transform target = _targetDetector.Target;
         if (target == null || Time.time < _nextAttackTime)
-            return;
+            return false;
 
         Vector2 offset = target.position - transform.position;
         if (offset.sqrMagnitude > _detectionRange * _detectionRange)
-            return;
+            return false;
 
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
@@ -106,6 +120,7 @@ public class EnemyTankAttack : MonoBehaviour
         _indicator.sortingLayerName = _rangeSortingLayer;
         _indicator.sortingOrder = _rangeSortingOrder;
         _indicator.enabled = true;
+        return true;
     }
 
     private void ExecuteAttack()
@@ -131,7 +146,13 @@ public class EnemyTankAttack : MonoBehaviour
 
     public void CancelAttack()
     {
-        if (State != EnemyAttackState.Idle)
+        EndAttack(EnemyAttackEndReason.Cancelled);
+    }
+
+    private void EndAttack(EnemyAttackEndReason reason)
+    {
+        bool wasActive = State != EnemyAttackState.Idle;
+        if (wasActive)
         {
             _nextAttackTime = Time.time + _attackCooldown;
         }
@@ -140,6 +161,7 @@ public class EnemyTankAttack : MonoBehaviour
         if (_indicator != null)
             _indicator.enabled = false;
         State = EnemyAttackState.Idle;
+        if (wasActive) AttackEnded?.Invoke(reason);
     }
 
     private void CreateIndicator()
