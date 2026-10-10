@@ -232,7 +232,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1
-      type: {class: MMF_SpriteRenderer, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      type: {class: MMF_WhiteSpriteFlash, ns: , asm: Assembly-CSharp}
       data:
         Active: 1
         UniqueID: 1
@@ -243,7 +243,7 @@ MonoBehaviour:
         MMChannelDefinition: {fileID: 0}
         Chance: 100
         Timing:
-          TimescaleMode: 0
+          TimescaleMode: 1
           ExcludeFromHoldingPauses: 0
           ContributeToTotalDuration: 1
           InitialDelay: 0
@@ -306,75 +306,9 @@ MonoBehaviour:
         Owner: {fileID: 950100003}
         DebugActive: 0
         BoundSpriteRenderer: {fileID: 1772316485788941319}
-        Mode: 4
+        AdditionalSpriteRenderers: []
+        FlashMaterial: {fileID: 2100000, guid: cf4cdeb8895d422da82dee18818e0e00, type: 2}
         Duration: 0.08
-        StartsOff: 0
-        ResetShakerValuesAfterShake: 1
-        ResetTargetValuesAfterShake: 1
-        OnlyBroadcastInRange: 0
-        EventRange: 100
-        EventOriginTransform: {fileID: 0}
-        AllowAdditivePlays: 1
-        InitialColorMode: 0
-        ModifyColor: 1
-        ColorOverTime:
-          serializedVersion: 2
-          key0: {r: 1, g: 1, b: 1, a: 1}
-          key1: {r: 1, g: 1, b: 1, a: 1}
-          key2: {r: 0, g: 0, b: 0, a: 0}
-          key3: {r: 0, g: 0, b: 0, a: 0}
-          key4: {r: 0, g: 0, b: 0, a: 0}
-          key5: {r: 0, g: 0, b: 0, a: 0}
-          key6: {r: 0, g: 0, b: 0, a: 0}
-          key7: {r: 0, g: 0, b: 0, a: 0}
-          ctime0: 0
-          ctime1: 65535
-          ctime2: 0
-          ctime3: 0
-          ctime4: 0
-          ctime5: 0
-          ctime6: 0
-          ctime7: 0
-          atime0: 0
-          atime1: 65535
-          atime2: 0
-          atime3: 0
-          atime4: 0
-          atime5: 0
-          atime6: 0
-          atime7: 0
-          m_Mode: 0
-          m_ColorSpace: -1
-          m_NumColorKeys: 2
-          m_NumAlphaKeys: 2
-        InstantColor: {r: 0, g: 0, b: 0, a: 0}
-        ToDestinationColor: {r: 1, g: 0.35, b: 0.35, a: 1}
-        ToDestinationColorCurve:
-          serializedVersion: 2
-          m_Curve:
-          - serializedVersion: 3
-            time: 0
-            value: 0
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 1
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
-        FlipX: 0
-        FlipY: 0
     - rid: 2
       type: {class: MMF_SquashAndStretch, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
@@ -744,15 +678,28 @@ MonoBehaviour:
   _burnDuration: 3
   _burnInterval: 1
   _burnDamageMultiplier: 0.2
-  _burnVfxPrefab: {fileID: 198460122919131902, guid: d5e400a2a0d155d4db9970614680534f, type: 3}
+  _burnVfxPrefab: {fileID: 857701135076163181, guid: 2e9d2ce239b7488bab03e97d6a04cb36, type: 3}
   _burnVfxTarget: {fileID: 1772316485788941319}
   _burnVfxScale: 0.7
   _burnVfxOffset: {x: 0, y: -0.3, z: 0}
   _slowDuration: 3
   _slowMoveSpeedMultiplier: 0.5
+  _slowVfxPrefab: {fileID: 857701135076163181, guid: e3752d0fbf774c8cbef85dd09d7c5a3a, type: 3}
+  _slowVfxTarget: {fileID: 1772316485788941319}
+  _slowVfxScale: 0.7
+  _slowVfxOffset: {x: 0, y: -0.3, z: 0}
   _staggerDuration: 0.5
+  _staggerVfxPrefab: {fileID: 857701135076163181, guid: 7f3b3e6507494d03bfb6cf0271661300, type: 3}
+  _staggerVfxTarget: {fileID: 1772316485788941319}
+  _staggerVfxScale: 0.7
+  _staggerVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
+  _knockbackVfxPrefab: {fileID: 857701135076163181, guid: 69eab95aa9684bd9aedf245ec1c5619f, type: 3}
+  _knockbackVfxTarget: {fileID: 1772316485788941319}
+  _knockbackVfxScale: 0.7
+  _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
+  _knockbackVfxRotationOffset: 90
 --- !u!114 &6312000072480831012
 MonoBehaviour:
   m_ObjectHideFlags: 0

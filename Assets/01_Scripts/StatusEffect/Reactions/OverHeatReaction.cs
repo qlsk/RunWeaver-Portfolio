@@ -13,7 +13,6 @@ public class OverHeatReaction : MonoBehaviour
     [FoldoutGroup("Explosion Settings"), SerializeField] private float _explosionDamageMultiplier = 1f;
     [FoldoutGroup("Explosion Settings"), SerializeField] private float _explosionEffectLifetime = 3f;
 
-    [FoldoutGroup("Ember Settings"), SerializeField] private float _emberRadius = 2f;
     [FoldoutGroup("Ember Settings"), SerializeField] private float _emberDamageMultiplier = 0.2f;
     [FoldoutGroup("Ember Settings"), SerializeField] private float _emberTickInterval = 1f;
     [FoldoutGroup("Ember Settings"), SerializeField] private float _emberDuration = 3f;
@@ -30,7 +29,7 @@ public class OverHeatReaction : MonoBehaviour
         // Destroy(explosionEffect.gameObject, _explosionEffectLifetime);
 
         EmberArea emberArea = Instantiate(_emberAreaPrefab, context.HitPosition, Quaternion.identity);
-        emberArea.Initialize(emberTickDamage, _emberRadius, _emberTickInterval, _emberDuration);
+        emberArea.Initialize(emberTickDamage, _emberTickInterval, _emberDuration);
     }
 
     private void ApplyExplosionDamage(Vector2 hitPosition, float damage)

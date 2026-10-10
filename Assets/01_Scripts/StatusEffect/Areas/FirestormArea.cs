@@ -8,6 +8,8 @@ public class FirestormArea : MonoBehaviour
 {
     [FoldoutGroup("Settings"), SerializeField] private float _rangeCheckInterval = 0.1f;
 
+    [FoldoutGroup("References"), SerializeField] private ReactionAreaVisuals _areaVisuals;
+
     // Runtime settings
     private float _radius;
     private float _burnApplyInterval;
@@ -43,6 +45,8 @@ public class FirestormArea : MonoBehaviour
         _burnApplyTimer = 0f;
         _sourceId = GetInstanceID();
         _isInitialized = true;
+        if (_areaVisuals != null)
+            _areaVisuals.Initialize(_radius);
 
         if (isActiveAndEnabled)
             RefreshPullModifiers();
@@ -106,7 +110,7 @@ public class FirestormArea : MonoBehaviour
     {
         HashSet<EnemyStatusEffectController> currentStatusEffects = FindStatusEffects();
         IEnumerable<EnemyStatusEffectController> enteredStatusEffects =
-            _affectedStatusEffects.Where(statusEffects => !_affectedStatusEffects.Contains(statusEffects));
+            currentStatusEffects.Where(statusEffects => !_affectedStatusEffects.Contains(statusEffects));
         foreach (EnemyStatusEffectController statusEffects in enteredStatusEffects)
         {
             statusEffects.AddPullModifier(_sourceId, transform.position, _pullSpeed);
