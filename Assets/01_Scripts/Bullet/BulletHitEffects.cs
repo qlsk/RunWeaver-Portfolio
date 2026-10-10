@@ -43,8 +43,16 @@ public sealed class BulletHitEffects
             return;
         }
 
-        if (enemyHealth == null || enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
+        if (enemyHealth == null)
             return;
+
+        // 이번 적중으로 죽은 적에게는 효과를 적용하지 않고 연출만 그 자리에 재생한다.
+        if (enemyHealth.IsDead || !enemyHealth.isActiveAndEnabled)
+        {
+            if (enemyHealth.TryGetComponent(out EnemyStatusEffectController deadStatusEffects))
+                deadStatusEffects.PlayElementVisualDetached(configuration.PrimaryElement.Value, direction);
+            return;
+        }
 
         if (!enemyHealth.TryGetComponent(out EnemyStatusEffectController statusEffects))
             throw new InvalidOperationException($"EnemyStatusEffectController is missing: {enemyHealth.name}");
