@@ -8,6 +8,10 @@ public class BossPatternController : MonoBehaviour
 {
     [SerializeField, Min(0f)] private float _patternInterval = 0.5f;
     [SerializeField, Min(0f)] private float _tankRecoveryDuration = 1.2f;
+    [SerializeField, Min(0f)] private float _dashRecoveryDuration = 0.7f;
+    [SerializeField, Min(0f)] private float _wallRecoveryDuration = 2f;
+    [SerializeField, Range(1, 3)] private int _dashMinimumPhase = 1;
+    private bool _nextFarAttackIsRockfall;
     [SerializeField, Min(0f)] private float _rockfallRecoveryDuration = 1f;
     [SerializeField, Range(1, 3)] private int _rockfallMinimumPhase = 1;
     [SerializeField, Range(1, 3)] private int _tankMinimumPhase = 1;
@@ -42,6 +46,7 @@ public class BossPatternController : MonoBehaviour
     {
         SetExternalControl();
         if (_tank != null) _tank.AttackEnded += HandleTankEnded;
+        if (_dash != null) _dash.AttackEnded += HandleDashEnded;
         if (_rockfall != null) _rockfall.AttackEnded += HandleRockfallEnded;
         EnemyHealth.OnDeath += HandleDeath;
     }
@@ -92,7 +97,22 @@ public class BossPatternController : MonoBehaviour
         Vector2 offset = _targetDetector.Target.position - transform.position;
         bool isClose = _tank != null && offset.sqrMagnitude <= _tank.DetectionRange * _tank.DetectionRange;
         if (isClose) TryTank();
-        else TryRockfall();
+        else if (_nextFarAttackIsRockfall) TryRockfall();
+        else TryDash();
+    }
+
+    private bool TryDash()
+    {
+        if (_dash == null || Phase < _dashMinimumPhase || !_dash.TryStartAttack()) return false;
+        _activeAttack = _dash;
+        _nextFarAttackIsRockfall = true;
+        return true;
+    }
+
+    private void HandleDashEnded(EnemyAttackEndReason reason)
+    {
+        if (_activeAttack == _dash)
+            FinishAttack(reason, reason == EnemyAttackEndReason.Obstacle ? _wallRecoveryDuration : _dashRecoveryDuration);
     }
 
     private bool TryTank()
@@ -106,6 +126,7 @@ public class BossPatternController : MonoBehaviour
     {
         if (_rockfall == null || Phase < _rockfallMinimumPhase || !_rockfall.TryStartAttack()) return false;
         _activeAttack = _rockfall;
+        _nextFarAttackIsRockfall = false;
         return true;
     }
 
@@ -153,6 +174,7 @@ public class BossPatternController : MonoBehaviour
     {
         EnemyHealth.OnDeath -= HandleDeath;
         if (_tank != null) _tank.AttackEnded -= HandleTankEnded;
+        if (_dash != null) _dash.AttackEnded -= HandleDashEnded;
         if (_rockfall != null) _rockfall.AttackEnded -= HandleRockfallEnded;
         CancelAll();
     }
