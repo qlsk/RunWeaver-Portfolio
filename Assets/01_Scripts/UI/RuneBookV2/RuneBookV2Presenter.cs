@@ -21,6 +21,7 @@ using UnityEngine.UI;
 /// - 장착 칸을 오른쪽 클릭하면 뺀다. 이미 확정된 룬을 빼도 룬 문자는 돌려주지 않는다.
 /// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "룬석이 부족합니다"를 띄운다.
 /// - Confirm 없이 룬북을 닫으면(이 오브젝트가 꺼지면) 바꾼 내용은 버린다.
+/// - 연출(열기, 장착/해제, 경고, 룬석 부족, Confirm)은 RuneBookV2Fx가 맡는다. 없으면 붙인다.
 ///
 /// 완성품 (상점에서 산 룬 워드)
 /// - 완성품이 있는 룬 워드를 새로 넣으면 룬 문자 대신 완성품을 쓴다. (앞 칸부터, 보유 수만큼)
@@ -88,6 +89,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     private bool _isInitialized;
     private PlayerRuneManager _loadoutManager;
     private RuneEffectLoadout _loadout;
+    private RuneBookV2Fx _fx;
 
     // 로드아웃(PlayerRuneManager)이 없는 씬(RuneBookV2Scene 단독 테스트)에서는 데이터 소스의 값과 규칙을 쓴다.
     private int ActiveSlotCount => _loadout != null
@@ -123,6 +125,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     private void OnEnable()
     {
         Initialize();
+        _fx.PlayOpen();
         if (_dataSource == null)
         {
             return;
@@ -211,6 +214,12 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
 
         _isInitialized = true;
+        _fx = GetComponent<RuneBookV2Fx>();
+        if (_fx == null)
+        {
+            _fx = gameObject.AddComponent<RuneBookV2Fx>();
+        }
+
         if (_dataSource == null)
         {
             _dataSource = FindAnyObjectByType<RuneBookV2DataSource>();
@@ -359,7 +368,23 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
         _slotIds[slot] = entry.Id;
         UpdateNewEquipmentFlags();
+        Dictionary<char, int> usedBefore = new(_pendingUse);
         Refresh();
+
+        // 연출 : 들어간 칸과 새로 쓰게 될 룬석 칸
+        if (slot < _sockets.Length)
+        {
+            _fx.PlayEquip(_sockets[slot], GetElementColor(entry));
+        }
+
+        for (int i = 0; i < _stoneCells.Length && i < _stoneList.Count; i++)
+        {
+            RuneStoneStackData stone = _stoneList[i];
+            if (stone != null && Get(_pendingUse, stone.RuneCharacter) > Get(usedBefore, stone.RuneCharacter))
+            {
+                _fx.PlayStoneUse(_stoneCells[i]);
+            }
+        }
     }
 
     private void HandleSocketRightClicked(RuneSocketView socket)
@@ -383,12 +408,53 @@ public class RuneBookV2Presenter : MonoBehaviour
         UpdateNewEquipmentFlags();
 
         // 원소는 최소 1개 : 빼는 건 허용하고 경고만 띄운다. (Confirm에서 막는다)
+        Refresh();
+        _fx.PlayRemove(socket);
         if (!HasElementInSlots())
         {
             ShowToast(_elementRequiredText);
+            PlayElementWarning();
+        }
+    }
+
+    private void PlayElementWarning()
+    {
+        if (_sockets.Length > RuneEffectLoadout.PrimaryElementSlotIndex)
+        {
+            _fx.PlayWarning(_sockets[RuneEffectLoadout.PrimaryElementSlotIndex]);
+        }
+    }
+
+    private void PlayShortage()
+    {
+        for (int i = 0; i < _stoneCells.Length && i < _stoneList.Count; i++)
+        {
+            RuneStoneStackData stone = _stoneList[i];
+            if (stone != null && _stoneCells[i] != null &&
+                stone.Quantity - Get(_pendingUse, stone.RuneCharacter) < 0)
+            {
+                _fx.PlayStoneShortage(_stoneCells[i], _stoneCells[i].FlashSprite);
+            }
+        }
+    }
+
+    private void PlayConfirmed()
+    {
+        List<RuneSocketView> sockets = new();
+        List<Color?> colors = new();
+        for (int i = 0; i < ActiveSlotCount && i < _sockets.Length; i++)
+        {
+            string id = _slotIds[i];
+            if (string.IsNullOrEmpty(id))
+            {
+                continue;
+            }
+
+            sockets.Add(_sockets[i]);
+            colors.Add(_entries.TryGetValue(id, out RuneBookEntryData entry) ? GetElementColor(entry) : null);
         }
 
-        Refresh();
+        _fx.PlayConfirm(sockets, colors);
     }
 
     private bool IsElement(string effectId)
@@ -503,6 +569,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             ShowToast(_elementRequiredText);
             Refresh();
+            PlayElementWarning();
             return;
         }
 
@@ -513,6 +580,7 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             ShowToast(_notEnoughText);
             Refresh();
+            PlayShortage();
             return;
         }
         // 룬 문자는 완성품을 쓰지 않는 새 칸만 소모한다.
@@ -533,6 +601,8 @@ public class RuneBookV2Presenter : MonoBehaviour
             {
                 _dataSource.ConsumeOwned(id);
             }
+
+            PlayConfirmed();
 
             if (_loadout != null)
             {

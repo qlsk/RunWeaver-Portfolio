@@ -27,6 +27,9 @@ public class MainElementOrbView : MonoBehaviour, IPointerClickHandler
 
     public ReactionElement Element => _element;
 
+    /// <summary>선택 시 켜지는 원소 색 빛 (확정 연출이 복제해서 쓴다)</summary>
+    public Image Glow => _glow;
+
     private void Awake()
     {
         Color color = ReactionElementStyle.GetColor(_element);

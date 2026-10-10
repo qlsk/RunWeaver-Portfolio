@@ -10,6 +10,9 @@ using UnityEngine.UI;
 ///   빈 오브젝트에 이 컴포넌트를 붙여 두면 인스펙터에서 시간과 정렬 순서를 조절할 수 있다.
 ///   _blackImage를 비워 두면 전용 캔버스와 검은 이미지를 자식으로 만든다.
 /// - 게임 시간(Time.deltaTime)으로 돌아가므로 일시정지 중에는 멈춘다.
+/// - 걷히는 중에 게임이 멈추면(룬북, 일시정지) 그 화면들이 어둡게 가려지지 않도록 검은 화면을 잠시 숨긴다.
+///   다시 움직이면 멈췄던 곳부터 이어서 걷힌다.
+/// - 덮는 중(검게 되는 중, 유지 중)에는 IsCovering이 true다. 이때는 룬북과 일시정지를 열지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
 public class ScreenFader : MonoBehaviour
@@ -28,9 +31,13 @@ public class ScreenFader : MonoBehaviour
     private static ScreenFader s_instance;
 
     private Coroutine _routine;
+    private bool _isCovering;
 
     /// <summary>전환 연출이 진행 중인지 (이때는 일시정지를 열지 않는다)</summary>
     public static bool IsFading => s_instance != null && s_instance._routine != null;
+
+    /// <summary>화면을 덮는 중인지 (검게 되는 중 + 유지 중). 걷히는 중에는 false.</summary>
+    public static bool IsCovering => IsFading && s_instance._isCovering;
 
     public static ScreenFader Instance
     {
@@ -94,7 +101,8 @@ public class ScreenFader : MonoBehaviour
     private IEnumerator FadeThroughBlackRoutine(Action onBlack)
     {
         _blackImage.raycastTarget = true;
-        yield return FadeRoutine(_blackImage.color.a, 1f, _fadeInDuration);
+        _isCovering = true;
+        yield return FadeRoutine(_blackImage.color.a, 1f, _fadeInDuration, false);
 
         onBlack?.Invoke();
 
@@ -105,18 +113,23 @@ public class ScreenFader : MonoBehaviour
             yield return null;
         }
 
-        yield return FadeRoutine(1f, 0f, _fadeOutDuration);
+        _isCovering = false;
+        yield return FadeRoutine(1f, 0f, _fadeOutDuration, true);
         _blackImage.raycastTarget = false;
         _routine = null;
     }
 
-    private IEnumerator FadeRoutine(float from, float to, float duration)
+    /// <param name="hideWhilePaused">게임이 멈춘 동안 검은 화면을 숨긴다 (걷히는 중에만)</param>
+    private IEnumerator FadeRoutine(float from, float to, float duration, bool hideWhilePaused)
     {
         float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            SetAlpha(Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration)));
+            float alpha = Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration));
+            bool isPaused = hideWhilePaused && Time.timeScale <= 0f;
+            SetAlpha(isPaused ? 0f : alpha);
+            _blackImage.raycastTarget = !isPaused;
             yield return null;
         }
 
