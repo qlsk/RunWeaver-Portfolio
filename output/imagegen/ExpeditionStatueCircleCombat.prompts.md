@@ -1,0 +1,17 @@
+# ExpeditionStatueCircle combat images
+
+## Glow prompt
+
+Draw a standalone luminous magic-circle VFX game sprite on a fully transparent background. ONLY glowing mint-cyan linework floating in empty transparent space, like neon tubing bent into arcane symbols. Image 1 is the placement guide: reproduce the positions of the engraved concentric circles and glyphs, WITHOUT drawing its stone disk.
+Canvas square 1254x1254. Perfectly round circle centered in canvas, overhead view, not ellipse. Outer narrow circular line radius 515 pixels, second narrow circular line radius 409 pixels, innermost narrow circular line radius 240 pixels. Each line about 6 pixels thick. In the band between the first two circles: four hollow diamond symbols at top, right, bottom and left, plus two angular rune glyphs in each quadrant and small circular dots separating them. Four hollow circular nodes on the innermost ring at cardinal directions, connected outward by short straight radial lines ending in diamond nodes. Central region completely empty transparent.
+Render these individual thin strokes in bright pale MINT CYAN with slightly luminous soft halos only immediately around the strokes, crisp coarse pixel-art core edges matching the game reference. Empty space between individual lines and glyphs must remain invisible/transparent. The entire asset is sparse individual luminous lines, like a glowing wire diagram, with no filled ring areas. No stone, moss, texture, speckles, disk surface, broad rings, shaded panels or background. This is the visible GLOW sprite itself, NOT an extraction or threshold mask. PNG with true alpha transparency.
+
+Generator: built-in image_gen. Both images use transparent_background: true.
+
+## Base prompt
+
+Use case: style-transfer.
+Asset type: transparent 2D game sprite, ExpeditionStatueCircle Base.
+Image 1 ExpeditionMagicCircleInactive.png is the geometry/edit target. Image 2 ExpeditionRuneStoneCombat.png is the PRIMARY material, palette and coarse pixel-art style reference. Image 3 Ruins.png reinforces the existing game's slate-gray mossy pixel-art language.
+Restyle the circular stone magic platform in image 1 into the exact cold desaturated blue-gray/teal slate and sparse olive moss of image 2. Preserve image 1's circular front-on top-down geometry and centered square composition: segmented outer stone rim, two concentric bands surrounding a mostly quiet central solid disk, engraved geometric runes in the outer band, diamond nodes at the four compass directions, a thin concentric inner ring with four small circle nodes and short radial connectors. Keep these engravings crisp and dark, unlit, as a dormant base sprite. Use clearly visible coarse pixel clusters, limited color ramps, stepped clean edges, consistent game pixel density with image 2, NOT smooth painterly gradients. Restrained chipped stone edges and moss at a few joints; no extra rocks outside the circle. Retain the ring and symbol positions of image 1 as closely as possible so an overlay can be derived. The disk must be a perfect circular shape viewed directly from overhead, NOT an ellipse or isometric object; the game applies perspective itself.
+Output: one square PNG ideally 1254x1254, circular disk centered at 50%, outer disk diameter about 94% of canvas with even transparent margins. Actual RGBA transparency outside the disk; opaque stone surface inside it. No glow, no emission, no trees, no statue, no floor beyond the disk, no cast shadow outside it, no text, no labels, no watermark.
