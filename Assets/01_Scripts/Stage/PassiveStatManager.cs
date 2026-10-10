@@ -5,7 +5,8 @@ using UnityEngine;
 /// <summary>
 /// 보상 패시브 스택 보관 + 최종 스탯 계산. 런 한정 효과.
 ///
-/// - 스택은 합연산: 최종값 = 기본값 × (1 + valuePerStack × 스택 수)
+/// - 비율 스탯은 합연산: 최종값 = 기본값 × (1 + valuePerStack × 스택 수)
+/// - 탄창 크기는 스택당 정수 탄수를 더한다 (기본 +1발).
 /// - 증가량(valuePerStack)은 PassiveData에서 받아오며 하드코딩하지 않는다.
 /// - 각 스탯 시스템(공격/이동/재장전/탄창)은 GetMultiplier를 조회하거나 OnStatChanged를 구독한다.
 ///   보상 시스템은 스탯 계산 코드를 직접 건드리지 않는다.
@@ -102,7 +103,9 @@ public class PassiveStatManager : MonoBehaviour
             _valuePerStack[type] = DefaultValuePerStack;
         }
 
-        Debug.Log($"[PassiveStatManager] {type} 스택 {_stacks[type]} (배율 {GetMultiplier(type):F3})");
+        Debug.Log(type == PassiveStatType.MagazineSize
+            ? $"[PassiveStatManager] {type} 스택 {_stacks[type]} (추가 탄수 {GetMagazineBonus(1)}발)"
+            : $"[PassiveStatManager] {type} 스택 {_stacks[type]} (배율 {GetMultiplier(type):F3})");
         OnStatChanged?.Invoke(type);
         return true;
     }
@@ -127,7 +130,7 @@ public class PassiveStatManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 탄창 보너스 탄수. 올림 처리 + 최소 +1발 보장. 스택이 없으면 0.
+    /// 탄창 보너스 탄수. 기본 탄창 크기와 관계없이 스택당 정수 탄수를 더한다.
     /// </summary>
     public int GetMagazineBonus(int baseMagazine)
     {
@@ -136,8 +139,9 @@ public class PassiveStatManager : MonoBehaviour
             return 0;
         }
 
-        int increased = Mathf.CeilToInt(baseMagazine * GetMultiplier(PassiveStatType.MagazineSize));
-        return Mathf.Max(1, increased - baseMagazine);
+        float perStack = _valuePerStack.TryGetValue(PassiveStatType.MagazineSize, out float value) ? value : 1f;
+        int roundsPerStack = Mathf.Max(1, Mathf.RoundToInt(perStack));
+        return roundsPerStack * GetStacks(PassiveStatType.MagazineSize);
     }
 
     /// <summary>런 종료/사망 시 초기화.</summary>

@@ -33,11 +33,26 @@ public class RewardSelectUI : MonoBehaviour
     [Tooltip("리롤 버튼 (테스트용, 선택 사항. 비우면 리롤 없음)")]
     [SerializeField] private Button _externalRerollButton;
 
+    [Header("보상 UI 효과음")]
+    [SerializeField] private AudioClip _openSound;
+    [SerializeField] private AudioClip _hoverSound;
+    [SerializeField] private AudioClip _selectSound;
+    [SerializeField] private AudioClip _confirmSound;
+    [SerializeField] private AudioClip _rerollSound;
+    [SerializeField, Range(0f, 1f)] private float _openSoundVolume = 0.25f;
+    [SerializeField, Range(0f, 1f)] private float _hoverSoundVolume = 0.12f;
+    [SerializeField, Range(0f, 1f)] private float _selectSoundVolume = 0.3f;
+    [SerializeField, Range(0f, 1f)] private float _confirmSoundVolume = 0.4f;
+    [SerializeField, Range(0f, 1f)] private float _rerollSoundVolume = 0.25f;
+    [SerializeField, Range(0.5f, 2f)] private float _rerollSoundPitch = 1.4f;
+
     [Header("열 때 표시할 문구 (비워두면 씬에 적힌 그대로 유지)")]
     [Tooltip("보상 UI가 열릴 때 제목에 표시할 글자")]
     [SerializeField] private string _openTitleText = "보상을 선택하세요 (반드시 1개)";
     [Tooltip("미선택 상태에서 확정 버튼에 표시할 글자")]
     [SerializeField] private string _noSelectionText = "카드를 선택하세요";
+    [Tooltip("선택 후 확정 버튼에 표시할 글자")]
+    [SerializeField] private string _selectedConfirmText = "보상 받기";
 
     [Header("카드 색상 (플레이스홀더)")]
     [SerializeField, FormerlySerializedAs("normalCardColor")] private Color _normalCardColor = new(0.16f, 0.17f, 0.22f, 1f);
@@ -86,15 +101,20 @@ public class RewardSelectUI : MonoBehaviour
     private readonly List<Text> _cardNames = new();
     private readonly List<Text> _cardDescs = new();
     private readonly List<Text> _cardCategories = new();
+    private readonly List<RewardCardPresentation> _cardPresentations = new();
 
     private int _selectedIndex = -1;
     private bool _confirmLocked;
+    private AudioSource _audioSource;
+    private AudioSource _rerollAudioSource;
+    private float _lastHoverSoundTime = float.NegativeInfinity;
 
     private void Awake()
     {
         // Play 진입 시에는 인스펙터 최신값으로 항상 새로 만든다 (에디터 미리보기 잔재 무시).
         ClearBuilt();
         EnsureBuilt();
+        GameSettings.Changed += ApplySoundVolume;
         if (_root != null)
         {
             _root.SetActive(false);
@@ -122,6 +142,7 @@ public class RewardSelectUI : MonoBehaviour
     /// </summary>
     public void Open(IReadOnlyList<RewardOption> options)
     {
+        bool wasOpen = IsOpen;
         EnsureBuilt();
 
         if (options == null || options.Count != 3)
@@ -161,9 +182,9 @@ public class RewardSelectUI : MonoBehaviour
                 _cardIcons[i].sprite = null;
                 _cardIcons[i].color = option.Type == RewardType.RuneStone ? _runePlaceholderColor : _passivePlaceholderColor;
             }
-
-            _cardBackgrounds[i].color = _normalCardColor;
         }
+
+        RefreshCardVisuals();
 
         if (!string.IsNullOrEmpty(_openTitleText))
         {
@@ -171,6 +192,8 @@ public class RewardSelectUI : MonoBehaviour
         }
         RefreshConfirmButton();
         _root.SetActive(true);
+        if (!wasOpen)
+            PlaySound(_openSound, _openSoundVolume);
     }
 
     public void Close()
@@ -190,11 +213,11 @@ public class RewardSelectUI : MonoBehaviour
             return;
         }
 
+        bool selectionChanged = _selectedIndex != index;
         _selectedIndex = index;
-        for (int i = 0; i < _cardBackgrounds.Count; i++)
-        {
-            _cardBackgrounds[i].color = i == _selectedIndex ? _selectedCardColor : _normalCardColor;
-        }
+        if (selectionChanged)
+            PlaySound(_selectSound, _selectSoundVolume);
+        RefreshCardVisuals();
 
         Debug.Log($"[RewardSelectUI] 카드 선택: {index} ({_currentOptions[index].Title})", this);
         RefreshConfirmButton();
@@ -223,6 +246,7 @@ public class RewardSelectUI : MonoBehaviour
         }
 
         _confirmLocked = true;
+        PlaySound(_confirmSound, _confirmSoundVolume);
         RewardOption option = _currentOptions[_selectedIndex];
         Debug.Log($"[RewardSelectUI] 보상 확정: {option.Title}");
         OnOptionConfirmed?.Invoke(option);
@@ -239,7 +263,77 @@ public class RewardSelectUI : MonoBehaviour
         }
 
         Debug.Log("[RewardSelectUI] 리롤 요청", this);
+        PlaySound(ref _rerollAudioSource, _rerollSound, _rerollSoundVolume, _rerollSoundPitch);
         OnRerollRequested?.Invoke();
+    }
+
+    private void PlayHoverSound()
+    {
+        if (!IsOpen || _confirmLocked || Time.unscaledTime - _lastHoverSoundTime < 0.08f)
+            return;
+        _lastHoverSoundTime = Time.unscaledTime;
+        PlaySound(_hoverSound, _hoverSoundVolume);
+    }
+
+    private void PlaySound(AudioClip clip, float volume)
+    {
+        PlaySound(ref _audioSource, clip, volume, 1f);
+    }
+
+    private void PlaySound(ref AudioSource source, AudioClip clip, float volume, float pitch)
+    {
+        if (clip == null || !Application.isPlaying)
+            return;
+        if (source == null)
+        {
+            source = gameObject.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.ignoreListenerPause = true;
+        }
+        ApplySoundVolume();
+        source.pitch = pitch;
+        source.PlayOneShot(clip, volume);
+    }
+
+    private void ApplySoundVolume()
+    {
+        if (_audioSource != null)
+            _audioSource.volume = GameSettings.MasterVolume * GameSettings.SfxVolume;
+        if (_rerollAudioSource != null)
+            _rerollAudioSource.volume = GameSettings.MasterVolume * GameSettings.SfxVolume;
+    }
+
+    private void DetachCardSounds()
+    {
+        foreach (RewardCardPresentation presentation in _cardPresentations)
+        {
+            if (presentation != null)
+                presentation.HoverEntered -= PlayHoverSound;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        GameSettings.Changed -= ApplySoundVolume;
+        DetachCardSounds();
+    }
+
+    private void RefreshCardVisuals()
+    {
+        for (int i = 0; i < _cardBackgrounds.Count; i++)
+        {
+            bool selected = i == _selectedIndex;
+            if (i < _cardPresentations.Count && _cardPresentations[i] != null)
+            {
+                _cardBackgrounds[i].color = Color.clear;
+                _cardPresentations[i].SetSelected(selected);
+            }
+            else
+            {
+                _cardBackgrounds[i].color = selected ? _selectedCardColor : _normalCardColor;
+            }
+        }
     }
 
     private void RefreshConfirmButton()
@@ -253,7 +347,7 @@ public class RewardSelectUI : MonoBehaviour
         {
             if (_selectedIndex >= 0)
             {
-                _confirmLabel.text = $"확정: {_currentOptions[_selectedIndex].Title}";
+                _confirmLabel.text = _selectedConfirmText;
             }
             else if (!string.IsNullOrEmpty(_noSelectionText))
             {
@@ -349,6 +443,10 @@ public class RewardSelectUI : MonoBehaviour
             _cardDescs.Add(card.Desc);
             // 카테고리 텍스트는 선택 사항. 네가 추가하면 채워준다.
             _cardCategories.Add(card.Category);
+            RewardCardPresentation presentation = card.Button.GetComponent<RewardCardPresentation>();
+            _cardPresentations.Add(presentation);
+            if (presentation != null)
+                presentation.HoverEntered += PlayHoverSound;
 
             int captured = i;
             card.Button.onClick.RemoveAllListeners();
@@ -373,6 +471,7 @@ public class RewardSelectUI : MonoBehaviour
     /// </summary>
     private void ClearAutoBuilt()
     {
+        DetachCardSounds();
         if (_autoBuiltRoot != null)
         {
             DestroyTarget(_autoBuiltRoot);
@@ -392,6 +491,7 @@ public class RewardSelectUI : MonoBehaviour
         _cardNames.Clear();
         _cardDescs.Clear();
         _cardCategories.Clear();
+        _cardPresentations.Clear();
         _selectedIndex = -1;
         _confirmLocked = false;
     }
