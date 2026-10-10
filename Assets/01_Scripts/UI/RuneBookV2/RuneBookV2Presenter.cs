@@ -11,8 +11,10 @@ using UnityEngine.UI;
 /// 장착 규칙
 /// - 장착 규칙은 RuneEffectLoadout에서 검사한다. Confirm 전까지 변경은 화면에만 보관한다.
 /// - 원소를 넣으면 앞의 두 칸에 순서대로 삽입하고 기존 비원소 룬은 뒤로 민다.
-/// - 1번 칸(MAIN)의 주 원소는 오른쪽 클릭으로 해제할 수 없다.
-///   원소를 넣을 때 MAIN이 비어 있으면 MAIN에 넣는다.
+/// - 원소는 최소 1개, 최대 2개. 마지막 원소도 오른쪽 클릭으로 뺄 수는 있지만, 경고를 띄우고
+///   원소가 하나도 없으면 Confirm해도 확정하지 않는다. ("원소는 최소 1개 장착해야 합니다")
+///   MAIN 원소를 빼면 보조 원소가 MAIN으로 올라온다. 원소를 넣을 때 MAIN이 비어 있으면 MAIN에 넣는다.
+///   (시작 석상에서 처음 고르는 주 원소만 무료이고, 이후 새로 넣는 원소는 다른 룬처럼 룬 문자를 쓴다)
 /// - 서브 원소는 1개까지(MAIN과 같은 원소도 가능). 두 번째를 넣으면 "보조 원소는 하나만 장착할 수 있습니다".
 /// - 원소가 아닌 룬은 마지막 장착 룬 뒤에 들어간다. 빈 칸이 없으면 "모든 칸이 찼습니다".
 /// - 겹치기가 안 되는 룬을 이미 넣었으면 "이 룬은 중첩할 수 없습니다".
@@ -64,6 +66,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     [SerializeField] private string _usesOwnedText = "보유한 룬 워드 사용";
     [SerializeField] private string _notEnoughText = "룬석이 부족합니다";
     [SerializeField] private string _mainRequiredText = "주력 원소를 먼저 장착하세요";
+    [SerializeField] private string _elementRequiredText = "원소는 최소 1개 장착해야 합니다";
     [SerializeField] private string _subElementLimitText = "보조 원소는 하나만 장착할 수 있습니다";
     [SerializeField] private string _slotsFullText = "모든 칸이 찼습니다";
     [SerializeField] private string _notStackableText = "이 룬은 중첩할 수 없습니다";
@@ -367,9 +370,6 @@ public class RuneBookV2Presenter : MonoBehaviour
         }
 
         int index = socket.Index;
-        if (index == RuneEffectLoadout.PrimaryElementSlotIndex)
-            return;
-
         if (index < 0 || index >= ActiveSlotCount || _slotIds[index] == null)
         {
             return;
@@ -382,7 +382,33 @@ public class RuneBookV2Presenter : MonoBehaviour
         _slotIds[ActiveSlotCount - 1] = null;
         UpdateNewEquipmentFlags();
 
+        // 원소는 최소 1개 : 빼는 건 허용하고 경고만 띄운다. (Confirm에서 막는다)
+        if (!HasElementInSlots())
+        {
+            ShowToast(_elementRequiredText);
+        }
+
         Refresh();
+    }
+
+    private bool IsElement(string effectId)
+    {
+        return !string.IsNullOrEmpty(effectId) &&
+               _entries.TryGetValue(effectId, out RuneBookEntryData entry) &&
+               entry.Category == RuneEffectCategory.Element;
+    }
+
+    private bool HasElementInSlots()
+    {
+        for (int i = 0; i < ActiveSlotCount; i++)
+        {
+            if (IsElement(_slotIds[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void UpdateNewEquipmentFlags()
@@ -470,6 +496,13 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         if (_dataSource == null || _isViewOnly)
         {
+            return;
+        }
+
+        if (!HasElementInSlots())
+        {
+            ShowToast(_elementRequiredText);
+            Refresh();
             return;
         }
 
@@ -777,7 +810,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         if (_confirmGlow != null)
         {
-            _confirmGlow.SetActive(canConfirm);
+            _confirmGlow.SetActive(canConfirm && HasElementInSlots());
         }
 
         if (_confirmInfoText == null)
@@ -793,7 +826,11 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         string info;
         bool isWarning = true;
-        if (HasShortage())
+        if (!HasElementInSlots())
+        {
+            info = _elementRequiredText;
+        }
+        else if (HasShortage())
         {
             info = _notEnoughText;
         }
