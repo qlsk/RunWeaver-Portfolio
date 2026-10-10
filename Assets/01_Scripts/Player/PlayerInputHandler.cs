@@ -37,7 +37,8 @@ public class PlayerInputHandler : MonoBehaviour
 
     public bool IsReloadPressed => CanUseWeaponInput && Input.GetKeyDown(_playerReloadKeyCode);
 
-    private bool CanUseWeaponInput => !_isPopupOpened && !PauseController.IsGamePaused && !RunFlow.HasEnded;
+    private bool CanUseWeaponInput => !_isPopupOpened && Time.frameCount != _popupClosedFrame
+        && !PauseController.IsGamePaused && !RunFlow.HasEnded;
 
     // player move input (위 아래 왼쪽 오른쪽)
     private Vector2 _moveDirection;
@@ -49,9 +50,11 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 LastDirection => _lastDirection;
 
     private bool _isPopupOpened;
+    private int _popupClosedFrame = -1;
 
     private void OnEnable()
     {
+        _isPopupOpened = _popupController.IsOpen;
         _popupController.PopupOpenStateChanged += OnPopupOpenStateChanged;
     }
 
@@ -65,7 +68,7 @@ public class PlayerInputHandler : MonoBehaviour
         // 마우스 position 갱신
         _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        if (!_isPopupOpened)
+        if (CanUseWeaponInput)
         {
             // player move input 갱신
             float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
@@ -105,6 +108,7 @@ public class PlayerInputHandler : MonoBehaviour
         }
         else
         {
+            _moveDirection = Vector2.zero;
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 UICloseRequested?.Invoke();
@@ -115,5 +119,9 @@ public class PlayerInputHandler : MonoBehaviour
     private void OnPopupOpenStateChanged(bool isOpened)
     {
         _isPopupOpened = isOpened;
+        if (!isOpened)
+        {
+            _popupClosedFrame = Time.frameCount;
+        }
     }
 }

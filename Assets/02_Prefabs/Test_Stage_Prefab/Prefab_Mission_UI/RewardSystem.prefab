@@ -73,7 +73,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 41788a3917f71f24e8954b6d1dbe1831, type: 2}
   _runeStoneIcon: {fileID: 21300000, guid: 734bc7f98ee14e1f870aca0d8393b7f8, type: 3}
   _runeStoneTitleFormat: "\uB8EC\uC11D {0}\uAC1C"
-  _runeStoneDescriptionFormat: "\uB8EC\uC11D {0}\uAC1C\uB97C \uD68D\uB4DD\uD569\uB2C8\uB2E4"
+  _runeStoneDescriptionFormat: "플레이어 주변에 룬석 {0}개가 생성됩니다."
   _traitPool:
   - {fileID: 11400000, guid: b7541f0c7515270459db812cba25864d, type: 2}
   - {fileID: 11400000, guid: 3dc098a7ba495eb4eb492caf96d473d8, type: 2}
@@ -133,10 +133,22 @@ MonoBehaviour:
   _externalConfirmButton: {fileID: 0}
   _externalConfirmLabel: {fileID: 0}
   _externalRerollButton: {fileID: 0}
+  _openSound: {fileID: 8300000, guid: de613937c3ca23d49a25b72446fe340e, type: 3}
+  _hoverSound: {fileID: 8300000, guid: 2c8c7e35d04405d4ebb5d1a74acf35f9, type: 3}
+  _selectSound: {fileID: 8300000, guid: 012c7ae101b88df4d8ce2f71b79c6e00, type: 3}
+  _confirmSound: {fileID: 8300000, guid: 0cf841629c36e714b89c795264a5bf2e, type: 3}
+  _rerollSound: {fileID: 8300000, guid: 66104518864c5184d928fca8f73e06de, type: 3}
+  _openSoundVolume: 0.25
+  _hoverSoundVolume: 0.12
+  _selectSoundVolume: 0.3
+  _confirmSoundVolume: 0.4
+  _rerollSoundVolume: 0.3
+  _rerollSoundPitch: 1.4
   _openTitleText: "\uBCF4\uC0C1\uC744 \uC120\uD0DD\uD558\uC138\uC694"
-  _noSelectionText: "\uCE74\uB4DC\uB97C \uC120\uD0DD\uD558\uC138\uC694"
-  _normalCardColor: {r: 0.16, g: 0.17, b: 0.22, a: 1}
-  _selectedCardColor: {r: 0.85, g: 0.65, b: 0.2, a: 1}
+  _noSelectionText: 카드를 선택하세요
+  _selectedConfirmText: 보상 받기
+  _normalCardColor: {r: 0.7, g: 0.8, b: 0.78, a: 1}
+  _selectedCardColor: {r: 0.85, g: 0.8, b: 0.65, a: 1}
   _runePlaceholderColor: {r: 0.4, g: 0.7, b: 1, a: 1}
   _passivePlaceholderColor: {r: 0.55, g: 0.9, b: 0.55, a: 1}
   _panelSize: {x: 1080, y: 680}
