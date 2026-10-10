@@ -101,6 +101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3238339318829134618}
   - component: {fileID: 2896922333138103206}
+  - component: {fileID: 11400014}
   m_Layer: 0
   m_Name: MoltenArea
   m_TagString: Untagged
@@ -137,3 +138,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoltenArea
   _rangeCheckInterval: 0.1
+  _areaVisuals: {fileID: 11400014}
+--- !u!114 &11400014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4356841241529970190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 872f42f9261b4cfe9a9ae45acecc9d81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionAreaVisuals
+  _effectPrefab: {fileID: 5135120590623053697, guid: 00911a40327a4114a38e58b146d72e0e, type: 3}
+  _referenceRadius: 0.9
