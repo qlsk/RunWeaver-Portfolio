@@ -28,6 +28,7 @@ public class EnemyTankAttack : MonoBehaviour
     private EnemyStatusEffectController _statusEffects;
     private SpriteRenderer _indicator;
     private readonly HashSet<PlayerHealth> _damagedPlayers = new HashSet<PlayerHealth>();
+    private readonly HashSet<DefenseAltar> _damagedAltars = new HashSet<DefenseAltar>();
     private Vector2 _attackCenter;
     private float _pendingRadius;
     private float _attackTime;
@@ -126,20 +127,26 @@ public class EnemyTankAttack : MonoBehaviour
     private void ExecuteAttack()
     {
         _damagedPlayers.Clear();
+        _damagedAltars.Clear();
 
-        // 피격 영역만 검사하고 같은 플레이어의 중복 피해를 방지한다.
+        // 한 번의 공격에서 같은 대상의 여러 Collider에 중복 피해를 주지 않는다.
         var filter = new ContactFilter2D { useTriggers = true };
         var hits = new List<Collider2D>();
         Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
         foreach (Collider2D hit in hits)
         {
-            if (!hit.TryGetComponent(out PlayerHitbox hitbox))
-                continue;
-
-            PlayerHealth player = hitbox.Health;
-            if (player != null && !player.IsDead && _damagedPlayers.Add(player))
+            if (hit == null) continue;
+            if (hit.TryGetComponent(out PlayerHitbox hitbox))
             {
-                player.TakeDamage(_damage);
+                PlayerHealth player = hitbox.Health;
+                if (player != null && !player.IsDead && _damagedPlayers.Add(player))
+                    player.TakeDamage(_damage);
+            }
+            else
+            {
+                DefenseAltar altar = hit.GetComponentInParent<DefenseAltar>();
+                if (altar != null && altar.isActiveAndEnabled && !altar.IsDestroyed && _damagedAltars.Add(altar))
+                    altar.TakeDamage(_damage);
             }
         }
     }

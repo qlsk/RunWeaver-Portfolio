@@ -34,6 +34,7 @@ public class EnemyRockfallAttack : MonoBehaviour
     private readonly List<Strike> _pending = new List<Strike>();
     private readonly List<Collider2D> _hits = new List<Collider2D>();
     private readonly HashSet<PlayerHealth> _damagedPlayers = new HashSet<PlayerHealth>();
+    private readonly HashSet<DefenseAltar> _damagedAltars = new HashSet<DefenseAltar>();
     private EnemyMotor _motor;
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
@@ -163,12 +164,22 @@ public class EnemyRockfallAttack : MonoBehaviour
     {
         _hits.Clear();
         _damagedPlayers.Clear();
+        _damagedAltars.Clear();
         Physics2D.OverlapCircle(center, _pendingRadius, new ContactFilter2D { useTriggers = true }, _hits);
         foreach (Collider2D hit in _hits)
         {
-            if (hit == null || !hit.TryGetComponent(out PlayerHitbox hitbox)) continue;
-            PlayerHealth player = hitbox.Health;
-            if (player != null && !player.IsDead && _damagedPlayers.Add(player)) player.TakeDamage(_pendingDamage);
+            if (hit == null) continue;
+            if (hit.TryGetComponent(out PlayerHitbox hitbox))
+            {
+                PlayerHealth player = hitbox.Health;
+                if (player != null && !player.IsDead && _damagedPlayers.Add(player)) player.TakeDamage(_pendingDamage);
+            }
+            else
+            {
+                DefenseAltar altar = hit.GetComponentInParent<DefenseAltar>();
+                if (altar != null && altar.isActiveAndEnabled && !altar.IsDestroyed && _damagedAltars.Add(altar))
+                    altar.TakeDamage(_pendingDamage);
+            }
             if (State == EnemyAttackState.Idle) return;
         }
     }

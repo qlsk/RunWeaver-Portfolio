@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-/// 일정 간격으로 대상 위치를 관측하고 출처별 보정으로 관측 간격을 조절한다.
+/// 활성 제단을 우선 추적하고 일정 간격으로 대상 위치를 관측한다.
 public class EnemyTargetDetector : MonoBehaviour
 {
     [FoldoutGroup("Settings"), SerializeField] private float _baseTrackingInterval = 0.1f;
@@ -11,6 +11,8 @@ public class EnemyTargetDetector : MonoBehaviour
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] private float _trackingIntervalMultiplier = 1f;
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")]
     private readonly Dictionary<int, float> _trackingIntervalModifiers = new();
+    private Transform _fallbackTarget;
+    private float _nextPlayerSearchTime;
 
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public Transform Target { get; private set; }
     [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")]
@@ -20,16 +22,12 @@ public class EnemyTargetDetector : MonoBehaviour
 
     private void Awake()
     {
-        if (Target != null)
-            return;
-
-        var player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-            SetTarget(player.transform);
+        RefreshTarget();
     }
 
     private void FixedUpdate()
     {
+        RefreshTarget();
         if (Target == null)
             return;
 
@@ -43,9 +41,31 @@ public class EnemyTargetDetector : MonoBehaviour
 
     public void SetTarget(Transform target)
     {
-        Target = target;
+        _fallbackTarget = target;
+        RefreshTarget();
+    }
+
+    private void RefreshTarget()
+    {
+        Transform nextTarget;
+        if (!DefenseAltar.TryGetEnemyTarget(transform, out nextTarget))
+        {
+            if ((_fallbackTarget == null || !_fallbackTarget.gameObject.activeInHierarchy) &&
+                Time.time >= _nextPlayerSearchTime)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                _fallbackTarget = player != null ? player.transform : null;
+                _nextPlayerSearchTime = Time.time + 0.5f;
+            }
+
+            nextTarget = _fallbackTarget != null && _fallbackTarget.gameObject.activeInHierarchy
+                ? _fallbackTarget : null;
+        }
+
+        if (Target == nextTarget) return;
+        Target = nextTarget;
         _trackingTimer = 0f;
-        LastKnownTargetPosition = target.position;
+        LastKnownTargetPosition = nextTarget != null ? (Vector2)nextTarget.position : (Vector2)transform.position;
     }
 
     public void AddTrackingIntervalModifier(int sourceId, float multiplier)
