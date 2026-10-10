@@ -1,5 +1,6 @@
 using MoreMountains.Tools;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// HUD 체력바. Feel의 MMProgressBar로 표시한다.
@@ -12,6 +13,10 @@ public class HealthBarView : MonoBehaviour
     [SerializeField] private MMProgressBar _progressBar;
 
     private bool _hasShownOnce;
+
+    /// <summary>앞쪽 체력 바 이미지 (체력 위험 연출이 색을 바꾼다)</summary>
+    public Image FillImage =>
+        _progressBar != null && _progressBar.ForegroundBar != null ? _progressBar.ForegroundBar.GetComponent<Image>() : null;
 
     private void Awake()
     {
