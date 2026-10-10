@@ -8,6 +8,8 @@ public class SandstormArea : MonoBehaviour
 {
     [FoldoutGroup("Settings"), SerializeField] private float _rangeCheckInterval = 0.1f;
 
+    [FoldoutGroup("References"), SerializeField] private ReactionAreaVisuals _areaVisuals;
+
     // Runtime settings
     private float _radius;
     private float _tickDamage;
@@ -40,6 +42,8 @@ public class SandstormArea : MonoBehaviour
         _tickTimer = 0f;
         _rangeCheckTimer = 0f;
         _isInitialized = true;
+        if (_areaVisuals != null)
+            _areaVisuals.Initialize(_radius);
 
         if (isActiveAndEnabled)
             RefreshModifiers();
