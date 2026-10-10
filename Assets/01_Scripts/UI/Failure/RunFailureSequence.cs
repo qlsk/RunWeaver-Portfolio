@@ -216,6 +216,9 @@ public class RunFailureSequence : MonoBehaviour
         CollectSceneLights();
         _sceneTint = Color.white;
 
+        // 포탈 연출 중이면 숨겨진 플레이어 그림을 먼저 되돌린다. (숨긴 채로는 분해 연출이 걸리지 않는다)
+        PortalPlayerHider.ReleaseAll();
+
         _worldRoot = new GameObject("RunFailureFx");
         if (_playerHealth != null && _shader != null)
         {

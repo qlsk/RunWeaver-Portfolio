@@ -22,22 +22,26 @@ public class ScreenFader : MonoBehaviour
     [Tooltip("자동으로 만드는 캔버스의 정렬 순서. HUD보다 위에 오도록 크게 둔다.")]
     [SerializeField] private int _sortingOrder = 500;
     [Tooltip("검은 화면이 되기까지의 시간(초)")]
-    [SerializeField, Min(0f)] private float _fadeInDuration = 0.3f;
+    [SerializeField, Min(0f)] private float _fadeInDuration = 0.6f;
     [Tooltip("검은 화면을 유지하는 시간(초). 이 동안 다음 층이 준비된다.")]
-    [SerializeField, Min(0f)] private float _holdDuration = 0.25f;
+    [SerializeField, Min(0f)] private float _holdDuration = 0.35f;
     [Tooltip("검은 화면이 걷히기까지의 시간(초)")]
-    [SerializeField, Min(0f)] private float _fadeOutDuration = 0.4f;
+    [SerializeField, Min(0f)] private float _fadeOutDuration = 0.9f;
 
     private static ScreenFader s_instance;
 
     private Coroutine _routine;
     private bool _isCovering;
+    private bool _isBlack;
 
     /// <summary>전환 연출이 진행 중인지 (이때는 일시정지를 열지 않는다)</summary>
     public static bool IsFading => s_instance != null && s_instance._routine != null;
 
     /// <summary>화면을 덮는 중인지 (검게 되는 중 + 유지 중). 걷히는 중에는 false.</summary>
     public static bool IsCovering => IsFading && s_instance._isCovering;
+
+    /// <summary>화면이 완전히 검게 덮여 있는지 (검게 된 뒤 유지하는 동안)</summary>
+    public static bool IsBlack => IsFading && s_instance._isBlack;
 
     public static ScreenFader Instance
     {
@@ -103,6 +107,7 @@ public class ScreenFader : MonoBehaviour
         _blackImage.raycastTarget = true;
         _isCovering = true;
         yield return FadeRoutine(_blackImage.color.a, 1f, _fadeInDuration, false);
+        _isBlack = true;
 
         onBlack?.Invoke();
 
@@ -113,6 +118,7 @@ public class ScreenFader : MonoBehaviour
             yield return null;
         }
 
+        _isBlack = false;
         _isCovering = false;
         yield return FadeRoutine(1f, 0f, _fadeOutDuration, true);
         _blackImage.raycastTarget = false;

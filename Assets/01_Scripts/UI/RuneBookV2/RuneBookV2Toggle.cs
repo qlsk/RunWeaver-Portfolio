@@ -42,6 +42,9 @@ public class RuneBookV2Toggle : MonoBehaviour
 
         // 씬에 켜진 상태로 저장되어 있어도 게임은 룬북이 닫힌 상태로 시작한다.
         _runeBook.SetActive(false);
+
+        // 화면 오른쪽 위 메뉴 안내 ([룬북][TAB] [일시정지][ESC], 새로 장착 가능한 룬 워드 알림)
+        HudMenuHints.Create(this);
     }
 
     private void OnEnable()
