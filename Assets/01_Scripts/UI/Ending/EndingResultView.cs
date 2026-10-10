@@ -13,6 +13,12 @@ using UnityEngine.UI;
 /// 열릴 때 보고서가 아래에서 올라오고, 잠시 뒤 도장이 쾅 찍힌다. (실제 시간)
 /// 도장이 닿는 순간 종이가 살짝 떨리고, 도장 가장자리에서 먼지가 옅게 피어올라 흩어진다.
 /// 버튼은 이벤트만 발생시키고, 실제 씬 이동은 EndingResultPresenter가 담당한다.
+///
+/// 종료 사유에 따라 바뀌는 것
+/// - 공통 : 도장, 소견, 오른쪽 제목과 부제, 제목 색과 뒤에 번지는 빛 색
+/// - 임무 실패 : 다섯째 줄이 "오염도"로 바뀌고 아래에 "오염 한계 초과" 표시. 종이 위 오염 얼룩, 보랏빛 배경
+/// - 보스 처치 : 보고서 제목이 "정화 보고서"로 바뀌고 금박 테두리와 인장, 푸른 배경. 첫 메뉴가 "다음 탐사 시작"
+/// 결과별 장식은 _xxxDecorations에 넣은 오브젝트를 해당 결과일 때만 켠다.
 /// </summary>
 [DisallowMultipleComponent]
 public class EndingResultView : MonoBehaviour
@@ -51,11 +57,11 @@ public class EndingResultView : MonoBehaviour
     };
     [SerializeField, TextArea] private string[] _missionFailedRemarks =
     {
-        "제한 시간 내 정화 실패.\n개체가 오염에 잠식되었다.",
+        "임무 시한 초과. 개체가 오염에 잠식됨.\n잔해 회수 불가. 해당 구역 접근 금지.",
     };
     [SerializeField, TextArea] private string[] _abandonedRemarks =
     {
-        "개체가 조사를 중단했다.\n사유 미기재.",
+        "조사 중단 요청에 따라 개체를 회수함.\n장착 룬은 회수 과정에서 소실되었다.",
     };
     [SerializeField, TextArea] private string[] _clearedRemarks =
     {
@@ -75,17 +81,44 @@ public class EndingResultView : MonoBehaviour
     [Tooltip("제목 뒤에 번지는 빛. 결과에 따라 색이 바뀐다")]
     [SerializeField] private Graphic _titleGlow;
     [SerializeField] private string _diedTitle = "탐사 종료";
-    [SerializeField] private string _missionFailedTitle = "임무 실패";
+    [SerializeField] private string _missionFailedTitle = "개체 잠식";
     [SerializeField] private string _abandonedTitle = "탐사 중단";
     [SerializeField] private string _clearedTitle = "정령계 정화";
     [SerializeField] private string _diedSubtitle = "호문쿨루스 제 {0}호의 기록이 협회에 제출되었습니다.";
-    [SerializeField] private string _missionFailedSubtitle = "호문쿨루스 제 {0}호의 기록이 협회에 제출되었습니다.";
-    [SerializeField] private string _abandonedSubtitle = "호문쿨루스 제 {0}호가 조사를 중단했습니다.";
-    [SerializeField] private string _clearedSubtitle = "호문쿨루스 제 {0}호가 임무를 완수했습니다.";
+    [SerializeField] private string _missionFailedSubtitle = "호문쿨루스 제 {0}호의 기록이 오염된 채 회수되었습니다.";
+    [SerializeField] private string _abandonedSubtitle = "호문쿨루스 제 {0}호가 협회로 회수되었습니다.";
+    [SerializeField] private string _clearedSubtitle = "호문쿨루스 제 {0}호가 오염의 근원을 정화했습니다.";
     [SerializeField] private Color _diedGlowColor = new(0.6f, 0.12f, 0.12f, 0.45f);
-    [SerializeField] private Color _missionFailedGlowColor = new(0.6f, 0.32f, 0.1f, 0.45f);
+    [SerializeField] private Color _missionFailedGlowColor = new(0.55f, 0.24f, 0.67f, 0.5f);
     [SerializeField] private Color _abandonedGlowColor = new(0.4f, 0.4f, 0.4f, 0.35f);
-    [SerializeField] private Color _clearedGlowColor = new(0.35f, 0.3f, 0.85f, 0.45f);
+    [SerializeField] private Color _clearedGlowColor = new(0.43f, 0.63f, 0.9f, 0.5f);
+    [Tooltip("임무 실패일 때 제목 글자색. 나머지(사망, 포기)는 프리팹에 적힌 색을 쓴다")]
+    [SerializeField] private Color _missionFailedTitleColor = new(0.886f, 0.808f, 0.91f, 1f);
+    [SerializeField] private Color _clearedTitleColor = new(0.925f, 0.941f, 0.98f, 1f);
+
+    [Header("보고서 제목")]
+    [SerializeField] private TMP_Text _reportTitleText;
+    [SerializeField] private string _reportTitle = "조사 보고서";
+    [SerializeField] private string _clearedReportTitle = "정화 보고서";
+
+    [Header("오염도 (임무 실패일 때 다섯째 줄)")]
+    [SerializeField] private string _contaminationLabel = "오염도";
+    [SerializeField] private string _contaminationValue = "100%";
+    [SerializeField] private Color _contaminationColor = new(0.43f, 0.16f, 0.47f, 1f);
+    [Tooltip("다섯째 줄 아래 표시 (최단 기록 갱신 표시 자리를 같이 쓴다)")]
+    [SerializeField] private string _contaminationNote = "▲ 오염 한계 초과";
+
+    [Header("결과별 장식 (해당 결과일 때만 켠다)")]
+    [SerializeField] private GameObject[] _diedDecorations;
+    [SerializeField] private GameObject[] _missionFailedDecorations;
+    [SerializeField] private GameObject[] _abandonedDecorations;
+    [SerializeField] private GameObject[] _clearedDecorations;
+
+    [Header("메뉴 글자")]
+    [Tooltip("첫 메뉴(다시 시작)의 글자")]
+    [SerializeField] private TMP_Text _restartLabel;
+    [SerializeField] private string _restartText = "다음 개체 투입";
+    [SerializeField] private string _clearedRestartText = "다음 탐사 시작";
 
     [Header("메뉴 (0 : 다음 개체 투입, 1 : 타이틀로 돌아가기)")]
     [SerializeField] private EndingMenuView _menu;
@@ -123,6 +156,10 @@ public class EndingResultView : MonoBehaviour
     private readonly List<RectTransform> _dustParticles = new();
     private Vector2 _reportBasePosition;
     private Vector3 _stampBaseScale = Vector3.one;
+    private TMP_Text _newRecordMarkText;
+    private string _newRecordMarkDefaultText = string.Empty;
+    private Color _newRecordMarkDefaultColor = Color.white;
+    private Color _defaultTitleColor = Color.white;
     private bool _isInitialized;
 
     /// <summary>다음 개체 투입(다시 시작)을 골랐을 때</summary>
@@ -188,23 +225,33 @@ public class EndingResultView : MonoBehaviour
 
         if (_damageRow != null) _damageRow.SetValue(result.TotalDamage.ToString("#,0", CultureInfo.InvariantCulture));
         if (_killRow != null) _killRow.SetValue(result.KillCount.ToString("#,0", CultureInfo.InvariantCulture));
+        bool isContaminated = reason == RunEndReason.MissionFailed;
         if (_bestClearRow != null)
         {
-            string best = bestClearSeconds >= 0f ? FormatTime(bestClearSeconds) : _noRecordText;
-            if (isNewRecord)
+            if (isContaminated)
             {
-                _bestClearRow.SetValue(best, _newRecordColor);
+                _bestClearRow.SetLabel(_contaminationLabel);
+                _bestClearRow.SetValue(_contaminationValue, _contaminationColor);
             }
             else
             {
-                _bestClearRow.SetValue(best);
+                _bestClearRow.SetLabel(_bestClearRow.DefaultLabel);
+                string best = bestClearSeconds >= 0f ? FormatTime(bestClearSeconds) : _noRecordText;
+                if (isNewRecord)
+                {
+                    _bestClearRow.SetValue(best, _newRecordColor);
+                }
+                else
+                {
+                    _bestClearRow.SetValue(best);
+                }
             }
         }
 
-        if (_newRecordMark != null)
-        {
-            _newRecordMark.SetActive(isNewRecord);
-        }
+        ShowRowNote(isContaminated, isNewRecord);
+        SetText(_reportTitleText, reason == RunEndReason.Cleared ? _clearedReportTitle : _reportTitle);
+        SetText(_restartLabel, reason == RunEndReason.Cleared ? _clearedRestartText : _restartText);
+        ShowDecorations(reason);
 
         SetText(_remarkText, Pick(GetRemarks(reason)));
 
@@ -214,6 +261,11 @@ public class EndingResultView : MonoBehaviour
         }
 
         SetText(_titleText, GetTitle(reason));
+        if (_titleText != null)
+        {
+            _titleText.color = GetTitleColor(reason);
+        }
+
         SetText(_subtitleText, string.Format(GetSubtitle(reason), number));
         if (_titleGlow != null)
         {
@@ -500,6 +552,73 @@ public class EndingResultView : MonoBehaviour
         {
             _stampBaseScale = _stampImage.rectTransform.localScale;
         }
+
+        if (_newRecordMark != null)
+        {
+            _newRecordMarkText = _newRecordMark.GetComponent<TMP_Text>();
+            if (_newRecordMarkText != null)
+            {
+                _newRecordMarkDefaultText = _newRecordMarkText.text;
+                _newRecordMarkDefaultColor = _newRecordMarkText.color;
+            }
+        }
+
+        if (_titleText != null)
+        {
+            _defaultTitleColor = _titleText.color;
+        }
+    }
+
+    /// <summary>다섯째 줄 아래 표시 : 임무 실패면 "오염 한계 초과", 최단 기록을 갱신했으면 "최단 기록 갱신"</summary>
+    private void ShowRowNote(bool isContaminated, bool isNewRecord)
+    {
+        if (_newRecordMark == null)
+        {
+            return;
+        }
+
+        _newRecordMark.SetActive(isContaminated || isNewRecord);
+        if (_newRecordMarkText == null)
+        {
+            return;
+        }
+
+        _newRecordMarkText.text = isContaminated ? _contaminationNote : _newRecordMarkDefaultText;
+        _newRecordMarkText.color = isContaminated ? _contaminationColor : _newRecordMarkDefaultColor;
+    }
+
+    /// <summary>결과별 장식을 모두 끈 뒤 이번 결과의 장식만 켠다.</summary>
+    private void ShowDecorations(RunEndReason reason)
+    {
+        SetActive(_diedDecorations, false);
+        SetActive(_missionFailedDecorations, false);
+        SetActive(_abandonedDecorations, false);
+        SetActive(_clearedDecorations, false);
+
+        GameObject[] decorations = reason switch
+        {
+            RunEndReason.MissionFailed => _missionFailedDecorations,
+            RunEndReason.Abandoned => _abandonedDecorations,
+            RunEndReason.Cleared => _clearedDecorations,
+            _ => _diedDecorations
+        };
+        SetActive(decorations, true);
+    }
+
+    private static void SetActive(GameObject[] objects, bool isActive)
+    {
+        if (objects == null)
+        {
+            return;
+        }
+
+        foreach (GameObject target in objects)
+        {
+            if (target != null)
+            {
+                target.SetActive(isActive);
+            }
+        }
     }
 
     private static void SetText(TMP_Text text, string value)
@@ -556,6 +675,13 @@ public class EndingResultView : MonoBehaviour
         RunEndReason.Abandoned => _abandonedSubtitle,
         RunEndReason.Cleared => _clearedSubtitle,
         _ => _diedSubtitle
+    };
+
+    private Color GetTitleColor(RunEndReason reason) => reason switch
+    {
+        RunEndReason.MissionFailed => _missionFailedTitleColor,
+        RunEndReason.Cleared => _clearedTitleColor,
+        _ => _defaultTitleColor
     };
 
     private Color GetGlowColor(RunEndReason reason) => reason switch
