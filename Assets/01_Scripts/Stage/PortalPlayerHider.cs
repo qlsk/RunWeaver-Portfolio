@@ -10,14 +10,19 @@ using UnityEngine.Rendering;
 /// - 직접 숨긴 경우(watchTransition = false)에는 RestoreNow를 부를 때까지 숨겨 둔다. (런 시작 도착 연출)
 /// - keepVisible이면 그림은 그대로 보이고 조작만 막는다. (페이드 방식 층 이동)
 /// - 전환이 시작되지 않으면(포탈 사용 실패 등) 잠시 뒤 되돌린다.
+/// - 연출 도중 런이 끝나면(사망, 조사 포기) 실패 연출이 ReleaseAll을 불러 플레이어 그림을 바로 되돌린다.
+///   그래야 실패 연출이 진짜 플레이어를 분해할 수 있다. 이미 죽었으면 조작은 되돌리지 않는다.
 /// 포탈은 층 이동 때 파괴되므로 이 컴포넌트는 따로 만든 오브젝트에서 돈다.
 /// </summary>
 public class PortalPlayerHider : MonoBehaviour
 {
     private const float FallbackRestoreDelay = 4f;
 
+    private static readonly List<PortalPlayerHider> s_active = new();
+
     private readonly List<SpriteRenderer> _renderers = new();
     private readonly List<Behaviour> _behaviours = new();
+    private readonly List<SpriteRenderer> _ghosts = new();
     private Rigidbody2D _rigidbody;
     private bool _wasSimulated;
     private bool _sawCovering;
@@ -44,6 +49,31 @@ public class PortalPlayerHider : MonoBehaviour
         hider._watchTransition = watchTransition;
         hider.Initialize(player, keepVisible);
         return hider;
+    }
+
+    /// <summary>
+    /// 진행 중인 포탈 연출을 모두 멈추고 플레이어 그림을 되돌린다. (실패 연출이 시작될 때)
+    /// 복사본과 도착 균열은 지운다. 플레이어가 죽었으면 조작은 막힌 채로 둔다.
+    /// </summary>
+    public static void ReleaseAll()
+    {
+        foreach (PortalArrival arrival in FindObjectsByType<PortalArrival>(FindObjectsSortMode.None))
+        {
+            Destroy(arrival.gameObject);
+        }
+
+        foreach (PortalPlayerHider hider in s_active.ToArray())
+        {
+            if (hider != null)
+            {
+                hider.Restore(true);
+            }
+        }
+    }
+
+    private void Awake()
+    {
+        s_active.Add(this);
     }
 
     /// <summary>숨긴 플레이어를 바로 되돌린다.</summary>
@@ -118,6 +148,7 @@ public class PortalPlayerHider : MonoBehaviour
             ghost.sortingLayerID = source.sortingLayerID;
             ghost.sortingOrder = Mathf.Clamp(baseOrder + source.sortingOrder, -32768, 32767);
             ghosts.Add(ghost);
+            _ghosts.Add(ghost);
             source.enabled = false;
         }
 
@@ -152,6 +183,7 @@ public class PortalPlayerHider : MonoBehaviour
 
     private void OnDestroy()
     {
+        s_active.Remove(this);
         Restore(false);
     }
 
@@ -163,6 +195,15 @@ public class PortalPlayerHider : MonoBehaviour
         }
 
         _isRestored = true;
+        foreach (SpriteRenderer ghost in _ghosts)
+        {
+            if (ghost != null)
+            {
+                Destroy(ghost.gameObject);
+            }
+        }
+
+        _ghosts.Clear();
         foreach (SpriteRenderer renderer in _renderers)
         {
             if (renderer != null)
@@ -171,9 +212,11 @@ public class PortalPlayerHider : MonoBehaviour
             }
         }
 
+        // 연출 도중 죽었으면 PlayerLifecycle이 끈 조작을 다시 켜지 않는다.
+        bool isDead = _player != null && _player.TryGetComponent(out PlayerHealth health) && health.IsDead;
         foreach (Behaviour behaviour in _behaviours)
         {
-            if (behaviour != null)
+            if (behaviour != null && !isDead)
             {
                 behaviour.enabled = true;
             }
