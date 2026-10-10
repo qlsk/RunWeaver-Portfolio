@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 시작 석상. 전투 씬 1층 가운데에 서 있다. (마을 씬을 대신한다)
@@ -15,6 +16,8 @@ using UnityEngine;
 public class ExpeditionStatue : MonoBehaviour, IInteractable
 {
     private const string PlayerTag = "Player";
+    private static readonly int RevealProgressId = Shader.PropertyToID("_RevealProgress");
+    private static readonly int GlowTimeId = Shader.PropertyToID("_GlowTime");
 
     [Header("상호작용")]
     [SerializeField] private string _interactionName = "원소 새기기";
@@ -35,6 +38,15 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")]
     [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
     [SerializeField] private Collider2D[] _colliders;
+
+    [Header("마법진 근접 발광")]
+    [SerializeField] private SpriteRenderer _circleBaseRenderer;
+    [SerializeField] private SpriteRenderer _circleGlowRenderer;
+    [SerializeField] private SpriteRenderer _circleAuraRenderer;
+    [SerializeField, Min(0f)] private float _glowActivationDistance = 2f;
+    [SerializeField, Range(0f, 1f)] private float _glowAlpha = 0.65f;
+    [FormerlySerializedAs("_glowFadeDuration")]
+    [SerializeField, Min(0.01f)] private float _glowExpandDuration = 2f;
 
     [Header("무너지기 전 흔들림")]
     [SerializeField, Min(0f)] private float _shakeDuration = 0.7f;
@@ -71,6 +83,10 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     private bool _isChoosingElement;
     private bool _isWaitingRuneConfirm;
     private bool _isCrumbling;
+    private Transform _player;
+    private MaterialPropertyBlock _circleGlowProperties;
+    private float _glowProgress;
+    private float _glowTime;
 
     public string InteractionName => _interactionName;
     public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
@@ -79,6 +95,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     {
         // 원정을 시작한다. (지갑과 시작 골드. 이미 원정 중이면 아무것도 하지 않는다)
         RunFlow.StartExpedition();
+        InitializeCircleGlow();
+        SetCircleGlowProgress(0f);
 
         if (_runeBookPresenter == null && _runeBookRoot != null)
         {
@@ -91,7 +109,93 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         GameObject player = GameObject.FindGameObjectWithTag(PlayerTag);
         if (player != null)
         {
+            _player = player.transform;
             player.transform.position = transform.position + _playerStartOffset;
+        }
+    }
+
+    private void Update()
+    {
+        if (_circleGlowRenderer == null || _isCrumbling)
+        {
+            return;
+        }
+
+        bool isNearby = _player != null &&
+            ((Vector2)(_player.position - _circleGlowRenderer.transform.position)).sqrMagnitude <=
+            _glowActivationDistance * _glowActivationDistance;
+        float targetProgress = isNearby ? 1f : 0f;
+        _glowTime += Time.deltaTime;
+        float expandSpeed = 1f / Mathf.Max(0.01f, _glowExpandDuration);
+        SetCircleGlowProgress(Mathf.MoveTowards(_glowProgress, targetProgress, expandSpeed * Time.deltaTime));
+    }
+
+    private void SetCircleGlowProgress(float progress)
+    {
+        _glowProgress = progress;
+        if (_circleGlowRenderer == null)
+        {
+            return;
+        }
+
+        _circleGlowRenderer.GetPropertyBlock(_circleGlowProperties);
+        _circleGlowProperties.SetFloat(RevealProgressId, progress);
+        _circleGlowProperties.SetFloat(GlowTimeId, _glowTime);
+        _circleGlowRenderer.SetPropertyBlock(_circleGlowProperties);
+        Color color = _circleGlowRenderer.color;
+        color.a = progress > 0f ? _glowAlpha : 0f;
+        _circleGlowRenderer.color = color;
+        if (_circleAuraRenderer != null)
+        {
+            _circleAuraRenderer.SetPropertyBlock(_circleGlowProperties);
+            Color auraColor = _circleAuraRenderer.color;
+            auraColor.a = color.a;
+            _circleAuraRenderer.color = auraColor;
+        }
+    }
+
+    private void InitializeCircleGlow()
+    {
+        if (_fadeOutRenderers != null)
+        {
+            foreach (SpriteRenderer circle in _fadeOutRenderers)
+            {
+                if (circle == null)
+                {
+                    continue;
+                }
+
+                if (_circleBaseRenderer == null && circle.gameObject.name == "Base")
+                {
+                    _circleBaseRenderer = circle;
+                }
+
+                if (_circleGlowRenderer == null && circle.gameObject.name == "Glow")
+                {
+                    _circleGlowRenderer = circle;
+                }
+            }
+        }
+
+        if (_circleGlowRenderer != null)
+        {
+            _circleGlowProperties = new MaterialPropertyBlock();
+            if (_circleAuraRenderer == null)
+            {
+                Transform aura = _circleGlowRenderer.transform.Find("MagicCircleAura");
+                if (aura != null) _circleAuraRenderer = aura.GetComponent<SpriteRenderer>();
+            }
+        }
+
+        if (_circleBaseRenderer != null && _circleGlowRenderer != null)
+        {
+            _circleGlowRenderer.sortingLayerID = _circleBaseRenderer.sortingLayerID;
+            _circleGlowRenderer.sortingOrder = _circleBaseRenderer.sortingOrder - 1;
+        }
+        if (_circleGlowRenderer != null && _circleAuraRenderer != null)
+        {
+            _circleAuraRenderer.sortingLayerID = _circleGlowRenderer.sortingLayerID;
+            _circleAuraRenderer.sortingOrder = _circleGlowRenderer.sortingOrder - 1;
         }
     }
 
@@ -111,6 +215,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
     private void OnDisable()
     {
+        SetCircleGlowProgress(0f);
+
         if (_elementSelectView != null)
         {
             _elementSelectView.Confirmed -= HandleElementConfirmed;
