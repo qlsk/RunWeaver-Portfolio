@@ -23,6 +23,7 @@ using UnityEngine.UI;
 ///   카운트다운 중에 Esc를 누르면 메뉴로 돌아간다.
 /// - Abandon Run : 경고 창 → 확인하면 이번 런을 포기한다. (종료 사유 Abandoned를 기록하고 사망 처리 → "Run Abandoned" 결과)
 /// - Quit Game : 확인 창 → 확인하면 게임 종료
+/// - 방향키로 고른 버튼은 Enter 또는 스페이스 바(_submitKey)로 누른다. (메뉴, 설정, 확인 창)
 ///
 /// 이 컴포넌트는 항상 켜져 있는 오브젝트에 붙이고, 화면(_content)은 꺼진 상태로 둔다.
 /// </summary>
@@ -68,6 +69,8 @@ public class PauseController : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float _countdownDimAlpha = 0.35f;
 
     [Header("Settings")]
+    [Tooltip("선택된 버튼을 누르는 추가 키 (Enter는 EventSystem이 처리한다)")]
+    [SerializeField] private KeyCode _submitKey = KeyCode.Space;
     [SerializeField, Min(1)] private int _countdownSeconds = 3;
     [Tooltip("에디터에서도 게임 창이 포커스를 잃으면 일시정지한다. (끄면 Console 등을 눌러도 멈추지 않는다. 빌드에서는 항상 일시정지)")]
     [SerializeField] private bool _pauseOnFocusLostInEditor;
@@ -113,6 +116,13 @@ public class PauseController : MonoBehaviour
 
     private void Update()
     {
+        if (Time.frameCount != _openedFrame && Input.GetKeyDown(_submitKey) &&
+            _state is State.Menu or State.Settings or State.Confirm)
+        {
+            SubmitSelected();
+            return;
+        }
+
         if (!Input.GetKeyDown(KeyCode.Escape) || Time.frameCount == _openedFrame)
         {
             return;
@@ -186,8 +196,8 @@ public class PauseController : MonoBehaviour
             return false;
         }
 
-        // 층 전환 연출(검은 화면) 중에는 열지 않는다.
-        if (ScreenFader.IsFading)
+        // 층 전환 연출로 화면을 덮는 중에는 열지 않는다. (걷히는 중에는 열 수 있고, 검은 화면은 잠시 숨는다)
+        if (ScreenFader.IsCovering)
         {
             return false;
         }
@@ -379,6 +389,20 @@ public class PauseController : MonoBehaviour
     }
 
     // ───────────────────────── 도움 함수 ─────────────────────────
+
+    /// <summary>EventSystem에서 선택된 일시정지 화면의 버튼(토글 등)을 Enter와 같은 방식으로 누른다.</summary>
+    private void SubmitSelected()
+    {
+        EventSystem eventSystem = EventSystem.current;
+        GameObject selected = eventSystem != null ? eventSystem.currentSelectedGameObject : null;
+        if (selected == null || !selected.activeInHierarchy || _content == null ||
+            !selected.transform.IsChildOf(_content.transform))
+        {
+            return;
+        }
+
+        ExecuteEvents.Execute(selected, new BaseEventData(eventSystem), ExecuteEvents.submitHandler);
+    }
 
     private bool IsBlockedByOtherScreen()
     {

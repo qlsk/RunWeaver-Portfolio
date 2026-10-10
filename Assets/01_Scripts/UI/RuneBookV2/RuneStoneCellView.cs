@@ -34,6 +34,10 @@ public class RuneStoneCellView : MonoBehaviour
     [Header("흐리게 (남는 수가 0 이하)")]
     [SerializeField] private Color _dimIconColor = new(0.45f, 0.45f, 0.45f, 0.7f);
 
+    /// <summary>연출용 빛 이미지 (고리 뒤 빛 또는 고리 스프라이트)</summary>
+    public Sprite FlashSprite => _glow != null && _glow.sprite != null ? _glow.sprite
+        : _ring != null ? _ring.sprite : null;
+
     /// <param name="stone">보유 룬 문자. null이면 칸을 숨긴다.</param>
     /// <param name="pendingUse">확정 전 장착으로 쓸 예정인 수</param>
     /// <param name="hoverUse">마우스를 올린 룬 워드가 쓸 수</param>

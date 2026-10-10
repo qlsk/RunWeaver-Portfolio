@@ -67,6 +67,10 @@ public class RuneSocketView : MonoBehaviour, IPointerClickHandler
 
     public int Index { get; set; }
 
+    /// <summary>연출용 빛 이미지 (칸의 빛 또는 채움 스프라이트)</summary>
+    public Sprite FlashSprite => _glow != null && _glow.sprite != null ? _glow.sprite
+        : _fill != null ? _fill.sprite : null;
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Right)

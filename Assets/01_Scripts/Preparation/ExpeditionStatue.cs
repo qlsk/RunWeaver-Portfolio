@@ -61,6 +61,10 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField] private Vector2 _dustSize = new(0.8f, 1.8f);
     [SerializeField, Min(0.1f)] private float _dustLifetime = 1.1f;
 
+    [Header("룬북 Confirm 뒤")]
+    [Tooltip("룬북 Confirm 연출(장착 칸이 차례로 빛남)을 보여준 뒤 룬북을 닫기까지 (실제 시간)")]
+    [SerializeField, Min(0f)] private float _runeBookCloseDelay = 0.55f;
+
     [Header("이후")]
     [Tooltip("무너지기 시작하고 1층 미션을 준비하기까지")]
     [SerializeField, Min(0f)] private float _beginRunDelay = 0.6f;
@@ -187,12 +191,20 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         }
 
         _isWaitingRuneConfirm = false;
+        _isCrumbling = true;
+        StartCoroutine(CloseRuneBookThenCrumble());
+    }
+
+    /// <summary>룬북의 Confirm 연출을 잠깐 보여준 뒤 닫고 석상을 무너뜨린다. (룬북이 열린 동안 게임이 멈추므로 실제 시간)</summary>
+    private IEnumerator CloseRuneBookThenCrumble()
+    {
+        yield return new WaitForSecondsRealtime(_runeBookCloseDelay);
         if (_runeBookToggle != null)
         {
             _runeBookToggle.Close();
         }
 
-        StartCoroutine(CrumbleRoutine());
+        yield return CrumbleRoutine();
     }
 
     // ───────────────────────── 무너짐 ─────────────────────────
