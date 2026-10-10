@@ -422,7 +422,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1
-      type: {class: MMF_SpriteRenderer, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      type: {class: MMF_WhiteSpriteFlash, ns: , asm: Assembly-CSharp}
       data:
         Active: 1
         UniqueID: 1
@@ -433,7 +433,7 @@ MonoBehaviour:
         Chance: 100
         DisplayColor: {r: 0, g: 0, b: 0, a: 1}
         Timing:
-          TimescaleMode: 0
+          TimescaleMode: 1
           ExcludeFromHoldingPauses: 0
           ContributeToTotalDuration: 1
           InitialDelay: 0
@@ -496,39 +496,9 @@ MonoBehaviour:
         Owner: {fileID: 950100003}
         DebugActive: 0
         BoundSpriteRenderer: {fileID: 4414621380582943817}
-        Mode: 4
+        AdditionalSpriteRenderers: []
+        FlashMaterial: {fileID: 2100000, guid: cf4cdeb8895d422da82dee18818e0e00, type: 2}
         Duration: 0.08
-        StartsOff: 0
-        AllowAdditivePlays: 1
-        InitialColorMode: 0
-        ModifyColor: 1
-        ToDestinationColor: {r: 1, g: 0.35, b: 0.35, a: 1}
-        ToDestinationColorCurve:
-          serializedVersion: 2
-          m_Curve:
-          - serializedVersion: 3
-            time: 0
-            value: 0
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 1
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
-        FlipX: 0
-        FlipY: 0
     - rid: 2
       type: {class: MMF_SquashAndStretch, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
