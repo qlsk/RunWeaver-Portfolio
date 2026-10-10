@@ -26,7 +26,7 @@ public class RewardGenerator : MonoBehaviour
     [Tooltip("룬석 카드 제목 형식 ({0} = 개수)")]
     [SerializeField] private string _runeStoneTitleFormat = "룬석 {0}개";
     [Tooltip("룬석 카드 설명 형식 ({0} = 개수)")]
-    [SerializeField] private string _runeStoneDescriptionFormat = "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.";
+    [SerializeField] private string _runeStoneDescriptionFormat = "플레이어 주변에 룬석 {0}개가 생성됩니다.";
 
     [Header("특성 풀 (20종, 비워두면 내장 기본값 사용)")]
     [Tooltip("보유한 특성은 추첨에서 제외된다.")]
@@ -187,10 +187,10 @@ public class RewardGenerator : MonoBehaviour
     {
         return new List<PassiveData>
         {
-            MakeFallbackPassive("passive_damage", PassiveStatType.Damage, "데미지", "데미지 +5%"),
-            MakeFallbackPassive("passive_attack_speed", PassiveStatType.AttackSpeed, "공격속도", "공격속도 +5%"),
-            MakeFallbackPassive("passive_move_speed", PassiveStatType.MoveSpeed, "이동속도", "이동속도 +5%"),
-            MakeFallbackPassive("passive_magazine_size", PassiveStatType.MagazineSize, "탄창 크기", "탄창 크기 +5% (올림, 최소 +1발)")
+            MakeFallbackPassive("passive_damage", PassiveStatType.Damage, "공격 피해량", "공격 피해량이 5% 증가합니다."),
+            MakeFallbackPassive("passive_attack_speed", PassiveStatType.AttackSpeed, "공격 속도", "공격 속도가 5% 증가합니다."),
+            MakeFallbackPassive("passive_move_speed", PassiveStatType.MoveSpeed, "이동 속도", "이동 속도가 5% 증가합니다."),
+            MakeFallbackPassive("passive_magazine_size", PassiveStatType.MagazineSize, "탄창 크기", "탄창 크기가 1발 증가합니다.")
         };
     }
 
@@ -201,7 +201,7 @@ public class RewardGenerator : MonoBehaviour
         data.StatType = type;
         data.DisplayName = displayName;
         data.Description = description;
-        data.ValuePerStack = 0.05f;
+        data.ValuePerStack = type == PassiveStatType.MagazineSize ? 1f : 0.05f;
         return data;
     }
 

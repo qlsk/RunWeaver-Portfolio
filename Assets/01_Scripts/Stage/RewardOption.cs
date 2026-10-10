@@ -20,7 +20,7 @@ public class RewardOption
 
     public static RewardOption ForRuneStone(int count, Sprite icon)
     {
-        return ForRuneStone(count, icon, "룬석 {0}개", "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.");
+        return ForRuneStone(count, icon, "룬석 {0}개", "플레이어 주변에 룬석 {0}개가 생성됩니다.");
     }
 
     public static RewardOption ForRuneStone(int count, Sprite icon, string titleFormat, string descriptionFormat)
@@ -32,7 +32,7 @@ public class RewardOption
 
         if (string.IsNullOrWhiteSpace(descriptionFormat))
         {
-            descriptionFormat = "선택 즉시 플레이어 주변에 룬석 {0}개를 흩뿌립니다.";
+            descriptionFormat = "플레이어 주변에 룬석 {0}개가 생성됩니다.";
         }
 
         return new RewardOption
@@ -48,7 +48,7 @@ public class RewardOption
 
     /// <summary>
     /// currentStacks = 현재 보유 레벨. 선택 시 도달할 레벨과 그때 총합을 미리 보여준다.
-    /// 예: 1레벨 보유 중이면 제목 "데미지 2레벨", 설명 "데미지 +5% (10%)".
+    /// 예: 1레벨 보유 중이면 제목 "공격 피해량 2레벨", 설명에 "선택 후 총 증가량: 10%" 표시.
     /// </summary>
     public static RewardOption ForPassive(PassiveData data, int currentStacks)
     {
@@ -59,8 +59,13 @@ public class RewardOption
             ? GetDefaultPassiveName(data.StatType)
             : data.DisplayName;
         string description = string.IsNullOrWhiteSpace(data.Description)
-            ? $"{name} +{percent}% ({totalPercent}%)"
-            : $"{data.Description} ({totalPercent}%)";
+            ? $"{name} +{percent}%\n선택 후 총 증가량: {totalPercent}%"
+            : $"{data.Description}\n선택 후 총 증가량: {totalPercent}%";
+        if (data.StatType == PassiveStatType.MagazineSize)
+        {
+            int roundsPerStack = Mathf.Max(1, Mathf.RoundToInt(data.ValuePerStack));
+            description = $"탄창 크기가 {roundsPerStack}발 증가합니다.\n선택 후 총 증가량: {roundsPerStack * nextLevel}발";
+        }
         return new RewardOption
         {
             Type = RewardType.Passive,
@@ -76,9 +81,9 @@ public class RewardOption
     {
         return statType switch
         {
-            PassiveStatType.Damage => "데미지",
-            PassiveStatType.AttackSpeed => "공격속도",
-            PassiveStatType.MoveSpeed => "이동속도",
+            PassiveStatType.Damage => "공격 피해량",
+            PassiveStatType.AttackSpeed => "공격 속도",
+            PassiveStatType.MoveSpeed => "이동 속도",
             PassiveStatType.MagazineSize => "탄창 크기",
             _ => statType.ToString()
         };
@@ -103,8 +108,8 @@ public class RewardOption
         {
             Type = RewardType.SlotExpansion,
             Icon = icon,
-            Title = $"룬 슬롯 확장 ({currentSlots}→{Mathf.Min(maxSlots, currentSlots + 1)}칸)",
-            Description = "룬 장착 슬롯이 1칸 열린다.",
+            Title = "룬 슬롯 확장",
+            Description = $"룬 장착 슬롯이 1칸 늘어납니다.\n슬롯 수: {currentSlots} → {Mathf.Min(maxSlots, currentSlots + 1)}칸",
             CategoryLabel = "슬롯 확장"
         };
     }
