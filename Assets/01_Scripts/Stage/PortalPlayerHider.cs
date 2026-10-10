@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// 포탈로 빨려 들어가는 동안 진짜 플레이어를 숨기고 조작을 막는다.
 /// - 숨길 때 플레이어 그림(SpriteRenderer)과 같은 모양의 복사본(CreateGhosts)을 만들어 포탈이 움직이게 한다.
-/// - 층 전환 화면(ScreenFader)이 덮였다가 걷히기 시작하면 플레이어를 되돌리고 스스로 사라진다.
-///   전환이 시작되지 않으면(포탈 사용 실패 등) 잠시 뒤 되돌린다.
+/// - 층 전환 화면(ScreenFader)이 덮였다가 걷히기 시작하면, 새 위치에서 도착 연출(PortalArrival)을 시작한다.
+///   도착 연출이 플레이어를 뱉어낼 때 RestoreNow로 되돌린다.
+/// - 직접 숨긴 경우(watchTransition = false)에는 RestoreNow를 부를 때까지 숨겨 둔다. (런 시작 도착 연출)
+/// - 전환이 시작되지 않으면(포탈 사용 실패 등) 잠시 뒤 되돌린다.
 /// 포탈은 층 이동 때 파괴되므로 이 컴포넌트는 따로 만든 오브젝트에서 돈다.
 /// </summary>
 public class PortalPlayerHider : MonoBehaviour
@@ -19,8 +22,16 @@ public class PortalPlayerHider : MonoBehaviour
     private bool _sawCovering;
     private float _elapsed;
     private bool _isRestored;
+    private bool _watchTransition;
+    private bool _arrivalStarted;
+    private Transform _player;
+    private SortingGroup _sortingGroup;
 
-    public static PortalPlayerHider Hide(GameObject player)
+    /// <summary>플레이어 발 위치 (지금)</summary>
+    public Vector3 PlayerPosition => _player != null ? _player.position : transform.position;
+
+    /// <param name="watchTransition">true면 층 전환이 걷힐 때 도착 연출을 시작한다. false면 RestoreNow까지 숨겨 둔다.</param>
+    public static PortalPlayerHider Hide(GameObject player, bool watchTransition = true)
     {
         if (player == null)
         {
@@ -28,17 +39,27 @@ public class PortalPlayerHider : MonoBehaviour
         }
 
         var hider = new GameObject("PortalPlayerHider").AddComponent<PortalPlayerHider>();
+        hider._watchTransition = watchTransition;
         hider.Initialize(player);
         return hider;
     }
 
+    /// <summary>숨긴 플레이어를 바로 되돌린다.</summary>
+    public void RestoreNow()
+    {
+        Restore(true);
+    }
+
     private void Initialize(GameObject player)
     {
+        _player = player.transform;
+        _sortingGroup = player.GetComponent<SortingGroup>();
         foreach (SpriteRenderer renderer in player.GetComponentsInChildren<SpriteRenderer>())
         {
             if (renderer.enabled)
             {
                 _renderers.Add(renderer);
+                renderer.enabled = false;   // 숨긴 순간부터 보이지 않게 한다
             }
         }
 
@@ -66,9 +87,13 @@ public class PortalPlayerHider : MonoBehaviour
         }
     }
 
-    /// <summary>숨긴 그림과 같은 모양의 복사본을 만들고 진짜 그림은 숨긴다.</summary>
-    public List<SpriteRenderer> CreateGhosts()
+    /// <summary>숨긴 그림과 같은 모양의 복사본을 만든다. (진짜 그림은 숨긴 때부터 꺼져 있다)</summary>
+    /// <param name="minOrder">복사본이 이 순서보다 앞에 그려지게 한다 (균열 앞)</param>
+    public List<SpriteRenderer> CreateGhosts(int minOrder = int.MinValue)
     {
+        // 플레이어는 SortingGroup(YSort)으로 정렬되므로, 복사본은 그룹 순서를 기준으로 원래 앞뒤를 지킨다.
+        int baseOrder = _sortingGroup != null ? _sortingGroup.sortingOrder : 0;
+        baseOrder = Mathf.Max(baseOrder, minOrder) + 10;
         List<SpriteRenderer> ghosts = new();
         foreach (SpriteRenderer source in _renderers)
         {
@@ -87,7 +112,7 @@ public class PortalPlayerHider : MonoBehaviour
             ghost.color = source.color;
             ghost.sharedMaterial = source.sharedMaterial;
             ghost.sortingLayerID = source.sortingLayerID;
-            ghost.sortingOrder = source.sortingOrder + 20;
+            ghost.sortingOrder = Mathf.Clamp(baseOrder + source.sortingOrder, -32768, 32767);
             ghosts.Add(ghost);
             source.enabled = false;
         }
@@ -97,6 +122,11 @@ public class PortalPlayerHider : MonoBehaviour
 
     private void Update()
     {
+        if (!_watchTransition || _arrivalStarted)
+        {
+            return;
+        }
+
         _elapsed += Time.unscaledDeltaTime;
         if (ScreenFader.IsCovering)
         {
@@ -104,7 +134,13 @@ public class PortalPlayerHider : MonoBehaviour
             return;
         }
 
-        if (_sawCovering || _elapsed >= FallbackRestoreDelay)
+        if (_sawCovering)
+        {
+            // 새 층 화면이 걷히기 시작했다 : 도착 연출이 플레이어를 뱉어낸다.
+            _arrivalStarted = true;
+            PortalArrival.Play(this);
+        }
+        else if (_elapsed >= FallbackRestoreDelay)
         {
             Restore(true);
         }

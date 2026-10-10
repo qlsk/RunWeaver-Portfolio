@@ -97,6 +97,8 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void Start()
     {
+        ApplySorting();
+
         // 플레이어가 이 포탈을 가장 가까운 상호작용 대상으로 잡았을 때만 F 안내를 띄운다.
         _playerInteraction = FindAnyObjectByType<PlayerInteraction>();
         if (_playerInteraction != null)
@@ -121,6 +123,24 @@ public class Portal : MonoBehaviour, IInteractable
     }
 
     private bool HasFrames => _idleFrames != null && _idleFrames.Length > 0;
+
+    /// <summary>
+    /// 씬의 YSort(10000 - 바닥 y * 100)와 같은 기준으로 균열과 안내 글자의 정렬 순서를 정한다.
+    /// 포탈은 움직이지 않으므로 한 번만 정한다.
+    /// </summary>
+    private void ApplySorting()
+    {
+        int order = PortalArrival.RiftSortingOrder(transform.position.y);
+        if (_sprite != null)
+        {
+            _sprite.sortingOrder = order;
+        }
+
+        if (_prompt != null)
+        {
+            _prompt.sortingOrder = order + 1;
+        }
+    }
 
     private void Initialize()
     {
@@ -189,6 +209,7 @@ public class Portal : MonoBehaviour, IInteractable
             StopCoroutine(_fadeRoutine);
         }
 
+        ApplySorting();
         _fadeRoutine = StartCoroutine(HasFrames ? OpenRoutine() : FadeInRoutine());
     }
 
@@ -282,7 +303,9 @@ public class Portal : MonoBehaviour, IInteractable
     {
         Vector3 center = transform.position + (Vector3)_riftCenterOffset;
         PortalPlayerHider hider = PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"));
-        List<SpriteRenderer> ghosts = hider != null ? hider.CreateGhosts() : new List<SpriteRenderer>();
+        List<SpriteRenderer> ghosts = hider != null
+            ? hider.CreateGhosts(_sprite != null ? _sprite.sortingOrder + 1 : int.MinValue)
+            : new List<SpriteRenderer>();
         Vector3[] starts = new Vector3[ghosts.Count];
         Vector3[] scales = new Vector3[ghosts.Count];
         Color[] colors = new Color[ghosts.Count];
