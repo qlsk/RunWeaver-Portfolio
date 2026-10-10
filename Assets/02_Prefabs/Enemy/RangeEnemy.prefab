@@ -744,15 +744,28 @@ MonoBehaviour:
   _burnDuration: 3
   _burnInterval: 1
   _burnDamageMultiplier: 0.2
-  _burnVfxPrefab: {fileID: 198460122919131902, guid: d5e400a2a0d155d4db9970614680534f, type: 3}
+  _burnVfxPrefab: {fileID: 857701135076163181, guid: 2e9d2ce239b7488bab03e97d6a04cb36, type: 3}
   _burnVfxTarget: {fileID: 1772316485788941319}
   _burnVfxScale: 0.7
   _burnVfxOffset: {x: 0, y: -0.3, z: 0}
   _slowDuration: 3
   _slowMoveSpeedMultiplier: 0.5
+  _slowVfxPrefab: {fileID: 857701135076163181, guid: e3752d0fbf774c8cbef85dd09d7c5a3a, type: 3}
+  _slowVfxTarget: {fileID: 1772316485788941319}
+  _slowVfxScale: 0.7
+  _slowVfxOffset: {x: 0, y: -0.3, z: 0}
   _staggerDuration: 0.5
+  _staggerVfxPrefab: {fileID: 857701135076163181, guid: 7f3b3e6507494d03bfb6cf0271661300, type: 3}
+  _staggerVfxTarget: {fileID: 1772316485788941319}
+  _staggerVfxScale: 0.7
+  _staggerVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
+  _knockbackVfxPrefab: {fileID: 857701135076163181, guid: 69eab95aa9684bd9aedf245ec1c5619f, type: 3}
+  _knockbackVfxTarget: {fileID: 1772316485788941319}
+  _knockbackVfxScale: 0.7
+  _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
+  _knockbackVfxRotationOffset: 90
 --- !u!114 &6312000072480831012
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -257,7 +257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
   _enemyHealth: {fileID: 1329488125469041431}
-  _burnVfxPrefab: {fileID: 198422418847770196, guid: 84f4edd970854058b232471a40568bf0, type: 3}
+  _burnVfxPrefab: {fileID: 857701135076163181, guid: 2e9d2ce239b7488bab03e97d6a04cb36, type: 3}
   _burnVfxTarget: {fileID: 6070786006040295343}
   _burnVfxScale: 0.35
   _burnVfxOffset: {x: 0, y: 0, z: 0}
@@ -266,9 +266,22 @@ MonoBehaviour:
   _burnDamageMultiplier: 0.2
   _slowDuration: 3
   _slowMoveSpeedMultiplier: 0.5
+  _slowVfxPrefab: {fileID: 857701135076163181, guid: e3752d0fbf774c8cbef85dd09d7c5a3a, type: 3}
+  _slowVfxTarget: {fileID: 6070786006040295343}
+  _slowVfxScale: 0.35
+  _slowVfxOffset: {x: 0, y: 0, z: 0}
   _staggerDuration: 0.5
+  _staggerVfxPrefab: {fileID: 857701135076163181, guid: 7f3b3e6507494d03bfb6cf0271661300, type: 3}
+  _staggerVfxTarget: {fileID: 6070786006040295343}
+  _staggerVfxScale: 0.35
+  _staggerVfxOffset: {x: 0, y: 0, z: 0}
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
+  _knockbackVfxPrefab: {fileID: 857701135076163181, guid: 69eab95aa9684bd9aedf245ec1c5619f, type: 3}
+  _knockbackVfxTarget: {fileID: 6070786006040295343}
+  _knockbackVfxScale: 0.35
+  _knockbackVfxOffset: {x: 0, y: 0, z: 0}
+  _knockbackVfxRotationOffset: -90
 --- !u!1 &950100001
 GameObject:
   m_ObjectHideFlags: 0
