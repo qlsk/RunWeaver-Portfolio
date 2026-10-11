@@ -1052,12 +1052,34 @@ public class StageManager : MonoBehaviour
             _missionManager.StopCurrentMission();
         }
 
-        if (finalReason != RunEndReason.Cleared && _playerHealth != null && !_playerHealth.IsDead)
+        if (finalReason == RunEndReason.Cleared)
+        {
+            StopPlayerAfterClear();
+        }
+        else if (_playerHealth != null && !_playerHealth.IsDead)
         {
             _playerHealth.Kill();
         }
 
         SafeEventNotifier.Notify(RunEnded, finalReason);
+    }
+
+    private void StopPlayerAfterClear()
+    {
+        if (_playerHealth == null) return;
+
+        if (_playerHealth.TryGetComponent(out Dash dash))
+            dash.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out PlayerMove movement))
+            movement.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out Rigidbody2D body))
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.constraints |= RigidbodyConstraints2D.FreezePosition;
+        }
     }
 
     // ───────────────────────── 내부 처리 ─────────────────────────
