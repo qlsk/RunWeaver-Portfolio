@@ -36,6 +36,8 @@ public class EnemyStatusEffectController : MonoBehaviour
     [FoldoutGroup("Knockback VFX"), SerializeField] private Vector3 _knockbackVfxOffset;
     [FoldoutGroup("Knockback VFX"), SerializeField] private float _knockbackVfxRotationOffset = 90f;
 
+    [FoldoutGroup("Death VFX"), SerializeField, Min(0.1f)] private float _detachedVfxLifetime = 1.2f;
+
     // Burn state
     private float _burnDamage;
     private float _activeBurnInterval;
@@ -230,6 +232,69 @@ public class EnemyStatusEffectController : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException(nameof(element), element, null);
         }
+    }
+
+    /// <summary>
+    /// 적이 이미 죽었을 때 단일 원소 연출만 몬스터와 분리해 그 자리에 재생한다.
+    /// 몬스터가 사라져도 연출은 남고, 일정 시간 뒤 스스로 제거된다. 상태 효과는 적용하지 않는다.
+    /// </summary>
+    public void PlayElementVisualDetached(ReactionElement element, Vector2 bulletDirection)
+    {
+        GameObject prefab;
+        SpriteRenderer target;
+        float scale;
+        Vector3 offset;
+        int order;
+        switch (element)
+        {
+            case ReactionElement.Fire:
+                prefab = _burnVfxPrefab; target = _burnVfxTarget; scale = _burnVfxScale; offset = _burnVfxOffset; order = 1;
+                break;
+            case ReactionElement.Water:
+                prefab = _slowVfxPrefab; target = _slowVfxTarget; scale = _slowVfxScale; offset = _slowVfxOffset; order = 2;
+                break;
+            case ReactionElement.Earth:
+                prefab = _staggerVfxPrefab; target = _staggerVfxTarget; scale = _staggerVfxScale; offset = _staggerVfxOffset; order = 3;
+                break;
+            case ReactionElement.Wind:
+                prefab = _knockbackVfxPrefab; target = _knockbackVfxTarget; scale = _knockbackVfxScale; offset = _knockbackVfxOffset; order = 4;
+                break;
+            default:
+                return;
+        }
+
+        if (prefab == null)
+            return;
+
+        // 사망 처리로 몸체가 꺼졌으면 bounds가 비므로 몸체 위치를 쓴다.
+        bool hasBounds = target != null && target.enabled && target.gameObject.activeInHierarchy;
+        Vector3 center = hasBounds ? transform.InverseTransformPoint(target.bounds.center)
+            : target != null ? transform.InverseTransformPoint(target.transform.position) : Vector3.zero;
+        Vector3 position = transform.TransformPoint(center + offset);
+        Quaternion rotation = prefab.transform.rotation;
+        if (element == ReactionElement.Wind && bulletDirection != Vector2.zero)
+        {
+            float angle = Mathf.Atan2(bulletDirection.y, bulletDirection.x) * Mathf.Rad2Deg +
+                          _knockbackVfxRotationOffset;
+            rotation = Quaternion.Euler(0f, 0f, angle);
+        }
+
+        GameObject instance = Instantiate(prefab, position, rotation);
+        Vector3 parentScale = transform.lossyScale;
+        instance.transform.localScale = Vector3.Scale(prefab.transform.localScale, parentScale) * scale;
+        if (target != null)
+        {
+            foreach (SpriteRenderer renderer in instance.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                renderer.sortingLayerID = target.sortingLayerID;
+                renderer.sortingOrder = target.sortingOrder + order;
+            }
+        }
+
+        instance.SetActive(true);
+        if (instance.TryGetComponent(out Animator animator))
+            animator.Play(0, 0, 0f);
+        Destroy(instance, _detachedVfxLifetime);
     }
 
     /// 석화 시간을 갱신하고 재적용 시 강한 이동 제한과 방어력 감소를 유지한다.
