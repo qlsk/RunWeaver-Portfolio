@@ -1,4 +1,5 @@
 using System;
+using MoreMountains.Feedbacks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,16 +16,35 @@ public class InteractionGuideView : MonoBehaviour
     [SerializeField] private Image _interactionKeyUI;
     [SerializeField] private TextMeshProUGUI _interactionNameUI;
 
+    [Header("Fade")]
+    [SerializeField] private MMF_Player _fadeIn;
+    [SerializeField] private MMF_Player _fadeOut;
+
+    private bool _isHiding;
+
     private IInteractable _nearestInteractable;
+
+    private void Awake()
+    {
+        if (_camera == null)
+            _camera = Camera.main;
+
+        if (_playerInteraction == null)
+            _playerInteraction = FindAnyObjectByType<PlayerInteraction>();
+    }
 
     private void OnEnable()
     {
-        _playerInteraction.CurrentInteractableChanged += OnCurrentInteractableChanged;
+        if (_playerInteraction != null)
+            _playerInteraction.CurrentInteractableChanged += OnCurrentInteractableChanged;
+        _fadeOut.Events.OnComplete.AddListener(OnFadeOutCompleted);
     }
 
     private void OnDisable()
     {
-        _playerInteraction.CurrentInteractableChanged -= OnCurrentInteractableChanged;
+        if (_playerInteraction != null)
+            _playerInteraction.CurrentInteractableChanged -= OnCurrentInteractableChanged;
+        _fadeOut.Events.OnComplete.RemoveListener(OnFadeOutCompleted);
     }
 
     private void LateUpdate()
@@ -42,14 +62,50 @@ public class InteractionGuideView : MonoBehaviour
     {
         if (_nearestInteractable == null)
         {
-            _interactionGuideUI.gameObject.SetActive(false);
+            Hide();
             return;
         }
+
         _interactionNameUI.text = _nearestInteractable.InteractionName;
-        Vector3 screenPoint = _camera.WorldToScreenPoint(_nearestInteractable.InteractionGuidePoint.position);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvas, screenPoint, _camera,
-            out Vector2 localPosition);
-        _interactionGuideUI.anchoredPosition = localPosition;
+        Show();
+    }
+
+    private void Show()
+    {
+        if (_isHiding)
+        {
+            _isHiding = false;
+            _fadeOut.StopFeedbacks();
+            _fadeIn.PlayFeedbacks();
+            return;
+        }
+
+        if (_interactionGuideUI.gameObject.activeSelf)
+            return;
+
         _interactionGuideUI.gameObject.SetActive(true);
+        _fadeIn.PlayFeedbacks();
+    }
+
+    private void Hide()
+    {
+        if (_isHiding)
+            return;
+
+        if (!_interactionGuideUI.gameObject.activeSelf)
+            return;
+
+        _isHiding = true;
+        _fadeIn.StopFeedbacks();
+        _fadeOut.PlayFeedbacks();
+    }
+
+    private void OnFadeOutCompleted()
+    {
+        if (!_isHiding)
+            return;
+
+        _isHiding = false;
+        _interactionGuideUI.gameObject.SetActive(false);
     }
 }
