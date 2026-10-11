@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 6724817472001957605}
   - component: {fileID: 2270311039754625228}
   - component: {fileID: 7629890992271083969}
+  - component: {fileID: 8566991758360869158}
+  - component: {fileID: 7787513107471231097}
   m_Layer: 0
   m_Name: DefenseAltar
   m_TagString: Untagged
@@ -32,7 +34,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6087612235012654423}
+  - {fileID: 3443214105164543335}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6724817472001957605
@@ -84,7 +86,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -5924482337130929959, guid: ced1f0048bf73d746813dedf17e32644, type: 3}
+  m_Sprite: {fileID: 21300000, guid: eac77daec6f6b0a48b5eea454fc996d2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -131,8 +133,8 @@ BoxCollider2D:
   m_Offset: {x: 0.15, y: -0.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.836, y: 4.096}
+    pivot: {x: 0.5, y: 0.017094018}
+    oldSize: {x: 2.3764706, y: 2.7529411}
     newSize: {x: 1.28, y: 1.28}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -152,8 +154,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30199681b58d60d46bd8a6486e1d98ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefenseAltar
-  maxHp: 300
-  allowTestInputs: 0
+  _maxHp: 300
+  _allowTestInputs: 0
+--- !u!95 &8566991758360869158
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6042031307549014131}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 6372c3530f71d8543b742c4b1172fec5, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7787513107471231097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6042031307549014131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d76728dce6f5e4c439256de47e41033b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DefenseAltarStage
+  _altar: {fileID: 7629890992271083969}
+  _crackedBelow: 0.66
+  _brokenBelow: 0.33
 --- !u!1001 &5369996849906742629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -223,7 +262,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4bd1e2ac7f714e00aaadbad636fcd34f, type: 3}
---- !u!4 &6087612235012654423 stripped
+--- !u!4 &3443214105164543335 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7300000000000000002, guid: 4bd1e2ac7f714e00aaadbad636fcd34f, type: 3}
   m_PrefabInstance: {fileID: 5369996849906742629}

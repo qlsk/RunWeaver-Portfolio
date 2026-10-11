@@ -778,8 +778,9 @@ public class StageManager : MonoBehaviour
 
         if (_portalSpawner != null)
         {
-            string label = _currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
-            _portalSpawner.SpawnPortal(label, _portalPosition);
+            bool isBossFloor = _currentDepth + 1 >= BossDepth;
+            string label = isBossFloor ? "Face the Boss" : "Descend";
+            _portalSpawner.SpawnPortal(label, _portalPosition, isBossFloor);
             _isPortalOpen = true;
         }
     }

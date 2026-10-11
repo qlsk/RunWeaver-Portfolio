@@ -8,9 +8,10 @@ using UnityEngine.Serialization;
 /// <summary>
 /// 미션 클리어 후 등장하는 포탈(공중의 균열). 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
 /// PortalSpawner가 Setup으로 문구를 정한 뒤 PlayFadeIn으로 등장시킨다.
-/// - 등장 : 빛 점 → 금이 퍼짐 → 찢어지며 열림 (_openFrames). 끝나야 Collider가 켜져 F 상호작용이 가능하다.
-/// - 대기 : _idleFrames를 반복한다. F 안내는 InteractionGuideView가 InteractionGuidePoint 위치에 띄운다.
-/// - 들어가기 : 플레이어(그림 복사본)가 균열로 빨려 들어간 뒤 균열이 닫히고(_closeFrames) 한 층 내려간다.
+/// - 등장 : 빛 점 → 금이 퍼짐 → 찢어지며 열림 (Animator의 Open 상태). 끝나야 Collider가 켜져 F 상호작용이 가능하다.
+/// - 대기 : Animator의 Idle 상태가 반복된다. F 안내는 InteractionGuideView가 InteractionGuidePoint 위치에 띄운다.
+/// - 들어가기 : 플레이어(그림 복사본)가 균열로 빨려 들어간 뒤 균열이 닫히고(Animator의 Close 상태) 한 층 내려간다.
+/// - 균열 그림은 Visual의 Animator(컨트롤러 : Open → Idle → Close)가 바꾼다. 보스 포탈은 _bossController로 바꿔 끼운다.
 ///   빨려 드는 동안 진짜 플레이어는 숨기고 조작을 막는다. 다음 층 화면이 걷히기 시작하면 되돌린다. (PortalPlayerHider)
 /// - 위쪽 문구(Label)는 쓰지 않는다. (Setup은 호환용으로 남긴다)
 /// 플레이어가 상호작용 대상으로 잡으면 밝기가 천천히 맥동한다.
@@ -46,11 +47,11 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField, Min(0f)] private float _fadeInDuration = 0.8f;
     [SerializeField, Min(0.01f)] private float _fadeInStartScale = 0.8f;
 
-    [Header("균열 프레임")]
-    [SerializeField] private Sprite[] _openFrames;
-    [SerializeField] private Sprite[] _idleFrames;
-    [SerializeField] private Sprite[] _closeFrames;
-    [SerializeField, Min(1f)] private float _framesPerSecond = 12f;
+    [Header("균열 애니메이션")]
+    [Tooltip("Visual의 Animator. 비워두면 Visual에서 찾는다. 컨트롤러가 없으면 페이드 인으로 등장한다")]
+    [SerializeField] private Animator _animator;
+    [Tooltip("보스 층으로 내려가는 포탈에 쓸 컨트롤러 (PortalGateBoss). 비워두면 기본 컨트롤러를 쓴다")]
+    [SerializeField] private RuntimeAnimatorController _bossController;
 
     [Header("들어가기")]
     [Tooltip("플레이어가 균열 가운데로 빨려 드는 시간")]
@@ -83,7 +84,6 @@ public class Portal : MonoBehaviour, IInteractable
 
     private string _labelText = DefaultLabelText;
     private bool _isEntering;
-    private float _idleTime;
 
     public bool IsReady => _isReady;
 
@@ -112,7 +112,7 @@ public class Portal : MonoBehaviour, IInteractable
         _isFocused = ReferenceEquals(interactable, this);
     }
 
-    private bool HasFrames => _idleFrames != null && _idleFrames.Length > 0;
+    private bool HasAnimation => _animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null;
 
     /// <summary>
     /// 씬의 YSort(10000 - 바닥 y * 100)와 같은 기준으로 균열의 정렬 순서를 정한다.
@@ -146,6 +146,11 @@ public class Portal : MonoBehaviour, IInteractable
             _visual = _sprite.transform;
         }
 
+        if (_animator == null)
+        {
+            _animator = _visual != null ? _visual.GetComponent<Animator>() : GetComponentInChildren<Animator>();
+        }
+
         if (_collider == null)
         {
             _collider = GetComponent<Collider2D>();
@@ -173,10 +178,16 @@ public class Portal : MonoBehaviour, IInteractable
     /// <summary>
     /// 포탈 위에 띄울 문구를 정한다. (예: Descend, Face the Boss)
     /// </summary>
-    public void Setup(string label)
+    /// <param name="isBoss">보스 층으로 내려가는 포탈이면 true. 보스 컨트롤러가 있으면 보스 균열 그림으로 바꾼다.</param>
+    public void Setup(string label, bool isBoss = false)
     {
         Initialize();
         _labelText = string.IsNullOrEmpty(label) ? DefaultLabelText : label;
+        if (isBoss && _bossController != null && _animator != null)
+        {
+            _animator.runtimeAnimatorController = _bossController;
+        }
+
         ApplyType();
     }
 
@@ -193,7 +204,7 @@ public class Portal : MonoBehaviour, IInteractable
         }
 
         ApplySorting();
-        _fadeRoutine = StartCoroutine(HasFrames ? OpenRoutine() : FadeInRoutine());
+        _fadeRoutine = StartCoroutine(HasAnimation ? OpenRoutine() : FadeInRoutine());
     }
 
     public void Interact()
@@ -220,7 +231,7 @@ public class Portal : MonoBehaviour, IInteractable
         _isEntering = true;
         SetColliderEnabled(false);
 
-        if (!HasFrames)
+        if (!HasAnimation)
         {
             stageManager.UsePortal(this);
             return;
@@ -235,7 +246,7 @@ public class Portal : MonoBehaviour, IInteractable
         StartCoroutine(EnterRoutine());
     }
 
-    // ───────────────────────── 균열 프레임 ─────────────────────────
+    // ───────────────────────── 균열 애니메이션 ─────────────────────────
 
     private IEnumerator OpenRoutine()
     {
@@ -245,43 +256,12 @@ public class Portal : MonoBehaviour, IInteractable
         _scaleFactor = 1f;
         ApplyVisual(0f);
 
-        yield return PlayFrames(_openFrames);
+        // Open이 끝나면 Animator가 자동으로 Idle(반복)로 넘어간다.
+        yield return PortalRiftAnimation.PlayOpen(_animator);
 
         _fadeRoutine = null;
-        _idleTime = 0f;
         _isReady = true;
         SetColliderEnabled(true);
-    }
-
-    private IEnumerator PlayFrames(Sprite[] frames)
-    {
-        if (frames == null || frames.Length == 0 || _sprite == null)
-        {
-            yield break;
-        }
-
-        float elapsed = 0f;
-        float duration = frames.Length / _framesPerSecond;
-        while (elapsed < duration)
-        {
-            int index = Mathf.Min(frames.Length - 1, (int)(elapsed * _framesPerSecond));
-            _sprite.sprite = frames[index];
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        _sprite.sprite = frames[frames.Length - 1];
-    }
-
-    private void UpdateIdleFrame()
-    {
-        if (!HasFrames || _sprite == null)
-        {
-            return;
-        }
-
-        _idleTime += Time.deltaTime;
-        _sprite.sprite = _idleFrames[(int)(_idleTime * _framesPerSecond) % _idleFrames.Length];
     }
 
     /// <summary>플레이어가 빨려 들어간 뒤 균열이 닫히고 한 층 내려간다.</summary>
@@ -293,7 +273,7 @@ public class Portal : MonoBehaviour, IInteractable
     private void EnterWithFade(StageManager stageManager)
     {
         PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"), true, true);
-        PortalArrival.LingerExitRift(_sprite, _idleFrames, _framesPerSecond);
+        PortalArrival.LingerExitRift(_sprite, _animator);
         if (_sprite != null)
         {
             _sprite.enabled = false;
@@ -324,7 +304,6 @@ public class Portal : MonoBehaviour, IInteractable
         while (elapsed < _pullDuration)
         {
             elapsed += Time.deltaTime;
-            UpdateIdleFrame();
             float t = Mathf.Clamp01(elapsed / _pullDuration);
             float eased = t * t * (3f - 2f * t);
             for (int i = 0; i < ghosts.Count; i++)
@@ -355,7 +334,7 @@ public class Portal : MonoBehaviour, IInteractable
         }
 
         // 2. 균열이 하얗게 봉합되며 닫힌다.
-        yield return PlayFrames(_closeFrames);
+        yield return PortalRiftAnimation.PlayClose(_animator);
         if (_sprite != null)
         {
             _sprite.enabled = false;
@@ -400,11 +379,6 @@ public class Portal : MonoBehaviour, IInteractable
         if (_fadeRoutine != null || _isEntering)
         {
             return;
-        }
-
-        if (_isReady)
-        {
-            UpdateIdleFrame();
         }
 
         // 가까이 간 포탈만 맥동한다. 켜지고 꺼질 때는 부드럽게 섞는다.
