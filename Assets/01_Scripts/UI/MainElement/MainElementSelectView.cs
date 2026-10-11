@@ -56,19 +56,26 @@ public class MainElementSelectView : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _openDuration = 0.45f;
     [SerializeField] private float _openRise = 36f;
     [SerializeField, Min(0.01f)] private float _cancelDuration = 0.25f;
-    [Tooltip("고른 구슬이 가운데로 모이는 시간")]
-    [SerializeField, Min(0.01f)] private float _gatherDuration = 0.45f;
-    [Tooltip("가운데에서 빛이 터지는 시간")]
-    [SerializeField, Min(0.01f)] private float _burstDuration = 0.5f;
+    [Tooltip("고른 구슬이 가운데로 모이는 시간")] [SerializeField, Min(0.01f)] private float _gatherDuration = 0.45f;
+    [Tooltip("가운데에서 빛이 터지는 시간")] [SerializeField, Min(0.01f)] private float _burstDuration = 0.5f;
 
     private int _selectedIndex;
     private bool _isButtonFocused;
+    private bool _isMouseFocused;
     private bool _isConfirmFocused = true;
 
-    private enum Phase { Idle, Opening, Closing }
+    private enum Phase
+    {
+        Idle,
+        Opening,
+        Closing
+    }
+
     private Phase _phase;
     private bool _skipOpening;
     private UiRiseParts _parts;
+    private MainElementButtonView _hoveredButton;
+    private MainElementOrbView _hoveredOrb;
     private Vector2[] _orbBasePositions;
     private CanvasGroup[] _orbGroups;
     private Graphic _ringGraphic;
@@ -94,6 +101,8 @@ public class MainElementSelectView : MonoBehaviour
                 if (orb != null)
                 {
                     orb.Clicked += HandleOrbClicked;
+                    orb.PointerEntered += HandleOrbPointerEntered;
+                    orb.PointerExited += HandleOrbPointerExited;
                 }
             }
         }
@@ -101,17 +110,22 @@ public class MainElementSelectView : MonoBehaviour
         if (_confirmButton != null && _confirmButton.Button != null)
         {
             _confirmButton.Button.onClick.AddListener(Confirm);
+            _confirmButton.PointerEntered += HandleConfirmHovered;
+            _confirmButton.PointerExited += HandleConfirmUnhovered;
         }
 
         if (_cancelButton != null && _cancelButton.Button != null)
         {
             _cancelButton.Button.onClick.AddListener(Cancel);
+            _cancelButton.PointerEntered += HandleCancelHovered;
+            _cancelButton.PointerExited += HandleCancelUnhovered;
         }
     }
 
     private void OnEnable()
     {
         _isButtonFocused = false;
+        _isMouseFocused = false;
         _isConfirmFocused = true;
         Refresh();
         PrepareAnimation();
@@ -123,6 +137,10 @@ public class MainElementSelectView : MonoBehaviour
         StopAllCoroutines();
         ResetAnimation();
         _phase = Phase.Idle;
+
+        // 비활성화되면 PointerExit이 오지 않으므로 기록해 둔 포인터 대상을 비운다.
+        _hoveredButton = null;
+        _hoveredOrb = null;
     }
 
     private void OnDestroy()
@@ -134,6 +152,8 @@ public class MainElementSelectView : MonoBehaviour
                 if (orb != null)
                 {
                     orb.Clicked -= HandleOrbClicked;
+                    orb.PointerEntered -= HandleOrbPointerEntered;
+                    orb.PointerExited -= HandleOrbPointerExited;
                 }
             }
         }
@@ -141,11 +161,15 @@ public class MainElementSelectView : MonoBehaviour
         if (_confirmButton != null && _confirmButton.Button != null)
         {
             _confirmButton.Button.onClick.RemoveListener(Confirm);
+            _confirmButton.PointerEntered -= HandleConfirmHovered;
+            _confirmButton.PointerExited -= HandleConfirmUnhovered;
         }
 
         if (_cancelButton != null && _cancelButton.Button != null)
         {
             _cancelButton.Button.onClick.RemoveListener(Cancel);
+            _cancelButton.PointerEntered -= HandleCancelHovered;
+            _cancelButton.PointerExited -= HandleCancelUnhovered;
         }
     }
 
@@ -193,11 +217,13 @@ public class MainElementSelectView : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
         {
             _isConfirmFocused = !_isConfirmFocused;
+            _isMouseFocused = false;
             Refresh();
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             _isButtonFocused = false;
+            _isMouseFocused = false;
             Refresh();
         }
         else if (Input.GetKeyDown(_submitKey))
@@ -213,6 +239,51 @@ public class MainElementSelectView : MonoBehaviour
         }
     }
 
+    private void HandleConfirmHovered() => HandleButtonHovered(_confirmButton);
+    private void HandleCancelHovered() => HandleButtonHovered(_cancelButton);
+
+    // 마우스가 올라온 대상은 연출 중에도 기록해 두고, 연출이 끝나면 ApplyPointerState로 반영한다.
+    private void HandleButtonHovered(MainElementButtonView button)
+    {
+        _hoveredButton = button;
+        if (_phase != Phase.Idle)
+            return;
+
+        FocusButtons(button == _confirmButton, true);
+    }
+
+    private void HandleConfirmUnhovered() => HandleButtonUnhovered(_confirmButton);
+    private void HandleCancelUnhovered() => HandleButtonUnhovered(_cancelButton);
+
+    // 마우스가 벗어난 버튼이 지금 포커스된 버튼일 때만 해제한다. (키보드로 다른 버튼에 옮겨 간 경우는 건드리지 않는다)
+    // 구슬 연출을 건드리지 않도록 전체 Refresh 대신 버튼 표시만 갱신한다.
+    private void HandleButtonUnhovered(MainElementButtonView button)
+    {
+        if (_hoveredButton == button)
+            _hoveredButton = null;
+
+        bool confirm = button == _confirmButton;
+        if (!_isMouseFocused || !_isButtonFocused || _isConfirmFocused != confirm)
+            return;
+
+        _isButtonFocused = false;
+        _isMouseFocused = false;
+        RefreshButtons();
+    }
+
+    /// <summary>연출 중 올라온 마우스가 지금도 대상 위에 있으면 호버 표시와 버튼 포커스를 적용한다.</summary>
+    private void ApplyPointerState()
+    {
+        if (_hoveredButton != null)
+        {
+            FocusButtons(_hoveredButton == _confirmButton, true);
+        }
+        else if (_hoveredOrb != null)
+        {
+            _hoveredOrb.SetHovered(true);
+        }
+    }
+
     public void Select(int index)
     {
         if (_orbs == null || _orbs.Length == 0)
@@ -224,9 +295,10 @@ public class MainElementSelectView : MonoBehaviour
         Refresh();
     }
 
-    private void FocusButtons(bool confirm)
+    private void FocusButtons(bool confirm, bool byMouse = false)
     {
         _isButtonFocused = true;
+        _isMouseFocused = byMouse;
         _isConfirmFocused = confirm;
         Refresh();
     }
@@ -242,7 +314,44 @@ public class MainElementSelectView : MonoBehaviour
         if (index >= 0)
         {
             _isButtonFocused = false;
+            _isMouseFocused = false;
             Select(index);
+        }
+    }
+
+    // 호버는 표시만 바꾸고 선택(_selectedIndex)은 건드리지 않는다.
+    private void HandleOrbPointerEntered(MainElementOrbView orb)
+    {
+        _hoveredOrb = orb;
+        if (_phase != Phase.Idle)
+        {
+            return;
+        }
+
+        orb.SetHovered(true);
+    }
+
+    private void HandleOrbPointerExited(MainElementOrbView orb)
+    {
+        if (_hoveredOrb == orb)
+            _hoveredOrb = null;
+
+        orb.SetHovered(false);
+    }
+
+    private void ClearOrbHover()
+    {
+        if (_orbs == null)
+        {
+            return;
+        }
+
+        foreach (MainElementOrbView orb in _orbs)
+        {
+            if (orb != null)
+            {
+                orb.SetHovered(false);
+            }
         }
     }
 
@@ -253,6 +362,7 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
+        ClearOrbHover();
         StartCoroutine(ConfirmRoutine());
     }
 
@@ -284,6 +394,7 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
+        ClearOrbHover();
         StartCoroutine(CancelRoutine());
     }
 
@@ -403,6 +514,7 @@ public class MainElementSelectView : MonoBehaviour
 
         _parts.Apply(1f);
         _phase = Phase.Idle;
+        ApplyPointerState();
     }
 
     private IEnumerator CancelRoutine()
@@ -428,6 +540,7 @@ public class MainElementSelectView : MonoBehaviour
         {
             ResetAnimation();
             _phase = Phase.Idle;
+            ApplyPointerState();
         }
     }
 
@@ -553,6 +666,12 @@ public class MainElementSelectView : MonoBehaviour
             _effectText.text = GetEffect(element);
         }
 
+        RefreshButtons();
+    }
+
+    /// <summary>버튼 포커스 표시만 갱신한다. (구슬 크기 같은 연출 상태는 건드리지 않는다)</summary>
+    private void RefreshButtons()
+    {
         if (_confirmButton != null)
         {
             _confirmButton.SetFocused(_isButtonFocused && _isConfirmFocused);

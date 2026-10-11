@@ -9,7 +9,7 @@ using UnityEngine.Serialization;
 /// 미션 클리어 후 등장하는 포탈(공중의 균열). 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
 /// PortalSpawner가 Setup으로 문구를 정한 뒤 PlayFadeIn으로 등장시킨다.
 /// - 등장 : 빛 점 → 금이 퍼짐 → 찢어지며 열림 (_openFrames). 끝나야 Collider가 켜져 F 상호작용이 가능하다.
-/// - 대기 : _idleFrames를 반복한다. 아래의 F 안내 텍스트(Prompt)는 준비되면 항상 보인다.
+/// - 대기 : _idleFrames를 반복한다. F 안내는 InteractionGuideView가 InteractionGuidePoint 위치에 띄운다.
 /// - 들어가기 : 플레이어(그림 복사본)가 균열로 빨려 들어간 뒤 균열이 닫히고(_closeFrames) 한 층 내려간다.
 ///   빨려 드는 동안 진짜 플레이어는 숨기고 조작을 막는다. 다음 층 화면이 걷히기 시작하면 되돌린다. (PortalPlayerHider)
 /// - 위쪽 문구(Label)는 쓰지 않는다. (Setup은 호환용으로 남긴다)
@@ -19,7 +19,7 @@ using UnityEngine.Serialization;
 /// Portal (이 스크립트, Collider)
 ///  ├ Visual                : SpriteRenderer. FadeIn / 맥동 크기 변화는 이 오브젝트에만 적용한다.
 ///  ├ Label                 : TextMeshPro (월드 텍스트). 내용과 색은 종류에 따라 코드에서 바꾼다.
-///  └ Prompt                : TextMeshPro. "F - Enter" 안내. 가까이 갔을 때만 보인다.
+///  └ InteractionGuidePoint : 빈 Transform. InteractionGuideView가 F 안내를 띄울 위치.
 /// </summary>
 [DisallowMultipleComponent]
 public class Portal : MonoBehaviour, IInteractable
@@ -36,7 +36,7 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField] private SpriteRenderer _sprite;
     [SerializeField] private Collider2D _collider;
     [SerializeField] private TextMeshPro _label;
-    [Tooltip("가까이 갔을 때만 보이는 F 안내 텍스트")][SerializeField] private TextMeshPro _prompt;
+    [Tooltip("InteractionGuideView가 F 안내를 띄울 위치")][SerializeField] private Transform _interactionGuidePoint;
 
     [Header("Colors (포탈 / 텍스트)")]
     [SerializeField] private Color _descendColor = Color.white;
@@ -88,7 +88,7 @@ public class Portal : MonoBehaviour, IInteractable
     public bool IsReady => _isReady;
 
     public string InteractionName => InteractionText;
-    public Transform InteractionGuidePoint => _prompt != null ? _prompt.transform : transform;
+    public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
 
     private void Awake()
     {
@@ -110,22 +110,12 @@ public class Portal : MonoBehaviour, IInteractable
     private void HandleCurrentInteractableChanged(IInteractable interactable)
     {
         _isFocused = ReferenceEquals(interactable, this);
-        RefreshPrompt();
-    }
-
-    private void RefreshPrompt()
-    {
-        if (_prompt != null)
-        {
-            // 준비되면 항상 보이고, 들어가기 시작하면 끈다.
-            _prompt.enabled = _isReady && !_isEntering;
-        }
     }
 
     private bool HasFrames => _idleFrames != null && _idleFrames.Length > 0;
 
     /// <summary>
-    /// 씬의 YSort(10000 - 바닥 y * 100)와 같은 기준으로 균열과 안내 글자의 정렬 순서를 정한다.
+    /// 씬의 YSort(10000 - 바닥 y * 100)와 같은 기준으로 균열의 정렬 순서를 정한다.
     /// 포탈은 움직이지 않으므로 한 번만 정한다.
     /// </summary>
     private void ApplySorting()
@@ -134,11 +124,6 @@ public class Portal : MonoBehaviour, IInteractable
         if (_sprite != null)
         {
             _sprite.sortingOrder = order;
-        }
-
-        if (_prompt != null)
-        {
-            _prompt.sortingOrder = order + 1;
         }
     }
 
@@ -172,7 +157,7 @@ public class Portal : MonoBehaviour, IInteractable
         }
 
         // 위쪽 문구는 쓰지 않는다.
-        if (_label != null && _label != _prompt)
+        if (_label != null)
         {
             _label.gameObject.SetActive(false);
         }
@@ -181,8 +166,6 @@ public class Portal : MonoBehaviour, IInteractable
         {
             _baseScale = _visual.localScale;
         }
-
-        RefreshPrompt();
 
         ApplyType();
     }
@@ -235,7 +218,6 @@ public class Portal : MonoBehaviour, IInteractable
         // 연타로 두 번 들어가지 않도록 바로 막는다.
         _isReady = false;
         _isEntering = true;
-        RefreshPrompt();
         SetColliderEnabled(false);
 
         if (!HasFrames)
@@ -258,7 +240,6 @@ public class Portal : MonoBehaviour, IInteractable
     private IEnumerator OpenRoutine()
     {
         _isReady = false;
-        RefreshPrompt();
         SetColliderEnabled(false);
         _alpha = 1f;
         _scaleFactor = 1f;
@@ -270,7 +251,6 @@ public class Portal : MonoBehaviour, IInteractable
         _idleTime = 0f;
         _isReady = true;
         SetColliderEnabled(true);
-        RefreshPrompt();
     }
 
     private IEnumerator PlayFrames(Sprite[] frames)
@@ -392,7 +372,6 @@ public class Portal : MonoBehaviour, IInteractable
     private IEnumerator FadeInRoutine()
     {
         _isReady = false;
-        RefreshPrompt();
         SetColliderEnabled(false);
 
         float elapsed = 0f;
@@ -414,7 +393,6 @@ public class Portal : MonoBehaviour, IInteractable
         _fadeRoutine = null;
         _isReady = true;
         SetColliderEnabled(true);
-        RefreshPrompt();
     }
 
     private void Update()

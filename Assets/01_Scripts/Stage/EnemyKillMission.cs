@@ -17,10 +17,24 @@ public class EnemyKillMission : MissionBase
     [SerializeField, FormerlySerializedAs("targetEliteKillCount")] private int _targetEliteKillCount = 0;
     private int _currentEliteKillCount = 0;
 
+    [Header("엘리트 처치 가중치 (엘리트 목표가 0일 때만 적용)")]
+    [Tooltip("엘리트 1킬이 일반 처치 몇 킬로 집계되는지. MissionManager가 심도 시작 시 주입한다.")]
+    [SerializeField, Min(1)] private int _eliteKillValue = 3;
+
     public int CurrentNormalKillCount => _currentNormalKillCount;
     public int TargetNormalKillCount => _targetNormalKillCount;
     public int CurrentEliteKillCount => _currentEliteKillCount;
     public int TargetEliteKillCount => _targetEliteKillCount;
+    public int EliteKillValue => _eliteKillValue;
+
+    /// <summary>
+    /// MissionManager가 심도에 맞춰 목표량과 엘리트 가중치를 주입한다. Initialize 이전에 호출되어야 한다.
+    /// </summary>
+    public void SetTargetCounts(int normalTarget, int eliteKillValue)
+    {
+        _targetNormalKillCount = Mathf.Max(0, normalTarget);
+        _eliteKillValue = Mathf.Max(1, eliteKillValue);
+    }
 
     public override void Initialize()
     {
@@ -79,9 +93,14 @@ public class EnemyKillMission : MissionBase
     {
         if (IsCompleted || IsFailed) return;
 
-        if (isElite && _targetEliteKillCount <= 0) isElite = false;
-
-        if (isElite)
+        if (isElite && _targetEliteKillCount <= 0)
+        {
+            // 엘리트 목표가 없으면 엘리트 처치를 가중치만큼 일반 처치로 집계한다.
+            int gained = amount * Mathf.Max(1, _eliteKillValue);
+            _currentNormalKillCount += gained;
+            Debug.Log($"[적 처치 미션] ★ 엘리트 처치(가중치 {gained}): {_currentNormalKillCount} / {_targetNormalKillCount}");
+        }
+        else if (isElite)
         {
             _currentEliteKillCount += amount;
             Debug.Log($"[적 처치 미션] ★ 엘리트 처치: {_currentEliteKillCount} / {_targetEliteKillCount}");

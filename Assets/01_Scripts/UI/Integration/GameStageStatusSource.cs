@@ -31,9 +31,14 @@ public class GameStageStatusSource : StageStatusSource
     /// <summary>이번 판에서 도달한 가장 깊은 심도</summary>
     public int MaxDepth => _maxDepth;
 
+    // 경고(빨간색, 마지막 5초 강조)는 미션 중과 시작 카운트다운 중에만 켠다.
+    // 카운트다운이 없는 Ready(1층 석상 대기)에서는 0초가 경고 색으로 칠해지지 않게 끈다.
     public override bool IsTimeWarningEnabled =>
-        _stageManager != null && _stageManager.Phase == StagePhase.InMission &&
+        _stageManager != null &&
+        (_stageManager.Phase == StagePhase.InMission || _stageManager.IsAutoStartCounting) &&
         _stageManager.CurrentMission is not SurvivalMission;
+
+    public override bool IsStartCountdown => _stageManager != null && _stageManager.IsAutoStartCounting;
 
     private void Start()
     {
@@ -94,6 +99,9 @@ public class GameStageStatusSource : StageStatusSource
 
     private float GetDisplayedTime()
     {
+        if (_stageManager.IsAutoStartCounting)
+            return _stageManager.AutostartRemaining;
+
         return _stageManager.Phase switch
         {
             StagePhase.Cleared => NoTimeLimit,

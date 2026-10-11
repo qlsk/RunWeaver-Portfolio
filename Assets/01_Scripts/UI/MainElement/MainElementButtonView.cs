@@ -1,5 +1,7 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -7,7 +9,7 @@ using UnityEngine.UI;
 /// 하늘색 테두리 스프라이트와 빛, 양옆 화살표를 켠다.
 /// </summary>
 [DisallowMultipleComponent]
-public class MainElementButtonView : MonoBehaviour
+public class MainElementButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private Button _button;
     [SerializeField] private Image _background;
@@ -20,6 +22,9 @@ public class MainElementButtonView : MonoBehaviour
     [SerializeField] private Color _focusedLabelColor = new(0.922f, 0.961f, 1f, 1f);
 
     public Button Button => _button;
+
+    public event Action PointerEntered;
+    public event Action PointerExited;
 
     public void SetFocused(bool isFocused)
     {
@@ -46,5 +51,15 @@ public class MainElementButtonView : MonoBehaviour
         {
             _label.color = isFocused ? _focusedLabelColor : _normalLabelColor;
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        PointerEntered?.Invoke();
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        PointerExited?.Invoke();
     }
 }
