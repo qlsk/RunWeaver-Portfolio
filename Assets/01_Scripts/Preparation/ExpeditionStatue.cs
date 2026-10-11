@@ -1,14 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 시작 석상. 전투 씬 1층 가운데에 서 있다. (마을 씬을 대신한다)
 /// 흐름 : 상호작용(F) → 주력 원소 선택 → 룬북이 열려 보조 룬 워드 선택 → Confirm
 ///        → 석상이 흔들리다 무너진다 → 1층 미션 오브젝트가 서서히 나타난다 → 미션 시작 오브젝트로 시작
 /// - 원소 선택을 취소하거나 룬북을 Confirm 없이 닫으면 석상은 그대로 있고, 다시 상호작용할 수 있다.
-/// - 씬이 열리면 원정(지갑, 시작 골드)을 시작하고 플레이어를 석상 앞으로 옮긴다.
+/// - 씬이 열리면 원정(지갑, 시작 골드)을 시작한다. (플레이어 시작 위치는 PlayerStartPositioner가 정한다)
 /// - 1층은 StageManager가 기다리고 있다가(_waitForPreparation) 석상이 무너진 뒤 BeginPreparedRun으로 시작한다.
 /// 무너지는 연출은 게임 시간으로 움직인다. (일시정지하면 멈춘다)
 /// </summary>
@@ -22,21 +24,17 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [Header("상호작용")]
     [SerializeField] private string _interactionName = "원소 새기기";
     [SerializeField] private Transform _interactionGuidePoint;
-    [Tooltip("씬이 열릴 때 플레이어를 놓을 위치 (석상 기준)")]
-    [SerializeField] private Vector3 _playerStartOffset = new(0f, -3f, 0f);
 
     [Header("UI")]
     [SerializeField] private PopupController _popupController;
     [SerializeField] private MainElementSelectView _elementSelectView;
     [SerializeField] private RuneBookV2Toggle _runeBookToggle;
-    [Tooltip("룬북 화면 루트. 비워두면 _runeBookPresenter를 직접 넣는다")]
-    [SerializeField] private GameObject _runeBookRoot;
+    [Tooltip("룬북 화면 루트. 비워두면 _runeBookPresenter를 직접 넣는다")] [SerializeField] private GameObject _runeBookRoot;
     [SerializeField] private RuneBookV2Presenter _runeBookPresenter;
 
     [Header("석상")]
     [SerializeField] private SpriteRenderer _statueRenderer;
-    [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")]
-    [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
+    [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")] [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
     [SerializeField] private Collider2D[] _colliders;
 
     [Header("마법진 근접 발광")]
@@ -45,26 +43,21 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField] private SpriteRenderer _circleAuraRenderer;
     [SerializeField, Min(0f)] private float _glowActivationDistance = 2f;
     [SerializeField, Range(0f, 1f)] private float _glowAlpha = 0.65f;
-    [FormerlySerializedAs("_glowFadeDuration")]
-    [SerializeField, Min(0.01f)] private float _glowExpandDuration = 2f;
+    [FormerlySerializedAs("_glowFadeDuration")] [SerializeField, Min(0.01f)] private float _glowExpandDuration = 2f;
 
     [Header("무너지기 전 흔들림")]
     [SerializeField, Min(0f)] private float _shakeDuration = 0.7f;
     [SerializeField] private float _shakeAmount = 0.07f;
-    [Tooltip("무너지기 직전 석상이 빛나는 색")]
-    [SerializeField] private Color _flashColor = new(0.8f, 0.92f, 1f, 1f);
+    [Tooltip("무너지기 직전 석상이 빛나는 색")] [SerializeField] private Color _flashColor = new(0.8f, 0.92f, 1f, 1f);
 
     [Header("조각")]
     [SerializeField, Min(1)] private int _fragmentColumns = 5;
     [SerializeField, Min(1)] private int _fragmentRows = 8;
     [SerializeField, Min(0.1f)] private float _fragmentLifetime = 1.6f;
     [SerializeField] private float _gravity = 14f;
-    [Tooltip("조각이 옆으로 퍼지는 세기")]
-    [SerializeField] private float _spread = 2.4f;
-    [Tooltip("조각이 처음 위로 튀는 세기 (최대)")]
-    [SerializeField] private float _pop = 2.5f;
-    [Tooltip("조각이 떨어져 멈추는 바닥 높이의 흩어짐 (석상 밑동 기준)")]
-    [SerializeField] private float _groundJitter = 0.5f;
+    [Tooltip("조각이 옆으로 퍼지는 세기")] [SerializeField] private float _spread = 2.4f;
+    [Tooltip("조각이 처음 위로 튀는 세기 (최대)")] [SerializeField] private float _pop = 2.5f;
+    [Tooltip("조각이 떨어져 멈추는 바닥 높이의 흩어짐 (석상 밑동 기준)")] [SerializeField] private float _groundJitter = 0.5f;
 
     [Header("먼지")]
     [SerializeField] private Sprite _dustSprite;
@@ -74,14 +67,12 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField, Min(0.1f)] private float _dustLifetime = 1.1f;
 
     [Header("룬북 Confirm 뒤")]
-    [Tooltip("룬북 Confirm 연출(장착 칸이 차례로 빛남)을 보여준 뒤 룬북을 닫기까지 (실제 시간)")]
-    [SerializeField, Min(0f)] private float _runeBookCloseDelay = 0.55f;
+    [Tooltip("룬북 Confirm 연출(장착 칸이 차례로 빛남)을 보여준 뒤 룬북을 닫기까지 (실제 시간)")] [SerializeField, Min(0f)]
+    private float _runeBookCloseDelay = 0.55f;
 
     [Header("이후")]
-    [Tooltip("무너지기 시작하고 1층 미션을 준비하기까지")]
-    [SerializeField, Min(0f)] private float _beginRunDelay = 0.6f;
-    [Tooltip("미션 오브젝트가 서서히 나타나는 시간")]
-    [SerializeField, Min(0.01f)] private float _missionFadeDuration = 1.4f;
+    [Tooltip("무너지기 시작하고 1층 미션을 준비하기까지")] [SerializeField, Min(0f)] private float _beginRunDelay = 0.6f;
+    [Tooltip("미션 오브젝트가 서서히 나타나는 시간")] [SerializeField, Min(0.01f)] private float _missionFadeDuration = 1.4f;
     [SerializeField, Min(0.01f)] private float _circleFadeDuration = 1f;
 
     private bool _isChoosingElement;
@@ -91,6 +82,9 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     private MaterialPropertyBlock _circleGlowProperties;
     private float _glowProgress;
     private float _glowTime;
+
+    /// <summary>플레이어가 석상과 상호작용해 주력 원소 선택 창을 열었을 때</summary>
+    public event Action Interacted;
 
     public string InteractionName => _interactionName;
     public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
@@ -114,7 +108,6 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         if (player != null)
         {
             _player = player.transform;
-            player.transform.position = transform.position + _playerStartOffset;
         }
     }
 
@@ -126,8 +119,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         }
 
         bool isNearby = _player != null &&
-            ((Vector2)(_player.position - _circleGlowRenderer.transform.position)).sqrMagnitude <=
-            _glowActivationDistance * _glowActivationDistance;
+                        ((Vector2)(_player.position - _circleGlowRenderer.transform.position)).sqrMagnitude <=
+                        _glowActivationDistance * _glowActivationDistance;
         float targetProgress = isNearby ? 1f : 0f;
         _glowTime += Time.deltaTime;
         float expandSpeed = 1f / Mathf.Max(0.01f, _glowExpandDuration);
@@ -253,6 +246,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
         _isChoosingElement = true;
         _popupController.OpenPopup(_elementSelectView.gameObject);
+        Interacted?.Invoke();
     }
 
     private void HandleElementConfirmed(ReactionElement element)
@@ -336,7 +330,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / _shakeDuration);
             float amount = _shakeAmount * t;
-            statue.localPosition = basePosition + new Vector3(Random.Range(-amount, amount), Random.Range(-amount, amount) * 0.4f, 0f);
+            statue.localPosition = basePosition +
+                                   new Vector3(Random.Range(-amount, amount), Random.Range(-amount, amount) * 0.4f, 0f);
             if (_statueRenderer != null)
             {
                 _statueRenderer.color = Color.Lerp(baseColor, _flashColor, t * t);
@@ -515,8 +510,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
                 var go = new GameObject("StatueFragment");
                 go.transform.position = new Vector3(
                     Mathf.Lerp(bounds.min.x, bounds.max.x, (column + 0.5f) / _fragmentColumns),
-                    Mathf.Lerp(bounds.min.y, bounds.max.y, (row + 0.5f) / _fragmentRows),
-                    transform.position.z);
+                    Mathf.Lerp(bounds.min.y, bounds.max.y, (row + 0.5f) / _fragmentRows), transform.position.z);
                 go.transform.localScale = scale;
 
                 var renderer = go.AddComponent<SpriteRenderer>();
@@ -533,9 +527,11 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
                 {
                     Transform = go.transform,
                     Renderer = renderer,
-                    Velocity = new Vector2(side * _spread + Random.Range(-0.6f, 0.6f), Random.Range(0.2f, 1f) * _pop * height),
+                    Velocity = new Vector2(side * _spread + Random.Range(-0.6f, 0.6f),
+                        Random.Range(0.2f, 1f) * _pop * height),
                     Spin = Random.Range(-260f, 260f),
-                    GroundY = bottom + Random.Range(0f, _groundJitter) + cellHeight / sprite.pixelsPerUnit * scale.y * 0.4f,
+                    GroundY = bottom + Random.Range(0f, _groundJitter) +
+                              cellHeight / sprite.pixelsPerUnit * scale.y * 0.4f,
                     Life = _fragmentLifetime * Random.Range(0.85f, 1f),
                     BaseScale = scale,
                 });
