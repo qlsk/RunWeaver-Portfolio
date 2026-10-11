@@ -32,6 +32,9 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    [Header("References")]
+    [SerializeField] private PlayerInteraction _playerInteraction;
+
     [Header("스테이지 상태 정보")]
     [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
@@ -219,6 +222,9 @@ public class StageManager : MonoBehaviour
         }
 
         _portalSpawner.Configure(_portalPrefab, _portalSpawnPosition);
+
+        if (_playerInteraction == null)
+            _playerInteraction = FindAnyObjectByType<PlayerInteraction>();
     }
 
     private void Start()
@@ -375,6 +381,7 @@ public class StageManager : MonoBehaviour
 
         _startObject.SetMarkerVisible(showMarker);
         _startObject.Activated += HandleStartActivated;
+        _playerInteraction.SetFallbackInteractable(_startObject);
     }
 
     private void DestroyStartObject()
