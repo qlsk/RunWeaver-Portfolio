@@ -561,6 +561,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  _useTankAnimations: 0
+  _impactShakeAmplitude: 0.3
+  _impactShakeDuration: 0.15
+  _rockShakeAmplitude: 0.15
+  _rockShakeDuration: 0.15
+  _dashShakeAmplitude: 0.12
+  _dashShakeInterval: 0.16
+  _dashShakeDuration: 0.08
+  _reverse: 0
 --- !u!114 &876899013478963591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -605,6 +614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!50 &3272416623154226051
 Rigidbody2D:
   serializedVersion: 5
@@ -700,6 +710,7 @@ MonoBehaviour:
   _knockbackVfxScale: 0.7
   _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackVfxRotationOffset: 90
+  _detachedVfxLifetime: 1.2
 --- !u!114 &6312000072480831012
 MonoBehaviour:
   m_ObjectHideFlags: 0
