@@ -16,6 +16,7 @@ public class EnemyTankAttack : MonoBehaviour
     }
     [SerializeField, Min(0f)] private float _detectionRange = 3f;
     [SerializeField, Min(0.01f)] private float _attackRadius = 2f;
+    [SerializeField, Range(0.1f, 1f)] private float _rangeHeightRatio = 1f;
     [SerializeField, Min(0f)] private float _damage = 20f;
     [SerializeField, Min(0f)] private float _attackCooldown = 2f;
     [SerializeField] private Sprite _rangeImage;
@@ -33,6 +34,8 @@ public class EnemyTankAttack : MonoBehaviour
     private readonly HashSet<DefenseAltar> _damagedAltars = new HashSet<DefenseAltar>();
     private Vector2 _attackCenter;
     private float _pendingRadius;
+    private float _pendingHeightRatio;
+    private EllipseAttackArea _attackArea;
     private float _attackTime;
     private float _chargeStartTime;
     private float _nextAttackTime;
@@ -74,6 +77,7 @@ public class EnemyTankAttack : MonoBehaviour
         }
 
         CreateIndicator();
+        _attackArea = new EllipseAttackArea(gameObject);
     }
 
     private void OnEnable()
@@ -133,6 +137,7 @@ public class EnemyTankAttack : MonoBehaviour
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
         _pendingRadius = _attackRadius;
+        _pendingHeightRatio = Mathf.Clamp(_rangeHeightRatio, 0.1f, 1f);
         _chargeStartTime = Time.time;
         _attackTime = _chargeStartTime + _warningDuration;
         _animationHit = false;
@@ -143,7 +148,7 @@ public class EnemyTankAttack : MonoBehaviour
         float diameter = _pendingRadius * 2f;
         Transform indicator = _indicator.transform;
         indicator.rotation = Quaternion.identity;
-        indicator.localScale = new Vector3(diameter / bounds.size.x, diameter / bounds.size.y, 1f);
+        indicator.localScale = new Vector3(diameter / bounds.size.x, diameter * _pendingHeightRatio / bounds.size.y, 1f);
         indicator.position = new Vector3(_attackCenter.x, _attackCenter.y, transform.position.z)
                              - indicator.TransformVector(bounds.center);
         UpdateRangeCharge();
@@ -168,7 +173,10 @@ public class EnemyTankAttack : MonoBehaviour
         // 한 번의 공격에서 같은 대상의 여러 Collider에 중복 피해를 주지 않는다.
         var filter = new ContactFilter2D { useTriggers = true };
         var hits = new List<Collider2D>();
-        Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
+        if (_pendingHeightRatio >= 1f)
+            Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
+        else
+            _attackArea.Overlap(_attackCenter, _pendingRadius, _pendingHeightRatio, hits);
         foreach (Collider2D hit in hits)
         {
             if (hit == null) continue;
@@ -231,6 +239,7 @@ public class EnemyTankAttack : MonoBehaviour
     private void OnDestroy()
     {
         _chargeVisual?.Dispose();
+        _attackArea?.Dispose();
         if (_indicator != null)
             Destroy(_indicator.gameObject);
     }
@@ -240,7 +249,8 @@ public class EnemyTankAttack : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, _detectionRange);
         Gizmos.color = _rangeColor;
-        Gizmos.DrawWireSphere(State != EnemyAttackState.Idle ? (Vector3)_attackCenter : transform.position,
-            State != EnemyAttackState.Idle ? _pendingRadius : _attackRadius);
+        EllipseAttackArea.DrawGizmo(State != EnemyAttackState.Idle ? (Vector3)_attackCenter : transform.position,
+            State != EnemyAttackState.Idle ? _pendingRadius : _attackRadius,
+            State != EnemyAttackState.Idle ? _pendingHeightRatio : _rangeHeightRatio);
     }
 }
