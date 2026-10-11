@@ -32,8 +32,11 @@ public class GameStageStatusSource : StageStatusSource
     public int MaxDepth => _maxDepth;
 
     public override bool IsTimeWarningEnabled =>
-        _stageManager != null && _stageManager.Phase == StagePhase.InMission &&
+        _stageManager != null &&
+        _stageManager.Phase is StagePhase.Ready or StagePhase.InMission &&
         _stageManager.CurrentMission is not SurvivalMission;
+
+    public override bool IsStartCountdown => _stageManager != null && _stageManager.IsAutoStartCounting;
 
     private void Start()
     {
@@ -94,6 +97,9 @@ public class GameStageStatusSource : StageStatusSource
 
     private float GetDisplayedTime()
     {
+        if (_stageManager.IsAutoStartCounting)
+            return _stageManager.AutostartRemaining;
+
         return _stageManager.Phase switch
         {
             StagePhase.Cleared => NoTimeLimit,
