@@ -22,6 +22,9 @@ public static class PortalRiftAnimation
     private const float TimeoutScale = 2f;
     private const float TimeoutMargin = 1f;
 
+    /// <summary>요청한 상태로 들어가길 기다리는 최대 시간(실제 시간, 초). 일시정지 중에는 세지 않는다.</summary>
+    private const float EnterTimeout = 0.5f;
+
     /// <summary>오브젝트에 Animator를 붙이고 컨트롤러를 연결한다. 이미 있으면 컨트롤러만 바꾼다.</summary>
     public static Animator Attach(GameObject target, RuntimeAnimatorController controller)
     {
@@ -117,15 +120,40 @@ public static class PortalRiftAnimation
 
     private static IEnumerator WaitUntil(Animator animator, string stateName, Func<AnimatorStateInfo, bool> isDone)
     {
-        // Play 직후에는 상태 정보가 다음 프레임에 갱신된다.
-        yield return null;
-        if (animator == null)
+        // 1. 요청한 상태로 들어간 것을 확인한다. Play 직후에는 상태 정보가 다음 갱신에 반영되므로,
+        //    이전 상태의 길이나 완료 조건으로 잘못 판단하지 않도록 들어갈 때까지 기다린다.
+        //    일시정지(timeScale 0) 중에는 시간을 세지 않는다.
+        int stateHash = Animator.StringToHash(stateName);
+        float enterWaited = 0f;
+        AnimatorStateInfo info;
+        while (true)
         {
-            yield break;
+            yield return null;
+            if (animator == null || !animator.isActiveAndEnabled)
+            {
+                yield break;
+            }
+
+            info = animator.GetCurrentAnimatorStateInfo(0);
+            if (info.shortNameHash == stateHash)
+            {
+                break;
+            }
+
+            if (Time.timeScale > 0f)
+            {
+                enterWaited += Time.unscaledDeltaTime;
+            }
+
+            if (enterWaited >= EnterTimeout)
+            {
+                Debug.LogWarning($"[PortalRiftAnimation] '{stateName}' 상태로 {EnterTimeout:F1}초 안에 들어가지 못해 넘어갑니다.", animator);
+                yield break;
+            }
         }
 
-        // 기다리는 최대 시간 : 재생할 상태의 실제 길이(재생 속도 반영)에 여유를 더한다.
-        float expected = animator.GetCurrentAnimatorStateInfo(0).length / Mathf.Max(0.01f, animator.speed);
+        // 2. 기다리는 최대 시간 : 들어간 상태의 실제 길이(재생 속도 반영)에 여유를 더한다.
+        float expected = info.length / Mathf.Max(0.01f, animator.speed);
         float timeout = expected * TimeoutScale + TimeoutMargin;
         float elapsed = 0f;
         while (animator != null && animator.isActiveAndEnabled && !isDone(animator.GetCurrentAnimatorStateInfo(0)))
