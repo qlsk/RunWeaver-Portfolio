@@ -17,6 +17,14 @@ public class SoulCollectMission : MissionBase
     public int CurrentSoulCount => _currentSoulCount;
     public int TargetSoulCount => _targetSoulCount;
 
+    /// <summary>
+    /// MissionManager가 심도에 맞춰 목표량을 주입한다. Initialize 이전에 호출되어야 한다.
+    /// </summary>
+    public void SetTargetSoulCount(int target)
+    {
+        _targetSoulCount = Mathf.Max(1, target);
+    }
+
     [Header("영혼 수집 구역 (비워두면 씬의 SoulHarvestZone 자동 탐색)")]
     [SerializeField, FormerlySerializedAs("harvestZone")] private SoulHarvestZone _harvestZone;
 
