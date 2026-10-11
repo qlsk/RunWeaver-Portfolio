@@ -7,36 +7,44 @@ public class EnemyContactAttack : MonoBehaviour
 
     private float _nextAttackTime;
     private EnemyStatusEffectController _statusEffectController;
+    private EnemyHealth _health;
 
     private void Awake()
     {
         _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
+        _health = GetComponentInParent<EnemyHealth>();
     }
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (_statusEffectController.IsStaggered)
-            return;
+        ApplyContactDamage(collision);
+    }
 
-        if (!collision.TryGetComponent(out PlayerHitbox hitbox))
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        ApplyContactDamage(collision.collider);
+    }
+
+    private void ApplyContactDamage(Collider2D collision)
+    {
+        if ((_health != null && _health.IsDead) ||
+            (_statusEffectController != null && _statusEffectController.IsStaggered) ||
+            Time.time < _nextAttackTime)
         {
             return;
         }
 
-        if (Time.time < _nextAttackTime)
+        if (collision.TryGetComponent(out PlayerHitbox hitbox) && hitbox.Health != null && !hitbox.Health.IsDead)
         {
-            return;
+            _nextAttackTime = Time.time + _attackCooldown;
+            hitbox.Health.TakeDamage(_damage);
         }
-
-        PlayerHealth playerHealth = hitbox.Health;
-
-        if (playerHealth == null)
+        else
         {
-            return;
+            DefenseAltar altar = collision.GetComponentInParent<DefenseAltar>();
+            if (altar == null || !altar.isActiveAndEnabled || altar.IsDestroyed) return;
+            _nextAttackTime = Time.time + _attackCooldown;
+            altar.TakeDamage(_damage);
         }
-
-        playerHealth.TakeDamage(_damage);
-
-        _nextAttackTime = Time.time + _attackCooldown;
     }
 }
