@@ -256,6 +256,9 @@ public class Portal : MonoBehaviour, IInteractable
         _scaleFactor = 1f;
         ApplyVisual(0f);
 
+        // 바위 문이 바닥에서 솟아오르며 나타나는 동안 소용돌이가 열리기 시작한다. (PortalGateFx)
+        StartCoroutine(PortalGateFx.RiseIn(_sprite));
+
         // Open이 끝나면 Animator가 자동으로 Idle(반복)로 넘어간다.
         yield return PortalRiftAnimation.PlayOpen(_animator);
 
@@ -273,7 +276,8 @@ public class Portal : MonoBehaviour, IInteractable
     private void EnterWithFade(StageManager stageManager)
     {
         PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"), true, true);
-        PortalArrival.LingerExitRift(_sprite, _animator);
+        // 남겨 둔 균열의 소용돌이가 한 번 밝게 부풀었다 가라앉으며 화면이 어두워진다.
+        PortalGateFx.Flash(PortalArrival.LingerExitRift(_sprite, _animator));
         if (_sprite != null)
         {
             _sprite.enabled = false;
@@ -335,6 +339,9 @@ public class Portal : MonoBehaviour, IInteractable
 
         // 2. 균열이 하얗게 봉합되며 닫힌다.
         yield return PortalRiftAnimation.PlayClose(_animator);
+
+        // 닫힌 바위 문이 가라앉으며 흐려진다.
+        yield return PortalGateFx.SinkOut(_sprite);
         if (_sprite != null)
         {
             _sprite.enabled = false;

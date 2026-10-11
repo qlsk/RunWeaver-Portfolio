@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7629890992271083969}
   - component: {fileID: 8566991758360869158}
   - component: {fileID: 7787513107471231097}
+  - component: {fileID: 5150422712341234567}
   m_Layer: 0
   m_Name: DefenseAltar
   m_TagString: Untagged
@@ -193,6 +194,20 @@ MonoBehaviour:
   _altar: {fileID: 7629890992271083969}
   _crackedBelow: 0.66
   _brokenBelow: 0.33
+--- !u!114 &5150422712341234567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6042031307549014131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db8236759ae642c397827a84c97f52a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DefenseAltarFx
+  _altar: {fileID: 0}
+  _flashMaterial: {fileID: 2100000, guid: cf4cdeb8895d422da82dee18818e0e00, type: 2}
 --- !u!1001 &5369996849906742629
 PrefabInstance:
   m_ObjectHideFlags: 0

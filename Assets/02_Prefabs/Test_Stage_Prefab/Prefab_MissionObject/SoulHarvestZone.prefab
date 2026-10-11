@@ -142,6 +142,7 @@ GameObject:
   - component: {fileID: 8532573098682256610}
   - component: {fileID: 483964999890034094}
   - component: {fileID: 3638427289393251851}
+  - component: {fileID: 4815162342108161234}
   m_Layer: 0
   m_Name: SoulHarvestZone
   m_TagString: Untagged
@@ -311,6 +312,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MissionStageAnimator
   _missionType: 1
   _maxStage: 5
+--- !u!114 &4815162342108161234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6800633804430475103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce496a03ac0244b1a7dce82ce8cd0b24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoulFlameFx
+  _flameCenter: {x: 0, y: 0.38}
+  _moteRise: 0.38
+  _lightColor: {r: 0.45, g: 0.8, b: 1, a: 1}
+  _lightIntensityPerStage: 0.22
+  _lightBaseIntensity: 0.35
+  _lightRadiusBase: 1.4
+  _lightRadiusPerStage: 0.35
+  _flicker: 0.15
+  _haloColor: {r: 0.35, g: 0.78, b: 1, a: 1}
+  _haloAlphaPerStage: 0.045
+  _haloSize: 0.55
+  _flareDuration: 0.6
 --- !u!1001 &6540699453977423375
 PrefabInstance:
   m_ObjectHideFlags: 0

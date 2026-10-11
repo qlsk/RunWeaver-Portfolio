@@ -59,11 +59,12 @@ public class PortalArrival : MonoBehaviour
     /// 페이드 방식으로 포탈에 들어갈 때 : 포탈은 층 이동과 함께 바로 사라지므로,
     /// 같은 모양의 균열을 따로 남겨 화면이 완전히 검게 될 때까지 계속 일렁이게 한다.
     /// </summary>
-    public static void LingerExitRift(SpriteRenderer source, Animator sourceAnimator)
+    /// <returns>남겨 둔 균열 그림 (없으면 null)</returns>
+    public static SpriteRenderer LingerExitRift(SpriteRenderer source, Animator sourceAnimator)
     {
         if (source == null)
         {
-            return;
+            return null;
         }
 
         var go = new GameObject("PortalExitRift");
@@ -86,6 +87,7 @@ public class PortalArrival : MonoBehaviour
         }
 
         go.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(go));
+        return rift;
     }
 
     private static IEnumerator LingerRoutine(GameObject owner)
@@ -174,6 +176,9 @@ public class PortalArrival : MonoBehaviour
 
         _hider.RestoreNow();
         yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
+
+        // 닫힌 바위 문이 한 번에 사라지지 않고 가라앉으며 흐려진다.
+        yield return PortalGateFx.SinkOut(rift);
         Destroy(gameObject);
     }
 
@@ -207,6 +212,7 @@ public class PortalArrival : MonoBehaviour
 
         // 1. 플레이어 위 공중에 균열이 열린다. (끝나면 Animator가 자동으로 Idle로 넘어간다)
         Animator animator = PortalRiftAnimation.Attach(gameObject, frames.Controller);
+        StartCoroutine(PortalGateFx.RiseIn(rift));
         yield return PortalRiftAnimation.PlayOpen(animator, OpenFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
         float hold = 0f;
         while (hold < IdleHold)
@@ -265,8 +271,9 @@ public class PortalArrival : MonoBehaviour
 
         _hider.RestoreNow();
 
-        // 3. 균열이 닫힌다.
+        // 3. 균열이 닫히고, 바위 문이 가라앉으며 흐려진다.
         yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
+        yield return PortalGateFx.SinkOut(rift);
         Destroy(gameObject);
     }
 }
