@@ -38,6 +38,24 @@ public class EnemyTankAttack : MonoBehaviour
     public float DetectionRange => _detectionRange;
 
     private EnemyMotor _motor;
+    public bool AnimationDriven { get; set; }
+    public float WarningDuration => Mathf.Max(0.01f, _warningDuration);
+    private bool _animationHit;
+    private float _animationTimeout;
+
+    public void AnimationImpact()
+    {
+        if (!AnimationDriven || !IsAttackActive || State != EnemyAttackState.Attacking || _animationHit) return;
+        _animationHit = true;
+        _indicator.enabled = false;
+        ExecuteAttack();
+    }
+
+    public void AnimationComplete()
+    {
+        if (AnimationDriven && IsAttackActive && State == EnemyAttackState.Attacking && _animationHit)
+            EndAttack(EnemyAttackEndReason.Completed);
+    }
 
     private void Awake()
     {
@@ -78,13 +96,18 @@ public class EnemyTankAttack : MonoBehaviour
                 if (Time.time >= _attackTime)
                 {
                     State = EnemyAttackState.Attacking;
-                    _indicator.enabled = false;
-                    ExecuteAttack();
+                    _animationTimeout = Time.time + 3f;
+                    if (!AnimationDriven)
+                    {
+                        _indicator.enabled = false;
+                        ExecuteAttack();
+                    }
                 }
 
                 break;
             case EnemyAttackState.Attacking:
-                EndAttack(EnemyAttackEndReason.Completed);
+                if (!AnimationDriven) EndAttack(EnemyAttackEndReason.Completed);
+                else if (Time.time >= _animationTimeout) CancelAttack();
                 break;
         }
     }
@@ -107,6 +130,7 @@ public class EnemyTankAttack : MonoBehaviour
         _attackCenter = transform.position;
         _pendingRadius = _attackRadius;
         _attackTime = Time.time + _warningDuration;
+        _animationHit = false;
         State = EnemyAttackState.Preparing;
         _motor.AcquirePositionLock(this);
 

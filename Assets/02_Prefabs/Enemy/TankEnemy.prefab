@@ -453,6 +453,7 @@ GameObject:
   - component: {fileID: 8966571175753534497}
   - component: {fileID: 7452658974309964559}
   - component: {fileID: 7452658974309964560}
+  - component: {fileID: 7452658974309964561}
   m_Layer: 8
   m_Name: TankEnemy
   m_TagString: Enemy
@@ -489,6 +490,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  _useTankAnimations: 1
+  _impactShakeAmplitude: 1
+  _impactShakeDuration: 1
+  _rockShakeAmplitude: 1
+  _rockShakeDuration: 0.15
+  _dashShakeAmplitude: 1
+  _dashShakeInterval: 0.16
+  _dashShakeDuration: 0.08
 --- !u!114 &3499916492354477744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -701,6 +710,7 @@ MonoBehaviour:
   _knockbackVfxScale: 0.7
   _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackVfxRotationOffset: -90
+  _detachedVfxLifetime: 1.2
 --- !u!114 &1580289025472224054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -714,14 +724,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTankAttack
   _externallyControlled: 1
-  _detectionRange: 3
-  _attackRadius: 2
+  _detectionRange: 6
+  _attackRadius: 7
   _damage: 20
   _attackCooldown: 2
   _rangeImage: {fileID: -5013146175607760036, guid: ee7c0d059397dbc40819880a7a057692, type: 3}
-  _rangeColor: {r: 1, g: 0.2, b: 0.1, a: 0.35}
+  _rangeColor: {r: 1, g: 1, b: 1, a: 0.35}
   _rangeSortingLayer: Default
-  _rangeSortingOrder: 10
+  _rangeSortingOrder: 0
   _warningDuration: 1
 --- !u!114 &8285891108709759202
 MonoBehaviour:
@@ -796,11 +806,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDashAttack
   _externallyControlled: 1
   _targetDetector: {fileID: 0}
-  _attackRange: 7
-  _dashDistance: 5
-  _prepareDuration: 1
-  _dashSpeed: 12
-  _cooldown: 2
+  _attackRange: 10
+  _dashDistance: 11
+  _prepareDuration: 1.5
+  _dashSpeed: 20
+  _cooldown: 3
   _maxDashDuration: 3
   _arrivalDistance: 0.05
   _obstacleLayers:
@@ -810,7 +820,37 @@ MonoBehaviour:
   _rangeWidth: 0.8
   _rangeColor: {r: 1, g: 0.4, b: 0.1, a: 0.35}
   _rangeSortingLayer: Default
-  _rangeSortingOrder: 10
+  _rangeSortingOrder: 0
+--- !u!114 &7452658974309964560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac43b79c2b384a72b744c7f86779ba2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyRockfallAttack
+  _externallyControlled: 1
+  _attackRange: 10
+  _rockCount: 3
+  _markInterval: 0.45
+  _warningDuration: 1
+  _attackRadius: 1.2
+  _damage: 15
+  _cooldown: 3
+  _rangeImage: {fileID: -5013146175607760036, guid: ee7c0d059397dbc40819880a7a057692, type: 3}
+  _rockSprite: {fileID: 7606407543972494881, guid: b4c1403cb5d491c478611cdda5898c36, type: 3}
+  _rangeColor: {r: 1, g: 1, b: 1, a: 0.4}
+  _rockColor: {r: 1, g: 1, b: 1, a: 1}
+  _riseDuration: 0.15
+  _holdDuration: 0.4
+  _sinkDuration: 0.25
+  _rockHeight: 2
+  _sortingLayer: Default
+  _sortingOrder: 10
 --- !u!1 &5897909404666103228
 GameObject:
   m_ObjectHideFlags: 0
@@ -889,7 +929,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4.38, y: 3.91}
   m_EdgeRadius: 0
---- !u!114 &7452658974309964560
+--- !u!114 &7452658974309964561
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -898,22 +938,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3047915922552554939}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac43b79c2b384a72b744c7f86779ba2f, type: 3}
+  m_Script: {fileID: 11500000, guid: 690355e4744843b795cf2f18df10115b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyRockfallAttack
-  _externallyControlled: 1
-  _attackRange: 10
-  _rockCount: 3
-  _markInterval: 0.45
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyShockwaveAttack
   _warningDuration: 1
-  _attackRadius: 1.2
-  _damage: 15
-  _cooldown: 3
-  _rangeImage: {fileID: 21300000, guid: a11a2f8222524df6b7b4895508750ab5, type: 3}
-  _rockSprite: {fileID: 21300000, guid: 4b9aba5ea407dbf48b9024707e82fa19, type: 3}
-  _rangeColor: {r: 1, g: 0.3, b: 0.1, a: 0.4}
-  _rockColor: {r: 0.45, g: 0.3, b: 0.2, a: 1}
-  _fallDuration: 0.25
-  _fallHeight: 4
-  _sortingLayer: Default
-  _sortingOrder: 10
+  _maxRadius: 12
+  _speed: 7
+  _ringWidth: 0.45
+  _damage: 20
+  _cooldown: 8
+  _color: {r: 0.3, g: 1, b: 0.75, a: 0.9}

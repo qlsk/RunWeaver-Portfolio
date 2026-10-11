@@ -16,6 +16,9 @@ public class BossPatternController : MonoBehaviour
     [SerializeField, Range(1, 3)] private int _rockfallMinimumPhase = 1;
     [SerializeField, Range(1, 3)] private int _tankMinimumPhase = 1;
     private EnemyTankAttack _tank;
+    private EnemyShockwaveAttack _shockwave;
+    [SerializeField, Range(1, 3)] private int _shockwaveMinimumPhase = 2;
+    [SerializeField, Min(0f)] private float _shockwaveRecoveryDuration = 1f;
     private EnemyDashAttack _dash;
     private EnemyRockfallAttack _rockfall;
     private EnemyMotor _motor;
@@ -33,6 +36,7 @@ public class BossPatternController : MonoBehaviour
     private void Awake()
     {
         _tank = GetComponent<EnemyTankAttack>();
+        _shockwave = GetComponent<EnemyShockwaveAttack>();
         _dash = GetComponent<EnemyDashAttack>();
         _rockfall = GetComponent<EnemyRockfallAttack>();
         _motor = GetComponent<EnemyMotor>();
@@ -49,6 +53,7 @@ public class BossPatternController : MonoBehaviour
         if (_dash != null) _dash.AttackEnded += HandleDashEnded;
         if (_rockfall != null) _rockfall.AttackEnded += HandleRockfallEnded;
         EnemyHealth.OnDeath += HandleDeath;
+        if (_shockwave != null) _shockwave.AttackEnded += HandleShockwaveEnded;
     }
 
     private void SetExternalControl()
@@ -93,6 +98,11 @@ public class BossPatternController : MonoBehaviour
 
         float ratio = _health.CurrentHealth / _health.MaxHealth;
         Phase = ratio <= 0.3f ? 3 : ratio <= 0.6f ? 2 : 1;
+        if (_shockwave != null && Phase >= _shockwaveMinimumPhase && _shockwave.TryStartAttack())
+        {
+            _activeAttack = _shockwave;
+            return;
+        }
         // 쿨타임 때문에 근거리 공격 대신 낙석이 선택되지 않도록 거리를 먼저 판정
         Vector2 offset = _targetDetector.Target.position - transform.position;
         bool isClose = _tank != null && offset.sqrMagnitude <= _tank.DetectionRange * _tank.DetectionRange;
@@ -140,6 +150,11 @@ public class BossPatternController : MonoBehaviour
         if (_activeAttack == _tank) FinishAttack(reason, _tankRecoveryDuration);
     }
 
+    private void HandleShockwaveEnded(EnemyAttackEndReason reason)
+    {
+        if (_activeAttack == _shockwave) FinishAttack(reason, _shockwaveRecoveryDuration);
+    }
+
     private void FinishAttack(EnemyAttackEndReason reason, float recovery)
     {
         _activeAttack = null;
@@ -159,6 +174,7 @@ public class BossPatternController : MonoBehaviour
             _nextPatternTime = Time.time + _patternInterval;
         _activeAttack = null;
         if (_tank != null) _tank.CancelAttack();
+        if (_shockwave != null) _shockwave.CancelAttack();
         if (_dash != null) _dash.CancelDash();
         if (_rockfall != null) _rockfall.CancelAttack();
         IsRecovering = false;
@@ -173,6 +189,7 @@ public class BossPatternController : MonoBehaviour
     private void OnDisable()
     {
         EnemyHealth.OnDeath -= HandleDeath;
+        if (_shockwave != null) _shockwave.AttackEnded -= HandleShockwaveEnded;
         if (_tank != null) _tank.AttackEnded -= HandleTankEnded;
         if (_dash != null) _dash.AttackEnded -= HandleDashEnded;
         if (_rockfall != null) _rockfall.AttackEnded -= HandleRockfallEnded;

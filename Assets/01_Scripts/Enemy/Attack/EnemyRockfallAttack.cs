@@ -18,8 +18,10 @@ public class EnemyRockfallAttack : MonoBehaviour
     [SerializeField] private Sprite _rockSprite;
     [SerializeField] private Color _rangeColor = new Color(1f, 0.3f, 0.1f, 0.4f);
     [SerializeField] private Color _rockColor = new Color(0.45f, 0.3f, 0.2f, 1f);
-    [SerializeField, Min(0.01f)] private float _fallDuration = 0.25f;
-    [SerializeField, Min(0f)] private float _fallHeight = 4f;
+    [SerializeField, Min(0.01f)] private float _riseDuration = 0.15f;
+    [SerializeField, Min(0f)] private float _holdDuration = 0.4f;
+    [SerializeField, Min(0.01f)] private float _sinkDuration = 0.25f;
+    [SerializeField, Min(0.01f)] private float _rockHeight = 2f;
     [SerializeField] private string _sortingLayer = "Default";
     [SerializeField] private int _sortingOrder = 10;
 
@@ -29,6 +31,8 @@ public class EnemyRockfallAttack : MonoBehaviour
         public float ImpactTime;
         public SpriteRenderer Warning;
         public SpriteRenderer Rock;
+        public RockEruptionVisual Visual;
+        public bool HasHit;
     }
 
     private readonly List<Strike> _pending = new List<Strike>();
@@ -45,6 +49,18 @@ public class EnemyRockfallAttack : MonoBehaviour
     public EnemyAttackState State { get; private set; }
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
     public event System.Action<EnemyAttackEndReason> AttackEnded;
+    public event System.Action RockErupted;
+    public bool AnimationDriven { get; set; }
+    public float WarningDuration => Mathf.Max(0.01f, _warningDuration);
+    private bool _released;
+    private float _castEndTime;
+
+    public void AnimationImpact()
+    {
+        if (!AnimationDriven || !IsAttackActive || State != EnemyAttackState.Attacking || _released) return;
+        _released = true;
+        _nextMarkTime = Time.time;
+    }
 
     private void Awake()
     {
@@ -82,6 +98,8 @@ public class EnemyRockfallAttack : MonoBehaviour
         _pendingInterval = Mathf.Max(0.01f, _markInterval);
         _nextMarkTime = Time.time;
         State = EnemyAttackState.Preparing;
+        _released = !AnimationDriven;
+        _castEndTime = Time.time + _pendingWarning;
         _motor.AcquirePositionLock(this);
         return true;
     }
@@ -100,6 +118,12 @@ public class EnemyRockfallAttack : MonoBehaviour
             return;
         }
 
+        if (AnimationDriven && !_released)
+        {
+            if (Time.time >= _castEndTime) State = EnemyAttackState.Attacking;
+            if (Time.time >= _castEndTime + 3f) CancelAttack();
+            return;
+        }
         // 표식마다 현재 위치를 새로 기록하지만 이미 표시한 중심은 바꾸지 않는다.
         if (_remainingMarks > 0 && Time.time >= _nextMarkTime)
         {
@@ -108,8 +132,10 @@ public class EnemyRockfallAttack : MonoBehaviour
             strike.Warning = CreateVisual("RockfallWarning", _rangeImage, center, _rangeColor, _sortingOrder);
             if (_rockSprite != null)
             {
-                strike.Rock = CreateVisual("FallingRock", _rockSprite, center, _rockColor, _sortingOrder + 1);
-                strike.Rock.enabled = false;
+                strike.Rock = CreateVisual("EmergingRock", _rockSprite, center, _rockColor, _sortingOrder + 1);
+                strike.Visual = new GameObject("RockEruption").AddComponent<RockEruptionVisual>();
+                strike.Visual.Initialize(strike.Rock, new Vector3(center.x, center.y, transform.position.z), _rockHeight);
+                strike.Visual.gameObject.SetActive(false);
             }
             _pending.Add(strike);
             _remainingMarks--;
@@ -122,20 +148,35 @@ public class EnemyRockfallAttack : MonoBehaviour
             float remaining = strike.ImpactTime - Time.time;
             if (remaining > 0f)
             {
-                if (strike.Rock != null && remaining <= _fallDuration)
+                i++;
+                continue;
+            }
+            if (!strike.HasHit)
+            {
+                strike.HasHit = true;
+                DestroyVisual(strike.Warning);
+                State = EnemyAttackState.Attacking;
+                RockErupted?.Invoke();
+                if (State == EnemyAttackState.Idle) return;
+                ApplyDamage(strike.Center);
+                if (State == EnemyAttackState.Idle) return;
+            }
+            float elapsed = -remaining;
+            float rise = Mathf.Max(0.01f, _riseDuration);
+            float sink = Mathf.Max(0.01f, _sinkDuration);
+            float hold = Mathf.Max(0f, _holdDuration);
+            if (elapsed < rise + hold + sink)
+            {
+                if (strike.Visual != null)
                 {
-                    strike.Rock.enabled = true;
-                    PositionVisual(strike.Rock, strike.Center + Vector2.up * (_fallHeight * Mathf.Clamp01(remaining / Mathf.Max(0.01f, _fallDuration))));
+                    strike.Visual.gameObject.SetActive(true);
+                    strike.Visual.Animate(elapsed, rise, hold, sink);
                 }
                 i++;
                 continue;
             }
             _pending.RemoveAt(i);
-            DestroyVisual(strike.Warning);
-            DestroyVisual(strike.Rock);
-            State = EnemyAttackState.Attacking;
-            ApplyDamage(strike.Center);
-            if (State == EnemyAttackState.Idle) return;
+            DestroyRock(strike);
         }
         if (_remainingMarks == 0 && _pending.Count == 0)
             EndAttack(EnemyAttackEndReason.Completed);
@@ -194,7 +235,7 @@ public class EnemyRockfallAttack : MonoBehaviour
         foreach (Strike strike in _pending)
         {
             DestroyVisual(strike.Warning);
-            DestroyVisual(strike.Rock);
+            DestroyRock(strike);
         }
         _pending.Clear();
         _motor?.ReleasePositionLock(this);
@@ -203,6 +244,15 @@ public class EnemyRockfallAttack : MonoBehaviour
         AttackEnded?.Invoke(reason);
     }
 
+    private static void DestroyRock(Strike strike)
+    {
+        if (strike.Visual != null)
+        {
+            strike.Visual.gameObject.SetActive(false);
+            Destroy(strike.Visual.gameObject);
+        }
+        else DestroyVisual(strike.Rock);
+    }
     private static void DestroyVisual(SpriteRenderer renderer)
     {
         if (renderer == null) return;
