@@ -134,6 +134,12 @@ public class EndingResultView : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _stampDuration = 0.18f;
     [SerializeField] private float _stampStartScale = 1.8f;
 
+    [Header("나가기 연출 (다음 개체 투입, 타이틀로 돌아가기)")]
+    [Tooltip("버튼이 반짝이는 동안 기다리는 시간. RunFlow의 전환 대기 시간과 맞춘다")]
+    [SerializeField, Min(0f)] private float _leaveDelay = 0.15f;
+    [SerializeField, Min(0.01f)] private float _leaveDuration = 0.5f;
+    [SerializeField] private float _leaveSink = 48f;
+
     [Header("도장 먼지")]
     [Tooltip("먼지 알갱이 이미지 (부드러운 원형). 비워두면 먼지를 만들지 않는다")]
     [SerializeField] private Sprite _dustSprite;
@@ -523,6 +529,11 @@ public class EndingResultView : MonoBehaviour
 
     private void HandleMenuConfirmed(int index)
     {
+        if (index == RestartMenuIndex || index == TitleMenuIndex)
+        {
+            PlayLeave();
+        }
+
         if (index == RestartMenuIndex)
         {
             Debug.Log("[EndingResultView] 다시 시작 요청");
@@ -532,6 +543,52 @@ public class EndingResultView : MonoBehaviour
         {
             Debug.Log("[EndingResultView] 타이틀 이동 요청");
             TitleRequested?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 나갈 때 : 버튼이 반짝이는 동안 잠깐 기다렸다가 보고서가 아래로 가라앉으며 흐려지고, 오른쪽도 함께 흐려진다.
+    /// 화면을 검게 덮는 것은 SceneTransition(RunFlow)이 같은 시간에 맞춰 한다.
+    /// </summary>
+    private void PlayLeave()
+    {
+        if (_appearRoutine != null)
+        {
+            StopCoroutine(_appearRoutine);
+            _appearRoutine = null;
+        }
+
+        StartCoroutine(LeaveRoutine());
+    }
+
+    private IEnumerator LeaveRoutine()
+    {
+        RectTransform report = _reportGroup != null ? _reportGroup.transform as RectTransform : null;
+        Vector2 start = report != null ? report.anchoredPosition : Vector2.zero;
+        float reportAlpha = _reportGroup != null ? _reportGroup.alpha : 1f;
+        float sideAlpha = _sideGroup != null ? _sideGroup.alpha : 1f;
+
+        float wait = 0f;
+        while (wait < _leaveDelay)
+        {
+            wait += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < _leaveDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / _leaveDuration);
+            float eased = t * t;
+            if (report != null)
+            {
+                report.anchoredPosition = start + new Vector2(0f, -_leaveSink * eased);
+            }
+
+            SetAlpha(_reportGroup, reportAlpha * (1f - t));
+            SetAlpha(_sideGroup, sideAlpha * (1f - Mathf.Clamp01(t * 1.4f)));
+            yield return null;
         }
     }
 

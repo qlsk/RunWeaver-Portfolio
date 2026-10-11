@@ -9,6 +9,7 @@ using UnityEngine.Serialization;
 ///        → 석상이 흔들리다 무너진다 → 1층 미션 오브젝트가 서서히 나타난다 → 미션 시작 오브젝트로 시작
 /// - 원소 선택을 취소하거나 룬북을 Confirm 없이 닫으면 석상은 그대로 있고, 다시 상호작용할 수 있다.
 /// - 씬이 열리면 원정(지갑, 시작 골드)을 시작하고 플레이어를 석상 앞으로 옮긴다.
+///   플레이어는 석상 앞 공중에 열린 균열에서 튀어나온다. (PortalArrival)
 /// - 1층은 StageManager가 기다리고 있다가(_waitForPreparation) 석상이 무너진 뒤 BeginPreparedRun으로 시작한다.
 /// 무너지는 연출은 게임 시간으로 움직인다. (일시정지하면 멈춘다)
 /// </summary>
@@ -24,6 +25,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField] private Transform _interactionGuidePoint;
     [Tooltip("씬이 열릴 때 플레이어를 놓을 위치 (석상 기준)")]
     [SerializeField] private Vector3 _playerStartOffset = new(0f, -3f, 0f);
+    [Tooltip("씬이 열린 뒤 균열이 열리기까지 (화면이 밝아지는 동안 기다린다)")]
+    [SerializeField, Min(0f)] private float _arrivalDelay = 0.5f;
 
     [Header("UI")]
     [SerializeField] private PopupController _popupController;
@@ -115,6 +118,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         {
             _player = player.transform;
             player.transform.position = transform.position + _playerStartOffset;
+            PortalArrival.PlayFor(player, _arrivalDelay);
         }
     }
 
