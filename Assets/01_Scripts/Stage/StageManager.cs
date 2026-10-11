@@ -1119,12 +1119,19 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    /// <summary>카메라가 맵을 가로질러 따라가지 않도록 플레이어 위치로 바로 옮긴다. (z는 유지)</summary>
+    /// <summary>카메라 추적 Rig를 플레이어 위치로 바로 옮긴다.</summary>
     private static void SnapCameraToPlayer(Vector3 playerPosition)
     {
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
+            return;
+        }
+
+        CameraFollow cameraFollow = mainCamera.GetComponentInParent<CameraFollow>();
+        if (cameraFollow != null)
+        {
+            cameraFollow.SnapToPosition(playerPosition);
             return;
         }
 

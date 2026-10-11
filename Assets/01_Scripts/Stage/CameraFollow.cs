@@ -32,6 +32,7 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private Transform _backgroundRoot;
 
     private Camera _camera;
+    private Vector3 _defaultCameraLocalPosition;
     private float _defaultOrthographicSize;
     private Renderer[] _backgroundRenderers;
 
@@ -42,7 +43,10 @@ public class CameraFollow : MonoBehaviour
             _camera = GetComponentInChildren<Camera>();
 
         if (_camera != null)
+        {
             _defaultOrthographicSize = _camera.orthographicSize;
+            _defaultCameraLocalPosition = _camera.transform.localPosition;
+        }
 
         if (_backgroundRoot != null)
             _backgroundRenderers = _backgroundRoot.GetComponentsInChildren<Renderer>();
@@ -87,6 +91,14 @@ public class CameraFollow : MonoBehaviour
         Vector3 nextPosition = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
         // 시작 위치나 화면 비율이 바뀌어도 보간 중 배경 밖이 보이지 않도록 최종 위치도 제한한다.
         transform.position = ClampToBackground(nextPosition);
+    }
+
+    public void SnapToPosition(Vector3 targetPosition)
+    {
+        if (_camera != null && _camera.transform != transform)
+            _camera.transform.localPosition = _defaultCameraLocalPosition;
+
+        transform.position = ClampToBackground(targetPosition + _offset);
     }
 
     private Vector3 GetMouseLookAheadOffset()
