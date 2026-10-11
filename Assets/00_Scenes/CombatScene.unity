@@ -17922,16 +17922,16 @@ MonoBehaviour:
   _glowActivationDistance: 2
   _glowAlpha: 0.65
   _glowExpandDuration: 2
-  _shakeDuration: 0.7
+  _shakeDuration: 0.5
   _shakeAmount: 0.07
   _flashColor: {r: 0.8, g: 0.92, b: 1, a: 1}
-  _fragmentColumns: 5
-  _fragmentRows: 8
-  _fragmentLifetime: 1.6
-  _gravity: 14
-  _spread: 2.4
-  _pop: 2.5
+  _crumbleDuration: 1
+  _grainCount: 1400
+  _grainSize: {x: 0.025, y: 0.055}
+  _grainGravity: 16
+  _grainSpread: 0.6
   _groundJitter: 0.5
+  _grainFadeDuration: 0.8
   _dustSprite: {fileID: 0}
   _dustColor: {r: 0.78, g: 0.74, b: 0.7, a: 0.6}
   _dustCount: 14
@@ -21034,7 +21034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4884752687843641705, guid: a58cfa6ce85402540bbb168aa9d4f05a, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4967382549297815608, guid: a58cfa6ce85402540bbb168aa9d4f05a, type: 3}
       propertyPath: m_VerticalAlignment
