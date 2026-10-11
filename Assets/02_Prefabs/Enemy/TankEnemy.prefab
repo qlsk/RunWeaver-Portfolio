@@ -498,6 +498,7 @@ MonoBehaviour:
   _dashShakeAmplitude: 1
   _dashShakeInterval: 0.16
   _dashShakeDuration: 0.08
+  _reverse: 0
 --- !u!114 &3499916492354477744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -585,6 +586,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!114 &4752673225059697373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -792,6 +794,8 @@ MonoBehaviour:
   _rockfallRecoveryDuration: 1
   _rockfallMinimumPhase: 1
   _tankMinimumPhase: 1
+  _shockwaveMinimumPhase: 2
+  _shockwaveRecoveryDuration: 1
 --- !u!114 &7452658974309964559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -851,6 +855,25 @@ MonoBehaviour:
   _rockHeight: 2
   _sortingLayer: Default
   _sortingOrder: 10
+--- !u!114 &7452658974309964561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690355e4744843b795cf2f18df10115b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyShockwaveAttack
+  _warningDuration: 1
+  _maxRadius: 12
+  _speed: 7
+  _ringWidth: 0.45
+  _damage: 20
+  _cooldown: 8
+  _color: {r: 0.3, g: 1, b: 0.75, a: 0.9}
 --- !u!1 &5897909404666103228
 GameObject:
   m_ObjectHideFlags: 0
@@ -929,22 +952,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4.38, y: 3.91}
   m_EdgeRadius: 0
---- !u!114 &7452658974309964561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3047915922552554939}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 690355e4744843b795cf2f18df10115b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyShockwaveAttack
-  _warningDuration: 1
-  _maxRadius: 12
-  _speed: 7
-  _ringWidth: 0.45
-  _damage: 20
-  _cooldown: 8
-  _color: {r: 0.3, g: 1, b: 0.75, a: 0.9}

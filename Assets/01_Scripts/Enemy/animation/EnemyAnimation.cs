@@ -11,6 +11,7 @@ public class EnemyAnimation : MonoBehaviour
     [SerializeField, Min(0f)] private float _dashShakeAmplitude = 0.12f;
     [SerializeField, Min(0.01f)] private float _dashShakeInterval = 0.16f;
     [SerializeField, Min(0.01f)] private float _dashShakeDuration = 0.08f;
+    [SerializeField] private bool _reverse = true;
     private float _nextDashShakeTime;
     private Animator _animator;
     private SpriteRenderer _sprite;
@@ -48,6 +49,7 @@ public class EnemyAnimation : MonoBehaviour
             _rock.AnimationDriven = true;
             _rock.RockErupted += OnRockErupted;
         }
+
         if (Camera.main != null && FindAnyObjectByType<MMCameraShaker>() == null)
             new MMF_CameraShake().AutomaticShakerSetup();
     }
@@ -59,10 +61,13 @@ public class EnemyAnimation : MonoBehaviour
             UpdateTankAnimation();
             UpdateDashShake();
         }
+
         if ((_tank != null && _tank.IsAttackActive) || (_dash != null && _dash.IsDashActive) ||
             (_rock != null && _rock.IsAttackActive)) return;
         if (_sprite != null && _target != null && _target.Target != null)
-            _sprite.flipX = transform.position.x > _target.Target.position.x;
+            _sprite.flipX = _reverse
+                ? transform.position.x < _target.Target.position.x
+                : transform.position.x > _target.Target.position.x;
     }
 
     private void UpdateTankAnimation()
@@ -88,19 +93,26 @@ public class EnemyAnimation : MonoBehaviour
             state = _dash.State == EnemyAttackState.Preparing ? "TankIdle" : "TankDash";
         else if ((_boss == null || !_boss.IsRecovering) && _body != null && _body.linearVelocity.sqrMagnitude > 0.001f)
             state = "TankEnemyWalk";
+
         if (_health != null && _health.IsDead) state = "TankIdle";
         _animator.speed = speed;
         if (_playedState == state) return;
         int hash = Animator.StringToHash("Base Layer." + state);
         if (!_animator.HasState(0, hash)) return;
-        if (state == "TankPrepare") { _clipFinished = false; _impactSent = false; }
+        if (state == "TankPrepare")
+        {
+            _clipFinished = false;
+            _impactSent = false;
+        }
+
         _animator.Play(hash, 0, 0f);
         _playedState = state;
     }
 
     public void AnimationImpact()
     {
-        if (!isActiveAndEnabled || _playedState != "TankAttack" || _impactSent || (_health != null && _health.IsDead)) return;
+        if (!isActiveAndEnabled || _playedState != "TankAttack" || _impactSent ||
+            (_health != null && _health.IsDead)) return;
         bool tank = _tank != null && _tank.IsAttackActive && _tank.State == EnemyAttackState.Attacking;
         bool rock = _rock != null && _rock.IsAttackActive && _rock.State == EnemyAttackState.Attacking;
         if (!tank && !rock) return;
@@ -118,6 +130,7 @@ public class EnemyAnimation : MonoBehaviour
     }
 
     private void OnRockErupted() => Shake(_rockShakeAmplitude, _rockShakeDuration);
+
     private void UpdateDashShake()
     {
         bool moving = _dash != null && _dash.IsDashActive && _dash.State == EnemyAttackState.Attacking &&
@@ -128,17 +141,20 @@ public class EnemyAnimation : MonoBehaviour
             _nextDashShakeTime = 0f;
             return;
         }
+
         if (Time.timeScale <= 0f || Time.time < _nextDashShakeTime) return;
         _nextDashShakeTime = Time.time + Mathf.Max(0.01f, _dashShakeInterval);
         if (_dashShakeAmplitude <= 0f) return;
         MMCameraShakeEvent.Trigger(Mathf.Max(0.01f, _dashShakeDuration), _dashShakeAmplitude, 30f,
             _dashShakeAmplitude * 0.5f, _dashShakeAmplitude, 0f);
     }
+
     private static void Shake(float amplitude, float duration)
     {
         if (amplitude <= 0f || duration <= 0f) return;
         MMCameraShakeEvent.Trigger(duration, amplitude, 30f, amplitude, amplitude, 0f);
     }
+
     private void OnDisable()
     {
         _nextDashShakeTime = 0f;
@@ -149,6 +165,7 @@ public class EnemyAnimation : MonoBehaviour
         _impactSent = false;
         _clipFinished = false;
     }
+
     private void OnDestroy()
     {
         if (_rock != null) _rock.RockErupted -= OnRockErupted;
