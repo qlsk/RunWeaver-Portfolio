@@ -32,12 +32,14 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField] private PopupController _popupController;
     [SerializeField] private MainElementSelectView _elementSelectView;
     [SerializeField] private RuneBookV2Toggle _runeBookToggle;
-    [Tooltip("룬북 화면 루트. 비워두면 _runeBookPresenter를 직접 넣는다")] [SerializeField] private GameObject _runeBookRoot;
+    [Tooltip("룬북 화면 루트. 비워두면 _runeBookPresenter를 직접 넣는다")]
+    [SerializeField] private GameObject _runeBookRoot;
     [SerializeField] private RuneBookV2Presenter _runeBookPresenter;
 
     [Header("석상")]
     [SerializeField] private SpriteRenderer _statueRenderer;
-    [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")] [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
+    [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")]
+    [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
     [SerializeField] private Collider2D[] _colliders;
 
     [Header("마법진 근접 발광")]
@@ -46,21 +48,29 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField] private SpriteRenderer _circleAuraRenderer;
     [SerializeField, Min(0f)] private float _glowActivationDistance = 2f;
     [SerializeField, Range(0f, 1f)] private float _glowAlpha = 0.65f;
-    [FormerlySerializedAs("_glowFadeDuration")] [SerializeField, Min(0.01f)] private float _glowExpandDuration = 2f;
+    [FormerlySerializedAs("_glowFadeDuration")]
+    [SerializeField, Min(0.01f)] private float _glowExpandDuration = 2f;
 
     [Header("무너지기 전 흔들림")]
     [SerializeField, Min(0f)] private float _shakeDuration = 0.7f;
     [SerializeField] private float _shakeAmount = 0.07f;
-    [Tooltip("무너지기 직전 석상이 빛나는 색")] [SerializeField] private Color _flashColor = new(0.8f, 0.92f, 1f, 1f);
+    [Tooltip("무너지기 직전 석상이 빛나는 색")]
+    [SerializeField] private Color _flashColor = new(0.8f, 0.92f, 1f, 1f);
 
     [Header("알갱이 (위에서부터 풀려 모래처럼 떨어진다)")]
-    [Tooltip("비석이 위에서 아래까지 다 풀리는 데 걸리는 시간")] [SerializeField, Min(0.1f)] private float _crumbleDuration = 2f;
-    [Tooltip("무너지는 동안 떨어지는 알갱이의 총 개수")] [SerializeField, Min(0)] private int _grainCount = 1400;
-    [Tooltip("알갱이 한 변의 크기 (월드 단위, 최소~최대)")] [SerializeField] private Vector2 _grainSize = new(0.025f, 0.055f);
+    [Tooltip("비석이 위에서 아래까지 다 풀리는 데 걸리는 시간")]
+    [SerializeField, Min(0.1f)] private float _crumbleDuration = 2f;
+    [Tooltip("무너지는 동안 떨어지는 알갱이의 총 개수")]
+    [SerializeField, Min(0)] private int _grainCount = 1400;
+    [Tooltip("알갱이 한 변의 크기 (월드 단위, 최소~최대)")]
+    [SerializeField] private Vector2 _grainSize = new(0.025f, 0.055f);
     [SerializeField] private float _grainGravity = 8f;
-    [Tooltip("알갱이가 풀릴 때 옆으로 흩어지는 세기")] [SerializeField] private float _grainSpread = 0.6f;
-    [Tooltip("알갱이가 떨어져 쌓이는 바닥 높이의 흩어짐 (석상 밑동 기준)")] [SerializeField] private float _groundJitter = 0.5f;
-    [Tooltip("다 무너진 뒤 쌓인 알갱이가 사라지는 시간")] [SerializeField, Min(0.01f)] private float _grainFadeDuration = 0.8f;
+    [Tooltip("알갱이가 풀릴 때 옆으로 흩어지는 세기")]
+    [SerializeField] private float _grainSpread = 0.6f;
+    [Tooltip("알갱이가 떨어져 쌓이는 바닥 높이의 흩어짐 (석상 밑동 기준)")]
+    [SerializeField] private float _groundJitter = 0.5f;
+    [Tooltip("다 무너진 뒤 쌓인 알갱이가 사라지는 시간")]
+    [SerializeField, Min(0.01f)] private float _grainFadeDuration = 0.8f;
 
     [Header("먼지")]
     [SerializeField] private Sprite _dustSprite;
@@ -70,12 +80,13 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [SerializeField, Min(0.1f)] private float _dustLifetime = 1.1f;
 
     [Header("룬북 Confirm 뒤")]
-    [Tooltip("룬북 Confirm 연출(장착 칸이 차례로 빛남)을 보여준 뒤 룬북을 닫기까지 (실제 시간)")] [SerializeField, Min(0f)]
-    private float _runeBookCloseDelay = 0.55f;
+    [Tooltip("룬북 Confirm 연출(장착 칸이 차례로 빛남)을 보여준 뒤 룬북을 닫기까지 (실제 시간)")]
+    [SerializeField, Min(0f)] private float _runeBookCloseDelay = 0.55f;
 
     [Header("이후")]
-    [Tooltip("무너지기 시작하고 1층 미션을 준비하기까지")] [SerializeField, Min(0f)] private float _beginRunDelay = 0.6f;
-    [Tooltip("미션 오브젝트가 서서히 나타나는 시간")] [SerializeField, Min(0.01f)] private float _missionFadeDuration = 1.4f;
+    [SerializeField, Min(0f)] private float _beginMissionDelay = 0.6f;
+    [Tooltip("미션 오브젝트가 서서히 나타나는 시간")]
+    [SerializeField, Min(0.01f)] private float _missionFadeDuration = 1.4f;
     [SerializeField, Min(0.01f)] private float _circleFadeDuration = 1f;
 
     /// <summary>흔들리기 직전 석상의 상태. 연출이 시작 전에 끊기면 이 상태로 되돌린다.</summary>
@@ -299,8 +310,10 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
         // 3. 풀리는 동안 바닥 마법진을 지우고, 1층을 준비하고, 미션 오브젝트를 서서히 보여준다.
         bool hasBegun = false;
-        float total = Mathf.Max(_crumbleEffect.Duration, _circleFadeDuration);
+        float collapsedElapsed = 0f;
+        float total = Mathf.Max(_crumbleEffect.Duration, _circleFadeDuration + _beginMissionDelay, _circleFadeDuration);
         float elapsed = 0f;
+
         while (elapsed < total)
         {
             float deltaTime = Time.deltaTime;
@@ -309,10 +322,15 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             _crumbleEffect.Tick(elapsed, deltaTime);
             FadeCircles(circleAlphas, elapsed);
 
-            if (!hasBegun && elapsed >= _beginRunDelay)
+            if (!hasBegun && _crumbleEffect.IsCollapsed)
             {
-                hasBegun = true;
-                BeginRun();
+                collapsedElapsed += deltaTime;
+
+                if (collapsedElapsed >= _beginMissionDelay)
+                {
+                    hasBegun = true;
+                    BeginRun();
+                }
             }
 
             yield return null;

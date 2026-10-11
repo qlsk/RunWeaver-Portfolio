@@ -133,6 +133,8 @@ public sealed class StatueCrumbleEffect
     private int SortingLayerId => _statueRenderer != null ? _statueRenderer.sortingLayerID : 0;
     private int SortingOrder => _statueRenderer != null ? _statueRenderer.sortingOrder : 0;
 
+    public bool IsCollapsed => _previousProgress >= 1f;
+
     /// <summary>연출을 준비한다. 마스크와 알갱이 시스템을 만들고, 알갱이 색을 얻으려고 석상 색을 읽어 둔다.</summary>
     /// <param name="baseColor">석상의 원래 색 (알갱이 색에 곱한다)</param>
     /// <param name="flashColor">풀리기 직전까지 석상이 빛나던 색 (풀리기 시작하면 원래 색으로 돌아온다)</param>
