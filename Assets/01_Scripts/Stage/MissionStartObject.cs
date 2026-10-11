@@ -1,5 +1,4 @@
 using System;
-using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -15,14 +14,13 @@ using UnityEngine;
 public class MissionStartObject : MonoBehaviour, IInteractable
 {
     private const int MarkerTextureSize = 64;
-    private const int PromptSortingOrder = 200;
     private const int MarkerSortingOrder = 1;
 
     private static Sprite s_markerSprite;
 
-    [SerializeField] private string _interactionName = "Start";
-    [Tooltip("F 안내 텍스트. 비워두면 안내 위치로 이 오브젝트를 쓴다")]
-    [SerializeField] private TextMeshPro _prompt;
+    [SerializeField] private string _interactionName = "시작";
+    [Tooltip("InteractionGuideView가 F 안내를 띄울 위치. 비워두면 이 오브젝트를 쓴다")]
+    [SerializeField] private Transform _interactionGuidePoint;
     [Tooltip("원형 표시. 미션 오브젝트 위에 놓일 때는 숨긴다")]
     [SerializeField] private GameObject _marker;
 
@@ -32,7 +30,7 @@ public class MissionStartObject : MonoBehaviour, IInteractable
     public event Action Activated;
 
     public string InteractionName => _interactionName;
-    public Transform InteractionGuidePoint => _prompt != null ? _prompt.transform : transform;
+    public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
 
     /// <summary>원형 표시를 보이거나 숨긴다. (미션 오브젝트 위에 놓일 때는 숨긴다)</summary>
     public void SetMarkerVisible(bool isVisible)
@@ -55,7 +53,7 @@ public class MissionStartObject : MonoBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 프리팹 없이 임시 시작 오브젝트를 만든다. (원형 표시 + "F - Start" 안내)
+    /// 프리팹 없이 임시 시작 오브젝트를 만든다. (원형 표시 + 안내 위치)
     /// </summary>
     public static MissionStartObject Create(Vector3 position, int layer, float radius)
     {
@@ -76,20 +74,13 @@ public class MissionStartObject : MonoBehaviour, IInteractable
         markerRenderer.color = new Color(0.55f, 0.85f, 1f, 0.75f);
         markerRenderer.sortingOrder = MarkerSortingOrder;
 
-        GameObject promptObject = new("Prompt", typeof(RectTransform));
-        promptObject.layer = layer;
-        promptObject.transform.SetParent(root.transform, false);
-        TextMeshPro prompt = promptObject.AddComponent<TextMeshPro>();
-        prompt.rectTransform.localPosition = new Vector3(0f, radius + 0.6f, 0f);
-        prompt.text = "F - 시작";
-        prompt.fontSize = 5f;
-        prompt.alignment = TextAlignmentOptions.Center;
-        prompt.color = new Color(1f, 0.95f, 0.8f, 1f);
-        prompt.sortingOrder = PromptSortingOrder;
-        prompt.rectTransform.sizeDelta = new Vector2(8f, 1.5f);
+        GameObject guidePoint = new("InteractionGuidePoint");
+        guidePoint.layer = layer;
+        guidePoint.transform.SetParent(root.transform, false);
+        guidePoint.transform.localPosition = new Vector3(0f, radius + 0.6f, 0f);
 
         MissionStartObject startObject = root.AddComponent<MissionStartObject>();
-        startObject._prompt = prompt;
+        startObject._interactionGuidePoint = guidePoint.transform;
         startObject._marker = marker;
         return startObject;
     }

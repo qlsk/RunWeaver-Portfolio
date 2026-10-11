@@ -44,7 +44,7 @@ public class StageManager : MonoBehaviour
     [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")]
+    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + 안내 위치)를 만든다")]
     [SerializeField] private MissionStartObject _startObjectPrefab;
     [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
     [SerializeField] private Vector3 _startObjectPosition = new(0f, 2f, 0f);
