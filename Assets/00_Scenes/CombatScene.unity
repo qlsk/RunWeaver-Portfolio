@@ -1483,6 +1483,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8a343809ae9140448c65190f0cc0cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageManager
+  _playerInteraction: {fileID: 8110420659177510074}
   _currentDepth: 1
   _missionCatalog: {fileID: 0}
   _missionStageCount: 10
@@ -17778,7 +17779,7 @@ Transform:
   m_GameObject: {fileID: 1700000001}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.03, y: 1.35, z: 0}
+  m_LocalPosition: {x: -0.03, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17938,7 +17939,7 @@ MonoBehaviour:
   _dustSize: {x: 0.8, y: 1.8}
   _dustLifetime: 1.1
   _runeBookCloseDelay: 0.55
-  _beginRunDelay: 0.6
+  _beginMissionDelay: 0.6
   _missionFadeDuration: 1.4
   _circleFadeDuration: 1
 --- !u!114 &1700000006
@@ -18010,7 +18011,7 @@ Transform:
   m_GameObject: {fileID: 1700000020}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.027, z: 0}
+  m_LocalPosition: {x: 0, y: -1.418, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -18478,7 +18479,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStartPositioner
   _anchor: {fileID: 0}
-  _startOffset: {x: 0, y: -4, z: 0}
+  _startOffset: {x: 0, y: -5, z: 0}
 --- !u!1 &1700000950
 GameObject:
   m_ObjectHideFlags: 0
@@ -22471,15 +22472,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f0ecbfc9094d4b46be0c4a0cd566017, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  _target: {fileID: 0}
+  _target: {fileID: 8110420659177510068}
   _smoothSpeed: 8
   _offset: {x: 0, y: 0, z: -10}
   _mouseLookAhead: 0
-  _playerInputHandler: {fileID: 0}
+  _playerInputHandler: {fileID: 5863673720717228404}
   _mouseLookAheadRatio: 0.15
   _mouseLookAheadDistance: 1.5
   _backgroundRenderer: {fileID: 0}
-  _backgroundRoot: {fileID: 0}
+  _backgroundRoot: {fileID: 1386216789}
 --- !u!1 &5839201746612093300
 GameObject:
   m_ObjectHideFlags: 0
@@ -22825,7 +22826,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
       propertyPath: m_LocalPosition.z
@@ -23039,6 +23040,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db3b68616c612b44d9f1c2d2a0b34ce2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+--- !u!4 &8110420659177510068 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5897215615387760818, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
+  m_PrefabInstance: {fileID: 7502686300656740308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8110420659177510074 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8463615780488062515, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
+  m_PrefabInstance: {fileID: 7502686300656740308}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 817f2b21486e54f47823765f51b9fb8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
 --- !u!1001 &8290876633665580328
 PrefabInstance:
   m_ObjectHideFlags: 0
