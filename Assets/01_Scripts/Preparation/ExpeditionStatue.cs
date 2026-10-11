@@ -14,23 +14,15 @@ using Random = UnityEngine.Random;
 /// - 1층은 StageManager가 기다리고 있다가(_waitForPreparation) 석상이 무너진 뒤 BeginPreparedRun으로 시작한다.
 /// 무너지는 연출은 게임 시간으로 움직인다. (일시정지하면 멈춘다)
 /// 무너질 때는 비석 윗부분부터 알갱이로 풀려 모래처럼 떨어지며, 비석이 위에서 아래로 점점 낮아진다.
+///
+/// 이 클래스는 흐름(상호작용, 붕괴 순서, 중단 처리)만 맡고, 세부는 두 클래스에 맡긴다.
+/// - CircleGlow : 바닥 마법진의 근접 발광
+/// - StatueCrumbleEffect : 마스크, 알갱이, 먼지로 이루어진 붕괴 연출
 /// </summary>
 [DisallowMultipleComponent]
 public class ExpeditionStatue : MonoBehaviour, IInteractable
 {
     private const string PlayerTag = "Player";
-    private static readonly int RevealProgressId = Shader.PropertyToID("_RevealProgress");
-    private static readonly int GlowTimeId = Shader.PropertyToID("_GlowTime");
-
-    // 위에서 아래로 풀리는 속도 곡선. 1보다 크면 처음엔 천천히, 갈수록 빨라진다.
-    private const float CrumbleCurve = 1.35f;
-    private const float MaskMargin = 0.2f;
-    private const byte MinGrainAlpha = 80;
-    private const int GrainSampleAttempts = 6;
-    private const float GrainDrag = 1.2f;
-    private const float GrainLifetime = 1000f;
-
-    private static Sprite s_whiteSprite;
 
     [Header("상호작용")]
     [SerializeField] private string _interactionName = "원소 새기기";
@@ -86,41 +78,37 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     [Tooltip("미션 오브젝트가 서서히 나타나는 시간")] [SerializeField, Min(0.01f)] private float _missionFadeDuration = 1.4f;
     [SerializeField, Min(0.01f)] private float _circleFadeDuration = 1f;
 
+    /// <summary>흔들리기 직전 석상의 상태. 연출이 시작 전에 끊기면 이 상태로 되돌린다.</summary>
+    private readonly struct StatueSnapshot
+    {
+        public readonly Transform Transform;
+        public readonly Vector3 Position;
+        public readonly Color Color;
+
+        public StatueSnapshot(Transform transform, Vector3 position, Color color)
+        {
+            Transform = transform;
+            Position = position;
+            Color = color;
+        }
+    }
+
+    // 상호작용 흐름. 서로 독립이라 하나의 열거형으로 합치지 않는다.
+    // (예: 룬북을 Confirm 없이 닫은 뒤 다시 원소를 고르는 동안에도 룬북 Confirm 대기는 이어진다)
     private bool _isChoosingElement;
     private bool _isWaitingRuneConfirm;
+
+    // 붕괴 흐름
     private bool _isCrumbling;
     private bool _runBegun;
     private bool _crumbleFinished;
     private Coroutine _crumbleCoroutine;
+    private StatueCrumbleEffect _crumbleEffect;
+    private StatueSnapshot? _statueSnapshot;
     private float[] _circleBaseAlphas;
-    private Material _fallbackGrainMaterial;
 
-    // 무너지는 연출이 만든 오브젝트의 루트. 연출이 끊기면 OnDisable에서 함께 치운다.
-    private GameObject _effectRoot;
-    private Transform _statueTransform;
-    private Vector3 _statueBasePosition;
-    private Color _statueBaseColor = Color.white;
-    private bool _hasStatueBase;
-
-    // 알갱이는 GameObject 대신 ParticleSystem 하나에 담아 직접 움직인다.
-    private struct GrainState
-    {
-        public Vector3 Position;
-        public Vector2 Velocity;
-        public float GroundY;
-        public bool IsResting;
-        public Color32 Color;
-    }
-
-    private GrainState[] _grains;
-    private ParticleSystem.Particle[] _grainParticles;
-    private ParticleSystem _grainSystem;
-    private int _grainActive;
-    private Vector2 _sampleOffset;
     private Transform _player;
-    private MaterialPropertyBlock _circleGlowProperties;
-    private float _glowProgress;
-    private float _glowTime;
+    private CircleGlow _circleGlow;
 
     /// <summary>플레이어가 석상과 상호작용해 주력 원소 선택 창을 열었을 때</summary>
     public event Action Interacted;
@@ -128,12 +116,24 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     public string InteractionName => _interactionName;
     public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
 
+    // 도메인 리로드 등으로 사라져도 다시 만들 수 있게 필요할 때 만든다.
+    // 접근할 때마다 인스펙터의 발광 값을 다시 넘겨서, 플레이 중에 바꾼 값도 바로 반영된다.
+    private CircleGlow Glow
+    {
+        get
+        {
+            _circleGlow ??= new CircleGlow(_fadeOutRenderers, _circleBaseRenderer, _circleGlowRenderer,
+                _circleAuraRenderer);
+            _circleGlow.Configure(_glowActivationDistance, _glowAlpha, _glowExpandDuration);
+            return _circleGlow;
+        }
+    }
+
     private void Awake()
     {
         // 원정을 시작한다. (지갑과 시작 골드. 이미 원정 중이면 아무것도 하지 않는다)
         RunFlow.StartExpedition();
-        InitializeCircleGlow();
-        SetCircleGlowProgress(0f);
+        Glow.SetProgress(0f);
 
         if (_runeBookPresenter == null && _runeBookRoot != null)
         {
@@ -152,86 +152,15 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
     private void Update()
     {
-        if (_circleGlowRenderer == null || _isCrumbling)
+        if (_isCrumbling)
         {
             return;
         }
 
-        bool isNearby = _player != null &&
-                        ((Vector2)(_player.position - _circleGlowRenderer.transform.position)).sqrMagnitude <=
-                        _glowActivationDistance * _glowActivationDistance;
-        float targetProgress = isNearby ? 1f : 0f;
-        _glowTime += Time.deltaTime;
-        float expandSpeed = 1f / Mathf.Max(0.01f, _glowExpandDuration);
-        SetCircleGlowProgress(Mathf.MoveTowards(_glowProgress, targetProgress, expandSpeed * Time.deltaTime));
-    }
-
-    private void SetCircleGlowProgress(float progress)
-    {
-        _glowProgress = progress;
-        if (_circleGlowRenderer == null)
+        CircleGlow glow = Glow;
+        if (glow.IsAvailable)
         {
-            return;
-        }
-
-        _circleGlowRenderer.GetPropertyBlock(_circleGlowProperties);
-        _circleGlowProperties.SetFloat(RevealProgressId, progress);
-        _circleGlowProperties.SetFloat(GlowTimeId, _glowTime);
-        _circleGlowRenderer.SetPropertyBlock(_circleGlowProperties);
-        Color color = _circleGlowRenderer.color;
-        color.a = progress > 0f ? _glowAlpha : 0f;
-        _circleGlowRenderer.color = color;
-        if (_circleAuraRenderer != null)
-        {
-            _circleAuraRenderer.SetPropertyBlock(_circleGlowProperties);
-            Color auraColor = _circleAuraRenderer.color;
-            auraColor.a = color.a;
-            _circleAuraRenderer.color = auraColor;
-        }
-    }
-
-    private void InitializeCircleGlow()
-    {
-        if (_fadeOutRenderers != null)
-        {
-            foreach (SpriteRenderer circle in _fadeOutRenderers)
-            {
-                if (circle == null)
-                {
-                    continue;
-                }
-
-                if (_circleBaseRenderer == null && circle.gameObject.name == "Base")
-                {
-                    _circleBaseRenderer = circle;
-                }
-
-                if (_circleGlowRenderer == null && circle.gameObject.name == "Glow")
-                {
-                    _circleGlowRenderer = circle;
-                }
-            }
-        }
-
-        if (_circleGlowRenderer != null)
-        {
-            _circleGlowProperties = new MaterialPropertyBlock();
-            if (_circleAuraRenderer == null)
-            {
-                Transform aura = _circleGlowRenderer.transform.Find("MagicCircleAura");
-                if (aura != null) _circleAuraRenderer = aura.GetComponent<SpriteRenderer>();
-            }
-        }
-
-        if (_circleBaseRenderer != null && _circleGlowRenderer != null)
-        {
-            _circleGlowRenderer.sortingLayerID = _circleBaseRenderer.sortingLayerID;
-            _circleGlowRenderer.sortingOrder = _circleBaseRenderer.sortingOrder - 1;
-        }
-        if (_circleGlowRenderer != null && _circleAuraRenderer != null)
-        {
-            _circleAuraRenderer.sortingLayerID = _circleGlowRenderer.sortingLayerID;
-            _circleAuraRenderer.sortingOrder = _circleGlowRenderer.sortingOrder - 1;
+            glow.Tick(_player, Time.deltaTime);
         }
     }
 
@@ -252,7 +181,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     private void OnDisable()
     {
         AbortCrumble();
-        SetCircleGlowProgress(0f);
+        _circleGlow?.SetProgress(0f);
 
         if (_elementSelectView != null)
         {
@@ -265,6 +194,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             _runeBookPresenter.Confirmed -= HandleRunesConfirmed;
         }
     }
+
+    // ───────────────────────── 상호작용 ─────────────────────────
 
     public void Interact()
     {
@@ -352,130 +283,31 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     private IEnumerator CrumbleRoutine()
     {
         _isCrumbling = true;
-        foreach (Collider2D target in _colliders)
-        {
-            if (target != null)
-            {
-                target.enabled = false;
-            }
-        }
+        SetCollidersEnabled(false);
 
         // 1. 점점 세게 흔들리며 빛난다.
         Transform statue = _statueRenderer != null ? _statueRenderer.transform : transform;
         Color baseColor = _statueRenderer != null ? _statueRenderer.color : Color.white;
-        _statueTransform = statue;
-        _statueBasePosition = statue.localPosition;
-        _statueBaseColor = baseColor;
-        _hasStatueBase = true;
-        float elapsed = 0f;
-        while (elapsed < _shakeDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / _shakeDuration);
-            float amount = _shakeAmount * t;
-            statue.localPosition = _statueBasePosition +
-                                   new Vector3(Random.Range(-amount, amount), Random.Range(-amount, amount) * 0.4f, 0f);
-            if (_statueRenderer != null)
-            {
-                _statueRenderer.color = Color.Lerp(baseColor, _flashColor, t * t);
-            }
+        _statueSnapshot = new StatueSnapshot(statue, statue.localPosition, baseColor);
+        yield return ShakeRoutine(statue, statue.localPosition, baseColor);
 
-            yield return null;
-        }
-
-        statue.localPosition = _statueBasePosition;
-
-        // 2. 비석은 위에서부터 알갱이로 풀리며 낮아진다.
-        //    스프라이트 마스크를 위에서 아래로 내려 윗부분을 지우고, 지워진 자리에서 비석 색 알갱이가 모래처럼 떨어진다.
-        Bounds bounds = _statueRenderer != null
-            ? _statueRenderer.bounds
-            : new Bounds(transform.position, new Vector3(2f, 3f, 0f));
-        _effectRoot = new GameObject("StatueCrumbleEffects");
-        SpriteMask mask = CreateCrumbleMask(bounds);
-        if (_statueRenderer != null)
-        {
-            _statueRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
-        }
-
-        bool hasPixels = TryReadStatuePixels(out Color32[] pixels, out int pixelWidth, out int pixelHeight);
-        CreateGrainSystem();
-        List<Particle> dusts = new();
-        float[] circleAlphas = new float[_fadeOutRenderers?.Length ?? 0];
-        for (int i = 0; i < circleAlphas.Length; i++)
-        {
-            circleAlphas[i] = _fadeOutRenderers[i] != null ? _fadeOutRenderers[i].color.a : 0f;
-        }
-
+        // 2. 비석이 위에서부터 알갱이로 풀리며 낮아진다. (세부는 StatueCrumbleEffect)
+        _crumbleEffect = new StatueCrumbleEffect(BuildCrumbleSettings(), _statueRenderer, transform);
+        _crumbleEffect.Begin(baseColor, _flashColor);
+        float[] circleAlphas = CaptureCircleAlphas();
         _circleBaseAlphas = circleAlphas;
 
-        // 3. 풀리는 동안 1층을 준비하고, 미션 오브젝트를 서서히 보여준다.
-        //    먼지는 풀리는 마지막까지 만들어지므로, 그 먼지의 수명이 끝날 때까지 기다린다.
+        // 3. 풀리는 동안 바닥 마법진을 지우고, 1층을 준비하고, 미션 오브젝트를 서서히 보여준다.
         bool hasBegun = false;
-        float total = Mathf.Max(_crumbleDuration + _grainFadeDuration, _crumbleDuration + _dustLifetime,
-            _circleFadeDuration);
-        float previousProgress = 0f;
-        float grainBudget = 0f;
-        float dustBudget = 0f;
-        elapsed = 0f;
+        float total = Mathf.Max(_crumbleEffect.Duration, _circleFadeDuration);
+        float elapsed = 0f;
         while (elapsed < total)
         {
             float deltaTime = Time.deltaTime;
             elapsed += deltaTime;
 
-            float progress = Mathf.Pow(Mathf.Clamp01(elapsed / _crumbleDuration), CrumbleCurve);
-            if (progress > previousProgress)
-            {
-                float step = progress - previousProgress;
-                float previousY = Mathf.Lerp(bounds.max.y, bounds.min.y, previousProgress);
-                float cutY = Mathf.Lerp(bounds.max.y, bounds.min.y, progress);
-
-                grainBudget += _grainCount * step;
-                int grainsToSpawn = (int)grainBudget;
-                grainBudget -= grainsToSpawn;
-                SpawnGrains(grainsToSpawn, bounds, cutY, previousY, hasPixels, pixels, pixelWidth, pixelHeight,
-                    baseColor);
-
-                if (_dustSprite != null)
-                {
-                    dustBudget += _dustCount * step;
-                    int dustToSpawn = (int)dustBudget;
-                    dustBudget -= dustToSpawn;
-                    for (int i = 0; i < dustToSpawn; i++)
-                    {
-                        // 절반은 풀리는 경계에서, 절반은 알갱이가 쌓이는 밑동에서 인다.
-                        float dustY = i % 2 == 0
-                            ? Random.Range(cutY, previousY)
-                            : bounds.min.y + Random.Range(0f, 0.35f);
-                        dusts.Add(CreateDust(bounds, dustY));
-                    }
-                }
-
-                UpdateCrumbleMask(mask, bounds, cutY);
-                previousProgress = progress;
-            }
-
-            // 빛나던 석상 색은 풀리기 시작하면 돌 색으로 돌아온다.
-            if (_statueRenderer != null && progress < 1f)
-            {
-                float colorT = Mathf.Clamp01(elapsed / (_crumbleDuration * 0.25f));
-                _statueRenderer.color = Color.Lerp(_flashColor, baseColor, colorT);
-            }
-
-            float fade = Mathf.Clamp01((elapsed - _crumbleDuration) / _grainFadeDuration);
-            UpdateGrains(deltaTime, fade);
-            UpdateDust(dusts, deltaTime);
-
-            float circleT = Mathf.Clamp01(elapsed / _circleFadeDuration);
-            for (int i = 0; i < circleAlphas.Length; i++)
-            {
-                SpriteRenderer circle = _fadeOutRenderers[i];
-                if (circle != null)
-                {
-                    Color color = circle.color;
-                    color.a = circleAlphas[i] * (1f - circleT);
-                    circle.color = color;
-                }
-            }
+            _crumbleEffect.Tick(elapsed, deltaTime);
+            FadeCircles(circleAlphas, elapsed);
 
             if (!hasBegun && elapsed >= _beginRunDelay)
             {
@@ -491,12 +323,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             BeginRun();
         }
 
-        if (_statueRenderer != null)
-        {
-            _statueRenderer.enabled = false;
-        }
-
-        DestroyEffects();
+        _crumbleEffect.Finish();
+        _crumbleEffect = null;
         _crumbleFinished = true;
 
         // 미션 오브젝트가 다 나타난 뒤 석상을 치운다.
@@ -504,26 +332,85 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         Destroy(gameObject);
     }
 
-    /// <summary>무너지는 연출이 만든 마스크, 알갱이, 먼지를 모두 치운다.</summary>
-    private void DestroyEffects()
+    /// <summary>석상이 점점 세게 흔들리며 빛난다.</summary>
+    private IEnumerator ShakeRoutine(Transform statue, Vector3 basePosition, Color baseColor)
     {
-        if (_effectRoot != null)
+        float elapsed = 0f;
+        while (elapsed < _shakeDuration)
         {
-            Destroy(_effectRoot);
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / _shakeDuration);
+            float amount = _shakeAmount * t;
+            statue.localPosition = basePosition +
+                                   new Vector3(Random.Range(-amount, amount), Random.Range(-amount, amount) * 0.4f, 0f);
+            if (_statueRenderer != null)
+            {
+                _statueRenderer.color = Color.Lerp(baseColor, _flashColor, t * t);
+            }
+
+            yield return null;
         }
 
-        if (_fallbackGrainMaterial != null)
-        {
-            Destroy(_fallbackGrainMaterial);
-        }
-
-        _fallbackGrainMaterial = null;
-        _effectRoot = null;
-        _grainSystem = null;
-        _grains = null;
-        _grainParticles = null;
-        _grainActive = 0;
+        statue.localPosition = basePosition;
     }
+
+    private StatueCrumbleEffect.Settings BuildCrumbleSettings()
+    {
+        return new StatueCrumbleEffect.Settings
+        {
+            Duration = _crumbleDuration,
+            GrainCount = _grainCount,
+            GrainSize = _grainSize,
+            GrainGravity = _grainGravity,
+            GrainSpread = _grainSpread,
+            GroundJitter = _groundJitter,
+            GrainFadeDuration = _grainFadeDuration,
+            DustSprite = _dustSprite,
+            DustColor = _dustColor,
+            DustCount = _dustCount,
+            DustSize = _dustSize,
+            DustLifetime = _dustLifetime,
+        };
+    }
+
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        foreach (Collider2D target in _colliders)
+        {
+            if (target != null)
+            {
+                target.enabled = isEnabled;
+            }
+        }
+    }
+
+    /// <summary>석상과 함께 사라지는 렌더러들의 지금 알파를 기록한다.</summary>
+    private float[] CaptureCircleAlphas()
+    {
+        float[] alphas = new float[_fadeOutRenderers?.Length ?? 0];
+        for (int i = 0; i < alphas.Length; i++)
+        {
+            alphas[i] = _fadeOutRenderers[i] != null ? _fadeOutRenderers[i].color.a : 0f;
+        }
+
+        return alphas;
+    }
+
+    /// <summary>바닥 마법진 등을 원래 알파에서 서서히 지운다.</summary>
+    private void FadeCircles(float[] baseAlphas, float elapsed)
+    {
+        float circleT = Mathf.Clamp01(elapsed / _circleFadeDuration);
+        for (int i = 0; i < baseAlphas.Length; i++)
+        {
+            SpriteRenderer circle = _fadeOutRenderers[i];
+            if (circle != null)
+            {
+                SetAlpha(circle, baseAlphas[i] * (1f - circleT));
+            }
+        }
+    }
+
+    // ───────────────────────── 중단 처리 ─────────────────────────
 
     /// <summary>
     /// 연출이 끊겼을 때(석상이 꺼지거나 파괴될 때) 만든 오브젝트를 치운다.
@@ -538,7 +425,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             _crumbleCoroutine = null;
         }
 
-        DestroyEffects();
+        _crumbleEffect?.Cleanup();
+        _crumbleEffect = null;
         if (!_isCrumbling || _crumbleFinished)
         {
             return;
@@ -546,43 +434,55 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
         if (_runBegun)
         {
-            // 1층이 이미 시작됐으면 석상은 사라진 채로 둔다. (마스크를 지웠으니 반쯤 보이는 상태로 남지 않게 숨긴다)
-            if (_statueRenderer != null)
-            {
-                _statueRenderer.enabled = false;
-            }
-
-            // 원래대로 사라지는 중이던 바닥 마법진이 반투명하게 남지 않게 마저 지운다.
-            if (_fadeOutRenderers != null)
-            {
-                foreach (SpriteRenderer circle in _fadeOutRenderers)
-                {
-                    if (circle != null)
-                    {
-                        SetAlpha(circle, 0f);
-                    }
-                }
-            }
-
+            HideStatueLeftovers();
             return;
         }
 
-        if (_hasStatueBase && _statueTransform != null)
+        RestoreStatue();
+        _isCrumbling = false;
+        _isWaitingRuneConfirm = false;
+        _isChoosingElement = false;
+    }
+
+    /// <summary>1층이 이미 시작됐으면 석상은 사라진 채로 둔다. 마스크를 지웠으니 반쯤 보이거나 반투명하게 남지 않게 숨긴다.</summary>
+    private void HideStatueLeftovers()
+    {
+        if (_statueRenderer != null)
         {
-            _statueTransform.localPosition = _statueBasePosition;
+            _statueRenderer.enabled = false;
+        }
+
+        if (_fadeOutRenderers != null)
+        {
+            foreach (SpriteRenderer circle in _fadeOutRenderers)
+            {
+                if (circle != null)
+                {
+                    SetAlpha(circle, 0f);
+                }
+            }
+        }
+    }
+
+    /// <summary>1층이 시작되기 전에 끊겼을 때 석상, 마법진, 콜라이더를 흔들리기 전 상태로 돌린다.</summary>
+    private void RestoreStatue()
+    {
+        if (_statueSnapshot.HasValue && _statueSnapshot.Value.Transform != null)
+        {
+            _statueSnapshot.Value.Transform.localPosition = _statueSnapshot.Value.Position;
         }
 
         if (_statueRenderer != null)
         {
             _statueRenderer.maskInteraction = SpriteMaskInteraction.None;
             _statueRenderer.enabled = true;
-            if (_hasStatueBase)
+            if (_statueSnapshot.HasValue)
             {
-                _statueRenderer.color = _statueBaseColor;
+                _statueRenderer.color = _statueSnapshot.Value.Color;
             }
         }
 
-        // 연출이 시작되면서 줄어든 마법진 알파를 되돌린다. (근접 발광은 SetCircleGlowProgress가 다시 맞춘다)
+        // 연출이 시작되면서 줄어든 마법진 알파를 되돌린다. (근접 발광은 CircleGlow가 다시 맞춘다)
         if (_circleBaseAlphas != null && _fadeOutRenderers != null)
         {
             for (int i = 0; i < _fadeOutRenderers.Length && i < _circleBaseAlphas.Length; i++)
@@ -595,19 +495,10 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         }
 
         _circleBaseAlphas = null;
-
-        foreach (Collider2D target in _colliders)
-        {
-            if (target != null)
-            {
-                target.enabled = true;
-            }
-        }
-
-        _isCrumbling = false;
-        _isWaitingRuneConfirm = false;
-        _isChoosingElement = false;
+        SetCollidersEnabled(true);
     }
+
+    // ───────────────────────── 1층 시작 ─────────────────────────
 
     private void BeginRun()
     {
@@ -675,324 +566,5 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         Color color = renderer.color;
         color.a = alpha;
         renderer.color = color;
-    }
-
-    // ───────────────────────── 알갱이와 먼지 ─────────────────────────
-
-    /// <summary>먼지 하나. (알갱이는 GrainState로 따로 다룬다)</summary>
-    private class Particle
-    {
-        public Transform Transform;
-        public SpriteRenderer Renderer;
-        public Vector2 Velocity;
-        public float Age;
-        public float Life;
-        public Vector3 BaseScale;
-    }
-
-    private int SortingLayerId => _statueRenderer != null ? _statueRenderer.sortingLayerID : 0;
-    private int SortingOrder => _statueRenderer != null ? _statueRenderer.sortingOrder : 0;
-
-    private static Sprite GetWhiteSprite()
-    {
-        if (s_whiteSprite == null)
-        {
-            Texture2D white = Texture2D.whiteTexture;
-            s_whiteSprite = Sprite.Create(white, new Rect(0f, 0f, white.width, white.height), new Vector2(0.5f, 0.5f),
-                white.width);
-        }
-
-        return s_whiteSprite;
-    }
-
-    /// <summary>비석 윗부분을 가리는 마스크를 만든다. 마스크 안쪽(아래쪽)만 비석이 보인다.</summary>
-    private SpriteMask CreateCrumbleMask(Bounds bounds)
-    {
-        var go = new GameObject("StatueCrumbleMask");
-        go.transform.SetParent(_effectRoot.transform, false);
-        SpriteMask mask = go.AddComponent<SpriteMask>();
-        mask.sprite = GetWhiteSprite();
-        UpdateCrumbleMask(mask, bounds, bounds.max.y);
-        return mask;
-    }
-
-    /// <summary>마스크의 윗변을 cutY로 맞춘다. 아랫변은 비석 밑동보다 조금 아래에 둔다.</summary>
-    private void UpdateCrumbleMask(SpriteMask mask, Bounds bounds, float cutY)
-    {
-        float bottom = bounds.min.y - MaskMargin;
-        float height = Mathf.Max(0.0001f, cutY - bottom);
-        mask.transform.position = new Vector3(bounds.center.x, (cutY + bottom) * 0.5f, transform.position.z);
-        mask.transform.localScale = new Vector3(bounds.size.x + MaskMargin * 2f, height, 1f);
-    }
-
-    /// <summary>알갱이를 그릴 ParticleSystem을 만든다. 생성과 움직임은 코드가 직접 맡고, 시스템은 그리기만 한다.</summary>
-    private void CreateGrainSystem()
-    {
-        int capacity = Mathf.Max(1, _grainCount);
-        _grains = new GrainState[capacity];
-        _grainParticles = new ParticleSystem.Particle[capacity];
-        _grainActive = 0;
-
-        var go = new GameObject("StatueGrains");
-        go.transform.SetParent(_effectRoot.transform, false);
-        _grainSystem = go.AddComponent<ParticleSystem>();
-        _grainSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-        ParticleSystem.MainModule main = _grainSystem.main;
-        main.loop = true;
-        main.playOnAwake = false;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.maxParticles = capacity;
-        main.gravityModifier = 0f;
-        ParticleSystem.EmissionModule emission = _grainSystem.emission;
-        emission.enabled = false;
-        ParticleSystem.ShapeModule shape = _grainSystem.shape;
-        shape.enabled = false;
-
-        var renderer = go.GetComponent<ParticleSystemRenderer>();
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-        if (_statueRenderer != null && _statueRenderer.sharedMaterial != null)
-        {
-            renderer.sharedMaterial = _statueRenderer.sharedMaterial;
-        }
-        else
-        {
-            // 석상 머티리얼이 없을 때만 직접 만들고, DestroyEffects에서 함께 치운다.
-            _fallbackGrainMaterial = new Material(Shader.Find("Sprites/Default"));
-            renderer.sharedMaterial = _fallbackGrainMaterial;
-        }
-
-        renderer.sortingLayerID = SortingLayerId;
-        renderer.sortingOrder = SortingOrder + 1;
-        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
-
-        _grainSystem.Play();
-    }
-
-    /// <summary>석상 스프라이트의 색을 읽어 온다. (텍스처가 읽기 불가여도 GPU를 거쳐 한 번 복사한다)</summary>
-    private bool TryReadStatuePixels(out Color32[] pixels, out int width, out int height)
-    {
-        pixels = null;
-        width = 0;
-        height = 0;
-        if (_statueRenderer == null || _statueRenderer.sprite == null)
-        {
-            return false;
-        }
-
-        Sprite sprite = _statueRenderer.sprite;
-        RenderTexture previous = RenderTexture.active;
-        RenderTexture target = null;
-        Texture2D readable = null;
-        try
-        {
-            if (sprite.packed && sprite.packingRotation != SpritePackingRotation.None)
-            {
-                Debug.LogWarning("[ExpeditionStatue] 회전되어 패킹된 스프라이트는 색을 읽지 못해 알갱이를 단색으로 만듭니다.", this);
-                return false;
-            }
-
-            Texture2D texture = sprite.texture;
-            Rect rect = sprite.textureRect;
-            _sampleOffset = sprite.textureRectOffset;
-            target = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32,
-                RenderTextureReadWrite.sRGB);
-            Graphics.Blit(texture, target);
-            RenderTexture.active = target;
-            readable = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGBA32, false);
-            readable.ReadPixels(new Rect(rect.x, rect.y, rect.width, rect.height), 0, 0);
-            pixels = readable.GetPixels32();
-            width = readable.width;
-            height = readable.height;
-            return true;
-        }
-        catch (Exception exception)
-        {
-            pixels = null;
-            Debug.LogWarning($"[ExpeditionStatue] 석상 색을 읽지 못해 알갱이를 단색으로 만듭니다. {exception.Message}", this);
-            return false;
-        }
-        finally
-        {
-            RenderTexture.active = previous;
-            if (target != null)
-            {
-                RenderTexture.ReleaseTemporary(target);
-            }
-
-            if (readable != null)
-            {
-                Destroy(readable);
-            }
-        }
-    }
-
-    /// <summary>월드 좌표에 해당하는 석상 스프라이트의 색을 구한다. 투명한 곳이면 false.</summary>
-    private bool TrySampleStatueColor(Vector3 worldPosition, Color32[] pixels, int width, int height, out Color32 color)
-    {
-        color = default;
-        Sprite sprite = _statueRenderer.sprite;
-        Vector3 local = _statueRenderer.transform.InverseTransformPoint(worldPosition);
-        if (_statueRenderer.flipX)
-        {
-            local.x = -local.x;
-        }
-
-        if (_statueRenderer.flipY)
-        {
-            local.y = -local.y;
-        }
-
-        // 읽어 온 배열은 textureRect 영역이므로, 원래 스프라이트 기준 좌표에서 오프셋을 뺀다.
-        int x = Mathf.FloorToInt(local.x * sprite.pixelsPerUnit + sprite.pivot.x - _sampleOffset.x);
-        int y = Mathf.FloorToInt(local.y * sprite.pixelsPerUnit + sprite.pivot.y - _sampleOffset.y);
-        if (x < 0 || x >= width || y < 0 || y >= height)
-        {
-            return false;
-        }
-
-        color = pixels[y * width + x];
-        return color.a >= MinGrainAlpha;
-    }
-
-    /// <summary>풀려 나간 띠(lowerY~upperY)에서 알갱이를 만든다. 알갱이 색은 그 자리의 비석 색이다.</summary>
-    private void SpawnGrains(int count, Bounds bounds, float lowerY, float upperY, bool hasPixels, Color32[] pixels,
-        int pixelWidth, int pixelHeight, Color baseColor)
-    {
-        if (_grains == null)
-        {
-            return;
-        }
-
-        float z = transform.position.z;
-        for (int i = 0; i < count && _grainActive < _grains.Length; i++)
-        {
-            Vector3 position = default;
-            Color32 color = baseColor;
-            bool found = false;
-            for (int attempt = 0; attempt < GrainSampleAttempts && !found; attempt++)
-            {
-                position = new Vector3(Random.Range(bounds.min.x, bounds.max.x), Random.Range(lowerY, upperY), z);
-                if (!hasPixels)
-                {
-                    found = true;
-                }
-                else if (TrySampleStatueColor(position, pixels, pixelWidth, pixelHeight, out Color32 sampled))
-                {
-                    color = (Color)sampled * baseColor;
-                    found = true;
-                }
-            }
-
-            if (!found)
-            {
-                continue;
-            }
-
-            color.a = 255;
-            float groundY = bounds.min.y + Random.Range(0f, _groundJitter);
-            int index = _grainActive++;
-            _grains[index] = new GrainState
-            {
-                Position = position,
-                Velocity = new Vector2(Random.Range(-1f, 1f) * _grainSpread, Random.Range(-0.3f, 0.1f)),
-                // 생성된 자리보다 높은 곳에는 쌓이지 않는다. (알갱이가 위로 튀어 오르지 않게)
-                GroundY = Mathf.Min(groundY, position.y),
-                Color = color,
-            };
-
-            _grainParticles[index] = new ParticleSystem.Particle
-            {
-                position = position,
-                startColor = color,
-                startSize = Random.Range(_grainSize.x, _grainSize.y),
-                startLifetime = GrainLifetime,
-                remainingLifetime = GrainLifetime,
-            };
-        }
-    }
-
-    /// <summary>알갱이를 모래처럼 떨어뜨린다. 바닥에 닿으면 쌓여 있다가 fade가 올라가면 사라진다.</summary>
-    private void UpdateGrains(float deltaTime, float fade)
-    {
-        if (_grainSystem == null || _grainActive == 0)
-        {
-            return;
-        }
-
-        byte alpha = (byte)Mathf.RoundToInt(255f * (1f - fade));
-        for (int i = 0; i < _grainActive; i++)
-        {
-            ref GrainState grain = ref _grains[i];
-            if (!grain.IsResting)
-            {
-                grain.Velocity.y -= _grainGravity * deltaTime;
-                grain.Velocity.x *= Mathf.Exp(-GrainDrag * deltaTime);
-                grain.Position += (Vector3)(grain.Velocity * deltaTime);
-                if (grain.Position.y <= grain.GroundY)
-                {
-                    grain.Position.y = grain.GroundY;
-                    grain.IsResting = true;
-                }
-
-                _grainParticles[i].position = grain.Position;
-            }
-
-            _grainParticles[i].remainingLifetime = GrainLifetime;
-            if (fade > 0f)
-            {
-                _grainParticles[i].startColor = new Color32(grain.Color.r, grain.Color.g, grain.Color.b, alpha);
-            }
-        }
-
-        _grainSystem.SetParticles(_grainParticles, _grainActive);
-    }
-
-    private Particle CreateDust(Bounds bounds, float y)
-    {
-        var go = new GameObject("StatueDust");
-        go.transform.SetParent(_effectRoot.transform, false);
-        float x = Mathf.Lerp(bounds.min.x, bounds.max.x, Random.value);
-        go.transform.position = new Vector3(x, y, transform.position.z);
-        float size = Random.Range(_dustSize.x, _dustSize.y);
-        go.transform.localScale = Vector3.one * size;
-
-        var renderer = go.AddComponent<SpriteRenderer>();
-        renderer.sprite = _dustSprite;
-        renderer.sortingLayerID = SortingLayerId;
-        renderer.sortingOrder = SortingOrder + 2;
-        renderer.color = new Color(_dustColor.r, _dustColor.g, _dustColor.b, 0f);
-
-        float side = (x - bounds.center.x) / Mathf.Max(0.01f, bounds.extents.x);
-        return new Particle
-        {
-            Transform = go.transform,
-            Renderer = renderer,
-            Velocity = new Vector2(side * Random.Range(0.8f, 2f), Random.Range(0.2f, 0.9f)),
-            Life = _dustLifetime * Random.Range(0.7f, 1f),
-            BaseScale = go.transform.localScale,
-        };
-    }
-
-    private void UpdateDust(List<Particle> dusts, float deltaTime)
-    {
-        foreach (Particle dust in dusts)
-        {
-            if (dust.Transform == null)
-            {
-                continue;
-            }
-
-            dust.Age += deltaTime;
-            float t = Mathf.Clamp01(dust.Age / dust.Life);
-            dust.Velocity *= Mathf.Exp(-2.5f * deltaTime);
-            dust.Transform.position += (Vector3)(dust.Velocity * deltaTime);
-            dust.Transform.localScale = dust.BaseScale * Mathf.Lerp(0.7f, 1.6f, 1f - (1f - t) * (1f - t));
-
-            Color color = _dustColor;
-            color.a *= Mathf.Min(1f, t / 0.15f) * (1f - t);
-            dust.Renderer.color = color;
-        }
     }
 }
