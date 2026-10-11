@@ -617,7 +617,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -762,6 +762,7 @@ MonoBehaviour:
   _grid: {fileID: 0}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 1
 --- !u!114 &5421808486137877561
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -819,7 +820,7 @@ MonoBehaviour:
   _arrivalDistance: 0.05
   _obstacleLayers:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 0
   _rangeImage: {fileID: 2887546521715123605, guid: c2ac29f0cb8a5cb4cb867f40cb9f43ad, type: 3}
   _rangeWidth: 0.8
   _rangeColor: {r: 1, g: 0.4, b: 0.1, a: 0.35}
