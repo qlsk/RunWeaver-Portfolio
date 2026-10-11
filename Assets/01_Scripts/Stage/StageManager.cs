@@ -160,8 +160,21 @@ public class StageManager : MonoBehaviour
     /// <summary>현재 목표 이름 (HUD 표시용)</summary>
     public string ObjectiveName => CurrentMissionText?.DisplayName ?? string.Empty;
 
-    /// <summary>현재 목표 설명 (HUD 표시용)</summary>
-    public string ObjectiveDescription => CurrentMissionText?.Description ?? string.Empty;
+    /// <summary>현재 목표 설명 (HUD 표시용). 제단 방어 중에는 제단 HP를 실시간으로 덧붙인다.</summary>
+    public string ObjectiveDescription
+    {
+        get
+        {
+            string baseText = CurrentMissionText?.Description ?? string.Empty;
+            if (_currentMission is AltarDefenseMission altar && altar.TargetAltar != null)
+            {
+                DefenseAltar target = altar.TargetAltar;
+                string hpText = $"제단 HP: {target.CurrentHp:F0}/{target.MaxHp:F0}";
+                return string.IsNullOrEmpty(baseText) ? hpText : $"{baseText} ({hpText})";
+            }
+            return baseText;
+        }
+    }
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
