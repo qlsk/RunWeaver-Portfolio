@@ -1,10 +1,38 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 public class DefenseAltar : MonoBehaviour
 {
     public static event Action OnAltarDestroyed;
+    private static readonly HashSet<DefenseAltar> ActiveAltars = new();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetTargetRegistry() => ActiveAltars.Clear();
+
+    private void OnEnable() => ActiveAltars.Add(this);
+    private void OnDisable() => ActiveAltars.Remove(this);
+
+    public static bool TryGetEnemyTarget(Transform enemy, out Transform target)
+    {
+        target = null;
+        if (enemy == null) return false;
+
+        float nearestDistance = float.MaxValue;
+        foreach (DefenseAltar altar in ActiveAltars)
+        {
+            if (altar == null || !altar.isActiveAndEnabled || altar.IsDestroyed ||
+                altar.gameObject.scene != enemy.gameObject.scene) continue;
+
+            float distance = ((Vector2)altar.transform.position - (Vector2)enemy.position).sqrMagnitude;
+            if (distance >= nearestDistance) continue;
+            nearestDistance = distance;
+            target = altar.transform;
+        }
+
+        return target != null;
+    }
 
     [Header("제단 체력 설정")]
     [SerializeField, FormerlySerializedAs("maxHp")] private float _maxHp = 100f;

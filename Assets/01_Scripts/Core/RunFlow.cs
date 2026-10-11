@@ -16,6 +16,11 @@ public static class RunFlow
     /// <summary>타이틀 씬 이름 (결과창의 타이틀로 돌아가기)</summary>
     private const string TitleSceneName = "StartScene";
 
+    /// <summary>씬 전환 : 버튼이 반짝이는 동안 기다리는 시간, 검게 덮이는 시간, 새 전투 씬에서 걷히는 시간 (초)</summary>
+    private const float TransitionDelay = 0.15f;
+    private const float TransitionCoverDuration = 0.65f;
+    private const float TransitionRevealDuration = 0.5f;
+
     private static RunEndReason? s_endReason;
     private static bool s_isRestartRequested;
 
@@ -77,11 +82,18 @@ public static class RunFlow
         GoToTitle();
     }
 
-    /// <summary>결과창 타이틀로 돌아가기 : 런을 정리하고 타이틀(StartScene)로 간다.</summary>
+    /// <summary>
+    /// 결과창 타이틀로 돌아가기 : 화면을 검게 덮은 뒤 런을 정리하고 타이틀(StartScene)로 간다.
+    /// 타이틀은 스스로 검은 화면에서 밝아지므로 넘어간 뒤 바로 가림막을 지운다.
+    /// </summary>
     public static void GoToTitle()
     {
-        FinishRun();
-        UnityEngine.SceneManagement.SceneManager.LoadScene(TitleSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        SceneTransition.FadeAndLoad(() =>
+        {
+            FinishRun();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(TitleSceneName,
+                UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }, TransitionDelay, TransitionCoverDuration, 0f);
     }
 
     /// <summary>
@@ -90,8 +102,11 @@ public static class RunFlow
     /// </summary>
     public static void Restart()
     {
-        FinishRun();
-        SceneLoader.LoadCombatSceneScene();
+        SceneTransition.FadeAndLoad(() =>
+        {
+            FinishRun();
+            SceneLoader.LoadCombatSceneScene();
+        }, TransitionDelay, TransitionCoverDuration, TransitionRevealDuration);
     }
 
     /// <summary>ReStart로 마을에 왔는지 확인하고 요청을 지운다.</summary>

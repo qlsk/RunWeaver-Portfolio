@@ -5,6 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class EnemyTankAttack : MonoBehaviour
 {
+    [SerializeField] private bool _externallyControlled;
+    public event System.Action<EnemyAttackEndReason> AttackEnded;
+
+    public void SetExternalControl(bool value)
+    {
+        if (_externallyControlled == value) return;
+        CancelAttack();
+        _externallyControlled = value;
+    }
     [SerializeField, Min(0f)] private float _detectionRange = 3f;
     [SerializeField, Min(0.01f)] private float _attackRadius = 2f;
     [SerializeField, Min(0f)] private float _damage = 20f;
@@ -19,14 +28,34 @@ public class EnemyTankAttack : MonoBehaviour
     private EnemyStatusEffectController _statusEffects;
     private SpriteRenderer _indicator;
     private readonly HashSet<PlayerHealth> _damagedPlayers = new HashSet<PlayerHealth>();
+    private readonly HashSet<DefenseAltar> _damagedAltars = new HashSet<DefenseAltar>();
     private Vector2 _attackCenter;
     private float _pendingRadius;
     private float _attackTime;
     private float _nextAttackTime;
     public EnemyAttackState State { get; private set; } = EnemyAttackState.Idle;
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
+    public float DetectionRange => _detectionRange;
 
     private EnemyMotor _motor;
+    public bool AnimationDriven { get; set; }
+    public float WarningDuration => Mathf.Max(0.01f, _warningDuration);
+    private bool _animationHit;
+    private float _animationTimeout;
+
+    public void AnimationImpact()
+    {
+        if (!AnimationDriven || !IsAttackActive || State != EnemyAttackState.Attacking || _animationHit) return;
+        _animationHit = true;
+        _indicator.enabled = false;
+        ExecuteAttack();
+    }
+
+    public void AnimationComplete()
+    {
+        if (AnimationDriven && IsAttackActive && State == EnemyAttackState.Attacking && _animationHit)
+            EndAttack(EnemyAttackEndReason.Completed);
+    }
 
     private void Awake()
     {
@@ -61,37 +90,47 @@ public class EnemyTankAttack : MonoBehaviour
         switch (State)
         {
             case EnemyAttackState.Idle:
-                TryPrepare();
+                if (!_externallyControlled) TryStartAttack();
                 break;
             case EnemyAttackState.Preparing:
                 if (Time.time >= _attackTime)
                 {
                     State = EnemyAttackState.Attacking;
-                    _indicator.enabled = false;
-                    ExecuteAttack();
+                    _animationTimeout = Time.time + 3f;
+                    if (!AnimationDriven)
+                    {
+                        _indicator.enabled = false;
+                        ExecuteAttack();
+                    }
                 }
 
                 break;
             case EnemyAttackState.Attacking:
-                CancelAttack();
+                if (!AnimationDriven) EndAttack(EnemyAttackEndReason.Completed);
+                else if (Time.time >= _animationTimeout) CancelAttack();
                 break;
         }
     }
 
-    private void TryPrepare()
+    public bool TryStartAttack()
     {
+        if (!isActiveAndEnabled || State != EnemyAttackState.Idle || _indicator == null ||
+            (_health != null && _health.IsDead) ||
+            (_statusEffects != null && _statusEffects.IsStaggered))
+            return false;
         Transform target = _targetDetector.Target;
         if (target == null || Time.time < _nextAttackTime)
-            return;
+            return false;
 
         Vector2 offset = target.position - transform.position;
         if (offset.sqrMagnitude > _detectionRange * _detectionRange)
-            return;
+            return false;
 
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
         _pendingRadius = _attackRadius;
         _attackTime = Time.time + _warningDuration;
+        _animationHit = false;
         State = EnemyAttackState.Preparing;
         _motor.AcquirePositionLock(this);
 
@@ -106,32 +145,45 @@ public class EnemyTankAttack : MonoBehaviour
         _indicator.sortingLayerName = _rangeSortingLayer;
         _indicator.sortingOrder = _rangeSortingOrder;
         _indicator.enabled = true;
+        return true;
     }
 
     private void ExecuteAttack()
     {
         _damagedPlayers.Clear();
+        _damagedAltars.Clear();
 
-        // 피격 영역만 검사하고 같은 플레이어의 중복 피해를 방지한다.
+        // 한 번의 공격에서 같은 대상의 여러 Collider에 중복 피해를 주지 않는다.
         var filter = new ContactFilter2D { useTriggers = true };
         var hits = new List<Collider2D>();
         Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
         foreach (Collider2D hit in hits)
         {
-            if (!hit.TryGetComponent(out PlayerHitbox hitbox))
-                continue;
-
-            PlayerHealth player = hitbox.Health;
-            if (player != null && !player.IsDead && _damagedPlayers.Add(player))
+            if (hit == null) continue;
+            if (hit.TryGetComponent(out PlayerHitbox hitbox))
             {
-                player.TakeDamage(_damage);
+                PlayerHealth player = hitbox.Health;
+                if (player != null && !player.IsDead && _damagedPlayers.Add(player))
+                    player.TakeDamage(_damage);
+            }
+            else
+            {
+                DefenseAltar altar = hit.GetComponentInParent<DefenseAltar>();
+                if (altar != null && altar.isActiveAndEnabled && !altar.IsDestroyed && _damagedAltars.Add(altar))
+                    altar.TakeDamage(_damage);
             }
         }
     }
 
     public void CancelAttack()
     {
-        if (State != EnemyAttackState.Idle)
+        EndAttack(EnemyAttackEndReason.Cancelled);
+    }
+
+    private void EndAttack(EnemyAttackEndReason reason)
+    {
+        bool wasActive = State != EnemyAttackState.Idle;
+        if (wasActive)
         {
             _nextAttackTime = Time.time + _attackCooldown;
         }
@@ -140,6 +192,7 @@ public class EnemyTankAttack : MonoBehaviour
         if (_indicator != null)
             _indicator.enabled = false;
         State = EnemyAttackState.Idle;
+        if (wasActive) AttackEnded?.Invoke(reason);
     }
 
     private void CreateIndicator()

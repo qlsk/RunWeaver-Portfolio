@@ -4,6 +4,15 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class EnemyDashAttack : MonoBehaviour
 {
+    [SerializeField] private bool _externallyControlled;
+    public event System.Action<EnemyAttackEndReason> AttackEnded;
+
+    public void SetExternalControl(bool value)
+    {
+        if (_externallyControlled == value) return;
+        CancelDash();
+        _externallyControlled = value;
+    }
     [SerializeField] private EnemyTargetDetector _targetDetector;
     [SerializeField, Min(0.01f)] private float _attackRange = 5f;
     [SerializeField, Min(0.01f)] private float _dashDistance = 5f;
@@ -76,7 +85,7 @@ public class EnemyDashAttack : MonoBehaviour
         switch (State)
         {
             case EnemyAttackState.Idle:
-                TryPrepare();
+                if (!_externallyControlled) TryStartAttack();
                 break;
             case EnemyAttackState.Preparing:
                 if (Time.time >= _stateEndTime)
@@ -95,17 +104,21 @@ public class EnemyDashAttack : MonoBehaviour
         }
     }
 
-    private void TryPrepare()
+    public bool TryStartAttack()
     {
+        if (!isActiveAndEnabled || State != EnemyAttackState.Idle || _rangeIndicator == null ||
+            (_health != null && _health.IsDead) ||
+            (_statusEffectController != null && _statusEffectController.IsRooted))
+            return false;
         Transform target = _targetDetector.Target;
         if (target == null || Time.time < _nextAttackTime)
-            return;
+            return false;
 
         Vector2 start = _body.position;
         Vector2 toTarget = (Vector2)target.position - start;
         float distance = toTarget.magnitude;
         if (distance > _attackRange || distance <= _arrivalDistance)
-            return;
+            return false;
 
         _targetPosition = start + toTarget.normalized * _dashDistance;
         State = EnemyAttackState.Preparing;
@@ -113,6 +126,7 @@ public class EnemyDashAttack : MonoBehaviour
         _stateEndTime = Time.time + _prepareDuration;
 
         ShowRangeIndicator(start);
+        return true;
     }
 
     private void ShowRangeIndicator(Vector2 start)
@@ -154,12 +168,13 @@ public class EnemyDashAttack : MonoBehaviour
         float distance = offset.magnitude;
         if (distance <= _arrivalDistance || Time.time >= _stateEndTime)
         {
-            CancelDash();
+            EndAttack(EnemyAttackEndReason.Completed);
             return;
         }
 
         float speed = Mathf.Min(_dashSpeed, distance / Time.fixedDeltaTime);
-        _motor.SetOverrideVelocity(this, offset.normalized * speed);
+        if (!_motor.SetOverrideVelocity(this, offset.normalized * speed))
+            CancelDash();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -177,14 +192,20 @@ public class EnemyDashAttack : MonoBehaviour
         if (State == EnemyAttackState.Attacking &&
             (_obstacleLayers.value & (1 << layer)) != 0)
         {
-            CancelDash();
+            EndAttack(EnemyAttackEndReason.Obstacle);
         }
     }
 
     // 사망, 비활성화 또는 외부 상태이상에서 돌진을 취소할 때 사용한다.
     public void CancelDash()
     {
-        if (State != EnemyAttackState.Idle)
+        EndAttack(EnemyAttackEndReason.Cancelled);
+    }
+
+    private void EndAttack(EnemyAttackEndReason reason)
+    {
+        bool wasActive = State != EnemyAttackState.Idle;
+        if (wasActive)
         {
             _motor?.ClearOverride(this);
             _nextAttackTime = Time.time + _cooldown;
@@ -197,6 +218,7 @@ public class EnemyDashAttack : MonoBehaviour
         }
 
         State = EnemyAttackState.Idle;
+        if (wasActive) AttackEnded?.Invoke(reason);
     }
 
     private void HandleDeath(EnemyHealth health)

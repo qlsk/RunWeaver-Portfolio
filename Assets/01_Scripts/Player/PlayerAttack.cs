@@ -219,6 +219,10 @@ public class PlayerAttack : MonoBehaviour
         if (_currentAmmo <= 0 || _bulletFireCoolTimer < fireInterval)
             return;
 
+        // 주력 원소를 고르기 전(시작 석상 전)에는 쏘지 않는다. 탄도 줄지 않는다.
+        if (_runeEffectConfiguration == null || !_runeEffectConfiguration.PrimaryElement.HasValue)
+            return;
+
         Vector2 targetPosition = _playerInputHandler.MousePosition;
         Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
 

@@ -4,3 +4,10 @@ public enum EnemyAttackState
     Preparing,
     Attacking,
 }
+
+public enum EnemyAttackEndReason
+{
+    Completed,
+    Obstacle,
+    Cancelled
+}

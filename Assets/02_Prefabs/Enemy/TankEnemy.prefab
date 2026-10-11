@@ -450,6 +450,10 @@ GameObject:
   - component: {fileID: 8285891108709759202}
   - component: {fileID: 2689721801151888994}
   - component: {fileID: 5421808486137877561}
+  - component: {fileID: 8966571175753534497}
+  - component: {fileID: 7452658974309964559}
+  - component: {fileID: 7452658974309964560}
+  - component: {fileID: 7452658974309964561}
   m_Layer: 8
   m_Name: TankEnemy
   m_TagString: Enemy
@@ -486,6 +490,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  _useTankAnimations: 1
+  _impactShakeAmplitude: 1
+  _impactShakeDuration: 1
+  _rockShakeAmplitude: 1
+  _rockShakeDuration: 0.15
+  _dashShakeAmplitude: 1
+  _dashShakeInterval: 0.16
+  _dashShakeDuration: 0.08
+  _reverse: 0
 --- !u!114 &3499916492354477744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -573,6 +586,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!114 &4752673225059697373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -698,6 +712,7 @@ MonoBehaviour:
   _knockbackVfxScale: 0.7
   _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackVfxRotationOffset: -90
+  _detachedVfxLifetime: 1.2
 --- !u!114 &1580289025472224054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -710,14 +725,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030a632337ef4aebb330afbb633a3627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTankAttack
-  _detectionRange: 4
-  _attackRadius: 5
+  _externallyControlled: 1
+  _detectionRange: 6
+  _attackRadius: 7
   _damage: 20
   _attackCooldown: 2
   _rangeImage: {fileID: -5013146175607760036, guid: ee7c0d059397dbc40819880a7a057692, type: 3}
   _rangeColor: {r: 1, g: 1, b: 1, a: 0.35}
   _rangeSortingLayer: Default
-  _rangeSortingOrder: 10
+  _rangeSortingOrder: 0
   _warningDuration: 1
 --- !u!114 &8285891108709759202
 MonoBehaviour:
@@ -758,6 +774,106 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb126a1ad04bd0429033f84d6a60cb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovementController
+--- !u!114 &8966571175753534497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 932050cfbfb54704a3f26048e8ee8a6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossPatternController
+  _patternInterval: 0.5
+  _tankRecoveryDuration: 1.2
+  _dashRecoveryDuration: 0.7
+  _wallRecoveryDuration: 2
+  _dashMinimumPhase: 1
+  _rockfallRecoveryDuration: 1
+  _rockfallMinimumPhase: 1
+  _tankMinimumPhase: 1
+  _shockwaveMinimumPhase: 2
+  _shockwaveRecoveryDuration: 1
+--- !u!114 &7452658974309964559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67fdddb36a73f9345b32c76f2fc99d3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDashAttack
+  _externallyControlled: 1
+  _targetDetector: {fileID: 0}
+  _attackRange: 10
+  _dashDistance: 11
+  _prepareDuration: 1.5
+  _dashSpeed: 20
+  _cooldown: 3
+  _maxDashDuration: 3
+  _arrivalDistance: 0.05
+  _obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 1024
+  _rangeImage: {fileID: 2887546521715123605, guid: c2ac29f0cb8a5cb4cb867f40cb9f43ad, type: 3}
+  _rangeWidth: 0.8
+  _rangeColor: {r: 1, g: 0.4, b: 0.1, a: 0.35}
+  _rangeSortingLayer: Default
+  _rangeSortingOrder: 0
+--- !u!114 &7452658974309964560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac43b79c2b384a72b744c7f86779ba2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyRockfallAttack
+  _externallyControlled: 1
+  _attackRange: 10
+  _rockCount: 3
+  _markInterval: 0.45
+  _warningDuration: 1
+  _attackRadius: 1.2
+  _damage: 15
+  _cooldown: 3
+  _rangeImage: {fileID: -5013146175607760036, guid: ee7c0d059397dbc40819880a7a057692, type: 3}
+  _rockSprite: {fileID: 7606407543972494881, guid: b4c1403cb5d491c478611cdda5898c36, type: 3}
+  _rangeColor: {r: 1, g: 1, b: 1, a: 0.4}
+  _rockColor: {r: 1, g: 1, b: 1, a: 1}
+  _riseDuration: 0.15
+  _holdDuration: 0.4
+  _sinkDuration: 0.25
+  _rockHeight: 2
+  _sortingLayer: Default
+  _sortingOrder: 10
+--- !u!114 &7452658974309964561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690355e4744843b795cf2f18df10115b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyShockwaveAttack
+  _warningDuration: 1
+  _maxRadius: 12
+  _speed: 7
+  _ringWidth: 0.45
+  _damage: 20
+  _cooldown: 8
+  _color: {r: 0.3, g: 1, b: 0.75, a: 0.9}
 --- !u!1 &5897909404666103228
 GameObject:
   m_ObjectHideFlags: 0

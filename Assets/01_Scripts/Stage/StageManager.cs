@@ -116,7 +116,8 @@ public class StageManager : MonoBehaviour
     private MissionStartInteractable _startInteractable;
 
     private GameObject CurrentMissionObject => _missionManager != null ? _missionManager.CurrentMissionObject : null;
-    private bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
+    /// <summary>포탈을 쓸 수 있는 단계인지 (포탈이 들어가기 연출 전에 확인한다)</summary>
+    public bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
 
     public int CurrentDepth => _currentDepth;
     public int MissionStageCount => _missionStageCount;
