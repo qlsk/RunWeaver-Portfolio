@@ -82,8 +82,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -6885526576531182893, guid: 18f2a26aba0f9684c876af46551ea5c7, type: 3}
-  m_Color: {r: 0.2, g: 0.8, b: 1, a: 0.25}
+  m_Sprite: {fileID: 21300000, guid: 2b38156e706a2444b8f46b5676430412, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -140,6 +140,8 @@ GameObject:
   - component: {fileID: 5657258145464474829}
   - component: {fileID: 6216556098030359749}
   - component: {fileID: 8532573098682256610}
+  - component: {fileID: 483964999890034094}
+  - component: {fileID: 3638427289393251851}
   m_Layer: 0
   m_Name: SoulHarvestZone
   m_TagString: Untagged
@@ -213,7 +215,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 6435030607161393872, guid: 3769de30c29a52444a201f8eabc1d6aa, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 961850902cd22c14c82ef4d365fe28c4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -273,6 +275,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoulHarvestZone
   _gizmoColor: {r: 0.2, g: 0.8, b: 1, a: 0.3}
   _wireColor: {r: 0.2, g: 0.8, b: 1, a: 0.9}
+--- !u!95 &483964999890034094
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6800633804430475103}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: dfe7bb035748479429d16654d49cc4c4, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3638427289393251851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6800633804430475103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a88a3a847d286d43a6d720d8be73224, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissionStageAnimator
+  _missionType: 1
+  _maxStage: 5
 --- !u!1001 &6540699453977423375
 PrefabInstance:
   m_ObjectHideFlags: 0

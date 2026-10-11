@@ -6,7 +6,8 @@ using UnityEngine;
 /// 플레이어 도착 연출. 플레이어 머리 위 공중에 균열이 열리고 플레이어를 뱉어낸 뒤 닫힌다.
 /// - 런 시작(시작 석상 앞)과 포탈로 다음 층에 내려왔을 때 쓴다.
 /// - 균열이 열리는 동안 플레이어는 숨겨지고 조작이 막힌다. (PortalPlayerHider)
-/// - 균열 프레임은 Resources/PortalRiftFrames에서 불러온다. 없으면 플레이어를 바로 보여준다.
+/// - 균열 애니메이션은 Resources/PortalRiftFrames의 컨트롤러(Open → Idle → Close)로 재생한다.
+///   없으면 플레이어를 바로 보여준다. 스프라이트는 애니메이션 클립이 바꾼다.
 /// - 페이드 방식(PortalRiftFrames.Style = Fade) : 플레이어 뒤에 균열이 열린 채로 화면이 밝아지고,
 ///   완전히 밝아지면 조작을 돌려주고 균열이 닫힌다. 포탈에 들어갈 때도 플레이어를 숨기지 않는다.
 /// 게임 시간으로 움직인다. (일시정지하면 멈춘다)
@@ -43,7 +44,7 @@ public class PortalArrival : MonoBehaviour
         get
         {
             PortalRiftFrames frames = Frames;
-            return frames != null && frames.Style == PortalTransitionStyle.Fade;
+            return frames != null && frames.Controller != null && frames.Style == PortalTransitionStyle.Fade;
         }
     }
 
@@ -58,7 +59,7 @@ public class PortalArrival : MonoBehaviour
     /// 페이드 방식으로 포탈에 들어갈 때 : 포탈은 층 이동과 함께 바로 사라지므로,
     /// 같은 모양의 균열을 따로 남겨 화면이 완전히 검게 될 때까지 계속 일렁이게 한다.
     /// </summary>
-    public static void LingerExitRift(SpriteRenderer source, Sprite[] idleFrames, float framesPerSecond)
+    public static void LingerExitRift(SpriteRenderer source, Animator sourceAnimator)
     {
         if (source == null)
         {
@@ -76,23 +77,23 @@ public class PortalArrival : MonoBehaviour
         rift.sortingOrder = source.sortingOrder;
         rift.spriteSortPoint = source.spriteSortPoint;
         rift.flipX = source.flipX;
-        go.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(go, rift, idleFrames, framesPerSecond));
+
+        // 원래 포탈과 같은 컨트롤러(보스 포탈이면 보스 컨트롤러)로 Idle을 이어서 재생한다.
+        if (sourceAnimator != null && sourceAnimator.runtimeAnimatorController != null)
+        {
+            Animator animator = PortalRiftAnimation.Attach(go, sourceAnimator.runtimeAnimatorController);
+            PortalRiftAnimation.PlayIdle(animator, Mathf.Repeat(sourceAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f));
+        }
+
+        go.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(go));
     }
 
-    private static IEnumerator LingerRoutine(GameObject owner, SpriteRenderer rift, Sprite[] idleFrames,
-        float framesPerSecond)
+    private static IEnumerator LingerRoutine(GameObject owner)
     {
-        float time = 0f;
         float waited = 0f;
         while (!ScreenFader.IsBlack && waited < ExitLingerTimeout)
         {
-            time += Time.deltaTime;
             waited += Time.unscaledDeltaTime;
-            if (idleFrames != null && idleFrames.Length > 0)
-            {
-                rift.sprite = idleFrames[(int)(time * framesPerSecond) % idleFrames.Length];
-            }
-
             yield return null;
         }
 
@@ -153,13 +154,14 @@ public class PortalArrival : MonoBehaviour
         // 바닥 기준점이 플레이어보다 위라서 YSort상 플레이어 뒤에 그려진다.
         rift.sortingOrder = RiftSortingOrder(ground.y);
 
-        float time = 0f;
+        // 열린 채로 일렁이는 Idle 애니메이션을 바로 재생한다.
+        Animator animator = PortalRiftAnimation.Attach(gameObject, frames.Controller);
+        PortalRiftAnimation.PlayIdle(animator);
+
         float waited = 0f;
         while (waited < _delay || ScreenFader.IsFading || SceneTransition.IsRunning)
         {
-            time += Time.deltaTime;
             waited += Time.deltaTime;
-            SetIdle(rift, frames, time);
             yield return null;
         }
 
@@ -167,20 +169,18 @@ public class PortalArrival : MonoBehaviour
         while (hold < FadeCloseDelay)
         {
             hold += Time.deltaTime;
-            time += Time.deltaTime;
-            SetIdle(rift, frames, time);
             yield return null;
         }
 
         _hider.RestoreNow();
-        yield return PlayFrames(rift, frames.CloseFrames, CloseFramesPerSecond);
+        yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
         Destroy(gameObject);
     }
 
     private IEnumerator PlayRoutine()
     {
         PortalRiftFrames frames = Frames;
-        if (frames == null || frames.OpenFrames == null || frames.OpenFrames.Length == 0 || _hider == null)
+        if (frames == null || frames.Controller == null || _hider == null)
         {
             _hider?.RestoreNow();
             Destroy(gameObject);
@@ -205,13 +205,13 @@ public class PortalArrival : MonoBehaviour
         rift.sortingOrder = RiftSortingOrder(ground.y);
         Vector3 center = ground + (Vector3)frames.CenterOffset;
 
-        // 1. 플레이어 위 공중에 균열이 열린다.
-        yield return PlayFrames(rift, frames.OpenFrames, OpenFramesPerSecond);
+        // 1. 플레이어 위 공중에 균열이 열린다. (끝나면 Animator가 자동으로 Idle로 넘어간다)
+        Animator animator = PortalRiftAnimation.Attach(gameObject, frames.Controller);
+        yield return PortalRiftAnimation.PlayOpen(animator, OpenFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
         float hold = 0f;
         while (hold < IdleHold)
         {
             hold += Time.deltaTime;
-            SetIdle(rift, frames, hold);
             yield return null;
         }
 
@@ -232,8 +232,6 @@ public class PortalArrival : MonoBehaviour
         while (elapsed < SpitDuration)
         {
             elapsed += Time.deltaTime;
-            hold += Time.deltaTime;
-            SetIdle(rift, frames, hold);
             float t = Mathf.Clamp01(elapsed / SpitDuration);
             float eased = 1f - (1f - t) * (1f - t) * (1f - t);
             // 살짝 위로 튀었다가 내려앉는다.
@@ -268,34 +266,7 @@ public class PortalArrival : MonoBehaviour
         _hider.RestoreNow();
 
         // 3. 균열이 닫힌다.
-        yield return PlayFrames(rift, frames.CloseFrames, CloseFramesPerSecond);
+        yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
         Destroy(gameObject);
-    }
-
-    private static void SetIdle(SpriteRenderer rift, PortalRiftFrames frames, float time)
-    {
-        if (frames.IdleFrames != null && frames.IdleFrames.Length > 0)
-        {
-            rift.sprite = frames.IdleFrames[(int)(time * 12f) % frames.IdleFrames.Length];
-        }
-    }
-
-    private static IEnumerator PlayFrames(SpriteRenderer target, Sprite[] frames, float framesPerSecond)
-    {
-        if (frames == null || frames.Length == 0)
-        {
-            yield break;
-        }
-
-        float elapsed = 0f;
-        float duration = frames.Length / framesPerSecond;
-        while (elapsed < duration)
-        {
-            target.sprite = frames[Mathf.Min(frames.Length - 1, (int)(elapsed * framesPerSecond))];
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        target.sprite = frames[frames.Length - 1];
     }
 }

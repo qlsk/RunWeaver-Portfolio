@@ -44,15 +44,16 @@ public class PortalSpawner : MonoBehaviour
     /// 맵 중앙에 다음 층으로 내려가는 포탈을 만든다. 남아 있던 포탈은 정리한다.
     /// </summary>
     /// <param name="label">포탈 위에 띄울 문구 (예: Descend, Face the Boss)</param>
-    public void SpawnPortal(string label)
+    /// <param name="isBoss">보스 층으로 내려가는 포탈이면 true (보스 균열 그림을 쓴다)</param>
+    public void SpawnPortal(string label, bool isBoss = false)
     {
-        SpawnPortal(label, _center);
+        SpawnPortal(label, _center, isBoss);
     }
 
     /// <summary>
     /// 지정한 위치에 다음 층으로 내려가는 포탈을 만든다. 남아 있던 포탈은 정리한다.
     /// </summary>
-    public void SpawnPortal(string label, Vector3 position)
+    public void SpawnPortal(string label, Vector3 position, bool isBoss = false)
     {
         DespawnPortals();
 
@@ -62,7 +63,7 @@ public class PortalSpawner : MonoBehaviour
         }
 
         Portal portal = Instantiate(_portalPrefab, position, Quaternion.identity);
-        portal.Setup(label);
+        portal.Setup(label, isBoss);
         portal.PlayFadeIn();
         _spawned.Add(portal);
     }
