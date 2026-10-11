@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1496991363255545974, guid: ed4e5befd010cb947a67db2f9c1f797c, type: 3}
+  m_Sprite: {fileID: -2864494112868743621, guid: 0598aae5da9c224438988159136bb4e4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -492,7 +492,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.39895254}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -502,7 +502,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.57, y: 0.6283066}
+  m_Size: {x: 0.57, y: 0.12296677}
   m_EdgeRadius: 0
 --- !u!1 &8121630921212012013
 GameObject:
@@ -736,6 +736,7 @@ MonoBehaviour:
   _grid: {fileID: 9127768411809009162, guid: 7c14aa619259ce94d93152bd2434e979, type: 3}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 0
 --- !u!114 &5347450298949797985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -782,5 +783,5 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0029661655, y: 0.011864662}
-  m_Radius: 0.36638308
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5

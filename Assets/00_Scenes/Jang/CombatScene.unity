@@ -127,10 +127,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4414621380582943817, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: -2864494112868743621, guid: 0598aae5da9c224438988159136bb4e4, type: 3}
     - target: {fileID: 6293095639786618222, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.31
@@ -174,10 +170,6 @@ PrefabInstance:
     - target: {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
       propertyPath: m_Name
       value: JangEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1847,6 +1839,7 @@ MonoBehaviour:
   _grid: {fileID: 0}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 0
 --- !u!1 &1320659390
 GameObject:
   m_ObjectHideFlags: 0
@@ -2833,10 +2826,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1772316485788941319, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: -8944129318025595401, guid: e63fdd2249625b4468978ad3d3d0d7e4, type: 3}
     - target: {fileID: 7032596482920143957, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.92
@@ -2881,10 +2870,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: RangeEnemy
       objectReference: {fileID: 0}
-    - target: {fileID: 7997101506716382822, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2898,17 +2883,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1631988935960335514, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 7636887440316509746, guid: 9f5f1633e87e8d542aac5c1ca4f7c07f, type: 3}
     - target: {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_Name
       value: QuadrupedEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3110212136527878748, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3003,10 +2980,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1568718059963766429, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: -6248741079362886434, guid: ada6877533cb95648900bab832ba27b4, type: 3}
     - target: {fileID: 2689721801151888994, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
       propertyPath: _grid
       value: 
@@ -3014,10 +2987,6 @@ PrefabInstance:
     - target: {fileID: 3047915922552554939, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
       propertyPath: m_Name
       value: TankEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 3047915922552554939, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
