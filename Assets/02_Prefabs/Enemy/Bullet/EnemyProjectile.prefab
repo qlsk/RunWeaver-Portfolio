@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 20875033302838106}
   - component: {fileID: 3521169851524287602}
   - component: {fileID: 2323122959006495011}
+  - component: {fileID: -3875539494727517832}
   m_Layer: 0
   m_Name: EnemyProjectile
   m_TagString: Untagged
@@ -186,3 +187,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
   _playerAggroDuration: 5
+--- !u!95 &-3875539494727517832
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5765636610259679437}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: bcbf23f2eb6414c4bbe406b26d44e0ce, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
