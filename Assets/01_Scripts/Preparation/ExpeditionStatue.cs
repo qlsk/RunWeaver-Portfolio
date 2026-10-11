@@ -542,11 +542,6 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             renderers.AddRange(missionManager.CurrentMissionObject.GetComponentsInChildren<SpriteRenderer>(true));
         }
 
-        foreach (MissionStartObject startObject in FindObjectsByType<MissionStartObject>(FindObjectsSortMode.None))
-        {
-            renderers.AddRange(startObject.GetComponentsInChildren<SpriteRenderer>(true));
-        }
-
         float[] alphas = new float[renderers.Count];
         for (int i = 0; i < renderers.Count; i++)
         {

@@ -9,7 +9,6 @@ using UnityEngine.Serialization;
 public class StageManager : MonoBehaviour
 {
     private const float NoTimeLimit = -1f;
-    private const float StartObjectRadius = 1.5f;
 
     private static StageManager s_instance;
 
@@ -43,16 +42,13 @@ public class StageManager : MonoBehaviour
     [SerializeField] private MissionCatalogSO _missionCatalog;
     [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
     [SerializeField, Min(1)] private int _missionStageCount = 10;
+    [SerializeField, Min(0f)] private float _autoStartDelay = 10f;
     [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")]
     [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + 안내 위치)를 만든다")]
-    [SerializeField] private MissionStartObject _startObjectPrefab;
     [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
-    [SerializeField] private Vector3 _startObjectPosition = new(0f, 2f, 0f);
-    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")]
-    [SerializeField] private int _startObjectLayer = 6;
+    [SerializeField] private Vector3 _startObjectPosition = Vector3.zero;
 
     [Header("출발 준비")]
     [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")]
@@ -95,7 +91,6 @@ public class StageManager : MonoBehaviour
     // 미션과 시작 오브젝트
     private MissionManager _missionManager;
     private MissionBase _currentMission;
-    private MissionStartObject _startObject;
     private IMissionRewardProvider _missionRewardProvider;
 
     // 정화 연출
@@ -118,6 +113,8 @@ public class StageManager : MonoBehaviour
     private EnemyHealth _bossHealth;
     private PlayerHealth _playerHealth;
 
+    private MissionStartInteractable _startInteractable;
+
     private GameObject CurrentMissionObject => _missionManager != null ? _missionManager.CurrentMissionObject : null;
     private bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
 
@@ -133,6 +130,9 @@ public class StageManager : MonoBehaviour
 
     /// <summary>다음 층으로 가는 포탈이 나와 있는지</summary>
     public bool IsPortalOpen => _isPortalOpen;
+
+    public float AutostartRemaining { get; private set; }
+    public bool IsAutoStartCounting => _autoStartDelay > 0f && _startInteractable != null && _phase == StagePhase.Ready;
 
     /// <summary>
     /// 타이머에 보여줄 남은 시간(초).
@@ -284,6 +284,9 @@ public class StageManager : MonoBehaviour
     {
         switch (_phase)
         {
+            case StagePhase.Ready:
+                UpdateAutoStart();
+                break;
             case StagePhase.InMission:
                 UpdateMissionTimer();
                 break;
@@ -331,7 +334,7 @@ public class StageManager : MonoBehaviour
         _isBossDefeated = false;
         _bossHealth = null;
         _currentMission = null;
-        DestroyStartObject();
+        UnregisterStartInteractable();
 
         Vector3 startPosition = _startObjectPosition;
         bool isOnMissionObject = false;
@@ -355,7 +358,6 @@ public class StageManager : MonoBehaviour
                 if (missionObject != null)
                 {
                     startPosition = missionObject.transform.position;
-                    isOnMissionObject = true;
                 }
             }
             else
@@ -368,43 +370,40 @@ public class StageManager : MonoBehaviour
 
         _remainingTime = _timeLimit;
         _waveOrigin = startPosition;
-        SpawnStartObject(startPosition, !isOnMissionObject);
+        RegisterStartInteractable();
+        AutostartRemaining = _autoStartDelay;
         SetPhase(StagePhase.Ready);
         SafeEventNotifier.Notify(StageStarted, depth);
     }
 
-    private void SpawnStartObject(Vector3 position, bool showMarker)
+    private void RegisterStartInteractable()
     {
-        _startObject = _startObjectPrefab != null
-            ? Instantiate(_startObjectPrefab, position, Quaternion.identity)
-            : MissionStartObject.Create(position, _startObjectLayer, StartObjectRadius);
+        _startInteractable = new MissionStartInteractable(this, "임무 시작");
 
-        _startObject.SetMarkerVisible(showMarker);
-        _startObject.Activated += HandleStartActivated;
-        _playerInteraction.SetFallbackInteractable(_startObject);
+        if (_playerInteraction != null)
+            _playerInteraction.SetFallbackInteractable(_startInteractable);
     }
 
-    private void DestroyStartObject()
+    private void UnregisterStartInteractable()
     {
-        if (_startObject == null)
-        {
+        if (_startInteractable == null)
             return;
-        }
 
-        _startObject.Activated -= HandleStartActivated;
-        Destroy(_startObject.gameObject);
-        _startObject = null;
+        if (_playerInteraction != null)
+            _playerInteraction.ClearFallbackInteractable(_startInteractable);
+
+        _startInteractable = null;
     }
 
     /// <summary>시작 오브젝트에 F로 상호작용하면 미션(보스 스테이지는 보스전)을 시작한다.</summary>
-    private void HandleStartActivated()
+    public void HandleStartActivated()
     {
         if (_phase != StagePhase.Ready)
         {
             return;
         }
 
-        DestroyStartObject();
+        UnregisterStartInteractable();
         SetPhase(StagePhase.InMission);
 
         if (_isBossStage)
@@ -422,6 +421,20 @@ public class StageManager : MonoBehaviour
     }
 
     // ───────────────────────── 미션 진행과 보상 ─────────────────────────
+
+    private void UpdateAutoStart()
+    {
+        if (_autoStartDelay <= 0f)
+            return;
+
+        if (_startInteractable == null)
+            return;
+
+        AutostartRemaining -= Time.deltaTime;
+
+        if (AutostartRemaining <= 0f)
+            HandleStartActivated();
+    }
 
     private void UpdateMissionTimer()
     {
@@ -1015,7 +1028,7 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] ===== 런 종료: {finalReason} =====");
 
         SetPhase(StagePhase.Ended);
-        DestroyStartObject();
+        UnregisterStartInteractable();
         PauseMonsterSpawner();
         DespawnPortal();
 
