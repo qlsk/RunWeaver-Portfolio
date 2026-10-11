@@ -24,8 +24,11 @@ public class EnemyDashAttack : MonoBehaviour
     [SerializeField] private LayerMask _obstacleLayers;
 
     [SerializeField] private Sprite _rangeImage;
+    [Tooltip("표시기 시작 위치. 비워두면 몸체 Collider의 아래쪽 중앙을 사용합니다.")]
+    [SerializeField] private Transform _rangeOrigin;
     [SerializeField, Min(0.01f)] private float _rangeWidth = 0.8f;
     [SerializeField] private Color _rangeColor = new Color(1f, 1f, 1f, 0.35f);
+    [SerializeField, Range(0f, 1f)] private float _chargedRangeAlpha = 0.9f;
     [SerializeField] private string _rangeSortingLayer = "Default";
     [SerializeField] private int _rangeSortingOrder;
 
@@ -33,18 +36,22 @@ public class EnemyDashAttack : MonoBehaviour
     public bool IsDashActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
 
     private Rigidbody2D _body;
+    private Collider2D _bodyCollider;
     private EnemyHealth _health;
     private EnemyStatusEffectController _statusEffectController;
     private Vector2 _targetPosition;
     private EnemyMotor _motor;
     private float _stateEndTime;
+    private float _chargeStartTime;
     private float _nextAttackTime;
     private SpriteRenderer _rangeIndicator;
+    private AttackRangeChargeVisual _chargeVisual;
 
     private void Awake()
     {
         _motor = GetComponent<EnemyMotor>();
         _body = GetComponent<Rigidbody2D>();
+        _bodyCollider = GetComponent<Collider2D>();
         _health = GetComponent<EnemyHealth>();
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
         if (_targetDetector == null)
@@ -61,6 +68,7 @@ public class EnemyDashAttack : MonoBehaviour
         indicator.transform.SetParent(transform, false);
         _rangeIndicator = indicator.AddComponent<SpriteRenderer>();
         _rangeIndicator.sprite = _rangeImage;
+        _chargeVisual = new AttackRangeChargeVisual(_rangeIndicator, false);
         _rangeIndicator.color = _rangeColor;
         _rangeIndicator.sortingLayerName = _rangeSortingLayer;
         _rangeIndicator.sortingOrder = _rangeSortingOrder;
@@ -88,6 +96,7 @@ public class EnemyDashAttack : MonoBehaviour
                 if (!_externallyControlled) TryStartAttack();
                 break;
             case EnemyAttackState.Preparing:
+                UpdateRangeCharge();
                 if (Time.time >= _stateEndTime)
                 {
                     _motor?.ReleasePositionLock(this);
@@ -123,7 +132,8 @@ public class EnemyDashAttack : MonoBehaviour
         _targetPosition = start + toTarget.normalized * _dashDistance;
         State = EnemyAttackState.Preparing;
         _motor.AcquirePositionLock(this);
-        _stateEndTime = Time.time + _prepareDuration;
+        _chargeStartTime = Time.time;
+        _stateEndTime = _chargeStartTime + _prepareDuration;
 
         ShowRangeIndicator(start);
         return true;
@@ -131,7 +141,7 @@ public class EnemyDashAttack : MonoBehaviour
 
     private void ShowRangeIndicator(Vector2 start)
     {
-        _rangeIndicator.color = _rangeColor;
+        UpdateRangeCharge();
         _rangeIndicator.sortingLayerName = _rangeSortingLayer;
         _rangeIndicator.sortingOrder = _rangeSortingOrder;
         Bounds bounds = _rangeIndicator.sprite.bounds;
@@ -139,7 +149,16 @@ public class EnemyDashAttack : MonoBehaviour
             return;
 
         Vector2 path = _targetPosition - start;
-        Vector2 center = (start + _targetPosition) * 0.5f;
+        Vector2 rangeStart = start;
+        if (_rangeOrigin != null)
+            rangeStart = _rangeOrigin.position;
+        else if (_bodyCollider != null && _bodyCollider.enabled)
+        {
+            Bounds bodyBounds = _bodyCollider.bounds;
+            rangeStart = new Vector2(bodyBounds.center.x, bodyBounds.min.y);
+        }
+
+        Vector2 center = rangeStart + path * 0.5f;
         Transform indicator = _rangeIndicator.transform;
         indicator.rotation = Quaternion.Euler(0f, 0f,
             Mathf.Atan2(path.y, path.x) * Mathf.Rad2Deg);
@@ -160,6 +179,13 @@ public class EnemyDashAttack : MonoBehaviour
         indicator.position = new Vector3(center.x, center.y, transform.position.z)
                              - indicator.TransformVector(localCenter);
         _rangeIndicator.enabled = true;
+    }
+
+    private void UpdateRangeCharge()
+    {
+        float duration = _stateEndTime - _chargeStartTime;
+        float progress = duration > 0f ? Mathf.Clamp01((Time.time - _chargeStartTime) / duration) : 1f;
+        _chargeVisual.SetProgress(progress, _rangeColor, _chargedRangeAlpha);
     }
 
     private void MoveDash()
@@ -237,6 +263,7 @@ public class EnemyDashAttack : MonoBehaviour
 
     private void OnDestroy()
     {
+        _chargeVisual?.Dispose();
         if (_rangeIndicator != null)
             Destroy(_rangeIndicator.gameObject);
     }

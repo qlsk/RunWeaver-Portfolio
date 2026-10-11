@@ -20,6 +20,7 @@ public class EnemyTankAttack : MonoBehaviour
     [SerializeField, Min(0f)] private float _attackCooldown = 2f;
     [SerializeField] private Sprite _rangeImage;
     [SerializeField] private Color _rangeColor = new Color(1f, 0.2f, 0.1f, 0.35f);
+    [SerializeField, Range(0f, 1f)] private float _chargedRangeAlpha = 0.9f;
     [SerializeField] private string _rangeSortingLayer = "Default";
     [SerializeField] private int _rangeSortingOrder = 10;
     [SerializeField] private float _warningDuration = 1f;
@@ -27,11 +28,13 @@ public class EnemyTankAttack : MonoBehaviour
     private EnemyHealth _health;
     private EnemyStatusEffectController _statusEffects;
     private SpriteRenderer _indicator;
+    private AttackRangeChargeVisual _chargeVisual;
     private readonly HashSet<PlayerHealth> _damagedPlayers = new HashSet<PlayerHealth>();
     private readonly HashSet<DefenseAltar> _damagedAltars = new HashSet<DefenseAltar>();
     private Vector2 _attackCenter;
     private float _pendingRadius;
     private float _attackTime;
+    private float _chargeStartTime;
     private float _nextAttackTime;
     public EnemyAttackState State { get; private set; } = EnemyAttackState.Idle;
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
@@ -93,6 +96,7 @@ public class EnemyTankAttack : MonoBehaviour
                 if (!_externallyControlled) TryStartAttack();
                 break;
             case EnemyAttackState.Preparing:
+                UpdateRangeCharge();
                 if (Time.time >= _attackTime)
                 {
                     State = EnemyAttackState.Attacking;
@@ -129,7 +133,8 @@ public class EnemyTankAttack : MonoBehaviour
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
         _pendingRadius = _attackRadius;
-        _attackTime = Time.time + _warningDuration;
+        _chargeStartTime = Time.time;
+        _attackTime = _chargeStartTime + _warningDuration;
         _animationHit = false;
         State = EnemyAttackState.Preparing;
         _motor.AcquirePositionLock(this);
@@ -141,11 +146,18 @@ public class EnemyTankAttack : MonoBehaviour
         indicator.localScale = new Vector3(diameter / bounds.size.x, diameter / bounds.size.y, 1f);
         indicator.position = new Vector3(_attackCenter.x, _attackCenter.y, transform.position.z)
                              - indicator.TransformVector(bounds.center);
-        _indicator.color = _rangeColor;
+        UpdateRangeCharge();
         _indicator.sortingLayerName = _rangeSortingLayer;
         _indicator.sortingOrder = _rangeSortingOrder;
         _indicator.enabled = true;
         return true;
+    }
+
+    private void UpdateRangeCharge()
+    {
+        float duration = _attackTime - _chargeStartTime;
+        float progress = duration > 0f ? Mathf.Clamp01((Time.time - _chargeStartTime) / duration) : 1f;
+        _chargeVisual.SetProgress(progress, _rangeColor, _chargedRangeAlpha);
     }
 
     private void ExecuteAttack()
@@ -200,6 +212,7 @@ public class EnemyTankAttack : MonoBehaviour
         var indicatorObject = new GameObject("TankAttackRangeIndicator");
         _indicator = indicatorObject.AddComponent<SpriteRenderer>();
         _indicator.sprite = _rangeImage;
+        _chargeVisual = new AttackRangeChargeVisual(_indicator, true);
         _indicator.enabled = false;
     }
 
@@ -217,6 +230,7 @@ public class EnemyTankAttack : MonoBehaviour
 
     private void OnDestroy()
     {
+        _chargeVisual?.Dispose();
         if (_indicator != null)
             Destroy(_indicator.gameObject);
     }
