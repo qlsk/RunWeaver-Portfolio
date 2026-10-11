@@ -38,11 +38,17 @@ public class TimerPanelPresenter : MonoBehaviour
     [Tooltip("진행률 100%일 때의 텍스트 색상")]
     [SerializeField] private Color _objectiveCompleteColor = new(0.2f, 0.85f, 0.3f, 1f);
 
+    [Header("Countdown")]
+    [SerializeField] private Color _countdownColor = new(0.55f, 0.85f, 1f, 1f);
+    [SerializeField] private string _countdownPrefix = "카운트다운";
+    [SerializeField] private GameObject _countdownLabel;
+
     private Color _normalColor = Color.white;
     private Vector3 _normalScale = Vector3.one;
     private int _shownSeconds = int.MinValue;
     private bool _shownWarning;
     private Coroutine _emphasisRoutine;
+    private bool _shownCountdown;
 
     private void Awake()
     {
@@ -89,9 +95,7 @@ public class TimerPanelPresenter : MonoBehaviour
     private void HandleRemainingTimeChanged(float remainingSeconds)
     {
         if (_timerText == null)
-        {
             return;
-        }
 
         if (remainingSeconds < 0f)
         {
@@ -102,25 +106,28 @@ public class TimerPanelPresenter : MonoBehaviour
         // 0초가 되는 순간 00:00이 되도록 올림으로 표시한다.
         int seconds = Mathf.CeilToInt(remainingSeconds);
         bool isWarningEnabled = _source == null || _source.IsTimeWarningEnabled;
-        if (seconds == _shownSeconds && isWarningEnabled == _shownWarning)
-        {
+        bool isCountdown = _source != null && _source.IsStartCountdown;
+
+        if (seconds == _shownSeconds && isWarningEnabled == _shownWarning && isCountdown == _shownCountdown)
             return;
-        }
 
         bool isNewSecond = seconds != _shownSeconds;
         _shownSeconds = seconds;
         _shownWarning = isWarningEnabled;
-        _timerText.text = $"{seconds / SecondsPerMinute:00}:{seconds % SecondsPerMinute:00}";
-        _timerText.color = isWarningEnabled && seconds <= _warningSeconds ? _warningColor : _normalColor;
+
+        string prefix = isCountdown ? _countdownPrefix : string.Empty;
+        _timerText.text = $"{prefix}{seconds / SecondsPerMinute:00}:{seconds % SecondsPerMinute:00}";
+        _timerText.color = isCountdown
+            ? _countdownColor
+            : (isWarningEnabled && seconds <= _warningSeconds ? _warningColor : _normalColor);
+
+        if (_countdownLabel != null)
+            _countdownLabel.SetActive(isCountdown);
 
         if (!isWarningEnabled)
-        {
             StopEmphasis();
-        }
         else if (isNewSecond && seconds <= _emphasisSeconds && seconds > 0)
-        {
             PlayEmphasis();
-        }
     }
 
     private void SetObjective(string objectiveName, string progressText)

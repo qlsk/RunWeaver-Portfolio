@@ -45,6 +45,8 @@ public abstract class StageStatusSource : MonoBehaviour
     /// <summary>현재 임무 진행률 (0 ~ 1)</summary>
     public virtual float ObjectiveProgress => 0f;
 
+    public virtual bool IsStartCountdown => false;
+
     protected void RaiseStageEntered(int depth, string stageName)
     {
         StageEntered?.Invoke(depth, stageName);
