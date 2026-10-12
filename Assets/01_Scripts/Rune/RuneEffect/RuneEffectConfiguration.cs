@@ -25,7 +25,7 @@ public sealed class RuneEffectConfiguration
     public float SpreadDamageMultiplier => IsSpread ? 0.5f : 1f;
     public float MultipleDamageMultiplier => IsMultiple ? 0.6f : 1f;
     public int PowerCount { get; private set; }
-    public float PowerDamageMultiplier => 1 + PowerDamageBonusPerStack * PowerCount;
+    public float PowerDamageMultiplier => 1f + PowerDamageBonusPerStack * PowerCount;
     public int SpeedCount { get; private set; }
     public float SpeedMultiplier => 1f + SpeedBonusPerStack * SpeedCount;
     public int RangeCount { get; private set; }
