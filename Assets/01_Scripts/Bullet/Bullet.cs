@@ -22,14 +22,17 @@ public class Bullet : MonoBehaviour
     [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
     [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
 
-    [Header("Seek")] [SerializeField, Min(0f)]
+    [Header("Seek")]
+    [SerializeField, Min(0f)]
     private float _seekRadius = 5f;
 
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
 
-    [Header("Fix")] [SerializeField] private FixTrap _fixTrapPrefab;
+    [Header("Fix")]
+    [SerializeField] private FixTrap _fixTrapPrefab;
 
-    [Header("Chain")] [SerializeField, Min(0f)]
+    [Header("Chain")]
+    [SerializeField, Min(0f)]
     private float _chainRadius = 5f;
 
     [SerializeField] private LayerMask _chainEnemyLayers = ~0;
@@ -47,6 +50,8 @@ public class Bullet : MonoBehaviour
     private BulletRuntime _runtime;
     private bool _isInitialized;
     private bool _processingHit;
+
+    private bool _isLingering;
 
     /// 공격 데이터를 저장하고 이동 거리와 적중 처리 상태를 초기화한다.
     public void Initialize(PlayerAttackData attackData, BulletVisualEffects visualEffects = null)
@@ -113,6 +118,13 @@ public class Bullet : MonoBehaviour
     /// 비행 상태에 따라 일반 이동, 플레이어 복귀 또는 궤도 회전을 처리한다.
     private void Update()
     {
+        _hitEffects?.TickEcho(Time.deltaTime);
+
+        if (_isLingering && !_hitEffects.HasPendingEcho)
+        {
+            Destroy(gameObject);
+        }
+
         if (!_isInitialized)
             return;
 
@@ -253,9 +265,31 @@ public class Bullet : MonoBehaviour
     {
         if (_runtime != null)
             _runtime.Phase = BulletPhase.Ended;
+
         _isInitialized = false;
-        if (_movement != null) _movement.EndRequested -= RequestEnd;
-        Destroy(gameObject);
-        if (reason.HasValue) Ended?.Invoke(reason.Value);
+
+        if (_movement != null)
+            _movement.EndRequested -= RequestEnd;
+
+        if (_hitEffects is { HasPendingEcho: true })
+        {
+            _isLingering = true;
+
+            if (TryGetComponent(out Collider2D thisCollider))
+                thisCollider.enabled = false;
+
+            if (TryGetComponent(out SpriteRenderer thisRenderer))
+                thisRenderer.enabled = false;
+
+            if (_projectileVisual != null)
+                _projectileVisual.gameObject.SetActive(false);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
+        if (reason.HasValue)
+            Ended?.Invoke(reason.Value);
     }
 }

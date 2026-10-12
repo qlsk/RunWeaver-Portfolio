@@ -16,4 +16,5 @@ public static class RuneEffectIds
     public const string Orbit = "rune_orbit";
     public const string Fix = "rune_fix";
     public const string Chain = "rune_chain";
+    public const string Echo = "rune_echo";
 }

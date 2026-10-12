@@ -7,6 +7,8 @@ public sealed class RuneEffectConfiguration
     private const float SpeedBonusPerStack = 0.5f;
     private const float RangeBonusPerStack = 0.5f;
 
+    public const float EchoDelaySeconds = 1f;
+
     public ReactionElement? PrimaryElement { get; }
     public ReactionElement? SecondaryElement { get; }
 
@@ -30,6 +32,7 @@ public sealed class RuneEffectConfiguration
     public float SpeedMultiplier => 1f + SpeedBonusPerStack * SpeedCount;
     public int RangeCount { get; private set; }
     public float RangeMultiplier => 1f + RangeBonusPerStack * RangeCount;
+    public int EchoCount { get; private set; }
 
     public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects)
     {
@@ -81,6 +84,9 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Chain:
                     IsChain = true;
+                    break;
+                case RuneEffectIds.Echo:
+                    EchoCount += 1;
                     break;
             }
         }
