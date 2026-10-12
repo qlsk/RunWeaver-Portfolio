@@ -48,14 +48,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReactionFxEnemyMarks
   _mode: 0
   _referenceRadius: 0.9
-  _markSprite: {fileID: 0}
-  _impactSprite: {fileID: 0}
+  _markPrefab: {fileID: 0}
+  _emberPrefab: {fileID: 0}
   _refreshInterval: 0.1
   _liftHeight: 0.45
   _liftSpeed: 2
   _emberLaunchHeight: 0.9
-  _emberFlightTime: 0.35
-  _emberArcHeight: 0.8
 --- !u!1 &4328479941443516992
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,7 +64,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4186854649353248693}
   - component: {fileID: 8648334928413020817}
-  - component: {fileID: 7717482821443148286}
+  - component: {fileID: 6950744930580823883}
+  - component: {fileID: 7222648022485240125}
   - component: {fileID: 4125702948418223111}
   m_Layer: 0
   m_Name: Ground
@@ -149,38 +148,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &7717482821443148286
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4328479941443516992}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: 473039065, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 629269261, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -322974681, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 1702854807, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -1128792656, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -358088523, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -36312086, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 389104574, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -2087448047, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -345911063, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -1068496893, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 1228562277, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 1171467128, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -2091776584, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: 1279828560, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  - {fileID: -995915289, guid: ed990a8813784542b956db8cb0f53195, type: 3}
-  _framesPerSecond: 10
-  _loop: 1
-  _randomStart: 1
 --- !u!114 &4125702948418223111
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,7 +172,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8266506136102368246}
   - component: {fileID: 4408590483700459339}
-  - component: {fileID: 1915451890827674025}
+  - component: {fileID: 1446674460739706604}
+  - component: {fileID: 8059109072718047295}
   - component: {fileID: 4465751155877880226}
   - component: {fileID: 6511151037500349039}
   m_Layer: 0
@@ -289,38 +257,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 1
---- !u!114 &1915451890827674025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2180269659951128259}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: 1466247778, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -1634376926, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -1063111887, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 1871653093, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -1653028514, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 63765669, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -277780959, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 974291057, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -1229130410, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 174810791, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -600424028, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -699217904, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 459367042, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 70101740, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: -374793186, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  - {fileID: 798315343, guid: 2a73eddb703443d1bc4c1f67292b2945, type: 3}
-  _framesPerSecond: 12
-  _loop: 1
-  _randomStart: 1
 --- !u!114 &4465751155877880226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -349,3 +285,73 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FxSortOrder
   _sortingOrder: 0
   _sortingLayerName: Default
+--- !u!95 &6950744930580823883
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4328479941443516992}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 61a833e85b9d0c7d28ac1aafcac1e26a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7222648022485240125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4328479941443516992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549e46c563f9a4bfc7b0b1d3092d86ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorRandomStart
+  _stateName: Loop
+--- !u!95 &1446674460739706604
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2180269659951128259}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8a8e72d841a2b2c6efc5adb7837d452f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8059109072718047295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2180269659951128259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549e46c563f9a4bfc7b0b1d3092d86ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorRandomStart
+  _stateName: Loop

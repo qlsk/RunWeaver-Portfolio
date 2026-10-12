@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6459594189582438598}
   - component: {fileID: 2545335885516578933}
-  - component: {fileID: 6222485366831418602}
+  - component: {fileID: 829513617614360289}
+  - component: {fileID: 3951827647462002072}
   m_Layer: 0
   m_Name: StatusFx_Slow
   m_TagString: Untagged
@@ -92,7 +93,29 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &6222485366831418602
+--- !u!95 &829513617614360289
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3282494113180683151}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7debab0ccebe7c16018930d635db1ce8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3951827647462002072
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,26 +124,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3282494113180683151}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
+  m_Script: {fileID: 11500000, guid: 549e46c563f9a4bfc7b0b1d3092d86ce, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: 307824897, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 768180256, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -1051923063, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -1302241173, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -1956548818, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 119668324, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 1057676969, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 2126172836, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 1411721979, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -1250403242, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 1322988965, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: 76895420, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -1728931173, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -832129836, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -2072514068, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  - {fileID: -158146832, guid: d56972a8183f4307bd5c19856b926d39, type: 3}
-  _framesPerSecond: 12
-  _loop: 1
-  _randomStart: 1
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorRandomStart
+  _stateName: Loop

@@ -21,6 +21,9 @@ using UnityEngine.UI;
 /// - 장착 칸을 오른쪽 클릭하면 뺀다. 이미 확정된 룬을 빼도 룬 문자는 돌려주지 않는다.
 /// - 룬 문자가 모자라면(남는 수가 0 미만) Confirm을 막고 "룬석이 부족합니다"를 띄운다.
 /// - Confirm 없이 룬북을 닫으면(이 오브젝트가 꺼지면) 바꾼 내용은 버린다.
+/// - 확인 버튼(또는 F, Space)을 누르면 확정 확인 창(RuneBookConfirmDialog)을 띄우고, 거기서 확정해야 실제로 확정한다.
+///   한 번 확정한 뒤에는 칸을 다시 바꾸기 전까지 확인 버튼을 받지 않는다. (연타로 확인 창이 다시 뜨지 않게)
+/// - 아래 띠의 "활성화 n / m"은 장착한 룬 수 / 열린 칸 수다.
 /// - 연출(열기, 장착/해제, 경고, 룬석 부족, Confirm)은 RuneBookV2Fx가 맡는다. 없으면 붙인다.
 ///
 /// 완성품 (상점에서 산 룬 워드)
@@ -35,6 +38,8 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     [Tooltip("Confirm 후 전투 씬으로 넘어간다 (거점의 출발 화면). 전투 중 Tab 룬북은 끈다.")]
     [SerializeField] private bool _loadCombatSceneOnConfirm = true;
+    [Tooltip("확정 확인 창 프리팹 (RuneBookConfirmDialog). 비워두면 확인 없이 바로 확정한다")]
+    [SerializeField] private RuneBookConfirmDialog _confirmDialogPrefab;
 
     [Tooltip("보기 전용으로 열었을 때 Confirm 자리에 보여줄 안내 (마을에서 Tab으로 연 룬북)")]
     [SerializeField] private string _viewOnlyText = "보기 전용 - 룬 장착은 게이트에서";
@@ -86,6 +91,8 @@ public class RuneBookV2Presenter : MonoBehaviour
     private IReadOnlyList<RuneStoneStackData> _stoneList = Array.Empty<RuneStoneStackData>();
     private RuneWordTileView _hoveredTile;
     private bool _isRefreshQueued;
+    private int _enabledFrame = -1;
+    private RuneBookConfirmDialog _confirmDialog;
     private bool _isInitialized;
     private PlayerRuneManager _loadoutManager;
     private RuneEffectLoadout _loadout;
@@ -97,6 +104,9 @@ public class RuneBookV2Presenter : MonoBehaviour
         : _dataSource != null ? Mathf.Clamp(_dataSource.ActiveSlotCount, 1, RuneBookV2DataSource.SlotLimit) : 0;
 
     private bool _isViewOnly;
+
+    // 확정한 뒤 칸을 다시 바꾸기 전까지 확인 버튼(F, Space 포함)을 받지 않는다.
+    private bool _isConfirmLocked;
 
     /// <summary>보기 전용이면 룬 워드를 넣거나 빼거나 Confirm할 수 없다.</summary>
     public bool IsViewOnly => _isViewOnly;
@@ -124,6 +134,8 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void OnEnable()
     {
+        _enabledFrame = Time.frameCount;
+        _isConfirmLocked = false;
         Initialize();
         _fx.PlayOpen();
         if (_dataSource == null)
@@ -134,6 +146,26 @@ public class RuneBookV2Presenter : MonoBehaviour
         _dataSource.Changed += HandleDataChanged;
         BindLoadoutManager();
         _isRefreshQueued = true;
+    }
+
+    /// <summary>F 또는 Space로 확인 버튼을 누른다. (확인 창이 열려 있거나 방금 닫힌 프레임, 룬북을 연 직후에는 받지 않는다)</summary>
+    private void Update()
+    {
+        if (_isViewOnly || RuneBookConfirmDialog.IsOpen || RuneBookConfirmDialog.ClosedFrame == Time.frameCount ||
+            Time.frameCount <= _enabledFrame + 1)
+        {
+            return;
+        }
+
+        if (!Input.GetKeyDown(KeyCode.F) && !Input.GetKeyDown(KeyCode.Space))
+        {
+            return;
+        }
+
+        if (_confirmButton != null && _confirmButton.gameObject.activeInHierarchy && _confirmButton.interactable)
+        {
+            HandleConfirmClicked();
+        }
     }
 
     private void LateUpdate()
@@ -161,6 +193,11 @@ public class RuneBookV2Presenter : MonoBehaviour
         if (_loadout != null)
             _loadout.LoadoutChanged -= HandleLoadoutChanged;
         _loadout = null;
+        // 룬북이 닫히면 열려 있던 확인 창도 확정 없이 닫는다.
+        if (_confirmDialog != null)
+        {
+            _confirmDialog.Hide();
+        }
         Array.Clear(_slotIds, 0, _slotIds.Length);
         Array.Clear(_isNew, 0, _isNew.Length);
         Array.Clear(_usesOwned, 0, _usesOwned.Length);
@@ -176,6 +213,11 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (_confirmDialog != null)
+        {
+            Destroy(_confirmDialog.gameObject);
+        }
+
         if (_tiles != null)
         {
             foreach (RuneWordTileView tile in _tiles)
@@ -367,6 +409,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             _slotIds[i] = _slotIds[i - 1];
         }
         _slotIds[slot] = entry.Id;
+        _isConfirmLocked = false;
         UpdateNewEquipmentFlags();
         Dictionary<char, int> usedBefore = new(_pendingUse);
         Refresh();
@@ -405,6 +448,7 @@ public class RuneBookV2Presenter : MonoBehaviour
             _slotIds[i] = _slotIds[i + 1];
         }
         _slotIds[ActiveSlotCount - 1] = null;
+        _isConfirmLocked = false;
         UpdateNewEquipmentFlags();
 
         // 원소는 최소 1개 : 빼는 건 허용하고 경고만 띄운다. (Confirm에서 막는다)
@@ -560,7 +604,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
     private void HandleConfirmClicked()
     {
-        if (_dataSource == null || _isViewOnly)
+        if (_dataSource == null || _isViewOnly || _isConfirmLocked)
         {
             return;
         }
@@ -583,6 +627,49 @@ public class RuneBookV2Presenter : MonoBehaviour
             PlayShortage();
             return;
         }
+
+        // 확인 창에서 확정을 고르면 실제로 확정한다.
+        ShowConfirmDialog();
+    }
+
+    /// <summary>확정 확인 창을 띄운다. 처음 한 번 프리팹으로 만든다. 프리팹이 없으면 바로 확정한다.</summary>
+    private void ShowConfirmDialog()
+    {
+        if (_confirmDialogPrefab == null)
+        {
+            ConfirmLoadout();
+            return;
+        }
+
+        if (_confirmDialog == null)
+        {
+            // 룬북과 따로 둔다. (룬북이 꺼질 때 같이 꺼지지 않고, 자기 캔버스로 룬북 위에 그려진다)
+            _confirmDialog = Instantiate(_confirmDialogPrefab);
+            _confirmDialog.name = _confirmDialogPrefab.name;
+            _confirmDialog.gameObject.SetActive(false);
+        }
+
+        _confirmDialog.Show(ConfirmLoadout);
+    }
+
+    /// <summary>확인 창에서 확정했을 때 : 룬 문자와 완성품을 쓰고 장착을 확정한다.</summary>
+    private void ConfirmLoadout()
+    {
+        if (_dataSource == null || _isViewOnly || !isActiveAndEnabled)
+        {
+            return;
+        }
+
+        // 확인 창이 떠 있던 사이에 바뀌었을 수 있으니 다시 검사한다.
+        LoadData();
+        UpdateOwnedFlags();
+        CountPendingUse();
+        if (!HasElementInSlots() || HasShortage())
+        {
+            Refresh();
+            return;
+        }
+
         // 룬 문자는 완성품을 쓰지 않는 새 칸만 소모한다.
         bool[] usesRuneStones = new bool[_slotIds.Length];
         List<string> ownedToConsume = new();
@@ -597,6 +684,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         if (_dataSource.Confirm(_slotIds, usesRuneStones))
         {
+            _isConfirmLocked = true;
             foreach (string id in ownedToConsume)
             {
                 _dataSource.ConsumeOwned(id);
@@ -845,7 +933,17 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         if (_activatedText != null)
         {
-            _activatedText.text = string.Format(_activatedFormat, active, RuneBookV2DataSource.SlotLimit);
+            // 장착한 룬 수 / 열린 칸 수
+            int equipped = 0;
+            for (int i = 0; i < active && i < _slotIds.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(_slotIds[i]))
+                {
+                    equipped++;
+                }
+            }
+
+            _activatedText.text = string.Format(_activatedFormat, equipped, active);
         }
     }
 

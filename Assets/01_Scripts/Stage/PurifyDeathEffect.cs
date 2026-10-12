@@ -7,7 +7,7 @@ using UnityEngine;
 /// - 적의 이동·공격·충돌·애니메이션을 멈춘다. (적 스크립트는 고치지 않고 컴포넌트를 끈다)
 /// - 번쩍임 : 파동 색으로 밝게 물들며 살짝 커지고, 파동 반대쪽으로 조금 밀려난다.
 /// - 소멸 : 위로 늘어나며(가로는 줄고 세로는 늘어남) 떠오르고, 서서히 투명해진다.
-/// - 빛 입자 : 몸에서 작은 빛이 위로 흩어진다. (적이 사라져도 끝까지 남는다)
+/// - 빛 입자 : 몸에서 작은 빛이 위로 흩어진다. (PurifyMotes 프리팹. 움직임은 클립에 있고, 적이 사라져도 끝까지 남는다)
 /// 끝나면 적 오브젝트를 없앤다. EnemyHealth의 사망 이벤트를 보내지 않으므로 드롭과 처치 수에 들어가지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -19,7 +19,9 @@ public class PurifyDeathEffect : MonoBehaviour
     private const float KnockbackDistance = 0.25f;
     private const float KnockbackDuration = 0.2f;
     private const float RiseDistance = 0.2f;
-    private const int MoteCount = 10;
+    // PurifyMotes 프리팹이 기준으로 삼는 적 크기(유닛). 적이 더 크면 입자 무리도 그만큼 키운다.
+    private const float MoteAreaWidth = 0.8f;
+    private const float MoteAreaHeight = 1f;
 
     private readonly List<SpriteRenderer> _renderers = new();
     private readonly List<Color> _baseColors = new();
@@ -27,16 +29,16 @@ public class PurifyDeathEffect : MonoBehaviour
     private Vector3 _baseScale;
     private Vector2 _pushDirection;
     private Color _tint = Color.white;
-    private Sprite _moteSprite;
+    private GameObject _motesPrefab;
 
     /// <summary>
     /// 적에게 정화 사망 연출을 시작한다. 이미 정화 중이면 무시한다.
     /// </summary>
     /// <param name="enemy">닿은 적</param>
     /// <param name="waveOrigin">파동 중심 (밀려나는 방향 계산용)</param>
-    /// <param name="moteSprite">흩어지는 빛 입자 이미지 (없으면 입자 없음)</param>
+    /// <param name="motesPrefab">흩어지는 빛 입자 프리팹 (없으면 입자 없음)</param>
     /// <param name="tint">번쩍일 때의 색 (파동 색)</param>
-    public static void Purify(EnemyHealth enemy, Vector3 waveOrigin, Sprite moteSprite, Color tint)
+    public static void Purify(EnemyHealth enemy, Vector3 waveOrigin, GameObject motesPrefab, Color tint)
     {
         if (enemy == null)
         {
@@ -51,7 +53,7 @@ public class PurifyDeathEffect : MonoBehaviour
         }
 
         PurifyDeathEffect effect = root.AddComponent<PurifyDeathEffect>();
-        effect.Begin(waveOrigin, moteSprite, tint);
+        effect.Begin(waveOrigin, motesPrefab, tint);
     }
 
     private static GameObject FindEnemyRoot(EnemyHealth enemy)
@@ -65,9 +67,9 @@ public class PurifyDeathEffect : MonoBehaviour
         return root.gameObject;
     }
 
-    private void Begin(Vector3 waveOrigin, Sprite moteSprite, Color tint)
+    private void Begin(Vector3 waveOrigin, GameObject motesPrefab, Color tint)
     {
-        _moteSprite = moteSprite;
+        _motesPrefab = motesPrefab;
         _tint = tint;
         _tint.a = 1f;
 
@@ -164,7 +166,7 @@ public class PurifyDeathEffect : MonoBehaviour
 
     private void SpawnMotes()
     {
-        if (_moteSprite == null)
+        if (_motesPrefab == null)
         {
             return;
         }
@@ -189,9 +191,21 @@ public class PurifyDeathEffect : MonoBehaviour
             }
         }
 
-        GameObject root = new GameObject("PurifyMotes");
-        PurifyMotes motes = root.AddComponent<PurifyMotes>();
-        motes.Play(_moteSprite, _tint, bounds, sortingLayer, sortingOrder + 1, MoteCount);
+        // 프리팹은 적 중심을 기준으로 위쪽 절반에 입자가 놓여 있다. 크기는 적에 맞추고, 좌우는 무작위로 뒤집는다.
+        Vector3 center = bounds.center;
+        center.z = 0f;
+        GameObject motes = Instantiate(_motesPrefab, center, Quaternion.identity);
+        float scale = Mathf.Clamp(Mathf.Max(bounds.size.x / MoteAreaWidth, bounds.size.y / MoteAreaHeight), 0.6f, 2.5f);
+        float flip = Random.value < 0.5f ? -1f : 1f;
+        motes.transform.localScale = new Vector3(scale * flip, scale, 1f);
+
+        // 색(투명도 제외)과 그리는 순서만 코드로 정한다. 투명도는 클립이 움직인다.
+        foreach (SpriteRenderer renderer in motes.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            renderer.sortingLayerID = sortingLayer;
+            renderer.sortingOrder = sortingOrder + 1;
+            renderer.color = new Color(_tint.r, _tint.g, _tint.b, 0f);
+        }
     }
 
     private static float EaseOut(float t)
