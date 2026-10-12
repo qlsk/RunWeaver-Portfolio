@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UI;
 
 /// <summary>
 /// 보스 처치 연출. 연출이 끝나면 넘겨받은 콜백으로 결과창(EndingUI)을 연다. MissionResultPresenter가 부른다.
@@ -16,6 +15,10 @@ using UnityEngine.UI;
 ///    장면 조명이 밝게 돌아오고 빛 입자가 떠오르며 문구가 나온다.
 /// 4. 화면이 하얗게 닫히고 결과창이 열린다. 결과창이 열리면 하얀 화면을 걷는다.
 ///
+/// 화면 연출(비네트, 섬광, 문구, 하얀 화면)은 애니메이션 클립(RunClearUI 컨트롤러의 Boss / NoBoss)이 맡는다.
+/// 결정의 빛·주변 불꽃·겉돌 조각(ClearCoreFx), 흩어지는 빛 입자(ClearBurstMotes), 떠오르는 빛(ClearAmbientMotes)은
+/// 프리팹(08_VFX/Clear)과 클립으로 만들어 두고 위치·크기만 맞춰 띄운다. 클립은 히트스톱 0.22초 기준으로 맞춰져 있다.
+/// 코드에는 보스 복제와 셰이더 값, 카메라, 장면 조명, 게임 시간 조절만 남아 있다.
 /// 보스 프리팹을 고치지 않는다. 처치된 보스(StageManager.BossHealth)의 스프라이트를 그 자리에서 복제해 연출에 쓰고,
 /// 원래 보스는 숨긴다. (보스는 처치된 프레임에 사라진다) 보스를 찾지 못하면 플레이어 위치에서 정화만 보여준다.
 /// 연출 동안 플레이어 조작 컴포넌트를 끄고, 일시정지와 상관없이 실제 시간으로 진행한다.
@@ -26,8 +29,13 @@ public class RunClearSequence : MonoBehaviour
     private const float BreakDuration = 1.5f;
     private const float AftermathDuration = 2.7f;
     private const float WhiteDuration = 0.6f;
-    private const int ChipsPerBeat = 14;
-    private const int BurstMoteCount = 80;
+    // 떠오르는 빛(ClearAmbientMotes)이 기준으로 삼는 카메라 크기 (orthographicSize)
+    private const float AmbientReferenceSize = 5f;
+
+    private static readonly int s_hiddenHash = Animator.StringToHash("Hidden");
+    private static readonly int s_bossHash = Animator.StringToHash("Boss");
+    private static readonly int s_noBossHash = Animator.StringToHash("NoBoss");
+    private static readonly int s_fadeOutHash = Animator.StringToHash("FadeOut");
 
     private static readonly float[] BeatTimes = { 0.2f, 0.75f, 1.12f };
     private static readonly float[] BeatStrengths = { 0.5f, 0.75f, 1f };
@@ -47,16 +55,18 @@ public class RunClearSequence : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float _coreHeight = 0.55f;
 
     [Header("화면")]
-    [SerializeField] private Image _vignette;
-    [SerializeField] private Image _flash;
-    [SerializeField] private Image _fade;
-    [SerializeField] private CanvasGroup _caption;
+    [Tooltip("화면 연출 애니메이터 (Hidden / Boss / NoBoss / FadeOut)")]
+    [SerializeField] private Animator _animator;
     [SerializeField] private TMP_Text _captionTitle;
     [SerializeField] private TMP_Text _captionSubtitle;
 
-    [Header("월드 스프라이트")]
-    [SerializeField] private Sprite _moteSprite;
-    [SerializeField] private Sprite _chipSprite;
+    [Header("월드 연출 프리팹")]
+    [Tooltip("보스 가슴의 결정 빛, 주변 불꽃, 박동마다 떨어지는 조각 (보스 키에 맞춰 커진다)")]
+    [SerializeField] private GameObject _coreFxPrefab;
+    [Tooltip("정화되는 순간 보스 몸에서 흩어지는 빛 입자")]
+    [SerializeField] private GameObject _burstMotesPrefab;
+    [Tooltip("정화 뒤 화면 아래쪽에서 떠오르는 빛")]
+    [SerializeField] private GameObject _ambientMotesPrefab;
 
     [Header("문구")]
     [SerializeField] private string _title = "오염의 근원 정화";
@@ -64,14 +74,13 @@ public class RunClearSequence : MonoBehaviour
 
     [Header("색")]
     [SerializeField] private Color _lightColor = new(0.85f, 0.93f, 1f, 1f);
-    [SerializeField] private Color _chipColor = new(0.45f, 0.38f, 0.55f, 1f);
     [Tooltip("고동치는 동안 장면 조명")]
     [SerializeField] private Color _corruptedSceneLight = new(0.62f, 0.5f, 0.78f, 1f);
     [Tooltip("정화 직후 잠깐 밝아지는 장면 조명")]
     [SerializeField] private Color _purifiedSceneLight = new(1f, 0.97f, 0.9f, 1f);
 
     [Header("히트스톱")]
-    [Tooltip("마지막 공격에 맞는 순간 게임이 멈추는 시간 (실제 시간)")]
+    [Tooltip("마지막 공격에 맞는 순간 게임이 멈추는 시간 (실제 시간). 바꾸면 Boss 클립과 ClearCore 클립의 시간도 맞춰야 한다.")]
     [SerializeField, Min(0f)] private float _hitStopDuration = 0.22f;
 
     [Header("끝")]
@@ -82,43 +91,55 @@ public class RunClearSequence : MonoBehaviour
     private readonly List<Color> _sceneLightColors = new();
     private readonly List<float> _sceneLightIntensities = new();
     private readonly List<Behaviour> _disabledBehaviours = new();
+    private readonly List<Animator> _worldAnimators = new();
 
     private Coroutine _routine;
     private Action _onFinished;
     private GameObject _worldRoot;
     private Transform _ghost;
     private PlayerFailureFx _ghostFx;
-    private SpriteRenderer _coreGlow;
-    private FailureMotes _motes;
-    private FailureMotes _chips;
     private FailureCameraFx _cameraFx;
     private Rigidbody2D _playerBody;
-    private Material _alphaMaterial;
-    private Material _additiveMaterial;
     private Vector3 _ghostBasePosition;
     private Vector2 _core;
     private Vector3 _feet;
     private float _height = 2f;
     private bool _hasBoss;
     private bool _hasBurst;
-    private int _beatsDone;
     private float _burstTime;
     private float _whiteTime;
-    private float _lastTime;
-    private float _sparkCarry;
-    private float _ambientCarry;
     private Color _baseTint = Color.white;
+    private int _sortingLayer;
+    private int _overOrder;
 
     public bool IsPlaying => _routine != null;
 
     private void Awake()
     {
+        if (_animator == null)
+        {
+            _animator = GetComponent<Animator>();
+        }
+
         HideScreen();
     }
 
-    private void OnDestroy()
+    private void Update()
     {
-        DestroyMaterials();
+        // 일시정지 메뉴가 열려 있는 동안에는 화면·월드 연출도 멈춘다.
+        float speed = PauseController.IsGamePaused ? 0f : 1f;
+        if (_animator != null)
+        {
+            _animator.speed = speed;
+        }
+
+        foreach (Animator animator in _worldAnimators)
+        {
+            if (animator != null)
+            {
+                animator.speed = speed;
+            }
+        }
     }
 
     /// <summary>보스 처치 연출을 재생하고, 화면이 하얗게 닫히면 onFinished를 부른다.</summary>
@@ -154,7 +175,6 @@ public class RunClearSequence : MonoBehaviour
 
         float duration = _whiteTime + WhiteDuration;
         float time = 0f;
-        _lastTime = 0f;
         while (time < duration)
         {
             Evaluate(time);
@@ -173,17 +193,15 @@ public class RunClearSequence : MonoBehaviour
         callback?.Invoke();
 
         // 결과창이 열리면 하얀 화면을 걷는다.
-        SetGroupAlpha(_caption, 0f);
+        PlayScreen(s_fadeOutHash);
         float elapsed = 0f;
         while (elapsed < _fadeOutAfterEnding)
         {
             elapsed += Time.unscaledDeltaTime;
-            SetAlpha(_fade, 1f - elapsed / _fadeOutAfterEnding);
             SetTimeScale(0f);
             yield return null;
         }
 
-        SetAlpha(_fade, 0f);
         _routine = null;
     }
 
@@ -205,8 +223,6 @@ public class RunClearSequence : MonoBehaviour
         DisablePlayerControl();
         CollectSceneLights();
 
-        _alphaMaterial = FailureSpriteMaterial.Create(_shader, false, "ClearFx Alpha (Instance)");
-        _additiveMaterial = FailureSpriteMaterial.Create(_shader, true, "ClearFx Additive (Instance)");
         _worldRoot = new GameObject("RunClearFx");
 
         EnemyHealth boss = _stageManager != null ? _stageManager.BossHealth : null;
@@ -224,17 +240,15 @@ public class RunClearSequence : MonoBehaviour
             overOrder = _ghostFx.SortingOrder + 10;
             _ghostFx.SetTint(_baseTint);
 
-            if (_moteSprite != null && _additiveMaterial != null)
+            if (_coreFxPrefab != null)
             {
-                GameObject glow = new("CoreGlow");
-                glow.transform.SetParent(_worldRoot.transform, false);
-                glow.transform.position = new Vector3(_core.x, _core.y, 0f);
-                _coreGlow = glow.AddComponent<SpriteRenderer>();
-                _coreGlow.sprite = _moteSprite;
-                _coreGlow.sharedMaterial = _additiveMaterial;
-                _coreGlow.sortingLayerID = sortingLayer;
-                _coreGlow.sortingOrder = overOrder - 1;
-                _coreGlow.color = new Color(1f, 1f, 1f, 0f);
+                GameObject coreFx = SpawnWorld(_coreFxPrefab, new Vector3(_core.x, _core.y, 0f), new Vector3(_height, _height, 1f));
+                SetSorting(coreFx.transform, sortingLayer, overOrder);
+                Transform glow = coreFx.transform.Find("CoreGlow");
+                if (glow != null)
+                {
+                    SetSorting(glow, sortingLayer, overOrder - 1);
+                }
             }
         }
         else
@@ -244,8 +258,8 @@ public class RunClearSequence : MonoBehaviour
             _core = _feet;
         }
 
-        _motes = CreateMotes("LightMotes", _moteSprite, sortingLayer, overOrder);
-        _chips = CreateMotes("Chips", _chipSprite, sortingLayer, overOrder);
+        _sortingLayer = sortingLayer;
+        _overOrder = overOrder;
 
         Camera camera = Camera.main;
         if (camera != null)
@@ -261,9 +275,6 @@ public class RunClearSequence : MonoBehaviour
         _burstTime = _hasBoss ? hitStop + BreakDuration : 0.15f;
         _whiteTime = _burstTime + AftermathDuration;
         _hasBurst = false;
-        _beatsDone = 0;
-        _sparkCarry = 0f;
-        _ambientCarry = 0f;
 
         ShowScreen();
     }
@@ -328,13 +339,22 @@ public class RunClearSequence : MonoBehaviour
         return true;
     }
 
-    private FailureMotes CreateMotes(string name, Sprite sprite, int sortingLayer, int sortingOrder)
+    /// <summary>연출 프리팹을 월드 루트 아래에 만든다. (정리할 때 한꺼번에 없어진다)</summary>
+    private GameObject SpawnWorld(GameObject prefab, Vector3 position, Vector3 scale)
     {
-        GameObject go = new(name);
-        go.transform.SetParent(_worldRoot.transform, false);
-        FailureMotes motes = go.AddComponent<FailureMotes>();
-        motes.Setup(sprite, _alphaMaterial, _additiveMaterial, sortingLayer, sortingOrder);
-        return motes;
+        GameObject instance = Instantiate(prefab, position, Quaternion.identity, _worldRoot.transform);
+        instance.transform.localScale = scale;
+        _worldAnimators.AddRange(instance.GetComponentsInChildren<Animator>(true));
+        return instance;
+    }
+
+    private static void SetSorting(Transform root, int sortingLayerId, int sortingOrder)
+    {
+        foreach (SpriteRenderer renderer in root.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            renderer.sortingLayerID = sortingLayerId;
+            renderer.sortingOrder = sortingOrder;
+        }
     }
 
     private void DisablePlayerControl()
@@ -421,43 +441,14 @@ public class RunClearSequence : MonoBehaviour
         }
 
         _ghost = null;
-        _coreGlow = null;
-        _motes = null;
-        _chips = null;
-        DestroyMaterials();
-    }
-
-    private void DestroyMaterials()
-    {
-        if (_alphaMaterial != null)
-        {
-            Destroy(_alphaMaterial);
-            _alphaMaterial = null;
-        }
-
-        if (_additiveMaterial != null)
-        {
-            Destroy(_additiveMaterial);
-            _additiveMaterial = null;
-        }
+        _worldAnimators.Clear();
     }
 
     // ───────────────────────── 화면 ─────────────────────────
 
     private void ShowScreen()
     {
-        SetActive(_vignette, true);
-        SetActive(_flash, true);
-        SetActive(_fade, true);
-        SetAlpha(_vignette, 0f);
-        SetAlpha(_flash, 0f);
-        SetAlpha(_fade, 0f);
-
-        if (_caption != null)
-        {
-            _caption.gameObject.SetActive(true);
-            _caption.alpha = 0f;
-        }
+        PlayScreen(_hasBoss ? s_bossHash : s_noBossHash);
 
         if (_captionTitle != null)
         {
@@ -472,23 +463,24 @@ public class RunClearSequence : MonoBehaviour
 
     private void HideScreen()
     {
-        SetActive(_vignette, false);
-        SetActive(_flash, false);
-        SetActive(_fade, false);
+        PlayScreen(s_hiddenHash);
+    }
 
-        if (_caption != null)
+    private void PlayScreen(int stateHash)
+    {
+        if (_animator == null)
         {
-            _caption.gameObject.SetActive(false);
+            return;
         }
+
+        _animator.Play(stateHash, 0, 0f);
+        _animator.Update(0f);
     }
 
     // ───────────────────────── 진행 ─────────────────────────
 
     private void Evaluate(float time)
     {
-        float deltaTime = Mathf.Max(0f, time - _lastTime);
-        _lastTime = time;
-
         float hitStop = _hasBoss ? _hitStopDuration : 0f;
         bool isFrozen = time < hitStop;
         float breakTime = time - hitStop;
@@ -517,7 +509,7 @@ public class RunClearSequence : MonoBehaviour
 
         if (time < _burstTime)
         {
-            EvaluateBreak(time, deltaTime, isFrozen, breakTime);
+            EvaluateBreak(time, isFrozen, breakTime);
         }
         else
         {
@@ -526,23 +518,18 @@ public class RunClearSequence : MonoBehaviour
                 Burst();
             }
 
-            EvaluateAftermath(afterBurst, deltaTime);
+            EvaluateAftermath(afterBurst);
         }
-
-        SetAlpha(_fade, white);
-        SetGroupAlpha(_caption, Segment(time, _burstTime + 0.9f, 0.6f) * (1f - Segment(time, _whiteTime - 0.3f, 0.5f)));
     }
 
     /// <summary>히트스톱과 고동 (정화 전)</summary>
-    private void EvaluateBreak(float time, float deltaTime, bool isFrozen, float breakTime)
+    private void EvaluateBreak(float time, bool isFrozen, float breakTime)
     {
         float progress = breakTime > 0f ? EaseOut(breakTime / BreakDuration) : 0f;
         float beat = GetBeat(breakTime);
         float corruption = Segment(breakTime, 0f, BreakDuration);
 
         SetSceneLight(corruption, 0f);
-        SetColor(_vignette, Color.black, 0.35f * corruption);
-        SetAlpha(_flash, isFrozen ? 0.3f : 0f);
 
         if (_cameraFx != null)
         {
@@ -570,33 +557,6 @@ public class RunClearSequence : MonoBehaviour
             float jitter = (0.006f + 0.012f * progress) * _height * (Mathf.Sin(time * 67f) + 0.5f * Mathf.Sin(time * 113f));
             _ghost.position = _ghostBasePosition + new Vector3(jitter, 0f, 0f);
         }
-
-        if (_coreGlow != null)
-        {
-            float size = (isFrozen ? 0.7f : 0.25f + 0.45f * progress + 0.35f * beat) * _height;
-            _coreGlow.transform.localScale = Vector3.one * (size / Mathf.Max(0.0001f, _coreGlow.sprite.bounds.size.x));
-            _coreGlow.color = WithAlpha(_lightColor, isFrozen ? 1f : 0.6f + 0.4f * Mathf.Max(progress, beat));
-        }
-
-        // 박동마다 겉돌 조각이 떨어져 나간다.
-        while (_beatsDone < BeatTimes.Length && breakTime >= BeatTimes[_beatsDone])
-        {
-            EmitChips(BeatStrengths[_beatsDone]);
-            _beatsDone++;
-        }
-
-        // 결정 주변의 작은 빛
-        if (!isFrozen && _motes != null)
-        {
-            _sparkCarry += 15f * deltaTime;
-            while (_sparkCarry >= 1f)
-            {
-                _sparkCarry -= 1f;
-                Vector2 offset = new(UnityEngine.Random.Range(-0.25f, 0.25f) * _height, UnityEngine.Random.Range(-0.3f, 0.3f) * _height);
-                _motes.Emit(_core + offset, new Vector2(UnityEngine.Random.Range(-0.2f, 0.2f), UnityEngine.Random.Range(0.1f, 0.4f)) * _height,
-                    _lightColor, 0.02f * _height, UnityEngine.Random.Range(0.4f, 0.8f), 0f, true);
-            }
-        }
     }
 
     /// <summary>정화 : 보스가 흩어지고 정화 파동이 퍼진다.</summary>
@@ -609,22 +569,22 @@ public class RunClearSequence : MonoBehaviour
             _ghost.gameObject.SetActive(false);
         }
 
-        if (_coreGlow != null)
-        {
-            _coreGlow.gameObject.SetActive(false);
-        }
-
-        if (_hasBoss && _motes != null)
+        if (_hasBoss && _burstMotesPrefab != null)
         {
             Bounds bounds = _ghostFx.Bounds;
-            for (int i = 0; i < BurstMoteCount; i++)
-            {
-                Vector2 position = new(
-                    UnityEngine.Random.Range(bounds.min.x, bounds.max.x) * 0.8f + bounds.center.x * 0.2f,
-                    UnityEngine.Random.Range(bounds.min.y, bounds.max.y));
-                Vector2 velocity = new(UnityEngine.Random.Range(-0.35f, 0.35f) * _height, UnityEngine.Random.Range(0.12f, 0.5f) * _height);
-                _motes.Emit(position, velocity, _lightColor, UnityEngine.Random.Range(0.015f, 0.035f) * _height, UnityEngine.Random.Range(1f, 2.2f), 0.05f * _height, true);
-            }
+            GameObject burst = SpawnWorld(_burstMotesPrefab, new Vector3(bounds.center.x, bounds.min.y, 0f),
+                new Vector3(Mathf.Max(0.1f, bounds.size.x), _height, 1f));
+            SetSorting(burst.transform, _sortingLayer, _overOrder);
+        }
+
+        // 화면 아래쪽에서 빛이 떠오른다. (카메라 크기에 맞춘다)
+        Camera camera = Camera.main;
+        if (_ambientMotesPrefab != null && camera != null && camera.orthographic)
+        {
+            Vector3 center = camera.transform.position;
+            float scale = camera.orthographicSize / AmbientReferenceSize;
+            GameObject ambient = SpawnWorld(_ambientMotesPrefab, new Vector3(center.x, center.y, 0f), new Vector3(scale, scale, 1f));
+            SetSorting(ambient.transform, _sortingLayer, _overOrder);
         }
 
         if (_wavePrefab != null)
@@ -636,61 +596,16 @@ public class RunClearSequence : MonoBehaviour
     }
 
     /// <summary>정화 뒤 : 섬광이 걷히고 장면이 밝게 돌아오며 빛이 떠오른다.</summary>
-    private void EvaluateAftermath(float afterBurst, float deltaTime)
+    private void EvaluateAftermath(float afterBurst)
     {
         float corruption = 1f - Segment(afterBurst, 0f, 0.3f);
         float purified = Segment(afterBurst, 0f, 0.3f) * (1f - Segment(afterBurst, 0.3f, 2f));
         SetSceneLight(_hasBoss ? corruption : 0f, purified);
-        SetAlpha(_flash, 1f - EaseOut(afterBurst / 0.6f));
-        SetColor(_vignette, Color.black, 0.35f * (1f - Segment(afterBurst, 0f, 1f)) * (_hasBoss ? 1f : 0f));
 
         if (_cameraFx != null)
         {
             _cameraFx.Zoom = 1f - 0.07f * (1f - EaseOut(afterBurst / 0.8f)) * (_hasBoss ? 1f : 0f);
             _cameraFx.Shake = 0.25f * Mathf.Exp(-afterBurst * 5f);
-        }
-
-        EmitAmbientMotes(deltaTime);
-    }
-
-    private void EmitChips(float strength)
-    {
-        if (_chips == null)
-        {
-            return;
-        }
-
-        int count = Mathf.RoundToInt(ChipsPerBeat * strength);
-        for (int i = 0; i < count; i++)
-        {
-            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-            Vector2 position = _core + new Vector2(Mathf.Cos(angle) * UnityEngine.Random.Range(0.2f, 0.4f), Mathf.Sin(angle) * UnityEngine.Random.Range(0.1f, 0.4f)) * _height;
-            Vector2 velocity = new(UnityEngine.Random.Range(-0.35f, 0.35f) * _height, UnityEngine.Random.Range(0.12f, 0.4f) * _height);
-            Color color = Color.Lerp(_chipColor, Color.white, UnityEngine.Random.Range(0f, 0.25f));
-            _chips.Emit(position, velocity, color, UnityEngine.Random.Range(0.025f, 0.045f) * _height, UnityEngine.Random.Range(0.6f, 1f), -1.3f * _height, false);
-        }
-    }
-
-    /// <summary>화면 아래쪽에서 빛 입자가 천천히 떠오른다.</summary>
-    private void EmitAmbientMotes(float deltaTime)
-    {
-        Camera camera = Camera.main;
-        if (_motes == null || camera == null || !camera.orthographic)
-        {
-            return;
-        }
-
-        float halfHeight = camera.orthographicSize;
-        float halfWidth = halfHeight * camera.aspect;
-        Vector2 center = camera.transform.position;
-        _ambientCarry += 30f * deltaTime;
-        while (_ambientCarry >= 1f)
-        {
-            _ambientCarry -= 1f;
-            Vector2 position = center + new Vector2(UnityEngine.Random.Range(-halfWidth, halfWidth), UnityEngine.Random.Range(-halfHeight, halfHeight * 0.4f));
-            Color color = UnityEngine.Random.value < 0.6f ? _lightColor : new Color(1f, 0.92f, 0.78f, 1f);
-            _motes.Emit(position, new Vector2(UnityEngine.Random.Range(-0.1f, 0.1f), UnityEngine.Random.Range(0.3f, 0.8f)), color,
-                UnityEngine.Random.Range(0.04f, 0.07f), UnityEngine.Random.Range(1.6f, 2.8f), 0.05f, true);
         }
     }
 
@@ -767,46 +682,5 @@ public class RunClearSequence : MonoBehaviour
     private static float Smooth(float t)
     {
         return t * t * (3f - 2f * t);
-    }
-
-    private static Color WithAlpha(Color color, float alpha)
-    {
-        color.a = alpha;
-        return color;
-    }
-
-    private static void SetActive(Graphic graphic, bool isActive)
-    {
-        if (graphic != null)
-        {
-            graphic.gameObject.SetActive(isActive);
-        }
-    }
-
-    private static void SetAlpha(Graphic graphic, float alpha)
-    {
-        if (graphic != null)
-        {
-            Color color = graphic.color;
-            color.a = alpha;
-            graphic.color = color;
-        }
-    }
-
-    private static void SetColor(Graphic graphic, Color color, float alpha)
-    {
-        if (graphic != null)
-        {
-            color.a = alpha;
-            graphic.color = color;
-        }
-    }
-
-    private static void SetGroupAlpha(CanvasGroup group, float alpha)
-    {
-        if (group != null)
-        {
-            group.alpha = alpha;
-        }
     }
 }

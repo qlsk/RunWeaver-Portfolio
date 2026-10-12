@@ -47,14 +47,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReactionFxEnemyMarks
   _mode: 4
   _referenceRadius: 0.9
-  _markSprite: {fileID: 1036014188, guid: 8b077084e7b54afba7b94317272a1308, type: 3}
-  _impactSprite: {fileID: 0}
+  _markPrefab: {fileID: 6342429825535014041, guid: 113bacc56ade84f2032073bebc20195a, type: 3}
+  _emberPrefab: {fileID: 0}
   _refreshInterval: 0.1
   _liftHeight: 0.45
   _liftSpeed: 2
   _emberLaunchHeight: 0.9
-  _emberFlightTime: 0.35
-  _emberArcHeight: 0.8
 --- !u!1 &3545231401066102088
 GameObject:
   m_ObjectHideFlags: 0
@@ -65,7 +63,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5135120590623053697}
   - component: {fileID: 843983468592304081}
-  - component: {fileID: 7349072774561724873}
+  - component: {fileID: 1022356055118854635}
+  - component: {fileID: 7267743320883639002}
   - component: {fileID: 6107223293089773205}
   m_Layer: 0
   m_Name: Ground
@@ -148,38 +147,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &7349072774561724873
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3545231401066102088}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: 1532087591, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 1849763254, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 453292465, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 1015010155, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -2089652889, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 739539027, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 2124577236, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -656372062, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 1751735646, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -1068933521, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 829561262, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -1798216687, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 589575479, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: 1151856758, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -771459526, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  - {fileID: -1267476845, guid: 40bd0148f55341709b5e89d851f2e137, type: 3}
-  _framesPerSecond: 10
-  _loop: 1
-  _randomStart: 1
 --- !u!114 &6107223293089773205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,3 +161,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FxGrowIn
   _startScale: 0.25
   _duration: 0.35
+--- !u!95 &1022356055118854635
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3545231401066102088}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 11592beebfbb7a54a892280823b2d62e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7267743320883639002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3545231401066102088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549e46c563f9a4bfc7b0b1d3092d86ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorRandomStart
+  _stateName: Loop
