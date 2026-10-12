@@ -18,7 +18,10 @@ public sealed class RuneEffectConfiguration
     public bool IsSeek { get; }
     public bool IsOrbit { get; }
     public bool IsFix { get; }
-    public bool IsChain { get; }
+    public bool IsChain => ChainCount > 0;
+
+    /// <summary>Chain 장착 개수. 한 번 맞을 때 연쇄하는 적의 수와 같다. (중복 장착 1개마다 1마리씩 늘어난다)</summary>
+    public int ChainCount { get; private set; }
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
@@ -80,7 +83,7 @@ public sealed class RuneEffectConfiguration
                     IsFix = true;
                     break;
                 case RuneEffectIds.Chain:
-                    IsChain = true;
+                    ChainCount += 1;
                     break;
             }
         }
