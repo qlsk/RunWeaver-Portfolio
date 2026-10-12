@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 6312000072480831012}
   - component: {fileID: 8582171479461955155}
   - component: {fileID: 353966042020948176}
-  - component: {fileID: 1272049551829067129}
+  - component: {fileID: 5180820240436623710}
   m_Layer: 8
   m_Name: RangeEnemy
   m_TagString: Enemy
@@ -751,8 +751,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb126a1ad04bd0429033f84d6a60cb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovementController
---- !u!61 &1272049551829067129
-BoxCollider2D:
+--- !u!58 &5180820240436623710
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -785,15 +785,5 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.032541275, y: -0.28991222}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.44975853, y: 0.36101007}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0, y: -0.20487833}
+  m_Radius: 0.29512167

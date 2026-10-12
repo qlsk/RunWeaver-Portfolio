@@ -22,6 +22,7 @@ public class EnemyNavigationGrid : MonoBehaviour
     public bool IsBuilt => _walkable != null;
     public float AgentRadius => IsBuilt ? _builtRadius : _agentRadius;
     public int Version { get; private set; }
+    public ContactFilter2D ObstacleFilter => _filter;
 
     private void Start()
     {
