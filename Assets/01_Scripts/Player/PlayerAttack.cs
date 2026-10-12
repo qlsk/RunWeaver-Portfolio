@@ -8,28 +8,28 @@ using UnityEngine;
 [DefaultExecutionOrder(300)]
 public class PlayerAttack : MonoBehaviour
 {
-    [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
-    [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _shootFeedbacks;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _hitFeedbacks;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _killFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private Bullet _bulletPrefab;
+    [FoldoutGroup("References")][SerializeField] private GameObject _firePosition;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _shootFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _hitFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _killFeedbacks;
 
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _earthVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _windVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _fireVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _waterVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _earthVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _windVfx = new();
 
-    [FoldoutGroup("Bullet Settings")] [SerializeField] private float _bulletFireRate = 1f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletRange = 10f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField] private ElementType _mainElement;
+    [FoldoutGroup("Bullet Settings")][SerializeField] private float _bulletFireRate = 1f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [FoldoutGroup("Bullet Settings")][SerializeField] private ElementType _mainElement;
 
-    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _spreadAngle = 15f;
-    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _multipleInterval = 0.1f;
+    [FoldoutGroup("Firing Pattern")][SerializeField] private float _spreadAngle = 15f;
+    [FoldoutGroup("Firing Pattern")][SerializeField] private float _multipleInterval = 0.1f;
 
-    [FoldoutGroup("Magazine and Reload")] [SerializeField] private int _magazineSize = 10;
-    [FoldoutGroup("Magazine and Reload")] [SerializeField] private float _reloadTime = 2f;
+    [FoldoutGroup("Magazine and Reload")][SerializeField] private int _magazineSize = 10;
+    [FoldoutGroup("Magazine and Reload")][SerializeField] private float _reloadTime = 2f;
 
     // References
     private PlayerInputHandler _playerInputHandler;
@@ -61,6 +61,7 @@ public class PlayerAttack : MonoBehaviour
     public float FireIntervalMultiplier { get; set; } = 1f;
 
     private int _magazineBonus;
+
     /// <summary>보상 특성용: 탄창 보너스 탄수 누적.</summary>
     public void AddMagazineBonus(int bonus)
     {
@@ -220,7 +221,7 @@ public class PlayerAttack : MonoBehaviour
             return;
 
         // 주력 원소를 고르기 전(시작 석상 전)에는 쏘지 않는다. 탄도 줄지 않는다.
-        if (_runeEffectConfiguration == null || !_runeEffectConfiguration.PrimaryElement.HasValue)
+        if (_runeEffectConfiguration is not { PrimaryElement: not null })
             return;
 
         Vector2 targetPosition = _playerInputHandler.MousePosition;
@@ -229,11 +230,18 @@ public class PlayerAttack : MonoBehaviour
         if (direction == Vector2.zero)
             return;
 
-        float damage = _bulletDamage * DamageMultiplier * _runeEffectConfiguration.SpreadDamageMultiplier *
+        float damage = _bulletDamage *
+                       DamageMultiplier *
+                       _runeEffectConfiguration.SpreadDamageMultiplier *
                        _runeEffectConfiguration.MultipleDamageMultiplier *
                        _runeEffectConfiguration.PowerDamageMultiplier;
-        _attackData = new PlayerAttackData(direction, damage, _bulletSpeed * _runeEffectConfiguration.SpeedMultiplier,
-            _bulletRange * _runeEffectConfiguration.RangeMultiplier, _runeEffectConfiguration, transform);
+
+        _attackData = new PlayerAttackData(direction,
+            damage,
+            _bulletSpeed * _runeEffectConfiguration.SpeedMultiplier,
+            _bulletRange * _runeEffectConfiguration.RangeMultiplier,
+            _runeEffectConfiguration,
+            transform);
 
         _currentAmmo--;
         _bulletFireCoolTimer = 0f;
