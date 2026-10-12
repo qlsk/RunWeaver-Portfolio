@@ -5,6 +5,7 @@ using UnityEngine;
 /// 전투 중 새 룬북(RuneBookV2)을 열고 닫는다.
 /// 열기: PlayerInputHandler의 OpenRuneBookPressed (기본 Tab)
 /// 닫기: 열린 동안 닫기 키(Tab, Esc) 입력. Confirm하지 않고 닫으면 바꾼 내용은 버린다. (RuneBookV2Presenter)
+/// 확정 확인 창(RuneBookConfirmDialog)이 열려 있는 동안에는 닫지 않는다.
 /// 룬북이 열려 있는 동안은 RuneBookPauseController로 게임을 멈춘다.
 /// 닫을 때는 RuneBookV2Fx의 닫기 연출(아래로 가라앉으며 사라짐)이 끝난 뒤 끄고 게임을 다시 움직인다.
 /// 일시정지 메뉴가 열려 있거나 막는 화면(결과 화면 등)이 켜져 있으면 열지 않는다.
@@ -61,6 +62,12 @@ public class RuneBookV2Toggle : MonoBehaviour
     private void Update()
     {
         if (!IsOpen || IsClosing || _lastToggleFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        // 확정 확인 창이 열려 있거나 방금 닫힌 프레임에는 Esc를 확인 창이 쓴다.
+        if (RuneBookConfirmDialog.IsOpen || RuneBookConfirmDialog.ClosedFrame == Time.frameCount)
         {
             return;
         }
