@@ -192,15 +192,15 @@ public class MainElementSelectView : MonoBehaviour
 
         if (!_isButtonFocused)
         {
-            if (Input.GetKeyDown(KeyCode.RightArrow))
+            if (IsRightPressed())
             {
                 Select(_selectedIndex + 1);
             }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            else if (IsLeftPressed())
             {
                 Select(_selectedIndex - 1);
             }
-            else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(_submitKey))
+            else if (IsDownPressed() || Input.GetKeyDown(_submitKey))
             {
                 FocusButtons(true);
             }
@@ -208,13 +208,13 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
+        if (IsLeftPressed() || IsRightPressed())
         {
             _isConfirmFocused = !_isConfirmFocused;
             _isMouseFocused = false;
             Refresh();
         }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (IsUpPressed())
         {
             _isButtonFocused = false;
             _isMouseFocused = false;
@@ -232,6 +232,12 @@ public class MainElementSelectView : MonoBehaviour
             }
         }
     }
+
+    // 방향 입력 : 화살표 키와 WASD를 같이 받는다.
+    private static bool IsLeftPressed() => Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A);
+    private static bool IsRightPressed() => Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D);
+    private static bool IsUpPressed() => Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W);
+    private static bool IsDownPressed() => Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
 
     private void HandleConfirmHovered() => HandleButtonHovered(_confirmButton);
     private void HandleCancelHovered() => HandleButtonHovered(_cancelButton);
