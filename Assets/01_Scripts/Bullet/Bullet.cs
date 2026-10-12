@@ -34,6 +34,9 @@ public class Bullet : MonoBehaviour
 
     [SerializeField] private LayerMask _chainEnemyLayers = ~0;
 
+    [Tooltip("연쇄가 한 번 튈 때마다 늦게 적용하는 시간 (초, 게임 시간)")]
+    [SerializeField, Min(0f)] private float _chainDelay = 0.1f;
+
     [Tooltip("연쇄 대상을 잇는 연출 (ChainLinkFx 프리팹). 비워두면 연출 없이 연쇄만 한다.")]
     [SerializeField] private ChainLinkFx _chainLinkFxPrefab;
 
@@ -71,7 +74,7 @@ public class Bullet : MonoBehaviour
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
-            _chainRadius, _chainEnemyLayers, PlayHitEffect, PlayChainLink);
+            _chainRadius, _chainEnemyLayers, PlayHitEffect, PlayChainLink, _chainDelay);
         _movement.UpdateRotation();
         InitializeVisuals(visualEffects);
     }
