@@ -230,7 +230,8 @@ public class PlayerAttack : MonoBehaviour
             return;
 
         float damage = _bulletDamage * DamageMultiplier * _runeEffectConfiguration.SpreadDamageMultiplier *
-                       _runeEffectConfiguration.MultipleDamageMultiplier;
+                       _runeEffectConfiguration.MultipleDamageMultiplier *
+                       _runeEffectConfiguration.PowerDamageMultiplier;
         _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration,
             transform);
 
