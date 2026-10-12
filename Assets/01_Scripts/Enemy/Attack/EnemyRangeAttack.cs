@@ -3,6 +3,8 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyTargetDetector))]
 public class EnemyRangeAttack : MonoBehaviour
 {
+    public event System.Action ProjectileFired;
+
     [SerializeField] private EnemyBullet _bulletPrefab;
     [SerializeField] private Transform _firePoint;
     [SerializeField, Min(0f)] private float _attackRange = 7f;
@@ -45,5 +47,6 @@ public class EnemyRangeAttack : MonoBehaviour
         EnemyBullet bullet = Instantiate(_bulletPrefab, firePosition, Quaternion.identity);
         bullet.Initialize(direction);
         _nextAttackTime = Time.time + _attackCooldown;
+        ProjectileFired?.Invoke();
     }
 }

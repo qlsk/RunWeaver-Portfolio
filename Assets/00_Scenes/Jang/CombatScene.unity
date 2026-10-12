@@ -171,10 +171,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: JangEnemy
       objectReference: {fileID: 0}
-    - target: {fileID: 8121630921212012013, guid: ffd3330763acdd84b982897a27572a4a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1671,6 +1667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!114 &1313729120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1842,6 +1839,7 @@ MonoBehaviour:
   _grid: {fileID: 0}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 0
 --- !u!1 &1320659390
 GameObject:
   m_ObjectHideFlags: 0
@@ -2872,10 +2870,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: RangeEnemy
       objectReference: {fileID: 0}
-    - target: {fileID: 7997101506716382822, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2892,10 +2886,6 @@ PrefabInstance:
     - target: {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_Name
       value: QuadrupedEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3110212136527878748, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_LocalPosition.x

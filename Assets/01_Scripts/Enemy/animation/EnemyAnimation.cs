@@ -19,6 +19,7 @@ public class EnemyAnimation : MonoBehaviour
     private EnemyShockwaveAttack _shockwave;
     private EnemyDashAttack _dash;
     private EnemyRockfallAttack _rock;
+    private EnemyRangeAttack _range;
     private EnemyTargetDetector _target;
     private BossPatternController _boss;
     private EnemyHealth _health;
@@ -35,6 +36,8 @@ public class EnemyAnimation : MonoBehaviour
         _shockwave = GetComponent<EnemyShockwaveAttack>();
         _dash = GetComponent<EnemyDashAttack>();
         _rock = GetComponent<EnemyRockfallAttack>();
+        _range = GetComponent<EnemyRangeAttack>();
+        if (_range != null) _range.ProjectileFired += OnProjectileFired;
         _target = GetComponent<EnemyTargetDetector>();
         _boss = GetComponent<BossPatternController>();
         _health = GetComponent<EnemyHealth>();
@@ -68,6 +71,13 @@ public class EnemyAnimation : MonoBehaviour
             _sprite.flipX = _reverse
                 ? transform.position.x < _target.Target.position.x
                 : transform.position.x > _target.Target.position.x;
+    }
+
+    private void OnProjectileFired()
+    {
+        if (!isActiveAndEnabled || _animator == null) return;
+        int hash = Animator.StringToHash("Base Layer.RangeEnemyAttack");
+        if (_animator.HasState(0, hash)) _animator.Play(hash, 0, 0f);
     }
 
     private void UpdateTankAnimation()
@@ -168,6 +178,7 @@ public class EnemyAnimation : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (_range != null) _range.ProjectileFired -= OnProjectileFired;
         if (_rock != null) _rock.RockErupted -= OnRockErupted;
     }
 }
