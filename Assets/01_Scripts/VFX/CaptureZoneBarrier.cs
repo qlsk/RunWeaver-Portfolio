@@ -5,7 +5,8 @@ using UnityEngine;
 /// 플레이어가 링 안에 있으면 링 둘레에서 금빛 결계가 바닥에서부터 천천히 솟아 감싸고,
 /// 밖에 있으면 결계가 가라앉고 링이 어둡고 차가워진다.
 /// - 결계 그림은 처음에 코드로 만든다. (링 타원을 따라 세운 빛의 벽, 12프레임으로 빛줄기가 흐른다)
-///   위로 갈수록 5단계로 끊어지며 흐려지고, 바닥에는 밝은 테두리 선이 있다.
+///   링 돌의 바깥 가장자리에서 솟고, 바닥 쪽은 옅게 시작해 금빛 칸이 빛에 묻히지 않는다.
+///   위로 갈수록 5단계로 끊어지며 흐려지고, 바닥에는 가는 테두리 선이 있다.
 ///   결계 전용 머티리얼(MAT_BarrierWall)로 배경 위에 빛을 더하고, 높이(_Reveal)만큼만 그려 솟아오르게 한다.
 /// - 링 뒤쪽 절반과 앞쪽 절반을 따로 그려, 플레이어가 결계 안에 서 있는 것처럼 앞뒤가 맞는다. (YSort와 같은 기준)
 /// - 결계를 따라 빛 알갱이가 위로 솟는다.
@@ -21,8 +22,10 @@ public class CaptureZoneBarrier : MonoBehaviour
     [SerializeField] private Material _wallMaterial;
 
     [Header("모양 (로컬)")]
-    [Tooltip("결계가 서는 타원의 반지름. 금빛 칸이 지나는 자리")]
-    [SerializeField] private Vector2 _radius = new(0.86f, 0.523f);
+    [Tooltip("결계가 서는 타원의 반지름. 링 돌의 바깥 가장자리라 금빛 칸을 가리지 않는다")]
+    [SerializeField] private Vector2 _radius = new(0.965f, 0.587f);
+    [Tooltip("바닥에서 이 비율 높이까지는 빛이 옅게 시작한다. (바닥의 금빛 칸이 빛에 묻히지 않게)")]
+    [SerializeField, Range(0f, 1f)] private float _baseFade = 0.3f;
     [Tooltip("결계 높이 (로컬)")]
     [SerializeField] private float _height = 0.5f;
     [Tooltip("그림 픽셀 한 칸 (로컬). 링 그림과 같은 크기")]
@@ -31,7 +34,7 @@ public class CaptureZoneBarrier : MonoBehaviour
     [Header("빛")]
     [SerializeField] private Color _wallColor = new(1f, 0.82f, 0.42f, 1f);
     [SerializeField] private Color _rimColor = new(1f, 0.96f, 0.78f, 1f);
-    [SerializeField, Range(0f, 1f)] private float _frontAlpha = 1f;
+    [SerializeField, Range(0f, 1f)] private float _frontAlpha = 0.75f;
     [SerializeField, Range(0f, 1f)] private float _backAlpha = 0.7f;
     [SerializeField] private float _framesPerSecond = 12f;
     [Tooltip("결계가 바닥에서 다 솟아오르는 데 걸리는 시간")]
@@ -45,6 +48,8 @@ public class CaptureZoneBarrier : MonoBehaviour
     [Header("빛 알갱이")]
     [SerializeField] private float _moteRate = 28f;
     [SerializeField] private float _moteSize = 0.022f;
+    [Tooltip("빛 알갱이가 솟는 타원의 반지름. 금빛 칸이 지나는 자리 (결계 위치와 따로 둔다)")]
+    [SerializeField] private Vector2 _moteRadius = new(0.86f, 0.523f);
 
     private static readonly int RevealId = Shader.PropertyToID("_Reveal");
     private static readonly int WallColorId = Shader.PropertyToID("_WallColor");
@@ -144,15 +149,15 @@ public class CaptureZoneBarrier : MonoBehaviour
                 {
                     float q = j / (float)Mathf.Max(1, columnHeight);
                     float band = Mathf.Floor((1f - q) * Bands) / Bands;
-                    float a = Mathf.Clamp01(band * (0.55f + 0.45f * side) * streak);
+                    // 바닥 쪽은 옅게 시작해 위로 가며 짙어진다. (닿는 곳이 너무 밝아 금빛 칸이 안 보이지 않게)
+                    float fade = _baseFade > 0f ? Mathf.SmoothStep(0f, 1f, q / _baseFade) : 1f;
+                    float a = Mathf.Clamp01(band * fade * (0.55f + 0.45f * side) * streak);
                     // 높이는 기둥마다가 아니라 벽 전체 높이 기준이라, 솟는 끝이 고르게 올라간다.
                     Put(pixels, width, height, x, baseY + j, a, j / (float)wallPixels, false);
                 }
 
-                // 바닥의 선명한 테두리 선 (높이 0이라 솟기 시작하자마자 보인다)
-                Put(pixels, width, height, x, baseY, 1f, 0f, true);
-                Put(pixels, width, height, x, baseY + 1, 1f, 0f, true);
-                Put(pixels, width, height, x, baseY + 2, 0.6f, 0f, true);
+                // 바닥의 가는 테두리 선 (높이 0이라 솟기 시작하자마자 보인다)
+                Put(pixels, width, height, x, baseY, 0.5f, 0f, true);
             }
 
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
@@ -276,7 +281,7 @@ public class CaptureZoneBarrier : MonoBehaviour
         {
             _moteTimer -= 1f;
             float angle = Random.Range(0f, Mathf.PI * 2f);
-            Vector2 local = new(Mathf.Cos(angle) * _radius.x, Mathf.Sin(angle) * _radius.y);
+            Vector2 local = new(Mathf.Cos(angle) * _moteRadius.x, Mathf.Sin(angle) * _moteRadius.y);
             Vector3 origin = transform.TransformPoint(local);
             float life = Random.Range(0.8f, 1.2f);
             PixelParticles target = Mathf.Sin(angle) < 0f ? _frontMotes : _backMotes;
