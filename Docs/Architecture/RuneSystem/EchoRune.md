@@ -48,13 +48,13 @@
 |---|---|---|---|---|
 | `Rune/RuneEffect/RuneEffectIds.cs` | 수정 | 룬 효과 ID 상수 | `Echo = "rune_echo"` 추가 | 장착 ID 식별 |
 | `Rune/RuneEffect/RuneEffectConfiguration.cs` | 수정 | 장착 효과 집계 | `EchoDelaySeconds`(상수 1f, 제안), `EchoCount`(제안), 생성자 `switch`에 `Echo` 분기 | 반복 개수·지연의 단일 원천 |
-| `Bullet/BulletHitEffects.cs` | 수정 | 원소 효과 적용, 반복 예약·진행 | 예약 목록(제안), `HasPendingEcho`(제안), `TickEcho(deltaTime)`(제안), 효과 적용부를 "적용"과 "예약"으로 분리 | 모든 원소 효과(직접 적중·Chain)가 지나가는 한 지점 |
-| `Bullet/Bullet.cs` | 수정 | 탄환 수명 | `Update`에서 `TickEcho` 호출, `DestroyBullet`에서 예약이 남았으면 지연 파괴(제안) | D4 |
+| `Bullet/BulletHitEffects.cs` | 수정 | 원소 효과 적용, 반복 예약·진행 | 예약 목록 `List<EchoReservation>`(제안, `EchoReservation`은 BulletHitEffects 내부 private 구조체 제안), `HasPendingEcho`(제안), `TickEcho(deltaTime)`(제안), 효과 적용부를 `ApplyElementEffectCore`(제안)와 `ReserveEcho`(제안)로 분리 | 모든 원소 효과(직접 적중·Chain)가 지나가는 한 지점 |
+| `Bullet/Bullet.cs` | 수정 | 탄환 수명 | `_isLingering`(제안), `Update`에서 `TickEcho` 호출, `DestroyBullet`에서 예약이 남았으면 지연 파괴(제안) | D4 |
 | `ReactionContext`, 반응 실행기 10종, `EnemyStatusEffectController`, `BulletMovement`, `PlayerAttack`, `PlayerAttackData` | 변경 없음 | — | — | 기존 호출 경로를 그대로 재사용 |
 
 ## 4. 클래스 다이어그램
 
-색: 회색 = 변경 없음, 주황 = 반복 추가로 수정. 신규 멤버는 `제안`으로 표기한다.
+색: 회색 = 변경 없음, 주황 = 반복 추가로 수정. 필드·프로퍼티는 실제 C# 선언 형태로 쓰고, 신규 멤버는 줄 끝 `// 제안` 주석으로 구분한다. 메서드는 Mermaid 표기(`이름(인자) : 반환형`)로 표시된다. `{ }`는 Mermaid 제약으로 `#123;`, `#125;` 코드로 입력한다.
 
 ```mermaid
 classDiagram
@@ -62,38 +62,41 @@ classDiagram
 
     class RuneEffectIds {
         <<static>>
-        +Speed string
-        +Echo string 제안
+        public const string Speed = "rune_speed"
+        public const string Echo = "rune_echo" // 제안
     }
     class RuneEffectConfiguration {
-        +EchoDelaySeconds float 제안
-        +EchoCount int 제안
+        public const float EchoDelaySeconds = 1f // 제안
+        public int EchoCount #123; get; private set; #125; // 제안
     }
     class Bullet {
-        -_hitEffects BulletHitEffects
-        -Update()
-        -DestroyBullet(reason)
-        -ExecuteReaction(primary, secondary, context)
+        private BulletHitEffects _hitEffects
+        private PlayerAttackData _attackData
+        private bool _isLingering // 제안
+        private Update() void
+        private DestroyBullet(BulletEndReason? reason = null) void
+        private ExecuteReaction(ReactionElement primary, ReactionElement secondary, ReactionContext context) void
     }
     class BulletHitEffects {
-        -_echoReservations List 제안
-        +HasPendingEcho bool 제안
-        +ApplyElementEffect(enemy, position, damage)
-        +ApplyChain(enemy, position, damage)
-        +TickEcho(deltaTime) 제안
+        private readonly PlayerAttackData _attackData
+        private List~EchoReservation~ _echoReservations // 제안
+        public bool HasPendingEcho => _echoReservations != null && _echoReservations.Count > 0 // 제안
+        public ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage) void
+        public ApplyChain(EnemyHealth directTarget, Vector2 hitPosition, float hitDamage) void
+        public TickEcho(float deltaTime) void // 제안
     }
     class PlayerAttackData {
         <<struct>>
-        +Configuration RuneEffectConfiguration
+        public RuneEffectConfiguration Configuration #123; get; #125;
     }
     class ReactionContext {
         <<struct>>
-        +HitPosition Vector2
-        +BulletDamage float
-        +BulletDirection Vector2
+        public Vector2 HitPosition #123; get; #125;
+        public float BulletDamage #123; get; #125;
+        public Vector2 BulletDirection #123; get; #125;
     }
     class EnemyStatusEffectController {
-        +ApplyElementEffect(element, damage, direction)
+        public ApplyElementEffect(ReactionElement element, float bulletDamage, Vector2 bulletDirection) void
     }
 
     RuneEffectConfiguration ..> RuneEffectIds : switch 분기 제안
@@ -170,18 +173,79 @@ sequenceDiagram
 
 ## 6. 상세 구현 절차 (Level 1)
 
-| 순서 | 작업 | 완료 조건 |
-|---|---|---|
-| 1 | `RuneEffectIds`에 `Echo = "rune_echo"` 추가 | 상수가 컴파일되고 DB의 `rune_echo` ID와 일치 |
-| 2 | `RuneEffectConfiguration`에 `EchoDelaySeconds`(1f), `EchoCount`, `switch` 분기 추가 | `rune_echo` N개 장착 시 `EchoCount == N` |
-| 3 | `BulletHitEffects`: 효과 적용 로직을 "예약 없이 적용"하는 내부 메서드와 "적용 후 예약"하는 기존 진입점으로 분리하고, 예약 목록·`HasPendingEcho`·`TickEcho`를 추가 | 직접 적중·Chain은 예약하고, 반복 발동은 예약·Chain을 호출하지 않음 |
-| 4 | `Bullet.Update`에서 `TickEcho(Time.deltaTime)` 호출. 초기화 전·지연 파괴 상태에서도 틱이 돌도록 순서를 조정 | 비행 중과 지연 파괴 중 모두 예약이 진행됨 |
-| 5 | `Bullet.DestroyBullet`: 예약이 남았으면 콜라이더·스프라이트·`_projectileVisual`을 끄고 `Destroy`를 보류. 소진되면 `Destroy` | 예약이 있는 탄환이 숨은 채 유지되다가 발동 후 제거됨. 예약이 없으면 기존과 동일 |
-| 6 | 7절 시나리오로 인게임 검증 | 모든 시나리오 통과 |
+Level 1이므로 메서드 내부 구현은 생략하고 신규·변경 멤버의 C# 선언과 변경 내용만 명시한다. 선언은 설계 제안이며(`// 제안`), `// 기존`은 현재 코드에 있는 선언이다.
+
+### 구현 순서
+
+| 순서 | 대상 | 작업 | 완료 조건 |
+|---|---|---|---|
+| 1 | `RuneEffectIds` | `Echo` 상수 추가 | 상수가 컴파일되고 DB의 `rune_echo` ID와 일치 |
+| 2 | `RuneEffectConfiguration` | `EchoDelaySeconds`, `EchoCount` 추가, 생성자 `switch`에 `Echo` 분기 추가 | `rune_echo` N개 장착 시 `EchoCount == N` |
+| 3 | `BulletHitEffects` | 적용 로직을 "예약 없이 적용"과 "적용 후 예약"으로 분리하고, 예약 목록·`HasPendingEcho`·`TickEcho` 추가 | 직접 적중·Chain은 예약하고, 반복 발동은 예약·Chain을 호출하지 않음 |
+| 4 | `Bullet` | `Update`에서 `TickEcho` 호출. 초기화 전·지연 파괴 상태에서도 틱이 돌도록 순서 조정 | 비행 중과 지연 파괴 중 모두 예약이 진행됨 |
+| 5 | `Bullet` | `DestroyBullet`에서 예약이 남았으면 지연 파괴 상태로 전환, 예약이 소진되면 `Destroy` | 예약이 있는 탄환은 숨은 채 유지되다가 발동 후 제거됨. 예약이 없으면 기존과 동일 |
+| 6 | — | 7절 시나리오로 인게임 검증 | 모든 시나리오 통과 |
 
 - 1→2→3→4→5 순서로 구현한다. 3·4·5는 서로 맞물리므로 한 묶음으로 완성한 뒤 검증한다.
-- 예약 목록은 `EchoCount > 0`일 때만 할당한다. 평소(반복 미장착) 추가 할당은 없다.
-- 예약 항목은 남은 시간, 대상 `EnemyHealth`(단일 원소용), 위치, 피해, 방향을 가진다. 두 원소 반응은 `ReactionContext`로 저장한다.
+
+### 멤버 선언
+
+**1. `Rune/RuneEffect/RuneEffectIds.cs` — 상수 추가**
+
+```csharp
+public const string Echo = "rune_echo"; // 제안
+```
+
+**2. `Rune/RuneEffect/RuneEffectConfiguration.cs` — 상수·프로퍼티 추가, 생성자 수정**
+
+```csharp
+public const float EchoDelaySeconds = 1f;           // 제안: BulletHitEffects가 읽으므로 public
+public int EchoCount { get; private set; }          // 제안
+
+public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects) // 기존: switch에 Echo 분기 추가
+```
+
+- 생성자 `switch`의 `case RuneEffectIds.Echo:`에서 `EchoCount`를 1 증가시킨다 (위력·가속·연장의 `...Count += 1`과 같은 방식).
+
+**3. `Bullet/BulletHitEffects.cs` — 예약 목록과 진행 로직 추가**
+
+```csharp
+private List<EchoReservation> _echoReservations;    // 제안: EchoCount > 0일 때만 할당 (지연 할당이므로 readonly 아님)
+public bool HasPendingEcho => _echoReservations != null && _echoReservations.Count > 0; // 제안
+public void TickEcho(float deltaTime)               // 제안: 남은 시간을 줄이고 도달한 예약을 발동
+private void ReserveEcho(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage, Vector2 direction) // 제안
+private bool CanExecuteEcho(EchoReservation reservation) // 제안: 단일 원소 반복의 대상 생존 검사
+private bool ApplyElementEffectCore(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage, Vector2 direction) // 제안: 예약 없이 적용, 효과가 실제로 적용되면 true
+
+private struct EchoReservation                      // 제안
+{
+    public float RemainingSeconds;
+    public EnemyHealth Target;                      // 단일 원소 재적용 대상 (2원소 반응에서는 사용하지 않음)
+    public ReactionContext Context;                 // 적중 당시의 위치·피해·방향
+}
+
+public void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage)                        // 기존: 변경 없음
+private void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage, Vector2 direction)   // 기존: 수정
+```
+
+- 기존 `private ApplyElementEffect(..., direction)`: 기존 적용 로직을 `ApplyElementEffectCore`로 옮기고, 이 메서드는 `Core`가 `true`(효과가 실제로 적용됨)를 반환했을 때만 `ReserveEcho`를 호출한다. 원소 없음, 대상 없음, 사망 대상(연출만 재생)은 `false`이며 예약하지 않는다. 직접 적중과 `ApplyChain`이 모두 이 메서드를 거치므로 Chain 반응도 예약된다.
+- `ReserveEcho`: `Configuration.EchoCount`가 0이면 즉시 반환한다. 1 이상이면 i번째(1..N) 예약의 `RemainingSeconds`를 `i × EchoDelaySeconds`로 추가한다. 단일 원소 효과는 적중 시점에 대상이 살아 있을 때만 예약한다.
+- `TickEcho`: 도달한 예약은 `ApplyElementEffectCore`로 발동한다. 이 경로는 `ReserveEcho`와 `ApplyChain`을 호출하지 않아 재귀가 생기지 않는다. 단일 원소 예약은 발동 시점에 `CanExecuteEcho`로 대상의 파괴·사망·비활성을 검사해, 해당하면 사망 연출 없이 건너뛰고 예약만 제거한다. 만료된 예약은 실행 전에 먼저 제거한다.
+- 예약 목록은 반복 미장착 시 할당하지 않는다.
+
+**4~5. `Bullet/Bullet.cs` — 지연 파괴 상태 추가, `Update`·`DestroyBullet` 수정**
+
+```csharp
+private bool _isLingering;                          // 제안: 예약 대기 중인 지연 파괴 상태
+
+private void Update()                               // 기존: 수정
+private void DestroyBullet(BulletEndReason? reason = null) // 기존: 수정
+```
+
+- `Update`: 현재는 `_isInitialized`가 거짓이면 즉시 반환한다. 이 앞에서 `_isLingering`이면 `_hitEffects.TickEcho(Time.deltaTime)`를 호출하고 `HasPendingEcho`가 거짓이 되면 `Destroy(gameObject)`한다. 비행 중(`_isInitialized`)에도 `TickEcho`를 호출한다.
+- `DestroyBullet`: 기존 종료 처리(`Phase = Ended`, `_isInitialized = false`, 이벤트 해제, `Ended` 발행)를 유지하되, `_hitEffects.HasPendingEcho`이면 `Destroy(gameObject)` 대신 `_isLingering = true`로 두고 `Collider2D`, `SpriteRenderer`, `_projectileVisual`을 끈다.
+
+변경 없음: `ReactionContext`, 반응 실행기 10종, `EnemyStatusEffectController`, `PlayerAttack`, `PlayerAttackData`, `BulletMovement`.
 
 ## 7. 검증 시나리오
 
