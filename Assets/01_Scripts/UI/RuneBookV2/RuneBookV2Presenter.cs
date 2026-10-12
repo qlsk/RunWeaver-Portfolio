@@ -90,6 +90,8 @@ public class RuneBookV2Presenter : MonoBehaviour
     private readonly List<Sprite> _tooltipMissing = new();
     private IReadOnlyList<RuneStoneStackData> _stoneList = Array.Empty<RuneStoneStackData>();
     private RuneWordTileView _hoveredTile;
+    // 마우스가 올라가 있는 장착 칸 (룬이 있는 칸이면 목록과 같은 툴팁을 띄운다)
+    private RuneSocketView _hoveredSocket;
     private bool _isRefreshQueued;
     private int _enabledFrame = -1;
     private RuneBookConfirmDialog _confirmDialog;
@@ -204,6 +206,7 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         // 확정하지 않은 변경은 버린다. 다시 열면 확정된 상태부터 시작한다.
         _hoveredTile = null;
+        _hoveredSocket = null;
         _isRefreshQueued = false;
         if (_tooltip != null)
         {
@@ -238,6 +241,8 @@ public class RuneBookV2Presenter : MonoBehaviour
                 if (socket != null)
                 {
                     socket.RightClicked -= HandleSocketRightClicked;
+                    socket.PointerEntered -= HandleSocketEntered;
+                    socket.PointerExited -= HandleSocketExited;
                 }
             }
         }
@@ -292,6 +297,8 @@ public class RuneBookV2Presenter : MonoBehaviour
             {
                 _sockets[i].Index = i;
                 _sockets[i].RightClicked += HandleSocketRightClicked;
+                _sockets[i].PointerEntered += HandleSocketEntered;
+                _sockets[i].PointerExited += HandleSocketExited;
             }
         }
 
@@ -600,6 +607,27 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         // 칸이 꺼지는 도중(탭 전환)에도 불릴 수 있으므로 표시 갱신은 다음 LateUpdate로 미룬다.
         _isRefreshQueued = true;
+    }
+
+    private void HandleSocketEntered(RuneSocketView socket)
+    {
+        _hoveredSocket = socket;
+        _hoveredTile = null;
+        Refresh();
+    }
+
+    private void HandleSocketExited(RuneSocketView socket)
+    {
+        if (_hoveredSocket != socket)
+        {
+            return;
+        }
+
+        _hoveredSocket = null;
+        if (_tooltip != null)
+        {
+            _tooltip.Hide();
+        }
     }
 
     private void HandleConfirmClicked()
@@ -1021,6 +1049,12 @@ public class RuneBookV2Presenter : MonoBehaviour
             return;
         }
 
+        if (_hoveredTile == null && _hoveredSocket != null)
+        {
+            ShowSocketTooltip(_hoveredSocket);
+            return;
+        }
+
         RuneBookEntryData entry = _hoveredTile != null ? _hoveredTile.Entry : null;
         if (entry == null)
         {
@@ -1049,6 +1083,35 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         _tooltip.Show(entry, CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
             _tooltipMissing, _hoveredTile.RectTransform, ownedCount);
+    }
+
+    /// <summary>
+    /// 장착 칸에 놓인 룬의 툴팁. 이미 칸에 들어간 룬이므로 모자란 룬 문자와 완성품 수는 표시하지 않는다.
+    /// 빈 칸이나 잠긴 칸이면 숨긴다.
+    /// </summary>
+    private void ShowSocketTooltip(RuneSocketView socket)
+    {
+        int index = socket.Index;
+        string id = index >= 0 && index < ActiveSlotCount && index < _slotIds.Length ? _slotIds[index] : null;
+        if (id == null || !_entries.TryGetValue(id, out RuneBookEntryData entry))
+        {
+            _tooltip.Hide();
+            return;
+        }
+
+        _tooltipStones.Clear();
+        _tooltipMissing.Clear();
+        if (!string.IsNullOrEmpty(entry.RuneWord))
+        {
+            foreach (char rune in entry.RuneWord)
+            {
+                Sprite icon = _stones.TryGetValue(rune, out RuneStoneStackData stone) ? stone.Icon : null;
+                _tooltipStones.Add(new RuneWordTooltipView.RuneStoneView(icon, false));
+            }
+        }
+
+        _tooltip.Show(entry, CanOverlap(entry.Id), GetElementColor(entry), _tooltipStones,
+            _tooltipMissing, socket.RectTransform);
     }
 
     private void CountPendingUse()
