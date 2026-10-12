@@ -6,6 +6,9 @@ public sealed class RuneEffectConfiguration
     private const float PowerDamageBonusPerStack = 0.5f;
     private const float SpeedBonusPerStack = 0.5f;
     private const float RangeBonusPerStack = 0.5f;
+    private const float AbsorbHealRatioPerStack = 0.1f;
+
+    public const float EchoDelaySeconds = 1f;
     private const float ChainDamageRatio = 0.5f;
 
     public ReactionElement? PrimaryElement { get; }
@@ -32,11 +35,14 @@ public sealed class RuneEffectConfiguration
     public float SpreadDamageMultiplier => IsSpread ? 0.5f : 1f;
     public float MultipleDamageMultiplier => IsMultiple ? 0.6f : 1f;
     public int PowerCount { get; private set; }
-    public float PowerDamageMultiplier => 1 + PowerDamageBonusPerStack * PowerCount;
+    public float PowerDamageMultiplier => 1f + PowerDamageBonusPerStack * PowerCount;
     public int SpeedCount { get; private set; }
     public float SpeedMultiplier => 1f + SpeedBonusPerStack * SpeedCount;
     public int RangeCount { get; private set; }
     public float RangeMultiplier => 1f + RangeBonusPerStack * RangeCount;
+    public int EchoCount { get; private set; }
+    public int AbsorbCount { get; private set; }
+    public float AbsorbHealRatio => AbsorbHealRatioPerStack * AbsorbCount;
 
     public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects)
     {
@@ -88,6 +94,12 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Chain:
                     ChainCount += 1;
+                    break;
+                case RuneEffectIds.Echo:
+                    EchoCount += 1;
+                    break;
+                case RuneEffectIds.Absorb:
+                    AbsorbCount += 1;
                     break;
             }
         }
