@@ -77,10 +77,17 @@ public class RuneStoneDropper : MonoBehaviour
 
         Sprite prefabSprite = _runePickupPrefab.GetComponent<SpriteRenderer>()?.sprite;
         int nullIconCount = 0;
+        RuneStoneInventory inventory = runeManager.RuneStoneInventory;
 
         for (int i = 0; i < totalCount; i++)
         {
-            RuneStoneDefinition def = defs[Random.Range(0, defs.Count)];
+            // 보유 기준 가중 추첨. 같은 더미 안에서는 복원 추첨이라 중복이 나올 수 있지만
+            // 미보유 문자가 우선한다.
+            if (!RuneStoneDropSelector.TryPick(defs, inventory, out RuneStoneDefinition def) || def == null)
+            {
+                Debug.LogWarning("[RuneStoneDropper] 룬석 추첨에 실패해 이번 픽업을 건너뜁니다.", this);
+                continue;
+            }
             // DB 아이콘이 비어 있으면 투명 픽업이 되므로 프리팹 기본 스프라이트로 대체한다.
             Sprite icon = def.Icon != null ? def.Icon : prefabSprite;
             if (icon == null)
