@@ -115,21 +115,19 @@ classDiagram
     CleanseTraitHandler ..> PlayerAttack : BulletDamage(위력 미반영)
     Bullet ..> FixTrap : IsFix, 위력 미상속
 
-    classDef unchanged fill:#eeeeee,stroke:#888,color:#222
-    classDef modified fill:#ffe0b2,stroke:#e65100,color:#222
-    class RuneEffectDefinition unchanged
-    class PlayerAttackData unchanged
-    class Bullet unchanged
-    class BulletRuntime unchanged
-    class BulletHitEffects unchanged
-    class EnemyHealth unchanged
-    class TraitStatComposer unchanged
-    class DashTraitHandler unchanged
-    class CleanseTraitHandler unchanged
-    class FixTrap unchanged
-    class RuneEffectIds modified
-    class RuneEffectConfiguration modified
-    class PlayerAttack modified
+    style RuneEffectDefinition fill:#eeeeee,stroke:#888,color:#222
+    style PlayerAttackData fill:#eeeeee,stroke:#888,color:#222
+    style Bullet fill:#eeeeee,stroke:#888,color:#222
+    style BulletRuntime fill:#eeeeee,stroke:#888,color:#222
+    style BulletHitEffects fill:#eeeeee,stroke:#888,color:#222
+    style EnemyHealth fill:#eeeeee,stroke:#888,color:#222
+    style TraitStatComposer fill:#eeeeee,stroke:#888,color:#222
+    style DashTraitHandler fill:#eeeeee,stroke:#888,color:#222
+    style CleanseTraitHandler fill:#eeeeee,stroke:#888,color:#222
+    style FixTrap fill:#eeeeee,stroke:#888,color:#222
+    style RuneEffectIds fill:#ffe0b2,stroke:#e65100,color:#222
+    style RuneEffectConfiguration fill:#ffe0b2,stroke:#e65100,color:#222
+    style PlayerAttack fill:#ffe0b2,stroke:#e65100,color:#222
 ```
 
 ### 클래스별 책임과 변경 구분
