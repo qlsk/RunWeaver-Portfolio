@@ -8,13 +8,13 @@ using UnityEngine.UI;
 /// 원정 출발 전 메인 원소 선택 화면. 확정한 원소의 룬 효과를 기본 원소 슬롯에 장착한다.
 ///
 /// 조작
-/// - 원소 선택 중: 좌/우 방향키로 원을 따라 원소를 바꾸고, F를 누르거나 아래 방향키를 누르면 Confirm 버튼으로 내려간다.
-/// - 버튼 선택 중: 좌/우 방향키로 Confirm / Cancel을 오가고, F로 누른다. 위 방향키를 누르면 원소 선택으로 돌아간다.
+/// - W/A/S/D(또는 방향키): 위(불), 왼쪽(물), 아래(흙), 오른쪽(바람)에 있는 원소 구슬을 바로 고른다.
+/// - F 또는 Space: 고른 원소로 확정한다. (마우스가 Cancel 버튼 위에 있으면 취소)
 /// - Esc: Cancel
 /// - 마우스로 원소 구슬과 버튼을 눌러도 된다.
 ///
 /// 연출 (실제 시간) : 프리팹 Animator(MainElementSelect.controller)의 클립이 한다. 연출할 때만 Animator를 켠다.
-/// - 열기(Open) : 어둡게 깔리고, 링·구슬·제목·버튼이 아래에서 살짝 떠오르며 나타난다. 도중에 F/클릭이면 바로 끝낸다.
+/// - 열기(Open) : 어둡게 깔리고, 링·구슬·제목·버튼이 아래에서 살짝 떠오르며 나타난다. 도중에 F/Space/클릭이면 바로 끝낸다.
 /// - 확정(Confirm원소) : 고른 구슬이 커지며 가운데로 모이고 나머지는 가운데로 빨려 들며 사라진다.
 ///          가운데에서 원소 색 빛(Circle/Burst)이 터진 뒤 원소를 장착하고 Confirmed를 알린다.
 /// - 취소(Cancel) : 아래로 살짝 가라앉으며 사라진 뒤 Cancelled를 알린다.
@@ -50,6 +50,7 @@ public class MainElementSelectView : MonoBehaviour
 
     [Header("키")]
     [SerializeField] private KeyCode _submitKey = KeyCode.F;
+    [SerializeField] private KeyCode _altSubmitKey = KeyCode.Space;
     [SerializeField] private KeyCode _cancelKey = KeyCode.Escape;
 
     [Header("연출")]
@@ -171,7 +172,7 @@ public class MainElementSelectView : MonoBehaviour
     {
         if (_phase == Phase.Opening)
         {
-            if (Input.GetKeyDown(_submitKey) || Input.GetMouseButtonDown(0))
+            if (IsSubmitPressed() || Input.GetMouseButtonDown(0))
             {
                 _skipOpening = true;
             }
@@ -190,47 +191,79 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
-        if (!_isButtonFocused)
+        // W/A/S/D(또는 방향키) : 그 방향에 있는 원소 구슬을 바로 고른다.
+        if (TryGetDirectionPressed(out Vector2 direction))
         {
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                Select(_selectedIndex + 1);
-            }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                Select(_selectedIndex - 1);
-            }
-            else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(_submitKey))
-            {
-                FocusButtons(true);
-            }
-
+            SelectByDirection(direction);
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
+        // F/Space : 확정. 마우스가 Cancel 버튼 위에 있으면 취소한다.
+        if (IsSubmitPressed())
         {
-            _isConfirmFocused = !_isConfirmFocused;
-            _isMouseFocused = false;
-            Refresh();
-        }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            _isButtonFocused = false;
-            _isMouseFocused = false;
-            Refresh();
-        }
-        else if (Input.GetKeyDown(_submitKey))
-        {
-            if (_isConfirmFocused)
-            {
-                Confirm();
-            }
-            else
+            if (_isButtonFocused && !_isConfirmFocused)
             {
                 Cancel();
             }
+            else
+            {
+                Confirm();
+            }
         }
+    }
+
+    private bool IsSubmitPressed() => Input.GetKeyDown(_submitKey) || Input.GetKeyDown(_altSubmitKey);
+
+    // 방향 입력 : WASD와 방향키를 같이 받는다.
+    private static bool TryGetDirectionPressed(out Vector2 direction)
+    {
+        direction = Vector2.zero;
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) direction = Vector2.up;
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) direction = Vector2.left;
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) direction = Vector2.down;
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) direction = Vector2.right;
+        return direction != Vector2.zero;
+    }
+
+    /// <summary>원의 가운데에서 보아 direction 쪽에 가장 가까이 놓인 구슬을 고른다. (위 불, 오른쪽 바람, 아래 흙, 왼쪽 물)</summary>
+    private void SelectByDirection(Vector2 direction)
+    {
+        if (_orbs == null || _orbs.Length == 0)
+        {
+            return;
+        }
+
+        int best = -1;
+        float bestDot = float.NegativeInfinity;
+        for (int i = 0; i < _orbs.Length; i++)
+        {
+            if (_orbs[i] == null)
+            {
+                continue;
+            }
+
+            Vector2 position = ((RectTransform)_orbs[i].transform).anchoredPosition;
+            if (position.sqrMagnitude < 0.0001f)
+            {
+                continue;
+            }
+
+            float dot = Vector2.Dot(position.normalized, direction);
+            if (dot > bestDot)
+            {
+                bestDot = dot;
+                best = i;
+            }
+        }
+
+        if (best < 0)
+        {
+            return;
+        }
+
+        _isButtonFocused = false;
+        _isMouseFocused = false;
+        Select(best);
     }
 
     private void HandleConfirmHovered() => HandleButtonHovered(_confirmButton);
