@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8970719769596857867}
   - component: {fileID: 7604851959272145055}
   - component: {fileID: 1708942384468795452}
+  - component: {fileID: 4436976214358609101}
   m_Layer: 0
   m_Name: Rune
   m_TagString: Rune
@@ -156,3 +157,21 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &4436976214358609101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6002212942864115299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e7064046c7a4d9f8e54c436c567e903, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RunePickupFx
+  _glowSprite: {fileID: 21300000, guid: 7a9d97e093a848cca8942b48e9da02a8, type: 3}
+  _effectMaterial: {fileID: 2100000, guid: 36bac5512b9c4192bb441b00f9240553, type: 2}
+  _color: {r: 0.55, g: 0.85, b: 1, a: 0.35}
+  _glowDiameter: 0.65
+  _trailTime: 0.25
+  _trailWidth: 0.3
