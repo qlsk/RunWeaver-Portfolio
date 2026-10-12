@@ -8,9 +8,11 @@ public class EnemyContactAttack : MonoBehaviour
     private float _nextAttackTime;
     private EnemyStatusEffectController _statusEffectController;
     private EnemyHealth _health;
+    private Enemy _enemy;
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
         _health = GetComponentInParent<EnemyHealth>();
     }
@@ -37,7 +39,7 @@ public class EnemyContactAttack : MonoBehaviour
         if (collision.TryGetComponent(out PlayerHitbox hitbox) && hitbox.Health != null && !hitbox.Health.IsDead)
         {
             _nextAttackTime = Time.time + _attackCooldown;
-            hitbox.Health.TakeDamage(_damage);
+            hitbox.Health.TakeElementDamage(_damage, _enemy != null ? _enemy.AttackElement : null);
         }
         else
         {

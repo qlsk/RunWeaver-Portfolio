@@ -70,10 +70,14 @@ public class PlayerHealth : MonoBehaviour
     // 피격
     public void TakeDamage(float damage)
     {
-        Debug.Log($"Current Shield = {_shield.CurrentShield}");
+        TakeElementDamage(damage, null);
+    }
+
+    public void TakeElementDamage(float damage, ReactionElement? element)
+    {
         if (_isDead || damage <= 0f) return;
         if (_hitInvincibility || _dashInvincibility) return;
-        StartCoroutine(TakeDamageCoroutine(damage));
+        StartCoroutine(TakeDamageCoroutine(damage, element));
     }
 
     /// <summary>지속 피해는 피격/대시 무적을 무시하고 새 피격 무적을 만들지 않는다.</summary>
@@ -102,16 +106,22 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    private IEnumerator TakeDamageCoroutine(float damage)
+    private IEnumerator TakeDamageCoroutine(float damage, ReactionElement? element)
     {
         _hitInvincibility = true;
-        if (_shield.CurrentShield > 0)
+        if (_shield != null && _shield.CurrentShield > 0)
         {
             _shield.DestroyShield();
         }
         else
         {
+            float finalDamage = Mathf.Max(0f, damage) * DamageTakenMultiplier;
             ApplyDamage(damage);
+            if (finalDamage > 0f && !_isDead && element.HasValue &&
+                TryGetComponent(out PlayerStatusEffectController statusEffects))
+            {
+                statusEffects.ApplyElementEffect(element.Value, damage);
+            }
         }
 
         yield return new WaitForSeconds(_invincibilityDuration);

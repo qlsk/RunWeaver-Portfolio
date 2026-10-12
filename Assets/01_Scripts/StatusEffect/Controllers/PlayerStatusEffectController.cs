@@ -8,10 +8,70 @@ public class PlayerStatusEffectController : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerHealth _playerHealth;
 
+    [Header("Status VFX")]
+    [SerializeField] private SpriteRenderer _vfxTarget;
+    [SerializeField] private StatusVisual _burnVisual = new StatusVisual();
+    [SerializeField] private StatusVisual _slowVisual = new StatusVisual();
+    [SerializeField] private StatusVisual _attackSlowVisual = new StatusVisual();
+    [SerializeField] private StatusVisual _staggerVisual = new StatusVisual();
+
+    [Serializable]
+    private sealed class StatusVisual
+    {
+        public GameObject Prefab;
+        [Min(0.01f)] public float Scale = 0.7f;
+        public Vector3 Offset = new Vector3(0f, -0.3f, 0f);
+        private GameObject _instance;
+        private SpriteRenderer[] _renderers;
+
+        public void Play(Transform owner, SpriteRenderer target, int order, bool restart)
+        {
+            if (Prefab == null) return;
+            if (_instance == null)
+            {
+                _instance = Instantiate(Prefab, owner, false);
+                _instance.transform.localScale *= Scale;
+                _renderers = _instance.GetComponentsInChildren<SpriteRenderer>(true);
+            }
+            else if (restart)
+            {
+                _instance.SetActive(false);
+            }
+            _instance.SetActive(true);
+            UpdateTransform(owner, target, order);
+            if (restart && _instance.TryGetComponent(out Animator animator))
+                animator.Play(0, 0, 0f);
+        }
+
+        public void UpdateTransform(Transform owner, SpriteRenderer target, int order)
+        {
+            if (_instance == null || !_instance.activeSelf) return;
+            Vector3 center = target != null ? owner.InverseTransformPoint(target.bounds.center) : Vector3.zero;
+            _instance.transform.localPosition = center + Offset;
+            if (target == null) return;
+            foreach (SpriteRenderer renderer in _renderers)
+            {
+                if (renderer == null) continue;
+                renderer.sortingLayerID = target.sortingLayerID;
+                renderer.sortingOrder = target.sortingOrder + order;
+            }
+        }
+
+        public void Stop()
+        {
+            if (_instance != null) _instance.SetActive(false);
+        }
+
+        public void Dispose()
+        {
+            if (_instance != null) Destroy(_instance);
+        }
+    }
+
     [Header("Burn")]
     [SerializeField, Min(0f)] private float _burnDuration = 3f;
     [SerializeField, Min(0.01f)] private float _burnInterval = 1f;
-    [SerializeField, Min(0f)] private float _burnDamageMultiplier = 0.2f;
+    [SerializeField, Min(0f)] private float _burnDamageMultiplier = 0.1f;
 
     [Header("Slow")]
     [SerializeField, Min(0f)] private float _slowDuration = 3f;
@@ -44,7 +104,11 @@ public class PlayerStatusEffectController : MonoBehaviour
         {
             _playerHealth = GetComponent<PlayerHealth>();
         }
+        if (_vfxTarget == null) _vfxTarget = GetComponentInChildren<SpriteRenderer>();
     }
+
+    private void OnEnable() => _playerHealth.Died += HandleDeath;
+    private void HandleDeath() => ClearAllEffects();
 
     /// <summary>재적용 시 지속 시간을 갱신하고 화상은 높은 피해를 유지한다.</summary>
     public void ApplyElementEffect(ReactionElement element, float damage)
@@ -83,7 +147,30 @@ public class PlayerStatusEffectController : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException(nameof(element), element, null);
         }
+        StatusVisual visual = GetVisual(element);
+        if (HasEffect(element))
+            visual.Play(transform, _vfxTarget, GetVisualOrder(element),
+                element == ReactionElement.Earth || element == ReactionElement.Wind);
+        else
+            visual.Stop();
     }
+
+    private StatusVisual GetVisual(ReactionElement element) => element switch
+    {
+        ReactionElement.Fire => _burnVisual,
+        ReactionElement.Water => _slowVisual,
+        ReactionElement.Wind => _attackSlowVisual,
+        ReactionElement.Earth => _staggerVisual,
+        _ => throw new ArgumentOutOfRangeException(nameof(element), element, null)
+    };
+
+    private static int GetVisualOrder(ReactionElement element) => element switch
+    {
+        ReactionElement.Fire => 1,
+        ReactionElement.Water => 2,
+        ReactionElement.Earth => 3,
+        _ => 4
+    };
 
     public float GetRemainingDuration(ReactionElement element)
     {
@@ -120,6 +207,7 @@ public class PlayerStatusEffectController : MonoBehaviour
                 _staggerRemaining = 0f;
                 break;
         }
+        GetVisual(element).Stop();
         return hadEffect;
     }
 
@@ -140,7 +228,34 @@ public class PlayerStatusEffectController : MonoBehaviour
         return cleared;
     }
 
-    private void OnDisable() => ClearAllEffects();
+    private void OnDisable()
+    {
+        if (_playerHealth != null) _playerHealth.Died -= HandleDeath;
+        ClearAllEffects();
+    }
+
+    private void OnDestroy()
+    {
+        _burnVisual.Dispose();
+        _slowVisual.Dispose();
+        _attackSlowVisual.Dispose();
+        _staggerVisual.Dispose();
+    }
+
+    private void LateUpdate()
+    {
+        UpdateVisual(ReactionElement.Fire);
+        UpdateVisual(ReactionElement.Water);
+        UpdateVisual(ReactionElement.Earth);
+        UpdateVisual(ReactionElement.Wind);
+    }
+
+    private void UpdateVisual(ReactionElement element)
+    {
+        StatusVisual visual = GetVisual(element);
+        if (HasEffect(element)) visual.UpdateTransform(transform, _vfxTarget, GetVisualOrder(element));
+        else visual.Stop();
+    }
 
     private void Update()
     {

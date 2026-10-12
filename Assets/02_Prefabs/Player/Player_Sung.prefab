@@ -46,6 +46,7 @@ GameObject:
   - component: {fileID: 1796876364397183347}
   - component: {fileID: 5863673722175249506}
   - component: {fileID: 8110420657988907431}
+  - component: {fileID: 950900002}
   - component: {fileID: 5141058915935371194}
   - component: {fileID: 5787910676664630094}
   - component: {fileID: 5000901869329216964}
@@ -903,3 +904,41 @@ MonoBehaviour:
         RemapColorZero: 0
         RemapColorOne: 1
         TargetColor: {r: 0.85, g: 0.02, b: 0.02, a: 1}
+--- !u!114 &950900002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e98d649e8aee4f3c91c0a67cf48a9841, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffectController
+  _playerHealth: {fileID: 8110420657988907431}
+  _vfxTarget: {fileID: 2327959787812838743}
+  _burnVisual:
+    Prefab: {fileID: 857701135076163181, guid: 2e9d2ce239b7488bab03e97d6a04cb36, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _slowVisual:
+    Prefab: {fileID: 3282494113180683151, guid: 054eb0d4451440faa9d233b633b402f2, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _attackSlowVisual:
+    Prefab: {fileID: 2064584436310274632, guid: 63d68c1641024f5cb253481ec10e4d42, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _staggerVisual:
+    Prefab: {fileID: 857701135076163181, guid: 7f3b3e6507494d03bfb6cf0271661300, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.1
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _attackSlowDuration: 3
+  _attackIntervalMultiplier: 1.5
+  _staggerDuration: 0.5
