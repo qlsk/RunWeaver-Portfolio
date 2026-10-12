@@ -6,6 +6,7 @@ public sealed class RuneEffectConfiguration
     private const float PowerDamageBonusPerStack = 0.5f;
     private const float SpeedBonusPerStack = 0.5f;
     private const float RangeBonusPerStack = 0.5f;
+    private const float ChainDamageRatio = 0.5f;
 
     public ReactionElement? PrimaryElement { get; }
     public ReactionElement? SecondaryElement { get; }
@@ -22,6 +23,9 @@ public sealed class RuneEffectConfiguration
 
     /// <summary>Chain 장착 개수. 한 번 맞을 때 연쇄하는 적의 수와 같다. (중복 장착 1개마다 1마리씩 늘어난다)</summary>
     public int ChainCount { get; private set; }
+
+    /// <summary>연쇄로 받은 적에게 들어가는 피해 비율 (직접 맞은 피해 기준)</summary>
+    public float ChainDamageMultiplier => ChainDamageRatio;
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;

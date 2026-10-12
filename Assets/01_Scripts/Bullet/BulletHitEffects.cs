@@ -67,6 +67,7 @@ public sealed class BulletHitEffects
 
     /// 직접 적중마다 가까운 다른 적들에게 단일 원소 또는 두 원소 반응을 적용한다.
     /// 연쇄하는 적의 수는 Chain 장착 개수와 같다. (1개면 1마리, 2개면 2마리 ...)
+    /// 연쇄 피해는 직접 맞은 피해의 50%다. (RuneEffectConfiguration.ChainDamageMultiplier)
     /// 모두 직접 맞은 자리에서 뻗어 나가며, 원소 처리 함수는 Chain을 호출하지 않으므로 반응에서 연쇄가 재귀적으로 발생하지 않는다.
     public void ApplyChain(EnemyHealth directTarget, Vector2 hitPosition, float hitDamage)
     {
@@ -74,6 +75,7 @@ public sealed class BulletHitEffects
         if (!configuration.IsChain || !configuration.PrimaryElement.HasValue || _chainRadius <= 0f)
             return;
 
+        float chainDamage = hitDamage * configuration.ChainDamageMultiplier;
         FindChainTargets(directTarget, hitPosition, configuration.ChainCount);
         foreach (EnemyHealth target in _chainTargets)
         {
@@ -82,7 +84,7 @@ public sealed class BulletHitEffects
             _playHitEffect?.Invoke(target.transform.position, direction);
             // 어느 적에게 연쇄됐는지 보이도록 직접 맞은 적과 받은 적을 잇는다. (ChainLinkFx)
             _playChainLink?.Invoke(directTarget, hitPosition, target);
-            ApplyElementEffect(target, target.transform.position, hitDamage, direction);
+            ApplyElementEffect(target, target.transform.position, chainDamage, direction);
         }
 
         _chainTargets.Clear();
