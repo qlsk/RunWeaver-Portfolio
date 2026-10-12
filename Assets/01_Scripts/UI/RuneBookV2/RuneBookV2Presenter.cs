@@ -230,6 +230,7 @@ public class RuneBookV2Presenter : MonoBehaviour
                     tile.PointerEntered -= HandleTileEntered;
                     tile.PointerExited -= HandleTileExited;
                     tile.Clicked -= HandleTileClicked;
+                    tile.RightClicked -= HandleTileRightClicked;
                 }
             }
         }
@@ -288,6 +289,7 @@ public class RuneBookV2Presenter : MonoBehaviour
                 tile.PointerEntered += HandleTileEntered;
                 tile.PointerExited += HandleTileExited;
                 tile.Clicked += HandleTileClicked;
+                tile.RightClicked += HandleTileRightClicked;
             }
         }
 
@@ -444,7 +446,33 @@ public class RuneBookV2Presenter : MonoBehaviour
             return;
         }
 
-        int index = socket.Index;
+        RemoveSlot(socket.Index);
+    }
+
+    /// <summary>
+    /// 룬 목록에서 우클릭 : 장착 칸에 들어 있는 이 룬 워드를 뺀다. (장착 칸으로 마우스를 옮기지 않아도 된다)
+    /// 같은 룬 워드가 여러 칸에 있으면 가장 뒤 칸부터 하나씩 뺀다.
+    /// </summary>
+    private void HandleTileRightClicked(RuneWordTileView tile)
+    {
+        if (_isViewOnly || tile.Entry == null)
+        {
+            return;
+        }
+
+        for (int i = ActiveSlotCount - 1; i >= 0; i--)
+        {
+            if (_slotIds[i] == tile.Entry.Id)
+            {
+                RemoveSlot(i);
+                return;
+            }
+        }
+    }
+
+    /// <summary>장착 칸 index의 룬 워드를 빼고 뒤 칸을 앞으로 당긴다.</summary>
+    private void RemoveSlot(int index)
+    {
         if (index < 0 || index >= ActiveSlotCount || _slotIds[index] == null)
         {
             return;
@@ -460,7 +488,11 @@ public class RuneBookV2Presenter : MonoBehaviour
 
         // 원소는 최소 1개 : 빼는 건 허용하고 경고만 띄운다. (Confirm에서 막는다)
         Refresh();
-        _fx.PlayRemove(socket);
+        if (index < _sockets.Length && _sockets[index] != null)
+        {
+            _fx.PlayRemove(_sockets[index]);
+        }
+
         if (!HasElementInSlots())
         {
             ShowToast(_elementRequiredText);
