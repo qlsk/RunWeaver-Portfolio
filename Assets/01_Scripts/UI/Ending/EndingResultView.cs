@@ -127,8 +127,8 @@ public class EndingResultView : MonoBehaviour
     [Tooltip("등장(Appear) / 나가기(Leave) 클립을 재생하는 애니메이터 (unscaled 시간)")]
     [SerializeField] private Animator _animator;
 
-    private static readonly int AppearHash = Animator.StringToHash("Appear");
-    private static readonly int LeaveHash = Animator.StringToHash("Leave");
+    private static readonly int s_appearHash = Animator.StringToHash("Appear");
+    private static readonly int s_leaveHash = Animator.StringToHash("Leave");
 
     private TMP_Text _newRecordMarkText;
     private string _newRecordMarkDefaultText = string.Empty;
@@ -155,7 +155,7 @@ public class EndingResultView : MonoBehaviour
             _menu.Confirmed += HandleMenuConfirmed;
         }
 
-        PlayState(AppearHash);
+        PlayState(s_appearHash);
     }
 
     private void OnDisable()
@@ -311,7 +311,7 @@ public class EndingResultView : MonoBehaviour
     /// </summary>
     private void PlayLeave()
     {
-        PlayState(LeaveHash);
+        PlayState(s_leaveHash);
     }
 
     private void Initialize()

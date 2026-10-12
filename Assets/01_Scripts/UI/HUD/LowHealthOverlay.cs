@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class LowHealthOverlay : MonoBehaviour
 {
     private const string PrefabPath = "LowHealth/LowHealthOverlay";
-    private static readonly int DangerHash = Animator.StringToHash("Danger");
+    private static readonly int s_dangerHash = Animator.StringToHash("Danger");
 
     [SerializeField, Range(0f, 1f)] private float _startRatio = 0.35f;
     [SerializeField, Range(0f, 1f)] private float _fullRatio = 0.15f;
@@ -78,7 +78,7 @@ public class LowHealthOverlay : MonoBehaviour
         // 켜질 때보다 꺼질 때 더 천천히. 끝부분도 부드럽게(SmoothStep) 걷힌다.
         float duration = target > _weight ? _fadeInDuration : _fadeOutDuration;
         _weight = Mathf.MoveTowards(_weight, target, Time.unscaledDeltaTime / duration);
-        _animator.SetFloat(DangerHash, Mathf.SmoothStep(0f, 1f, _weight));
+        _animator.SetFloat(s_dangerHash, Mathf.SmoothStep(0f, 1f, _weight));
 
         if (_barFill != null && _view != null)
         {
@@ -91,7 +91,7 @@ public class LowHealthOverlay : MonoBehaviour
         _weight = 0f;
         if (_animator != null)
         {
-            _animator.SetFloat(DangerHash, 0f);
+            _animator.SetFloat(s_dangerHash, 0f);
         }
 
         if (_barFill != null)

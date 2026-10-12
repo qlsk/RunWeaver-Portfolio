@@ -11,7 +11,7 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class MissionClearEffect : MonoBehaviour
 {
-    private static readonly int ShowHash = Animator.StringToHash("Show");
+    private static readonly int s_showHash = Animator.StringToHash("Show");
 
     [SerializeField] private Animator _animator;
 
@@ -26,7 +26,7 @@ public class MissionClearEffect : MonoBehaviour
     private void OnEnable()
     {
         _animator.speed = 1f;
-        _animator.Play(ShowHash, 0, 0f);
+        _animator.Play(s_showHash, 0, 0f);
     }
 
     private void Update()

@@ -13,8 +13,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class MissionStageAnimator : MonoBehaviour
 {
-    private static readonly int StageHash = Animator.StringToHash("Stage");
-    private static readonly int StageUpHash = Animator.StringToHash("StageUp");
+    private static readonly int s_stageHash = Animator.StringToHash("Stage");
+    private static readonly int s_stageUpHash = Animator.StringToHash("StageUp");
 
     [Tooltip("이 오브젝트가 진행도를 보여줄 미션 종류")]
     [SerializeField] private MissionType _missionType = MissionType.SoulCollect;
@@ -32,7 +32,7 @@ public class MissionStageAnimator : MonoBehaviour
         _animator = GetComponent<Animator>();
         foreach (AnimatorControllerParameter parameter in _animator.parameters)
         {
-            if (parameter.nameHash == StageUpHash && parameter.type == AnimatorControllerParameterType.Trigger)
+            if (parameter.nameHash == s_stageUpHash && parameter.type == AnimatorControllerParameterType.Trigger)
             {
                 _hasStageUp = true;
             }
@@ -131,10 +131,10 @@ public class MissionStageAnimator : MonoBehaviour
         // 처음 맞추는 것(-1에서)은 오른 것이 아니다.
         bool rose = _shownStage >= 0 && stage > _shownStage;
         _shownStage = stage;
-        _animator.SetInteger(StageHash, stage);
+        _animator.SetInteger(s_stageHash, stage);
         if (rose && _hasStageUp)
         {
-            _animator.SetTrigger(StageUpHash);
+            _animator.SetTrigger(s_stageUpHash);
         }
     }
 }

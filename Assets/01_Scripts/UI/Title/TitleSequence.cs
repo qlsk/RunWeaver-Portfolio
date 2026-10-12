@@ -13,7 +13,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class TitleSequence : MonoBehaviour
 {
-    private static readonly int StartHash = Animator.StringToHash("Start");
+    private static readonly int s_startHash = Animator.StringToHash("Start");
 
     [SerializeField] private Animator _animator;
     [SerializeField] private TitleMenuView _menu;
@@ -60,7 +60,7 @@ public class TitleSequence : MonoBehaviour
         _isStarting = true;
         if (_animator != null)
         {
-            _animator.SetTrigger(StartHash);
+            _animator.SetTrigger(s_startHash);
         }
 
         StartCoroutine(PlayStartRoutine(itemIndex, onFinished));

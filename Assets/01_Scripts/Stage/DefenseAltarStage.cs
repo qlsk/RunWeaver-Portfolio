@@ -13,9 +13,9 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class DefenseAltarStage : MonoBehaviour
 {
-    private static readonly int StageHash = Animator.StringToHash("Stage");
-    private static readonly int HitHash = Animator.StringToHash("Hit");
-    private static readonly int CrackHash = Animator.StringToHash("Crack");
+    private static readonly int s_stageHash = Animator.StringToHash("Stage");
+    private static readonly int s_hitHash = Animator.StringToHash("Hit");
+    private static readonly int s_crackHash = Animator.StringToHash("Crack");
 
     [SerializeField] private DefenseAltar _altar;
     [Tooltip("남은 체력 비율이 이 값 미만이면 2단계(금이 감)")]
@@ -48,7 +48,7 @@ public class DefenseAltarStage : MonoBehaviour
         float hp = _altar.CurrentHp;
         if (_lastHp >= 0f && hp < _lastHp - 0.001f)
         {
-            _animator.SetTrigger(HitHash);
+            _animator.SetTrigger(s_hitHash);
         }
 
         _lastHp = hp;
@@ -61,11 +61,11 @@ public class DefenseAltarStage : MonoBehaviour
 
         if (_shownStage > 0 && stage > _shownStage && stage <= 3)
         {
-            _animator.SetTrigger(CrackHash);
+            _animator.SetTrigger(s_crackHash);
         }
 
         _shownStage = stage;
-        _animator.SetInteger(StageHash, stage);
+        _animator.SetInteger(s_stageHash, stage);
     }
 
     private int GetStage()

@@ -47,9 +47,9 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         public Target Target;
     }
 
-    private static readonly int RootedHash = Animator.StringToHash("Rooted");
-    private static readonly int FlyHash = Animator.StringToHash("Fly");
-    private static readonly int ImpactHash = Animator.StringToHash("Impact");
+    private static readonly int s_rootedHash = Animator.StringToHash("Rooted");
+    private static readonly int s_flyHash = Animator.StringToHash("Fly");
+    private static readonly int s_impactHash = Animator.StringToHash("Impact");
 
     // 여러 장판이 같은 적을 동시에 띄워도 원래 위치를 한 번만 기억한다.
     private static readonly Dictionary<Transform, (Vector3 basePosition, int count)> s_liftBases = new();
@@ -253,7 +253,7 @@ public class ReactionFxEnemyMarks : MonoBehaviour
                 PlaceMark(target, new Vector3(bounds.center.x, bounds.min.y + 0.06f, 0f), 1);
                 if (target.MarkAnimator != null)
                 {
-                    target.MarkAnimator.SetBool(RootedHash, target.Status != null && target.Status.IsRooted);
+                    target.MarkAnimator.SetBool(s_rootedHash, target.Status != null && target.Status.IsRooted);
                 }
 
                 break;
@@ -378,17 +378,17 @@ public class ReactionFxEnemyMarks : MonoBehaviour
 
         AnimatorStateInfo state = ember.Animator.GetCurrentAnimatorStateInfo(0);
         Vector3 to = body.bounds.center;
-        if (state.shortNameHash == FlyHash)
+        if (state.shortNameHash == s_flyHash)
         {
             ember.Root.transform.position = Vector3.Lerp(ember.From, to, Mathf.Clamp01(state.normalizedTime));
         }
-        else if (state.shortNameHash == ImpactHash)
+        else if (state.shortNameHash == s_impactHash)
         {
             ember.Root.transform.position = to;
         }
 
         SetSorting(ember.Root, body.sortingLayerID, body.sortingOrder + 8);
-        return !(state.shortNameHash == ImpactHash && state.normalizedTime >= 1f);
+        return !(state.shortNameHash == s_impactHash && state.normalizedTime >= 1f);
     }
 
     private GameObject Spawn(GameObject prefab)

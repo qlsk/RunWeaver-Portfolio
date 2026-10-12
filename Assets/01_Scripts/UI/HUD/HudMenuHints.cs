@@ -15,8 +15,8 @@ public class HudMenuHints : MonoBehaviour
 {
     private const string PrefabPath = "HudHints/HudMenuHints";
     private const float CheckInterval = 0.5f;
-    private static readonly int DimHash = Animator.StringToHash("Dim");
-    private static readonly int NotifyHash = Animator.StringToHash("Notify");
+    private static readonly int s_dimHash = Animator.StringToHash("Dim");
+    private static readonly int s_notifyHash = Animator.StringToHash("Notify");
 
     [SerializeField] private int _fadeFromDepth = 3;
 
@@ -70,7 +70,7 @@ public class HudMenuHints : MonoBehaviour
 
         StageManager stage = StageManager.Instance;
         int depth = stage != null ? stage.CurrentDepth : 1;
-        _animator.SetFloat(DimHash, depth >= _fadeFromDepth ? 1f : 0f);
+        _animator.SetFloat(s_dimHash, depth >= _fadeFromDepth ? 1f : 0f);
 
         if (Time.unscaledTime >= _nextCheck)
         {
@@ -94,7 +94,7 @@ public class HudMenuHints : MonoBehaviour
             }
         }
 
-        _animator.SetBool(NotifyHash, notify);
+        _animator.SetBool(s_notifyHash, notify);
     }
 
     /// <summary>지금 새로 장착할 수 있는 룬 워드 (룬 문자가 충분하거나 완성품이 있고, 아직 장착하지 않았거나 겹쳐 넣을 수 있음)</summary>

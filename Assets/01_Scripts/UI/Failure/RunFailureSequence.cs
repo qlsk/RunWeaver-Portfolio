@@ -90,11 +90,11 @@ public class RunFailureSequence : MonoBehaviour
     private readonly List<Color> _sceneLightColors = new();
     private readonly List<float> _sceneLightIntensities = new();
 
-    private static readonly int HiddenHash = Animator.StringToHash("Hidden");
-    private static readonly int DiedHash = Animator.StringToHash("Died");
-    private static readonly int AbandonedHash = Animator.StringToHash("Abandoned");
-    private static readonly int MissionFailedHash = Animator.StringToHash("MissionFailed");
-    private static readonly int FadeOutHash = Animator.StringToHash("FadeOut");
+    private static readonly int s_hiddenHash = Animator.StringToHash("Hidden");
+    private static readonly int s_diedHash = Animator.StringToHash("Died");
+    private static readonly int s_abandonedHash = Animator.StringToHash("Abandoned");
+    private static readonly int s_missionFailedHash = Animator.StringToHash("MissionFailed");
+    private static readonly int s_fadeOutHash = Animator.StringToHash("FadeOut");
 
     // 프리팹 기준 캐릭터 크기(유닛). 입자 프리팹은 이 크기로 구워져 있어 실제 크기에 맞춰 늘린다.
     private const float MoteReferenceWidth = 0.8f;
@@ -197,7 +197,7 @@ public class RunFailureSequence : MonoBehaviour
         callback?.Invoke();
 
         // 결과창에는 자체 어두운 배경이 있으므로 검은 화면을 걷는다.
-        PlayScreen(FadeOutHash);
+        PlayScreen(s_fadeOutHash);
         float elapsed = 0f;
         while (elapsed < _fadeOutAfterEnding)
         {
@@ -377,9 +377,9 @@ public class RunFailureSequence : MonoBehaviour
     {
         PlayScreen(reason switch
         {
-            RunEndReason.Abandoned => AbandonedHash,
-            RunEndReason.MissionFailed => MissionFailedHash,
-            _ => DiedHash
+            RunEndReason.Abandoned => s_abandonedHash,
+            RunEndReason.MissionFailed => s_missionFailedHash,
+            _ => s_diedHash
         });
 
         if (_bannerText != null)
@@ -407,7 +407,7 @@ public class RunFailureSequence : MonoBehaviour
 
     private void HideScreen()
     {
-        PlayScreen(HiddenHash);
+        PlayScreen(s_hiddenHash);
     }
 
     private void PlayScreen(int stateHash)

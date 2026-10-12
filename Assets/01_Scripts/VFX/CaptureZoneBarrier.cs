@@ -11,8 +11,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class CaptureZoneBarrier : MonoBehaviour
 {
-    private static readonly int PresenceHash = Animator.StringToHash("Presence");
-    private static readonly int DimHash = Animator.StringToHash("Dim");
+    private static readonly int s_presenceHash = Animator.StringToHash("Presence");
+    private static readonly int s_dimHash = Animator.StringToHash("Dim");
 
     [Tooltip("결계가 바닥에서 다 솟아오르는 데 걸리는 시간")]
     [SerializeField, Min(0.01f)] private float _riseDuration = 1.2f;
@@ -46,8 +46,8 @@ public class CaptureZoneBarrier : MonoBehaviour
         _activeTint = Mathf.MoveTowards(_activeTint, active ? 1f : 0f, dt / _dimDuration);
 
         float reveal = _weight * _weight * (3f - 2f * _weight);
-        _animator.SetFloat(PresenceHash, _weight);
-        _animator.SetFloat(DimHash, _activeTint * (1f - reveal));
+        _animator.SetFloat(s_presenceHash, _weight);
+        _animator.SetFloat(s_dimHash, _activeTint * (1f - reveal));
     }
 
     /// <summary>거점 점령 임무가 시작됐고 아직 끝나지 않았는지</summary>

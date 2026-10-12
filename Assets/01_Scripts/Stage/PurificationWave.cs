@@ -16,8 +16,8 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class PurificationWave : MonoBehaviour
 {
-    private static readonly int IdleHash = Animator.StringToHash("Idle");
-    private static readonly int WaveHash = Animator.StringToHash("Wave");
+    private static readonly int s_idleHash = Animator.StringToHash("Idle");
+    private static readonly int s_waveHash = Animator.StringToHash("Wave");
 
     [Header("구성")]
     [SerializeField] private Animator _animator;
@@ -132,7 +132,7 @@ public class PurificationWave : MonoBehaviour
 
         IsPlaying = true;
         _radius = 0f;
-        _animator.Play(WaveHash, 0, 0f);
+        _animator.Play(s_waveHash, 0, 0f);
         _animator.Update(0f);
     }
 
@@ -172,7 +172,7 @@ public class PurificationWave : MonoBehaviour
         }
 
         AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
-        if (state.shortNameHash == WaveHash && state.normalizedTime >= 1f)
+        if (state.shortNameHash == s_waveHash && state.normalizedTime >= 1f)
         {
             Finish();
         }
@@ -211,7 +211,7 @@ public class PurificationWave : MonoBehaviour
     private void Finish()
     {
         IsPlaying = false;
-        _animator.Play(IdleHash, 0, 0f);
+        _animator.Play(s_idleHash, 0, 0f);
         Finished?.Invoke();
 
         if (_destroyOnFinish)

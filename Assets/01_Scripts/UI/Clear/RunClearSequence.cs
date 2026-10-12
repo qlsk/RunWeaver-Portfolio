@@ -32,10 +32,10 @@ public class RunClearSequence : MonoBehaviour
     // 떠오르는 빛(ClearAmbientMotes)이 기준으로 삼는 카메라 크기 (orthographicSize)
     private const float AmbientReferenceSize = 5f;
 
-    private static readonly int HiddenHash = Animator.StringToHash("Hidden");
-    private static readonly int BossHash = Animator.StringToHash("Boss");
-    private static readonly int NoBossHash = Animator.StringToHash("NoBoss");
-    private static readonly int FadeOutHash = Animator.StringToHash("FadeOut");
+    private static readonly int s_hiddenHash = Animator.StringToHash("Hidden");
+    private static readonly int s_bossHash = Animator.StringToHash("Boss");
+    private static readonly int s_noBossHash = Animator.StringToHash("NoBoss");
+    private static readonly int s_fadeOutHash = Animator.StringToHash("FadeOut");
 
     private static readonly float[] BeatTimes = { 0.2f, 0.75f, 1.12f };
     private static readonly float[] BeatStrengths = { 0.5f, 0.75f, 1f };
@@ -193,7 +193,7 @@ public class RunClearSequence : MonoBehaviour
         callback?.Invoke();
 
         // 결과창이 열리면 하얀 화면을 걷는다.
-        PlayScreen(FadeOutHash);
+        PlayScreen(s_fadeOutHash);
         float elapsed = 0f;
         while (elapsed < _fadeOutAfterEnding)
         {
@@ -448,7 +448,7 @@ public class RunClearSequence : MonoBehaviour
 
     private void ShowScreen()
     {
-        PlayScreen(_hasBoss ? BossHash : NoBossHash);
+        PlayScreen(_hasBoss ? s_bossHash : s_noBossHash);
 
         if (_captionTitle != null)
         {
@@ -463,7 +463,7 @@ public class RunClearSequence : MonoBehaviour
 
     private void HideScreen()
     {
-        PlayScreen(HiddenHash);
+        PlayScreen(s_hiddenHash);
     }
 
     private void PlayScreen(int stateHash)
