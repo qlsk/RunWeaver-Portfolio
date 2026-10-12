@@ -12,11 +12,13 @@ public class EnemyRangeAttack : MonoBehaviour
 
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
+    private Enemy _enemy;
     private EnemyStatusEffectController _statusEffectController;
     private float _nextAttackTime;
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _health = GetComponent<EnemyHealth>();
         _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
@@ -45,7 +47,7 @@ public class EnemyRangeAttack : MonoBehaviour
             return;
 
         EnemyBullet bullet = Instantiate(_bulletPrefab, firePosition, Quaternion.identity);
-        bullet.Initialize(direction);
+        bullet.Initialize(direction, _enemy != null ? _enemy.AttackElement : null);
         _nextAttackTime = Time.time + _attackCooldown;
         ProjectileFired?.Invoke();
     }

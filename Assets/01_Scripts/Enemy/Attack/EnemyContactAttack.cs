@@ -11,9 +11,11 @@ public class EnemyContactAttack : MonoBehaviour
     private float _nextAltarAttackTime;
     private EnemyStatusEffectController _statusEffectController;
     private EnemyHealth _health;
+    private Enemy _enemy;
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _statusEffectController = GetComponentInParent<EnemyStatusEffectController>();
         _health = GetComponentInParent<EnemyHealth>();
     }
@@ -40,7 +42,7 @@ public class EnemyContactAttack : MonoBehaviour
         {
             if (Time.time < _nextAttackTime) return;
             _nextAttackTime = Time.time + _attackCooldown;
-            hitbox.Health.TakeDamage(_damage);
+            hitbox.Health.TakeElementDamage(_damage, _enemy != null ? _enemy.AttackElement : null);
         }
         else
         {

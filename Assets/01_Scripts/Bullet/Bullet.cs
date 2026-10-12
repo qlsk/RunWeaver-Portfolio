@@ -26,6 +26,9 @@ public class Bullet : MonoBehaviour
     [SerializeField][Min(0f)]
     private float _seekRadius = 5f;
 
+    [SerializeField, Min(0.01f), Tooltip("유도 곡선의 제어점 거리 = 현재 속도 × 이 값. 클수록 완만하게 회전합니다.")]
+    private float _seekTurnTime = 0.25f;
+
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
 
     [Header("Fix")]
@@ -75,7 +78,7 @@ public class Bullet : MonoBehaviour
         _isInitialized = true;
         _movement = new BulletMovement(transform, _attackData, _runtime,
             _seekRadius, _seekEnemyLayers,
-            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed);
+            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed, _seekTurnTime);
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
