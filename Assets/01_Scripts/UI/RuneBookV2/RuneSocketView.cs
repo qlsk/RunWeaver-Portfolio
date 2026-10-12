@@ -11,9 +11,10 @@ using UnityEngine.UI;
 /// - Empty: 열린 빈 칸. "+" 표시
 /// - Locked: 아직 열리지 않은 칸. 자물쇠 표시
 /// 오른쪽 클릭하면 알린다. (프레젠터가 룬을 뺀다)
+/// 마우스가 올라가고 나갈 때도 알린다. (프레젠터가 장착된 룬의 툴팁을 띄운다)
 /// </summary>
 [DisallowMultipleComponent]
-public class RuneSocketView : MonoBehaviour, IPointerClickHandler
+public class RuneSocketView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public enum State
     {
@@ -64,8 +65,12 @@ public class RuneSocketView : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Color _labelColor = new(0.745f, 0.627f, 0.510f, 1f);
 
     public event Action<RuneSocketView> RightClicked;
+    public event Action<RuneSocketView> PointerEntered;
+    public event Action<RuneSocketView> PointerExited;
 
     public int Index { get; set; }
+
+    public RectTransform RectTransform => (RectTransform)transform;
 
     /// <summary>연출용 빛 이미지 (칸의 빛 또는 채움 스프라이트)</summary>
     public Sprite FlashSprite => _glow != null && _glow.sprite != null ? _glow.sprite
@@ -77,6 +82,16 @@ public class RuneSocketView : MonoBehaviour, IPointerClickHandler
         {
             RightClicked?.Invoke(this);
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        PointerEntered?.Invoke(this);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        PointerExited?.Invoke(this);
     }
 
     /// <param name="icon">룬 효과 아이콘 (Equipped / Pending일 때)</param>

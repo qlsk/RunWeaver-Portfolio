@@ -34,6 +34,12 @@ public class Bullet : MonoBehaviour
 
     [SerializeField] private LayerMask _chainEnemyLayers = ~0;
 
+    [Tooltip("연쇄가 한 번 튈 때마다 늦게 적용하는 시간 (초, 게임 시간)")]
+    [SerializeField, Min(0f)] private float _chainDelay = 0.1f;
+
+    [Tooltip("연쇄 대상을 잇는 연출 (ChainLinkFx 프리팹). 비워두면 연출 없이 연쇄만 한다.")]
+    [SerializeField] private ChainLinkFx _chainLinkFxPrefab;
+
     private BulletMovement _movement;
     private BulletHitEffects _hitEffects;
     private BulletVisualEffects _visualEffects;
@@ -68,7 +74,7 @@ public class Bullet : MonoBehaviour
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
-            _chainRadius, _chainEnemyLayers, PlayHitEffect);
+            _chainRadius, _chainEnemyLayers, PlayHitEffect, PlayChainLink, _chainDelay);
         _movement.UpdateRotation();
         InitializeVisuals(visualEffects);
     }
@@ -103,6 +109,16 @@ public class Bullet : MonoBehaviour
     }
 
     /// 적중 효과는 탄환과 독립적으로 재생하여 탄환이 제거된 뒤에도 남는다.
+    /// 연쇄 : 직접 맞은 적에서 연쇄를 받은 적까지 주력 원소 색으로 잇는다.
+    private void PlayChainLink(EnemyHealth source, Vector2 hitPosition, EnemyHealth target)
+    {
+        if (_chainLinkFxPrefab == null || target == null || !_attackData.Configuration.PrimaryElement.HasValue)
+            return;
+
+        ChainLinkFx.Play(_chainLinkFxPrefab, source != null ? source.transform : null, hitPosition,
+            target.transform, _attackData.Configuration.PrimaryElement.Value);
+    }
+
     private void PlayHitEffect(Vector2 position, Vector2 direction)
     {
         if (_visualEffects == null) return;
