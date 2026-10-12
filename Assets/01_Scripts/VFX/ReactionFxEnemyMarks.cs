@@ -9,6 +9,10 @@ using UnityEngine;
 /// - 물음표 (증기) : 머리 위에 "?"를 띄운다.
 /// - 깨진 방패 (모래폭풍) : 머리 위에 방어 약화 표시를 띄운다.
 /// - 진흙 고리 (진흙) : 발목에 진흙 고리를 두르고, 속박되면 더 크고 진하게 보인다.
+/// 표시(물음표, 방패, 진흙 고리)와 불덩이의 모양·움직임은 프리팹과 애니메이션 클립에 들어 있고,
+/// 코드는 프리팹을 적 위치에 맞춰 띄우고 상태(속박 여부)만 넘긴다. 띄우기는 적 몸을 직접 움직이므로 코드에 남아 있다.
+/// - 표시 프리팹 : 반복 상태 하나 (진흙 고리는 Rooted bool로 Normal / Rooted 상태를 바꾼다)
+/// - 불덩이 프리팹 : Fly(날아가는 호, 자식이 위로 솟는다) → Impact(터지며 사라짐). 루트 위치는 코드가 옮긴다.
 /// 게임 시간으로 돌아간다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -28,7 +32,8 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         public EnemyHealth Health;
         public EnemyStatusEffectController Status;
         public SpriteRenderer Body;
-        public SpriteRenderer Mark;
+        public GameObject Mark;
+        public Animator MarkAnimator;
         public float Phase;
         public float Lift;
         public bool HasLiftBase;
@@ -36,12 +41,15 @@ public class ReactionFxEnemyMarks : MonoBehaviour
 
     private sealed class Ember
     {
-        public SpriteRenderer Renderer;
+        public GameObject Root;
+        public Animator Animator;
         public Vector3 From;
         public Target Target;
-        public float Time;
-        public bool HasHit;
     }
+
+    private static readonly int RootedHash = Animator.StringToHash("Rooted");
+    private static readonly int FlyHash = Animator.StringToHash("Fly");
+    private static readonly int ImpactHash = Animator.StringToHash("Impact");
 
     // 여러 장판이 같은 적을 동시에 띄워도 원래 위치를 한 번만 기억한다.
     private static readonly Dictionary<Transform, (Vector3 basePosition, int count)> s_liftBases = new();
@@ -49,9 +57,10 @@ public class ReactionFxEnemyMarks : MonoBehaviour
     [SerializeField] private MarkMode _mode;
     [Tooltip("ReactionAreaVisuals의 기준 반지름. 이펙트 크기에 곱해 실제 반지름을 구한다.")]
     [SerializeField, Min(0.01f)] private float _referenceRadius = 0.9f;
-    [SerializeField] private Sprite _markSprite;
-    [Tooltip("불덩이가 닿을 때 터지는 모양 (화염폭풍)")]
-    [SerializeField] private Sprite _impactSprite;
+    [Tooltip("적에게 붙는 표시 프리팹 (물음표, 깨진 방패, 진흙 고리)")]
+    [SerializeField] private GameObject _markPrefab;
+    [Tooltip("기둥 위에서 날아가는 불덩이 프리팹 (화염폭풍). Fly → Impact 상태")]
+    [SerializeField] private GameObject _emberPrefab;
     [SerializeField, Min(0.02f)] private float _refreshInterval = 0.1f;
 
     [Header("띄우기 (회오리)")]
@@ -61,8 +70,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
     [Header("불덩이 (화염폭풍)")]
     [Tooltip("불덩이가 떠나는 높이 (반지름 대비)")]
     [SerializeField, Min(0f)] private float _emberLaunchHeight = 0.9f;
-    [SerializeField, Min(0.05f)] private float _emberFlightTime = 0.35f;
-    [SerializeField, Min(0f)] private float _emberArcHeight = 0.8f;
 
     private readonly Dictionary<EnemyHealth, Target> _targets = new();
     private readonly List<Ember> _embers = new();
@@ -91,8 +98,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
             _refreshTimer = 0f;
             Refresh();
         }
-
-        UpdateEmbers(deltaTime);
     }
 
     private void LateUpdate()
@@ -101,6 +106,8 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         {
             Apply(target);
         }
+
+        UpdateEmbers();
     }
 
     private void OnDestroy()
@@ -173,7 +180,7 @@ public class ReactionFxEnemyMarks : MonoBehaviour
             case MarkMode.Question:
             case MarkMode.BrokenShield:
             case MarkMode.Mud:
-                target.Mark = CreateRenderer("Mark", _markSprite);
+                SpawnMark(target);
                 break;
             case MarkMode.Ember:
                 LaunchEmber(target);
@@ -203,8 +210,9 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         target.HasLiftBase = false;
         if (target.Mark != null)
         {
-            Destroy(target.Mark.gameObject);
+            Destroy(target.Mark);
             target.Mark = null;
+            target.MarkAnimator = null;
         }
     }
 
@@ -229,7 +237,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         }
 
         Bounds bounds = target.Body.bounds;
-        float bob = Mathf.Sin(_time * 4f + target.Phase) * 0.04f;
 
         switch (_mode)
         {
@@ -237,29 +244,16 @@ public class ReactionFxEnemyMarks : MonoBehaviour
                 ApplyLift(target);
                 break;
             case MarkMode.Question:
-                if (target.Mark != null)
-                {
-                    PlaceMark(target, new Vector3(bounds.center.x, bounds.max.y + 0.22f + bob, 0f), 6);
-                    // 깜빡이며 두리번거리는 느낌
-                    target.Mark.enabled = Mathf.Repeat(_time * 1.6f + target.Phase, 1f) < 0.75f;
-                }
-
+                PlaceMark(target, new Vector3(bounds.center.x, bounds.max.y + 0.22f, 0f), 6);
                 break;
             case MarkMode.BrokenShield:
-                if (target.Mark != null)
-                {
-                    PlaceMark(target, new Vector3(bounds.center.x, bounds.max.y + 0.24f + bob, 0f), 6);
-                }
-
+                PlaceMark(target, new Vector3(bounds.center.x, bounds.max.y + 0.24f, 0f), 6);
                 break;
             case MarkMode.Mud:
-                if (target.Mark != null)
+                PlaceMark(target, new Vector3(bounds.center.x, bounds.min.y + 0.06f, 0f), 1);
+                if (target.MarkAnimator != null)
                 {
-                    bool isRooted = target.Status != null && target.Status.IsRooted;
-                    PlaceMark(target, new Vector3(bounds.center.x, bounds.min.y + 0.06f, 0f), 1);
-                    float pulse = 1f + Mathf.Sin(_time * 3f + target.Phase) * 0.04f;
-                    target.Mark.transform.localScale = Vector3.one * ((isRooted ? 1.3f : 1f) * pulse);
-                    target.Mark.color = isRooted ? new Color(0.8f, 0.8f, 0.8f, 1f) : Color.white;
+                    target.MarkAnimator.SetBool(RootedHash, target.Status != null && target.Status.IsRooted);
                 }
 
                 break;
@@ -298,41 +292,74 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         body.localPosition = basePosition + new Vector3(sway, _liftHeight * eased + bob, 0f);
     }
 
-    private void PlaceMark(Target target, Vector3 position, int orderOffset)
+    private void SpawnMark(Target target)
     {
+        if (_markPrefab == null)
+        {
+            return;
+        }
+
+        target.Mark = Spawn(_markPrefab);
+        target.MarkAnimator = target.Mark.GetComponent<Animator>();
+        if (target.MarkAnimator != null)
+        {
+            // 여러 적의 표시가 똑같이 움직이지 않게 시작 지점을 흩어 놓는다.
+            target.MarkAnimator.Update(0f);
+            AnimatorStateInfo state = target.MarkAnimator.GetCurrentAnimatorStateInfo(0);
+            target.MarkAnimator.Play(state.fullPathHash, 0, Random.value);
+        }
+    }
+
+    private static void PlaceMark(Target target, Vector3 position, int orderOffset)
+    {
+        if (target.Mark == null)
+        {
+            return;
+        }
+
         target.Mark.transform.position = position;
-        target.Mark.sortingLayerID = target.Body.sortingLayerID;
-        target.Mark.sortingOrder = target.Body.sortingOrder + orderOffset;
+        SetSorting(target.Mark, target.Body.sortingLayerID, target.Body.sortingOrder + orderOffset);
+    }
+
+    private static void SetSorting(GameObject root, int sortingLayerId, int sortingOrder)
+    {
+        foreach (SpriteRenderer renderer in root.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            renderer.sortingLayerID = sortingLayerId;
+            renderer.sortingOrder = sortingOrder;
+        }
     }
 
     // ───────────────────────── 불덩이 ─────────────────────────
 
     private void LaunchEmber(Target target)
     {
-        if (_markSprite == null)
+        if (_emberPrefab == null)
         {
             return;
         }
 
+        GameObject root = Spawn(_emberPrefab);
         Ember ember = new()
         {
-            Renderer = CreateRenderer("Ember", _markSprite),
+            Root = root,
+            Animator = root.GetComponent<Animator>(),
             From = transform.position + Vector3.up * (_radius * _emberLaunchHeight),
             Target = target
         };
+        root.transform.position = ember.From;
         _embers.Add(ember);
-        UpdateEmber(ember, 0f);
     }
 
-    private void UpdateEmbers(float deltaTime)
+    private void UpdateEmbers()
     {
         for (int i = _embers.Count - 1; i >= 0; i--)
         {
-            if (!UpdateEmber(_embers[i], deltaTime))
+            if (!UpdateEmber(_embers[i]))
             {
-                if (_embers[i].Renderer != null)
+                if (_embers[i].Root != null)
                 {
-                    Destroy(_embers[i].Renderer.gameObject);
+                    Destroy(_embers[i].Root);
                 }
 
                 _embers.RemoveAt(i);
@@ -340,61 +367,37 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         }
     }
 
-    /// <summary>불덩이를 움직인다. 끝났으면 false</summary>
-    private bool UpdateEmber(Ember ember, float deltaTime)
+    /// <summary>불덩이 루트를 대상 쪽으로 옮긴다. (호를 그리며 솟는 것과 터지는 모양은 클립) 끝났으면 false</summary>
+    private static bool UpdateEmber(Ember ember)
     {
-        if (ember.Renderer == null)
-        {
-            return false;
-        }
-
-        ember.Time += deltaTime;
         SpriteRenderer body = ember.Target.Body;
-        if (body == null)
+        if (ember.Root == null || ember.Animator == null || body == null)
         {
             return false;
         }
 
-        if (!ember.HasHit)
+        AnimatorStateInfo state = ember.Animator.GetCurrentAnimatorStateInfo(0);
+        Vector3 to = body.bounds.center;
+        if (state.shortNameHash == FlyHash)
         {
-            float t = Mathf.Clamp01(ember.Time / _emberFlightTime);
-            Vector3 to = body.bounds.center;
-            Vector3 position = Vector3.Lerp(ember.From, to, t) + Vector3.up * (Mathf.Sin(t * Mathf.PI) * _emberArcHeight);
-            ember.Renderer.transform.position = position;
-            ember.Renderer.sortingLayerID = body.sortingLayerID;
-            ember.Renderer.sortingOrder = body.sortingOrder + 8;
-            if (t >= 1f)
-            {
-                ember.HasHit = true;
-                ember.Time = 0f;
-                if (_impactSprite != null)
-                {
-                    ember.Renderer.sprite = _impactSprite;
-                }
-            }
-
-            return true;
+            ember.Root.transform.position = Vector3.Lerp(ember.From, to, Mathf.Clamp01(state.normalizedTime));
+        }
+        else if (state.shortNameHash == ImpactHash)
+        {
+            ember.Root.transform.position = to;
         }
 
-        // 터진 모양이 커지며 사라진다.
-        float k = ember.Time / 0.2f;
-        ember.Renderer.transform.position = body.bounds.center;
-        ember.Renderer.transform.localScale = Vector3.one * (1f + k);
-        ember.Renderer.color = new Color(1f, 1f, 1f, 1f - k);
-        return k < 1f;
+        SetSorting(ember.Root, body.sortingLayerID, body.sortingOrder + 8);
+        return !(state.shortNameHash == ImpactHash && state.normalizedTime >= 1f);
     }
 
-    private SpriteRenderer CreateRenderer(string objectName, Sprite sprite)
+    private GameObject Spawn(GameObject prefab)
     {
         if (_holder == null)
         {
             _holder = new GameObject(name + "_EnemyMarks");
         }
 
-        GameObject go = new(objectName);
-        go.transform.SetParent(_holder.transform, false);
-        SpriteRenderer renderer = go.AddComponent<SpriteRenderer>();
-        renderer.sprite = sprite;
-        return renderer;
+        return Instantiate(prefab, _holder.transform);
     }
 }
