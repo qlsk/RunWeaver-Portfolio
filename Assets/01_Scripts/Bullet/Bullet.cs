@@ -8,22 +8,22 @@ public class Bullet : MonoBehaviour
     private const float ReverseSteeringDelay = 0.1f;
     private const float OrbitDuration = 5f;
 
-    [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
-    [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
-    [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
-    [FoldoutGroup("References"), SerializeField] private FirestormReaction _firestormReaction;
-    [FoldoutGroup("References"), SerializeField] private DelugeReaction _delugeReaction;
-    [FoldoutGroup("References"), SerializeField] private MireReaction _mireReaction;
-    [FoldoutGroup("References"), SerializeField] private TempestReaction _tempestReaction;
-    [FoldoutGroup("References"), SerializeField] private PetrifyReaction _petrifyReaction;
-    [FoldoutGroup("References"), SerializeField] private CycloneReaction _cycloneReaction;
-    [FoldoutGroup("References"), SerializeField] private SandstormReaction _sandstormReaction;
+    [FoldoutGroup("References")][SerializeField] private OverHeatReaction _overHeatReaction;
+    [FoldoutGroup("References")][SerializeField] private SteamReaction _steamReaction;
+    [FoldoutGroup("References")][SerializeField] private MoltenReaction _moltenReaction;
+    [FoldoutGroup("References")][SerializeField] private FirestormReaction _firestormReaction;
+    [FoldoutGroup("References")][SerializeField] private DelugeReaction _delugeReaction;
+    [FoldoutGroup("References")][SerializeField] private MireReaction _mireReaction;
+    [FoldoutGroup("References")][SerializeField] private TempestReaction _tempestReaction;
+    [FoldoutGroup("References")][SerializeField] private PetrifyReaction _petrifyReaction;
+    [FoldoutGroup("References")][SerializeField] private CycloneReaction _cycloneReaction;
+    [FoldoutGroup("References")][SerializeField] private SandstormReaction _sandstormReaction;
 
-    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
-    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
+    [FoldoutGroup("Movement Settings")][SerializeField][Min(0.01f)] private float _startSpeed = 20f;
+    [FoldoutGroup("Movement Settings")][SerializeField][Min(0.01f)] private float _endSpeed = 10f;
 
     [Header("Seek")]
-    [SerializeField, Min(0f)]
+    [SerializeField][Min(0f)]
     private float _seekRadius = 5f;
 
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
@@ -32,7 +32,7 @@ public class Bullet : MonoBehaviour
     [SerializeField] private FixTrap _fixTrapPrefab;
 
     [Header("Chain")]
-    [SerializeField, Min(0f)]
+    [SerializeField][Min(0f)]
     private float _chainRadius = 5f;
 
     [SerializeField] private LayerMask _chainEnemyLayers = ~0;
@@ -156,13 +156,21 @@ public class Bullet : MonoBehaviour
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
         bool reversedThisHit = false;
         _processingHit = true;
+
         try
         {
             PlayHitEffect(hitPosition, _runtime.Direction);
             float actualDamage = enemyHealth.ApplyDamage(hitDamage);
-            if (actualDamage > 0f && _attackData.Owner != null &&
+
+            if (actualDamage > 0f &&
+                _attackData.Owner != null &&
                 _attackData.Owner.TryGetComponent(out PlayerAttack playerAttack))
+            {
                 playerAttack.PlayHitFeedback(hitPosition, enemyHealth.IsDead);
+            }
+
+            AbsorbHealth(actualDamage);
+
             _hitEffects.ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
             _hitEffects.ApplyChain(enemyHealth, hitPosition, hitDamage);
             reversedThisHit = _movement.ApplyReverse();
@@ -170,9 +178,30 @@ public class Bullet : MonoBehaviour
         finally
         {
             _processingHit = false;
+
             if (!isPierce && (_runtime.Phase == BulletPhase.Orbiting || !reversedThisHit))
                 RequestEnd(BulletEndReason.Hit);
         }
+    }
+
+    private void AbsorbHealth(float actualDamage)
+    {
+        // 이미 사망했거나 피해가 0인 경우 반환한다
+        if (actualDamage <= 0f)
+            return;
+
+        // 흡수 룬을 장착하지 않은 경우 반환한다
+        if (_attackData.Configuration.AbsorbHealRatio <= 0f)
+            return;
+
+        // 플레이어 오브젝트가 파괴된 경우 반환한다
+        if (_attackData.Owner == null)
+            return;
+
+        if (!_attackData.Owner.TryGetComponent(out PlayerHealth playerHealth))
+            return;
+
+        playerHealth.Heal(actualDamage * _attackData.Configuration.AbsorbHealRatio);
     }
 
     /// 일반 비행 종료에 Return, Orbit 또는 Fix가 개입한다.

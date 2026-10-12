@@ -6,6 +6,7 @@ public sealed class RuneEffectConfiguration
     private const float PowerDamageBonusPerStack = 0.5f;
     private const float SpeedBonusPerStack = 0.5f;
     private const float RangeBonusPerStack = 0.5f;
+    private const float AbsorbHealRatioPerStack = 0.1f;
 
     public const float EchoDelaySeconds = 1f;
 
@@ -33,6 +34,8 @@ public sealed class RuneEffectConfiguration
     public int RangeCount { get; private set; }
     public float RangeMultiplier => 1f + RangeBonusPerStack * RangeCount;
     public int EchoCount { get; private set; }
+    public int AbsorbCount { get; private set; }
+    public float AbsorbHealRatio => AbsorbHealRatioPerStack * AbsorbCount;
 
     public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects)
     {
@@ -87,6 +90,9 @@ public sealed class RuneEffectConfiguration
                     break;
                 case RuneEffectIds.Echo:
                     EchoCount += 1;
+                    break;
+                case RuneEffectIds.Absorb:
+                    AbsorbCount += 1;
                     break;
             }
         }
