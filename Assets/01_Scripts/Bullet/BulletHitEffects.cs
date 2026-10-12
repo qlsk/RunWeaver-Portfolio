@@ -11,10 +11,12 @@ public sealed class BulletHitEffects
     private readonly float _chainRadius;
     private readonly LayerMask _chainEnemyLayers;
     private readonly Action<Vector2, Vector2> _playHitEffect;
+    private readonly Action<EnemyHealth, Vector2, EnemyHealth> _playChainLink;
     private readonly List<Collider2D> _chainCandidates = new(16);
     public BulletHitEffects(PlayerAttackData attackData, BulletRuntime runtime,
         Action<ReactionElement, ReactionElement, ReactionContext> executeReaction,
-        float chainRadius, LayerMask chainLayers, Action<Vector2, Vector2> playHitEffect = null)
+        float chainRadius, LayerMask chainLayers, Action<Vector2, Vector2> playHitEffect = null,
+        Action<EnemyHealth, Vector2, EnemyHealth> playChainLink = null)
     {
         _attackData = attackData;
         _runtime = runtime;
@@ -22,6 +24,7 @@ public sealed class BulletHitEffects
         _chainRadius = chainRadius;
         _chainEnemyLayers = chainLayers;
         _playHitEffect = playHitEffect;
+        _playChainLink = playChainLink;
     }
     /// 두 원소의 반응을 실행하거나 살아 있는 적에게 단일 원소 효과를 적용한다.
     public void ApplyElementEffect(EnemyHealth enemyHealth, Vector2 hitPosition, float hitDamage)
@@ -75,6 +78,8 @@ public sealed class BulletHitEffects
         Vector2 direction = (Vector2)target.transform.position - hitPosition;
         direction = direction.sqrMagnitude > 0f ? direction.normalized : _runtime.Direction;
         _playHitEffect?.Invoke(target.transform.position, direction);
+        // 어느 적에게 연쇄됐는지 보이도록 직접 맞은 적과 받은 적을 잇는다. (ChainLinkFx)
+        _playChainLink?.Invoke(directTarget, hitPosition, target);
         ApplyElementEffect(target, target.transform.position, hitDamage, direction);
     }
 
