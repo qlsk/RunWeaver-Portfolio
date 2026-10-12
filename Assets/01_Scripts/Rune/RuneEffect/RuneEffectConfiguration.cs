@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 public sealed class RuneEffectConfiguration
 {
+    private const float PowerDamageBonusPerStack = 0.5f;
+    private const float SpeedBonusPerStack = 0.5f;
+    private const float RangeBonusPerStack = 0.5f;
+
     public ReactionElement? PrimaryElement { get; }
     public ReactionElement? SecondaryElement { get; }
 
@@ -20,6 +24,12 @@ public sealed class RuneEffectConfiguration
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
     public float SpreadDamageMultiplier => IsSpread ? 0.5f : 1f;
     public float MultipleDamageMultiplier => IsMultiple ? 0.6f : 1f;
+    public int PowerCount { get; private set; }
+    public float PowerDamageMultiplier => 1 + PowerDamageBonusPerStack * PowerCount;
+    public int SpeedCount { get; private set; }
+    public float SpeedMultiplier => 1f + SpeedBonusPerStack * SpeedCount;
+    public int RangeCount { get; private set; }
+    public float RangeMultiplier => 1f + RangeBonusPerStack * RangeCount;
 
     public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects)
     {
@@ -36,6 +46,15 @@ public sealed class RuneEffectConfiguration
 
             switch (effect.Id)
             {
+                case RuneEffectIds.Power:
+                    PowerCount += 1;
+                    break;
+                case RuneEffectIds.Speed:
+                    SpeedCount += 1;
+                    break;
+                case RuneEffectIds.Range:
+                    RangeCount += 1;
+                    break;
                 case RuneEffectIds.Spread:
                     IsSpread = true;
                     break;

@@ -86,7 +86,7 @@ public sealed class BulletMovement
         float remainingProgress = 1f - Mathf.Clamp01(progress);
         float easedProgress = 1f - remainingProgress * remainingProgress * remainingProgress * remainingProgress *
             remainingProgress;
-        float speed = Mathf.Lerp(_startSpeed, _endSpeed, easedProgress);
+        float speed = Mathf.Lerp(_startSpeed, _endSpeed, easedProgress) * _attackData.Configuration.SpeedMultiplier;
         float moveDistance = Mathf.Min(speed * deltaTime, remainingDistance);
         _transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;

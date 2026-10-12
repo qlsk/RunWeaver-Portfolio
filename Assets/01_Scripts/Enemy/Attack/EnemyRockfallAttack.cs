@@ -12,6 +12,7 @@ public class EnemyRockfallAttack : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _markInterval = 0.45f;
     [SerializeField, Min(0.01f)] private float _warningDuration = 1f;
     [SerializeField, Min(0.01f)] private float _attackRadius = 1.2f;
+    [SerializeField, Range(0.1f, 1f)] private float _rangeHeightRatio = 1f;
     [SerializeField, Min(0f)] private float _damage = 15f;
     [SerializeField, Min(0f)] private float _cooldown = 3f;
     [SerializeField] private Sprite _rangeImage;
@@ -46,6 +47,8 @@ public class EnemyRockfallAttack : MonoBehaviour
     private int _remainingMarks;
     private float _nextMarkTime, _nextAttackTime, _pendingRadius, _pendingDamage;
     private float _pendingWarning, _pendingInterval;
+    private float _pendingHeightRatio;
+    private EllipseAttackArea _attackArea;
     public EnemyAttackState State { get; private set; }
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
     public event System.Action<EnemyAttackEndReason> AttackEnded;
@@ -68,6 +71,7 @@ public class EnemyRockfallAttack : MonoBehaviour
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _health = GetComponent<EnemyHealth>();
         _statusEffects = GetComponentInParent<EnemyStatusEffectController>();
+        _attackArea = new EllipseAttackArea(gameObject);
         if (_rangeImage == null || _rangeImage.bounds.size.x <= 0f || _rangeImage.bounds.size.y <= 0f)
         {
             Debug.LogWarning("EnemyRockfallAttack: Range Image에 원형 Sprite를 넣으세요.", this);
@@ -93,6 +97,7 @@ public class EnemyRockfallAttack : MonoBehaviour
 
         _remainingMarks = Mathf.Max(1, _rockCount);
         _pendingRadius = Mathf.Max(0.01f, _attackRadius);
+        _pendingHeightRatio = Mathf.Clamp(_rangeHeightRatio, 0.1f, 1f);
         _pendingDamage = Mathf.Max(0f, _damage);
         _pendingWarning = Mathf.Max(0.01f, _warningDuration);
         _pendingInterval = Mathf.Max(0.01f, _markInterval);
@@ -130,6 +135,10 @@ public class EnemyRockfallAttack : MonoBehaviour
             Vector2 center = _targetDetector.Target.position;
             var strike = new Strike { Center = center, ImpactTime = Time.time + _pendingWarning };
             strike.Warning = CreateVisual("RockfallWarning", _rangeImage, center, _rangeColor, _sortingOrder);
+            Vector3 warningScale = strike.Warning.transform.localScale;
+            warningScale.y *= _pendingHeightRatio;
+            strike.Warning.transform.localScale = warningScale;
+            PositionVisual(strike.Warning, center);
             if (_rockSprite != null)
             {
                 strike.Rock = CreateVisual("EmergingRock", _rockSprite, center, _rockColor, _sortingOrder + 1);
@@ -206,7 +215,10 @@ public class EnemyRockfallAttack : MonoBehaviour
         _hits.Clear();
         _damagedPlayers.Clear();
         _damagedAltars.Clear();
-        Physics2D.OverlapCircle(center, _pendingRadius, new ContactFilter2D { useTriggers = true }, _hits);
+        if (_pendingHeightRatio >= 1f)
+            Physics2D.OverlapCircle(center, _pendingRadius, new ContactFilter2D { useTriggers = true }, _hits);
+        else
+            _attackArea.Overlap(center, _pendingRadius, _pendingHeightRatio, _hits);
         foreach (Collider2D hit in _hits)
         {
             if (hit == null) continue;
@@ -261,6 +273,16 @@ public class EnemyRockfallAttack : MonoBehaviour
     }
 
     private void OnEnable() => EnemyHealth.OnDeath += HandleDeath;
+    private void OnDestroy() => _attackArea?.Dispose();
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = _rangeColor;
+        if (_pending.Count == 0)
+            EllipseAttackArea.DrawGizmo(transform.position, _attackRadius, _rangeHeightRatio);
+        else
+            foreach (Strike strike in _pending)
+                EllipseAttackArea.DrawGizmo(strike.Center, _pendingRadius, _pendingHeightRatio);
+    }
     private void HandleDeath(EnemyHealth health) { if (health == _health) CancelAttack(); }
     private void OnDisable()
     {
