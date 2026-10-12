@@ -5,6 +5,7 @@ public static class RuneEffectIds
     public const string Earth = "rune_earth";
     public const string Wind = "rune_wind";
     public const string Power = "rune_power";
+    public const string Speed = "rune_speed";
     public const string Spread = "rune_spread";
     public const string Multiple = "rune_multiple";
     public const string Pierce = "rune_pierce";
