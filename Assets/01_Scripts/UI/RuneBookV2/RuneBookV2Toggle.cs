@@ -5,6 +5,8 @@ using UnityEngine;
 /// 전투 중 새 룬북(RuneBookV2)을 열고 닫는다.
 /// 열기: PlayerInputHandler의 OpenRuneBookPressed (기본 Tab)
 /// 닫기: 열린 동안 닫기 키(Tab, Esc) 입력. Confirm하지 않고 닫으면 바꾼 내용은 버린다. (RuneBookV2Presenter)
+/// 확정 확인 창(RuneBookConfirmDialog)이 열려 있는 동안에는 닫지 않는다.
+/// 확정 확인 창에서 확정하면(RuneBookV2Presenter.Confirmed) 확정 연출을 잠깐 보여준 뒤 룬북을 닫는다.
 /// 룬북이 열려 있는 동안은 RuneBookPauseController로 게임을 멈춘다.
 /// 닫을 때는 RuneBookV2Fx의 닫기 연출(아래로 가라앉으며 사라짐)이 끝난 뒤 끄고 게임을 다시 움직인다.
 /// 일시정지 메뉴가 열려 있거나 막는 화면(결과 화면 등)이 켜져 있으면 열지 않는다.
@@ -24,8 +26,16 @@ public class RuneBookV2Toggle : MonoBehaviour
     [Tooltip("이 중 하나라도 켜져 있으면 룬북을 열 수 없다 (결과 화면 등)")]
     [SerializeField] private GameObject[] _blockers;
 
+    [Header("확정 후 닫기")]
+    [Tooltip("확정하면 룬북을 닫는다")]
+    [SerializeField] private bool _closeOnConfirm = true;
+    [Tooltip("확정 연출(장착 칸이 차례로 빛남)을 보여준 뒤 닫기까지 (실제 시간, 룬북이 열린 동안 게임이 멈춘다)")]
+    [SerializeField, Min(0f)] private float _closeDelayAfterConfirm = 0.55f;
+
     private int _lastToggleFrame = -1;
     private Coroutine _closeRoutine;
+    private Coroutine _confirmCloseRoutine;
+    private RuneBookV2Presenter _presenter;
 
     public bool IsOpen => _runeBook != null && _runeBook.activeSelf;
 
@@ -56,11 +66,26 @@ public class RuneBookV2Toggle : MonoBehaviour
         }
 
         _inputHandler.OpenRuneBookPressed += HandleOpenRuneBookPressed;
+
+        if (_runeBook != null)
+        {
+            _presenter = _runeBook.GetComponentInChildren<RuneBookV2Presenter>(true);
+            if (_presenter != null)
+            {
+                _presenter.Confirmed += HandleConfirmed;
+            }
+        }
     }
 
     private void Update()
     {
         if (!IsOpen || IsClosing || _lastToggleFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        // 확정 확인 창이 열려 있거나 방금 닫힌 프레임에는 Esc를 확인 창이 쓴다.
+        if (RuneBookConfirmDialog.IsOpen || RuneBookConfirmDialog.ClosedFrame == Time.frameCount)
         {
             return;
         }
@@ -135,6 +160,18 @@ public class RuneBookV2Toggle : MonoBehaviour
             _inputHandler.OpenRuneBookPressed -= HandleOpenRuneBookPressed;
         }
 
+        if (_presenter != null)
+        {
+            _presenter.Confirmed -= HandleConfirmed;
+            _presenter = null;
+        }
+
+        if (_confirmCloseRoutine != null)
+        {
+            StopCoroutine(_confirmCloseRoutine);
+            _confirmCloseRoutine = null;
+        }
+
         // 닫는 도중 토글이 꺼지면 바로 마무리한다.
         if (_closeRoutine != null)
         {
@@ -171,6 +208,28 @@ public class RuneBookV2Toggle : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void HandleConfirmed()
+    {
+        if (!_closeOnConfirm || !IsOpen || IsClosing || !isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (_confirmCloseRoutine != null)
+        {
+            StopCoroutine(_confirmCloseRoutine);
+        }
+
+        _confirmCloseRoutine = StartCoroutine(CloseAfterConfirmRoutine());
+    }
+
+    private IEnumerator CloseAfterConfirmRoutine()
+    {
+        yield return new WaitForSecondsRealtime(_closeDelayAfterConfirm);
+        _confirmCloseRoutine = null;
+        Close();
     }
 
     private void HandleOpenRuneBookPressed()

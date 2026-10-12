@@ -77,26 +77,6 @@ MonoBehaviour:
     RuneEffectId: rune_range
     HealRatio: 0
     RuneStoneAmount: 5
-  - Id: rw_grow
-    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC131\uC7A5"
-    Description: "\uD0C4\uD658\uC774 \uB0A0\uC544\uAC00\uB294 \uB3D9\uC548 \uC704\uB825\uC774
-      \uC810\uC810 \uCEE4\uC838 \uCD5C\uB300 200%\uAE4C\uC9C0 \uC99D\uAC00\uD569\uB2C8\uB2E4."
-    Icon: {fileID: 1568585635, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    Type: 0
-    BasePrice: 1000
-    RuneEffectId: rune_grow
-    HealRatio: 0
-    RuneStoneAmount: 5
-  - Id: rw_duration
-    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC9C0\uC18D"
-    Description: "\uC6D0\uC18C \uBC18\uC751 \uD6A8\uACFC\uC758 \uC9C0\uC18D \uC2DC\uAC04\uC774
-      \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
-    Icon: {fileID: -633696880, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    Type: 0
-    BasePrice: 1000
-    RuneEffectId: rune_duration
-    HealRatio: 0
-    RuneStoneAmount: 5
   - Id: rw_return
     DisplayName: "\uB8EC \uC6CC\uB4DC: \uD68C\uADC0"
     Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0 \uB2FF\uC740 \uD0C4\uD658\uC774
@@ -139,16 +119,6 @@ MonoBehaviour:
     RuneEffectId: rune_chain
     HealRatio: 0
     RuneStoneAmount: 5
-  - Id: rw_fix
-    DisplayName: "\uB8EC \uC6CC\uB4DC: \uACE0\uC815"
-    Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uD0C4\uD658\uC774
-      10\uCD08 \uB3D9\uC548 \uADF8 \uC790\uB9AC\uC5D0 \uBA38\uBB38 \uB4A4 \uC0AC\uB77C\uC9D1\uB2C8\uB2E4."
-    Icon: {fileID: -1051220346, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    Type: 0
-    BasePrice: 1300
-    RuneEffectId: rune_fix
-    HealRatio: 0
-    RuneStoneAmount: 5
   - Id: rw_orbit
     DisplayName: "\uB8EC \uC6CC\uB4DC: \uADA4\uB3C4"
     Description: "\uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uD0C4\uD658\uC774
@@ -179,16 +149,6 @@ MonoBehaviour:
     RuneEffectId: rune_multiple
     HealRatio: 0
     RuneStoneAmount: 5
-  - Id: rw_bind
-    DisplayName: "\uB8EC \uC6CC\uB4DC: \uC18D\uBC15"
-    Description: "\uB9DE\uC740 \uC801\uC744 1\uCD08 \uB3D9\uC548 \uC18D\uBC15\uD574
-      \uC774\uB3D9\uC744 \uB9C9\uC2B5\uB2C8\uB2E4."
-    Icon: {fileID: -608979020, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    Type: 0
-    BasePrice: 1300
-    RuneEffectId: rune_bind
-    HealRatio: 0
-    RuneStoneAmount: 5
   - Id: rw_absorb
     DisplayName: "\uB8EC \uC6CC\uB4DC: \uD761\uC218"
     Description: "\uC801\uC911 \uC2DC \uAC00\uD55C \uD53C\uD574\uC758 10%\uB9CC\uD07C
@@ -197,16 +157,6 @@ MonoBehaviour:
     Type: 0
     BasePrice: 1300
     RuneEffectId: rune_absorb
-    HealRatio: 0
-    RuneStoneAmount: 5
-  - Id: rw_break
-    DisplayName: "\uB8EC \uC6CC\uB4DC: \uD30C\uAD34"
-    Description: "\uC801\uC911 \uC2DC \uC801\uC758 \uBCF4\uD638\uB9C9\uC744 \uD30C\uAD34\uD558\uAC70\uB098
-      \uC57D\uD654 \uD6A8\uACFC\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
-    Icon: {fileID: 527459426, guid: e9b292eb5223e9640bfe6ed6c346ceed, type: 3}
-    Type: 0
-    BasePrice: 1300
-    RuneEffectId: rune_break
     HealRatio: 0
     RuneStoneAmount: 5
   - Id: rw_reverse

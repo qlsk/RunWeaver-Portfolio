@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 20875033302838106}
   - component: {fileID: 3521169851524287602}
   - component: {fileID: 2323122959006495011}
+  - component: {fileID: -3875539494727517832}
   m_Layer: 0
   m_Name: EnemyProjectile
   m_TagString: Untagged
@@ -85,12 +86,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 51d825f14a916914da10d3ab6fb12272, type: 3}
+  m_Sprite: {fileID: 21300000, guid: baf0cedf3797a1043b9de01b98e1742f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 12.54, y: 12.54}
+  m_Size: {x: 7.24, y: 5.43}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -145,7 +146,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBullet
   _damage: 5
   _speed: 2
-  _playerHealth: {fileID: 8110420657988907431, guid: f55aef78f5b33fa4099c9044544bda77, type: 3}
 --- !u!50 &3521169851524287602
 Rigidbody2D:
   serializedVersion: 5
@@ -185,3 +185,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69f4d532d008c5846923170b5986c08b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
+  _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
+--- !u!95 &-3875539494727517832
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5765636610259679437}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: bcbf23f2eb6414c4bbe406b26d44e0ce, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

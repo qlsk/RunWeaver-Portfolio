@@ -6,7 +6,7 @@ public class AltarDefenseMission : MissionBase
     public override MissionType Type => MissionType.AltarDefense;
 
     [Header("제단 방어 미션 설정")]
-    [SerializeField, FormerlySerializedAs("defenseDuration")] private float _defenseDuration = 20f; // 목표 제단 생존 시간 (20초)
+    [SerializeField, FormerlySerializedAs("defenseDuration")] private float _defenseDuration = 15f; // 목표 제단 생존 시간 (15초)
     private float _currentTimer = 0f;
     private int _lastLoggedSecond = -1;
     private DefenseAltar _targetAltar;
@@ -14,6 +14,7 @@ public class AltarDefenseMission : MissionBase
 
     public float DefenseDuration => _defenseDuration;
     public float CurrentTimer => _currentTimer;
+    public DefenseAltar TargetAltar => _targetAltar;
 
     /// <summary>
     /// MissionManager에서 생성된 신규 제단 오브젝트를 직접 전달받습니다.
@@ -88,7 +89,7 @@ public class AltarDefenseMission : MissionBase
             Debug.Log($"[AltarDefenseMission] 제단 방어 진행 중... {currentSecond}s / {_defenseDuration:F0}s | 제단 HP: {_targetAltar.CurrentHp}/{_targetAltar.MaxHp}");
         }
 
-        // 20초 생존 달성 시 처리
+        // 15초 생존 달성 시 처리
         if (_currentTimer >= _defenseDuration)
         {
             Debug.Log($"[AltarDefenseMission] ★ 제단 방어 성공({_defenseDuration}초 생존)! 미션 클리어");
@@ -126,6 +127,7 @@ public class AltarDefenseMission : MissionBase
     {
         if (IsFailed) return "제단 파괴됨!";
         if (IsCompleted) return "방어 성공!";
-        return $"제단 방어: {Mathf.Min(_currentTimer, _defenseDuration):F1}s / {_defenseDuration:F0}s";
+        string hp = _targetAltar != null ? $" | 제단 HP: {_targetAltar.CurrentHp:F0}/{_targetAltar.MaxHp:F0}" : string.Empty;
+        return $"제단 방어: {Mathf.Min(_currentTimer, _defenseDuration):F1}s / {_defenseDuration:F0}s{hp}";
     }
 }

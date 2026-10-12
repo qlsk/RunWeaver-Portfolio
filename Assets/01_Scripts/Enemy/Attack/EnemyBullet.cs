@@ -11,6 +11,11 @@ public class EnemyBullet : MonoBehaviour
     public void Initialize(Vector2 direction)
     {
         _direction = direction.normalized;
+        if (_direction.sqrMagnitude > 0f)
+        {
+            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
         _initialized = true;
     }
 

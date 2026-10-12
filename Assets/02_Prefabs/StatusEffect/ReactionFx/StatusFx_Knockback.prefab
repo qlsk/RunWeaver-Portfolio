@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2547956231994987476}
   - component: {fileID: 7416549904898714241}
-  - component: {fileID: 2802757287493952138}
+  - component: {fileID: 2851617068153883061}
   m_Layer: 0
   m_Name: StatusFx_Knockback
   m_TagString: Untagged
@@ -92,27 +92,25 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &2802757287493952138
-MonoBehaviour:
+--- !u!95 &2851617068153883061
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2064584436310274632}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: -1480510574, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: -97224162, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: 1306695610, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: -1124925953, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: 135271274, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: -1402328631, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: -2038951179, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  - {fileID: 423271000, guid: 59b099b0b8ff45db9a045a7b398604ff, type: 3}
-  _framesPerSecond: 24
-  _loop: 0
-  _randomStart: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c9bb355f11fd9c5b06797871b022ff05, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
