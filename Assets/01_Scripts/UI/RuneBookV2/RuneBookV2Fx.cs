@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// - 칸(RuneSocketView)마다 Animator(RuneSocketFx.controller) : Equip, Remove, Warning, Confirm
 ///   빛 색은 원소마다 달라서 재생하기 전에 FxFlash 이미지의 색만 정해 준다. (투명도와 크기는 클립이 정한다)
 /// - 룬석 칸(RuneStoneCellView)마다 Animator(RuneStoneCellFx.controller) : Use, Shortage
+/// - 보기 전용에서 칸을 눌렀을 때 : 룬 워드 칸은 짧게 좌우로 기울며 떨고(코드), 장착 칸은 Warning을 재생한다.
+///   안내 문구는 반짝였다 원래 색으로 돌아온다. (코드)
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneBookV2Fx : MonoBehaviour
@@ -28,7 +30,19 @@ public class RuneBookV2Fx : MonoBehaviour
     [SerializeField, Min(0f)] private float _confirmStagger = 0.07f;
     [SerializeField, Min(0.01f)] private float _closeDuration = 0.25f;
 
+    [Header("보기 전용에서 칸을 눌렀을 때")]
+    [SerializeField, Min(0.01f)] private float _blockedShakeDuration = 0.3f;
+    [Tooltip("떨리는 최대 각도")]
+    [SerializeField, Min(0f)] private float _blockedShakeAngle = 8f;
+    [SerializeField, Min(0.01f)] private float _blockedFlashDuration = 0.6f;
+
     private Animator _animator;
+    private Transform _shakeTarget;
+    private Quaternion _shakeBaseRotation;
+    private Coroutine _shakeRoutine;
+    private Graphic _flashTarget;
+    private Color _flashBaseColor;
+    private Coroutine _flashRoutine;
 
     private Animator BookAnimator => _animator != null ? _animator : _animator = GetComponent<Animator>();
 
@@ -43,6 +57,8 @@ public class RuneBookV2Fx : MonoBehaviour
     /// <summary>닫기 연출. 다른 오브젝트(항상 켜진 토글)에서 코루틴으로 돌린다.</summary>
     public IEnumerator PlayClose()
     {
+        StopShake();
+        StopFlash();
         StopAllCoroutines();
         if (BookAnimator == null || !isActiveAndEnabled)
         {
@@ -98,6 +114,92 @@ public class RuneBookV2Fx : MonoBehaviour
         }
     }
 
+    /// <summary>보기 전용에서 칸을 눌렀을 때 : 칸이 짧게 떨고 안내 문구가 flashColor로 반짝였다 돌아온다.</summary>
+    public void PlayViewOnlyBlocked(Component target, Graphic infoText, Color flashColor)
+    {
+        if (target is RuneSocketView socket)
+        {
+            // 장착 칸은 Animator가 움직임을 맡으므로 경고 클립을 쓴다.
+            PlayWarning(socket);
+        }
+        else if (target != null)
+        {
+            StopShake();
+            _shakeTarget = target.transform;
+            _shakeBaseRotation = _shakeTarget.localRotation;
+            _shakeRoutine = StartCoroutine(ShakeRoutine());
+        }
+
+        if (infoText != null)
+        {
+            StopFlash();
+            _flashTarget = infoText;
+            _flashBaseColor = infoText.color;
+            _flashRoutine = StartCoroutine(FlashRoutine(flashColor));
+        }
+    }
+
+    private IEnumerator ShakeRoutine()
+    {
+        float elapsed = 0f;
+        while (elapsed < _blockedShakeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / _blockedShakeDuration);
+            float angle = Mathf.Sin(elapsed * 55f) * _blockedShakeAngle * (1f - t);
+            _shakeTarget.localRotation = _shakeBaseRotation * Quaternion.Euler(0f, 0f, angle);
+            yield return null;
+        }
+
+        _shakeRoutine = null;
+        StopShake();
+    }
+
+    private IEnumerator FlashRoutine(Color flashColor)
+    {
+        float elapsed = 0f;
+        while (elapsed < _blockedFlashDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / _blockedFlashDuration);
+            _flashTarget.color = Color.Lerp(flashColor, _flashBaseColor, t * t);
+            yield return null;
+        }
+
+        _flashRoutine = null;
+        StopFlash();
+    }
+
+    private void StopShake()
+    {
+        if (_shakeRoutine != null)
+        {
+            StopCoroutine(_shakeRoutine);
+            _shakeRoutine = null;
+        }
+
+        if (_shakeTarget != null)
+        {
+            _shakeTarget.localRotation = _shakeBaseRotation;
+            _shakeTarget = null;
+        }
+    }
+
+    private void StopFlash()
+    {
+        if (_flashRoutine != null)
+        {
+            StopCoroutine(_flashRoutine);
+            _flashRoutine = null;
+        }
+
+        if (_flashTarget != null)
+        {
+            _flashTarget.color = _flashBaseColor;
+            _flashTarget = null;
+        }
+    }
+
     private IEnumerator PlayLater(RuneSocketView socket, Color color, float delay)
     {
         float elapsed = 0f;
@@ -138,6 +240,8 @@ public class RuneBookV2Fx : MonoBehaviour
 
     private void OnDisable()
     {
+        StopShake();
+        StopFlash();
         StopAllCoroutines();
     }
 }

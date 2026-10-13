@@ -113,6 +113,9 @@ public class RewardSelectPresentation : MonoBehaviour
     /// <summary>열기·리롤·확정 연출 중에는 입력을 받지 않는다.</summary>
     public bool IsBusy => _phase is Phase.Rerolling or Phase.Confirming;
 
+    /// <summary>열기 연출 중인지 (카드와 아래 버튼이 아직 다 나타나지 않았다). 이 동안은 다시 뽑기를 받지 않는다.</summary>
+    public bool IsOpening => _phase == Phase.Opening;
+
     private void Initialize()
     {
         if (_initialized)

@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 타이틀 글자 메뉴. 항목 하나가 항상 선택되어 있다.
-/// - 위/아래 방향키(W/S)로 고르고 Enter(Space)로 결정한다. 누를 수 없는 항목은 건너뛴다.
+/// - 위/아래 방향키(W/S)로 고르고 F(Enter, Space)로 결정한다. 누를 수 없는 항목은 건너뛴다. (전투 씬의 선택 창들과 같은 키)
 /// - 마우스를 올리면 선택되고, 누르면 결정한다.
 /// - PlayAppear로 항목이 차례로 떠오른다. 그 전에는 입력을 받지 않는다.
 /// - 결정하면 잠긴다. 다시 받으려면 SetLocked(false). (설정 창을 닫았을 때 등)
@@ -113,8 +113,8 @@ public class TitleMenuView : MonoBehaviour
         {
             Select(FindSelectable(_selectedIndex + 1, 1), false);
         }
-        else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) ||
-                 Input.GetKeyDown(KeyCode.Space))
+        else if (Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.Return) ||
+                 Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
         {
             Confirm(_selectedIndex);
         }

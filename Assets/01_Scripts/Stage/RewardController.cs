@@ -14,6 +14,7 @@ using UnityEngine.Serialization;
 /// - 확정 전까지 Time.timeScale = 0. 선택 없이 닫을 수 없다.
 /// - Done 이후 같은 스테이지에서 다시 열리지 않는다. 새 층(OnMissionInitialized)에서 리셋.
 /// - 사망 시에는 UI를 열지 않고 즉시 onFinished를 불러 포탈 흐름을 막지 않는다.
+/// - 일시정지 메뉴나 룬북이 열려 있으면 닫힐 때까지 기다렸다가 UI를 연다. (멈춘 화면 위로 올라오지 않는다)
 /// - 런 종료(RunEnded) 중 UI가 열려 있으면 닫고 timeScale을 복구한다.
 /// - 씬 전환/파괴 시 timeScale 복구를 보장한다.
 /// </summary>
@@ -38,6 +39,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     [Tooltip("보상 화면마다 주는 다시 뽑기 횟수. 다음 보상으로 넘어가지 않는다")]
     [SerializeField, Min(0)] private int _rerollsPerReward = 1;
     private TraitManager _traits;
+    private RuneBookV2Toggle _runeBookToggle;
 
     private MissionManager _missionManager;
     private StageManager _stageManager;
@@ -243,9 +245,25 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         _resultPresenters.Clear();
     }
 
+    /// <summary>일시정지 메뉴나 룬북이 열려 있는지 (보상 UI를 그 위로 띄우지 않는다)</summary>
+    private bool IsGameStopped()
+    {
+        if (PauseController.IsGamePaused)
+        {
+            return true;
+        }
+
+        if (_runeBookToggle == null)
+        {
+            _runeBookToggle = FindAnyObjectByType<RuneBookV2Toggle>();
+        }
+
+        return _runeBookToggle != null && (_runeBookToggle.IsOpen || _runeBookToggle.IsClosing);
+    }
+
     private System.Collections.IEnumerator WaitForUnpauseRoutine()
     {
-        while (PauseController.IsGamePaused)
+        while (IsGameStopped())
         {
             yield return null;
         }
@@ -286,8 +304,8 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
 
         StopMessageWait();
 
-        // 일시정지 메뉴가 열려 있으면 완전히 풀릴 때까지(카운트다운 포함) 기다렸다가 연다.
-        if (PauseController.IsGamePaused)
+        // 일시정지 메뉴(카운트다운 포함)나 룬북이 열려 있으면 닫힐 때까지 기다렸다가 연다.
+        if (IsGameStopped())
         {
             if (_pauseWaitRoutine == null)
             {
