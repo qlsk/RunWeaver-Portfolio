@@ -1568,3 +1568,90 @@ public class TutorialCompletionBannerView : MonoBehaviour
 Unity 에디터 작업: `Canvas` 아래 전체 화면 `TutorialCompletionBannerRoot`에 이 뷰를 붙이고 컨트롤러, 프리팹, 루트를 연결했다.
 
 검증: 필수 10단계를 마치고 다음 층이 시작되면 배너가 3초 뜬 뒤 사라진다. 건너뛰면 뜨지 않는다. 중단되어도 뜨지 않는다.
+
+## 21. 18번 단위 — 협회 지침서
+
+> 상태: **구현됨** · 기존 게임 코드(`PauseController`)에 보조 화면 Esc 처리 API를 추가했다. "기록 N/전체"의 기준은 임시이다.
+
+### 21.1 확정 요구사항
+
+- 일시정지 메뉴에 "협회 지침서" 항목을 두고, 누르면 지침서 화면(`TutorialGuidebookScreen`)을 연다. 지침서는 장착용 룬북과 분리된 도감이다.
+- 왼쪽 목록: **"기본 조작"**(튜토리얼 필수 단계 10개)과 **분류별 기록**(상황 안내 카드 21장). 본 기록은 제목으로, 아직 보지 못한 기록은 `???` 잠금 항목으로 보인다. 분류가 바뀔 때마다 분류 머리글을 넣는다. 프리팹의 견본 항목과 "미발견 N개" 표시는 쓰지 않는다.
+- 오른쪽 상세: 분류, 제목, 본문, 조작 키 행(키 행동 행이 있는 단계), 꼬리말(기록의 꼬리말). 잠긴 항목은 "아직 만나지 못한 기록이다."를 보인다.
+- 상단 "기록 N / 전체": N은 본 기록 카드 수, 전체는 기록 카드 수(21)이다. 목업의 31은 기준이 정해지지 않아 반영하지 않았다(미결).
+- 지침서가 열려 있는 동안 **Esc는 메뉴 전체를 닫지 않고 지침서만 닫는다**(튜토리얼 건너뛰기 대화상자도 같다).
+- 지침서는 열 때마다 목록을 새로 만든다.
+
+### 21.2 기존 코드 변경 (게임 코드)
+
+파일: `UI/Pause/PauseController.cs` (수정)
+
+```csharp
+private readonly List<Func<bool>> _subScreenCloseHandlers;
+
+public void RegisterSubScreenCloseHandler(Func<bool> handler);
+public void UnregisterSubScreenCloseHandler(Func<bool> handler);
+private bool TryCloseSubScreen();
+```
+
+메뉴 상태에서 Esc가 눌리면 먼저 `TryCloseSubScreen`이 등록된 핸들러를 차례로 불러 하나라도 true(보조 화면을 닫음)를 돌려주면 이번 Esc로 메뉴를 닫지 않는다. 핸들러가 없거나 모두 false이면 기존처럼 재개한다.
+
+### 21.3 선언
+
+파일: `GuidebookPresenter.cs` (신규)
+
+```csharp
+public class GuidebookPresenter : MonoBehaviour
+{
+    [SerializeField] private TutorialStepSO[] _steps;
+    [SerializeField] private RecordCardSO[] _records;
+    [SerializeField] private PauseController _pauseController;
+    [SerializeField] private Button _menuButton;
+    [SerializeField] private GameObject _screen;
+    [SerializeField] private GameObject _categoryPrefab;
+    [SerializeField] private GameObject _itemPrefab;
+    [SerializeField] private GameObject _lockedItemPrefab;
+    [SerializeField] private GameObject _keyRowPrefab;
+
+    private void Open();
+    private bool HandleEscape();
+    private void BuildEntries();
+    private void BuildList();
+    private void Select(Entry entry);
+    private void BuildKeyRows(Entry entry);
+}
+```
+
+`Entry`는 분류, 제목, 본문, 꼬리말, 잠금 여부, 키 행 목록을 가진 내부 클래스이다. 처리 순서:
+
+- `Awake`: 화면 안에서 이름으로 목록 내용, 키 상자, 개수·분류·제목·본문·꼬리말 텍스트를 찾고 화면을 꺼 둔다. 화면이 연결되지 않았으면 오류를 남긴다.
+- `OnEnable`/`OnDisable`: 메뉴 버튼 리스너와 `PauseController`의 Esc 핸들러를 맺고 푼다.
+- `Open`: 항목 목록을 만들고 → 화면 목록을 그리고 → 화면을 켠 뒤 → 잠기지 않은 첫 항목을 고른다.
+- `BuildEntries`: 필수 단계는 "기본 조작" 항목으로(키 행동 행이 있으면 키와 라벨을 키 행으로), 기록 카드는 본 여부에 따라 잠금 또는 제목·본문·꼬리말 항목으로 만든다.
+- `BuildList`: 견본 항목을 지우고, 분류가 바뀔 때 분류 머리글을 넣고, 항목마다 잠금 여부에 맞는 프리팹을 만들어 클릭 시 `Select`를 연결한다. 개수 텍스트("기록 N / 전체")를 갱신한다.
+- `Select`: 선택 표시를 갱신하고 오른쪽 상세와 키 행(`BuildKeyRows`)을 채운다.
+- `HandleEscape`: 화면이 열려 있으면 닫고 true를 돌려준다.
+- `LateUpdate`: 일시정지 메뉴가 닫혀 메뉴 항목이 숨으면 화면도 닫는다.
+
+파일: `TutorialSkipPresenter.cs` (수정): `_pauseController`(선택)를 두고 Esc 핸들러를 등록해, 건너뛰기 대화상자가 열려 있으면 Esc가 그 대화상자만 닫게 한다.
+
+### 21.4 Unity 에디터 작업
+
+- 일시정지 메뉴에 `GuidebookButton`("협회 지침서")을 탐사 포기 버튼을 본떠 만들고 클릭 리스너를 비웠다. 항목이 6개로 늘어 패널 안에 들어가도록 간격을 66으로 줄였다(계속하기 22, 설정 -44, 협회 지침서 -110, 탐사 포기 -176, 게임 종료 -242, 튜토리얼 건너뛰기 -308, 안내 문구 -352). **화면에서 겹침이 없는지 확인이 필요하다.**
+- `Content` 아래에 `TutorialGuidebookScreen` 프리팹 인스턴스를 비활성으로 맨 위에 두었다.
+- `Canvas` 아래 `GuidebookPresenter`에 필수 단계 10개, 기록 카드 21장, 메뉴 버튼, 화면, 프리팹 4종, `PauseController`를 연결했다. `TutorialSkipPresenter`에도 `PauseController`를 연결했다.
+
+### 21.5 검증 시나리오
+
+**목록과 상세**
+- 행동: 일시정지 메뉴에서 협회 지침서를 연다.
+- 결과: "기본 조작" 항목과 분류별 기록이 보이고, 본 기록만 제목이 보인다. 항목을 고르면 오른쪽에 설명이 나온다. 키 행동 행이 있는 기본 조작은 키와 라벨이 나온다.
+
+**개수**
+- 기록 카드를 하나 더 보면 다음에 열 때 "기록 N / 21"의 N이 늘고 해당 항목이 잠금에서 풀린다.
+
+**Esc**
+- 지침서에서 Esc를 누르면 지침서만 닫히고 메뉴가 남는다. 한 번 더 누르면 기존처럼 재개한다. 건너뛰기 대화상자도 같다.
+
+**메뉴 닫힘**
+- 지침서가 열린 채 메뉴가 닫히면(예: 포커스 이동) 다음에 메뉴를 열 때 지침서는 닫혀 있다.

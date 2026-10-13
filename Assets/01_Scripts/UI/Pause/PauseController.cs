@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -83,6 +85,38 @@ public class PauseController : MonoBehaviour
     /// <summary>일시정지 화면이 열려 있는지 (카운트다운 포함)</summary>
     public static bool IsGamePaused { get; private set; }
 
+    private readonly List<Func<bool>> _subScreenCloseHandlers = new();
+
+    /// <summary>
+    /// 메뉴 위에 열리는 보조 화면(튜토리얼 지침서 등)이 Esc를 먼저 받을 수 있게 한다.
+    /// 핸들러는 보조 화면을 닫았으면 true를 돌려주며, 그러면 이번 Esc로 메뉴를 닫지 않는다.
+    /// </summary>
+    public void RegisterSubScreenCloseHandler(Func<bool> handler)
+    {
+        if (handler != null && !_subScreenCloseHandlers.Contains(handler))
+        {
+            _subScreenCloseHandlers.Add(handler);
+        }
+    }
+
+    public void UnregisterSubScreenCloseHandler(Func<bool> handler)
+    {
+        _subScreenCloseHandlers.Remove(handler);
+    }
+
+    private bool TryCloseSubScreen()
+    {
+        foreach (Func<bool> handler in _subScreenCloseHandlers)
+        {
+            if (handler())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void Awake()
     {
         if (_popupController == null) _popupController = FindAnyObjectByType<PopupController>();
@@ -138,7 +172,10 @@ public class PauseController : MonoBehaviour
                 }
                 break;
             case State.Menu:
-                Resume();
+                if (!TryCloseSubScreen())
+                {
+                    Resume();
+                }
                 break;
             case State.Settings:
                 _settingsPanel.Cancel();

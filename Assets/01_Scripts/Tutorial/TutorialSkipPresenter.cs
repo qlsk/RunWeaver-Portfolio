@@ -15,6 +15,8 @@ public class TutorialSkipPresenter : MonoBehaviour
     [SerializeField] private Button _menuButton;
     [Tooltip("확인 대화상자(TutorialSkipDialog 프리팹 인스턴스). 처음에는 꺼 둔다")]
     [SerializeField] private GameObject _dialog;
+    [Tooltip("대화상자가 열려 있을 때 Esc가 메뉴 전체를 닫지 않고 대화상자만 닫게 한다")]
+    [SerializeField] private PauseController _pauseController;
 
     private Button _continueButton;
     private Button _skipButton;
@@ -42,6 +44,9 @@ public class TutorialSkipPresenter : MonoBehaviour
 
         if (_skipButton != null)
             _skipButton.onClick.AddListener(HandleSkipClicked);
+
+        if (_pauseController != null)
+            _pauseController.RegisterSubScreenCloseHandler(HandleEscape);
     }
 
     private void OnDisable()
@@ -54,6 +59,9 @@ public class TutorialSkipPresenter : MonoBehaviour
 
         if (_skipButton != null)
             _skipButton.onClick.RemoveListener(HandleSkipClicked);
+
+        if (_pauseController != null)
+            _pauseController.UnregisterSubScreenCloseHandler(HandleEscape);
     }
 
     private void LateUpdate()
@@ -68,6 +76,16 @@ public class TutorialSkipPresenter : MonoBehaviour
 
         if (_dialog != null && _dialog.activeSelf && !_menuButton.gameObject.activeInHierarchy)
             _dialog.SetActive(false);
+    }
+
+    /// <summary>대화상자가 열려 있으면 닫고 true를 돌려준다.</summary>
+    private bool HandleEscape()
+    {
+        if (_dialog == null || !_dialog.activeSelf)
+            return false;
+
+        _dialog.SetActive(false);
+        return true;
     }
 
     private void HandleMenuClicked()
