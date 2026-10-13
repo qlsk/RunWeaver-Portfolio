@@ -1,0 +1,1 @@
+using UnityEngine;public static class TutorialCanvasExtensions{    public static Camera GetUiCamera(this Canvas canvas)    {        return canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;    }}

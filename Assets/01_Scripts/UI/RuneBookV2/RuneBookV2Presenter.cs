@@ -125,6 +125,43 @@ public class RuneBookV2Presenter : MonoBehaviour
     // 확정한 뒤 칸을 다시 바꾸기 전까지 확인 버튼(F, Space 포함)을 받지 않는다.
     private bool _isConfirmLocked;
 
+    private IReadOnlyCollection<string> _allowedEntryIds;
+
+    /// <summary>
+    /// 장착할 수 있는 룬 워드를 제한한다. (튜토리얼) null이면 제한이 없다.
+    /// 목록에 없는 룬 워드는 이름이 ???로 가려지고 눌러도 장착되지 않는다. 이미 장착된 칸은 그대로 보인다.
+    /// </summary>
+    public void SetAllowedEntryIds(IReadOnlyCollection<string> entryIds)
+    {
+        _allowedEntryIds = entryIds;
+        _isRefreshQueued = true;
+    }
+
+    private bool IsAllowed(string entryId)
+    {
+        if (_allowedEntryIds == null)
+        {
+            return true;
+        }
+
+        foreach (string allowedId in _allowedEntryIds)
+        {
+            if (allowedId == entryId)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>제한으로 잠긴 룬 워드를 타일에 보일 가려진 항목으로 바꾼다. (이름과 설명, 룬 문자, 아이콘을 숨긴다)</summary>
+    private static RuneBookEntryData MaskEntry(RuneBookEntryData entry)
+    {
+        return new RuneBookEntryData(entry.Id, string.Empty, "???", string.Empty, entry.Category,
+            RuneWordRevealLevel.Listed, null, "???");
+    }
+
     /// <summary>보기 전용이면 룬 워드를 넣거나 빼거나 Confirm할 수 없다.</summary>
     public bool IsViewOnly => _isViewOnly;
 
@@ -434,6 +471,12 @@ public class RuneBookV2Presenter : MonoBehaviour
         RuneBookEntryData entry = tile.Entry;
         if (entry == null || _dataSource == null)
         {
+            return;
+        }
+
+        if (!IsAllowed(entry.Id))
+        {
+            ShowToast("아직 사용할 수 없는 룬 워드입니다.");
             return;
         }
 
@@ -995,6 +1038,12 @@ public class RuneBookV2Presenter : MonoBehaviour
             if (tile != null)
             {
                 _entries.TryGetValue(tile.EntryId, out RuneBookEntryData entry);
+                if (entry != null && !IsAllowed(entry.Id))
+                {
+                    tile.Show(MaskEntry(entry), null, 0, false);
+                    continue;
+                }
+
                 tile.Show(entry, GetElementColor(entry), entry != null ? GetRemainingOwned(entry.Id) : 0,
                     entry != null && IsInSlots(entry.Id));
             }

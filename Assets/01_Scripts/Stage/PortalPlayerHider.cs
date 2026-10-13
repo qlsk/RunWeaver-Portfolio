@@ -32,6 +32,9 @@ public class PortalPlayerHider : MonoBehaviour
     /// <summary>플레이어 발 위치 (지금)</summary>
     public Vector3 PlayerPosition => _player != null ? _player.position : transform.position;
 
+    /// <summary>도착 연출 등으로 플레이어를 숨기거나 조작을 막고 있는 hider가 있는지</summary>
+    public static bool IsAnyHiding => s_active.Exists(hider => hider != null && !hider._isRestored);
+
     /// <param name="watchTransition">true면 층 전환이 걷힐 때 도착 연출을 시작한다. false면 RestoreNow까지 숨겨 둔다.</param>
     /// <param name="keepVisible">true면 그림을 숨기지 않고 조작만 막는다. (페이드 방식)</param>
     public static PortalPlayerHider Hide(GameObject player, bool watchTransition = true, bool keepVisible = false)
