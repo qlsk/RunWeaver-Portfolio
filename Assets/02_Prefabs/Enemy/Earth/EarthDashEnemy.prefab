@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7636887440316509746, guid: 9f5f1633e87e8d542aac5c1ca4f7c07f, type: 3}
+  m_Sprite: {fileID: -1903011362808580957, guid: ed53b0e3d5a6d4843ae8662cc152a8f4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -103,7 +103,7 @@ Animator:
   m_GameObject: {fileID: 950100001}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 7401f7441b3ca4145a8a64262b87767e, type: 2}
+  m_Controller: {fileID: 9100000, guid: 413463570392bd940abdd73c6321fb30, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -500,7 +500,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16df6d7935d94a57b34e03b3b43ed77c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  _elementType: 1
+  _elementType: 3
   _enemyHealth: {fileID: 255618171744260552}
   _burn: {fileID: 0}
 --- !u!114 &5586009113802366175
@@ -625,7 +625,7 @@ MonoBehaviour:
   _dashShakeAmplitude: 0.12
   _dashShakeInterval: 0.16
   _dashShakeDuration: 0.08
-  _reverse: 1
+  _reverse: 0
 --- !u!114 &8041545278497892238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -640,6 +640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyContactAttack
   _damage: 20
   _attackCooldown: 0.5
+  _altarAttackCooldown: 1.5
 --- !u!114 &8298365980880420227
 MonoBehaviour:
   m_ObjectHideFlags: 0
