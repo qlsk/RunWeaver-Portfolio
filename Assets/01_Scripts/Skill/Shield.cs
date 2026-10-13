@@ -6,8 +6,8 @@ public class Shield : MonoBehaviour
     [Header("쉴드 쿨타임")]
     [SerializeField] private float _shieldCoolTime = 25f;
     private float _shieldCoolTimer = 0f;
-    [Header("최대 Shield stack")]
-    [SerializeField] private int _maxShield = 4;
+    [Header("최대 Shield stack (기본 3, 보상 특성 shield_01로 4)")]
+    [SerializeField] private int _maxShield = 3;
     [Header("현재 Shield stack")]
     [SerializeField] private int _currentShield = 0;
     public int CurrentShield => _currentShield;
