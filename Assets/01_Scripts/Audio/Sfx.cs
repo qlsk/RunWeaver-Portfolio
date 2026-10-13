@@ -28,6 +28,7 @@ public static class Sfx
     public const string ElementWater = "ElementWater";
     public const string ElementWind = "ElementWind";
     public const string ElementEarth = "ElementEarth";
+    public const string StatueBreak = "StatueBreak";
 
     private const int PoolSize = 8;
 
@@ -142,6 +143,7 @@ public static class Sfx
         Add(ElementWater, library.ElementWater);
         Add(ElementWind, library.ElementWind);
         Add(ElementEarth, library.ElementEarth);
+        Add(StatueBreak, library.StatueBreak);
         return _clips.Count > 0;
     }
 
