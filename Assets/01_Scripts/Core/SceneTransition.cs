@@ -14,6 +14,11 @@ using UnityEngine.UI;
 public class SceneTransition : MonoBehaviour
 {
     private const int SortingOrder = 1000;
+    /// <summary>
+    /// 한 프레임에 진행하는 최대 시간. 새 씬을 연 직후 한 프레임이 길게 걸려도
+    /// 검은 화면이 한 번에 걷히지 않고 끝까지 서서히 걷히게 한다.
+    /// </summary>
+    private const float MaxFadeStep = 1f / 30f;
 
     private static SceneTransition s_instance;
 
@@ -98,7 +103,7 @@ public class SceneTransition : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += Mathf.Min(Time.unscaledDeltaTime, MaxFadeStep);
             float t = Mathf.Clamp01(elapsed / duration);
             SetAlpha(Mathf.Lerp(from, to, t * t * (3f - 2f * t)));
             yield return null;

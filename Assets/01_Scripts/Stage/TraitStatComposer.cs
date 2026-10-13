@@ -7,6 +7,8 @@ using UnityEngine;
 /// - 쉴드 유지(shield_05)처럼 이벤트가 없는 조건은 매 프레임 폴링으로 반영한다 (싼 연산).
 /// - 탄창은 누적 방식이라 목표 보너스와의 차분만 적용한다.
 /// - 원소 반응 피해(attack_03)는 ReactionDamageBonus에 넣고, 탄환이 반응을 일으킬 때 읽는다.
+/// - 대시 후 첫 공격(dash_05)은 DashTraitHandler가 PlayerAttack에 직접 넣는다. (발사 순간에 확실히 반영되도록)
+/// - 보호막 무적(shield_02)은 보호막이 피격을 막았을 때만 늘어난다. (PlayerHealth.ShieldBlockInvincibilityMultiplier)
 /// </summary>
 [DisallowMultipleComponent]
 public class TraitStatComposer : MonoBehaviour
@@ -22,7 +24,6 @@ public class TraitStatComposer : MonoBehaviour
     private CleanseTraitHandler _cleanseHandler;
 
     private float _baseShieldCoolTime;
-    private float _baseInvincibilityDuration;
     private int _appliedMagazineBonus;
     private bool _basesCaptured;
 
@@ -50,13 +51,6 @@ public class TraitStatComposer : MonoBehaviour
             _traits.OnAcquired += HandleTraitAcquired;
         }
 
-        if (_attack != null)
-        {
-            // dash_05 첫 공격 버프 소모용. Fired는 발사 후라 다음 발부터 정상화된다.
-            _attack.Fired -= HandleFired;
-            _attack.Fired += HandleFired;
-        }
-
         CaptureBases();
         Recompute();
     }
@@ -64,11 +58,6 @@ public class TraitStatComposer : MonoBehaviour
     private void OnDestroy()
     {
         ReactionDamageBonus.Multiplier = 1f;
-
-        if (_attack != null)
-        {
-            _attack.Fired -= HandleFired;
-        }
 
         if (_passives != null)
         {
@@ -92,14 +81,6 @@ public class TraitStatComposer : MonoBehaviour
         Recompute();
     }
 
-    private void HandleFired()
-    {
-        if (_dashHandler != null)
-        {
-            _dashHandler.ConsumeNextAttackBuff();
-        }
-    }
-
     private void Refresh(PassiveStatType type)
     {
         Recompute();
@@ -117,12 +98,7 @@ public class TraitStatComposer : MonoBehaviour
             _baseShieldCoolTime = _shield.ShieldCoolTime;
         }
 
-        if (_health != null)
-        {
-            _baseInvincibilityDuration = _health.InvincibilityDuration;
-        }
-
-        _basesCaptured = _shield != null && _health != null;
+        _basesCaptured = _shield != null;
     }
 
     private void Recompute()
@@ -138,16 +114,11 @@ public class TraitStatComposer : MonoBehaviour
             : 1f;
         float passiveMove = _passives != null ? _passives.GetMultiplier(PassiveStatType.MoveSpeed) : 1f;
 
-        // 공격 피해: 패시브 × attack_01 × dash_05 윈도우
+        // 공격 피해: 패시브 × attack_01
         float damageMult = passiveDmg;
         if (_traits.Has("attack_01"))
         {
             damageMult *= 1f + _traits.GetMagnitude("attack_01", 0.2f);
-        }
-
-        if (_dashHandler != null && _dashHandler.NextAttackBuffActive)
-        {
-            damageMult *= 1f + _dashHandler.NextAttackBuffMagnitude;
         }
 
         if (_attack != null)
@@ -201,16 +172,14 @@ public class TraitStatComposer : MonoBehaviour
             _dash.DashCooldownMultiplier = _traits.Has("dash_02") ? 1f - _traits.GetMagnitude("dash_02", 0.15f) : 1f;
         }
 
-        // 받는 피해: dash_03 윈도우
+        // 받는 피해: dash_03 윈도우 / 보호막이 막았을 때의 무적 시간: shield_02
         if (_health != null)
         {
             bool reducing = _dashHandler != null && _dashHandler.DamageReductionActive;
             _health.DamageTakenMultiplier = reducing ? 1f - _dashHandler.DamageReductionMagnitude : 1f;
-
-            if (_basesCaptured && _traits.Has("shield_02"))
-            {
-                _health.InvincibilityDuration = _baseInvincibilityDuration * (1f + _traits.GetMagnitude("shield_02", 0.2f));
-            }
+            _health.ShieldBlockInvincibilityMultiplier = _traits.Has("shield_02")
+                ? 1f + _traits.GetMagnitude("shield_02", 0.2f)
+                : 1f;
         }
 
         // 쉴드 충전 시간

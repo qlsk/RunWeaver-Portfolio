@@ -170,7 +170,9 @@ public class Bullet : MonoBehaviour
             return;
 
         bool isPierce = _attackData.Configuration.IsPierce;
-        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce);
+        // 보상 특성 사냥의 낙인(attack_05) : 표식이 있는 적에게는 피해가 늘어난다.
+        float markMultiplier = MarkedPrey.GetHitMultiplier(enemyHealth);
+        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce) * markMultiplier;
         _runtime.RecordHit();
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
         bool reversedThisHit = false;
@@ -180,6 +182,7 @@ public class Bullet : MonoBehaviour
         {
             PlayHitEffect(hitPosition, _runtime.Direction);
             float actualDamage = enemyHealth.ApplyDamage(hitDamage);
+            MarkedPrey.MarkOnHit(enemyHealth, hitPosition, markMultiplier > 1f);
 
             if (actualDamage > 0f &&
                 _attackData.Owner != null &&

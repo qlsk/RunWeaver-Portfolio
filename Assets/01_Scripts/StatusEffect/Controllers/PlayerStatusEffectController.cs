@@ -92,6 +92,9 @@ public class PlayerStatusEffectController : MonoBehaviour
     private float _staggerRemaining;
     private float _immuneUntil;
 
+    /// <summary>연출용: 면역(clease_01)이 새 상태이상을 막아 냈을 때.</summary>
+    public event Action<ReactionElement> EffectBlocked;
+
     public float MoveSpeedMultiplier => isActiveAndEnabled && _slowRemaining > 0f
         ? Mathf.Clamp01(_slowMoveSpeedMultiplier) : 1f;
     public float AttackIntervalMultiplier => isActiveAndEnabled && _attackSlowRemaining > 0f
@@ -118,7 +121,10 @@ public class PlayerStatusEffectController : MonoBehaviour
 
         // 보상 특성용 면역 (clease_01). 면역 중에는 새 상태이상을 받지 않는다.
         if (Time.time < _immuneUntil)
+        {
+            EffectBlocked?.Invoke(element);
             return;
+        }
 
         switch (element)
         {
