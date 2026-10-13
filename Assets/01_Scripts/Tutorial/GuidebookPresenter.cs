@@ -92,7 +92,13 @@ public class GuidebookPresenter : MonoBehaviour
     {
         // 일시정지 메뉴가 닫혀 항목이 숨으면 지침서도 닫는다.
         if (_screen != null && _screen.activeSelf && _menuButton != null && !_menuButton.gameObject.activeInHierarchy)
+        {
             _screen.SetActive(false);
+            return;
+        }
+
+        if (_screen != null && _screen.activeSelf)
+            HandleArrowKeys();
     }
 
     private void Open()
@@ -104,6 +110,9 @@ public class GuidebookPresenter : MonoBehaviour
         BuildList();
         _screen.SetActive(true);
         Select(_entries.Find(entry => !entry.IsLocked));
+
+        // 방향키는 목록 이동에 쓰므로, 뒤쪽 메뉴 버튼이 선택된 채 이동·제출되지 않게 선택을 비운다.
+        SetEventSelection(null);
     }
 
     /// <summary>화면이 열려 있으면 닫고 true를 돌려준다.</summary>
@@ -113,7 +122,77 @@ public class GuidebookPresenter : MonoBehaviour
             return false;
 
         _screen.SetActive(false);
+
+        // 메뉴로 돌아가면 지침서 버튼을 다시 선택해 둔다.
+        if (_menuButton != null)
+            SetEventSelection(_menuButton.gameObject);
+
         return true;
+    }
+
+    /// <summary>위·아래 방향키로 이전·다음 항목으로 옮긴다. 목록 끝에서는 멈춘다.</summary>
+    private void HandleArrowKeys()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+            MoveSelection(-1);
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+            MoveSelection(1);
+    }
+
+    private void MoveSelection(int direction)
+    {
+        if (_entries.Count == 0)
+            return;
+
+        int index = _selected != null ? _entries.IndexOf(_selected) : -1;
+        int next = Mathf.Clamp(index + direction, 0, _entries.Count - 1);
+        if (next == index)
+            return;
+
+        Select(_entries[next]);
+    }
+
+    /// <summary>선택한 항목이 목록 보이는 영역 밖이면 보이도록 스크롤한다.</summary>
+    private void EnsureSelectedVisible(Entry entry)
+    {
+        ScrollRect scrollRect = _listContent != null ? _listContent.GetComponentInParent<ScrollRect>() : null;
+        if (scrollRect == null || scrollRect.viewport == null || entry == null || entry.ItemObject == null)
+            return;
+
+        RectTransform content = scrollRect.content;
+        RectTransform viewport = scrollRect.viewport;
+        RectTransform item = (RectTransform)entry.ItemObject.transform;
+
+        // 방금 만든 항목은 배치가 끝나야 위치가 맞는다.
+        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+
+        Vector3[] corners = new Vector3[4];
+        item.GetWorldCorners(corners);
+        float itemBottom = content.InverseTransformPoint(corners[0]).y;
+        float itemTop = content.InverseTransformPoint(corners[1]).y;
+        viewport.GetWorldCorners(corners);
+        float viewBottom = content.InverseTransformPoint(corners[0]).y;
+        float viewTop = content.InverseTransformPoint(corners[1]).y;
+
+        float delta = 0f;
+        if (itemTop > viewTop)
+            delta = -(itemTop - viewTop);
+        else if (itemBottom < viewBottom)
+            delta = viewBottom - itemBottom;
+
+        if (Mathf.Approximately(delta, 0f))
+            return;
+
+        float maxOffset = Mathf.Max(0f, content.rect.height - viewport.rect.height);
+        Vector2 position = content.anchoredPosition;
+        position.y = Mathf.Clamp(position.y + delta, 0f, maxOffset);
+        content.anchoredPosition = position;
+    }
+
+    private static void SetEventSelection(GameObject target)
+    {
+        if (UnityEngine.EventSystems.EventSystem.current != null)
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(target);
     }
 
     private void BuildEntries()
@@ -143,7 +222,7 @@ public class GuidebookPresenter : MonoBehaviour
             if (record == null)
                 continue;
 
-            bool isSeen = TutorialProgressStore.IsRecordSeen(record.Id);
+            bool isSeen = IsRecordOpen(record);
             _entries.Add(new Entry
             {
                 Category = record.Category,
@@ -187,11 +266,14 @@ public class GuidebookPresenter : MonoBehaviour
 
             Entry captured = entry;
             if (item.TryGetComponent(out Button button))
+            {
+                button.navigation = new Navigation { mode = Navigation.Mode.None };
                 button.onClick.AddListener(() => Select(captured));
+            }
         }
 
         if (_countText != null)
-            _countText.text = $"기록 {CountSeenRecords()} / {(_records != null ? _records.Length : 0)}";
+            _countText.text = $"기록 {CountOpenRecords()} / {(_records != null ? _records.Length : 0)}";
     }
 
     private void Select(Entry entry)
@@ -210,10 +292,11 @@ public class GuidebookPresenter : MonoBehaviour
 
         SetText(_categoryLabel, entry.Category);
         SetText(_titleText, entry.IsLocked ? LockedLabel : entry.Title);
-        SetText(_bodyText, entry.IsLocked ? "아직 만나지 못한 기록이다." : entry.Body);
+        SetText(_bodyText, entry.IsLocked ? "아직 만나지 못한 기록이에요." : entry.Body);
         SetText(_noteText, entry.Note);
 
         BuildKeyRows(entry);
+        EnsureSelectedVisible(entry);
     }
 
     private void BuildKeyRows(Entry entry)
@@ -238,19 +321,25 @@ public class GuidebookPresenter : MonoBehaviour
         }
     }
 
-    private int CountSeenRecords()
+    private int CountOpenRecords()
     {
-        int seen = 0;
+        int open = 0;
         if (_records == null)
-            return seen;
+            return open;
 
         foreach (RecordCardSO record in _records)
         {
-            if (record != null && TutorialProgressStore.IsRecordSeen(record.Id))
-                seen++;
+            if (record != null && IsRecordOpen(record))
+                open++;
         }
 
-        return seen;
+        return open;
+    }
+
+    /// <summary>원소 반응 기록은 처음부터 모두 열려 있고, 나머지는 본 기록만 열린다.</summary>
+    private static bool IsRecordOpen(RecordCardSO record)
+    {
+        return record.Trigger == RecordTriggerKind.FirstReaction || TutorialProgressStore.IsRecordSeen(record.Id);
     }
 
     private TMP_Text FindText(string parentName, string childName)
