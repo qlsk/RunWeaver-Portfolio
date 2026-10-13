@@ -10,11 +10,15 @@ using UnityEngine;
 ///   공격하면 PlayerAttack이 1로 되돌린다. 시간 안에 공격하지 않으면 여기서 1로 되돌린다.
 /// - dash_04: 대시 구간 위치 기록 + 범위 적 60% 피해 (적당 1회). A 방식 직접 호출.
 /// - dash_01/02 수치형은 TraitStatComposer가 처리한다.
-/// 연출(TraitFx) : dash_03 장막(피격을 받아 내면 물결), dash_04 궤적 빛줄기 + 초승달 베기, dash_05 총구 별빛 대기 → 강화탄 꼬리.
+/// 연출(TraitFx) : dash_03 장막(피격을 받아 내면 물결), dash_04 돌진 속도선 + 맞은 적 번쩍임, dash_05 총구 별빛 대기 → 강화탄 꼬리.
 /// </summary>
 [DisallowMultipleComponent]
 public class DashTraitHandler : MonoBehaviour
 {
+    [Header("dash_04 돌파의 각인 (연출)")]
+    [Tooltip("돌진하는 동안 속도선이 나오는 간격 (초)")]
+    [SerializeField, Min(0.01f)] private float _dashLineInterval = 0.025f;
+
     private Dash _dash;
     private PlayerAttack _attack;
     private PlayerHealth _health;
@@ -156,9 +160,27 @@ public class DashTraitHandler : MonoBehaviour
 
     private IEnumerator RecordPath()
     {
+        float lineTimer = 0f;
         while (_recording && _playerTransform != null)
         {
-            _path.Add(_playerTransform.position);
+            Vector3 position = _playerTransform.position;
+            if (_path.Count > 0)
+            {
+                // dash_04 : 돌진하는 동안 몸 뒤로 속도선을 흘린다.
+                lineTimer -= Time.deltaTime;
+                Vector2 delta = position - _path[_path.Count - 1];
+                if (lineTimer <= 0f && delta.sqrMagnitude > 0.000001f)
+                {
+                    lineTimer = _dashLineInterval;
+                    TraitFx fx = TraitFx.Instance;
+                    if (fx != null)
+                    {
+                        fx.SpawnDashLine(_playerTransform, delta);
+                    }
+                }
+            }
+
+            _path.Add(position);
             yield return null;
         }
     }
@@ -222,7 +244,7 @@ public class DashTraitHandler : MonoBehaviour
         EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth enemy in enemies)
         {
-            if (enemy == null || !hit.Add(enemy))
+            if (enemy == null || enemy.IsDead || !hit.Add(enemy))
             {
                 continue;
             }
@@ -239,10 +261,12 @@ public class DashTraitHandler : MonoBehaviour
         }
 
         TraitFx fx = TraitFx.Instance;
-        if (fx != null && _path.Count > 0)
+        if (fx != null)
         {
-            Vector3 end = _playerTransform != null ? _playerTransform.position : _path[_path.Count - 1];
-            fx.PlayPathStrike(_path[0], end, hitPositions);
+            foreach (Vector3 hitPosition in hitPositions)
+            {
+                fx.PlayDashHit(hitPosition);
+            }
         }
     }
 }

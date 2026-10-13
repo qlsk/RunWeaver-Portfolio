@@ -11,7 +11,7 @@ using UnityEngine.UI;
 /// - Barrier : 쉴드 스택 수를 숫자로 보여주고, 다음 스택이 생길 때까지 아이콘이 채워진다. 스택이 0이면 어둡게 표시한다.
 /// 플레이어(Dash, Shield, Cleanse)는 씬에서 찾는다. 없는 씬에서는 아이콘을 쓸 수 있는 상태로 둔다.
 /// 보상 특성 연출 (그림은 프리팹의 자식 이미지) :
-/// - clease_04 : 다음 정화 대기시간이 줄면 별빛이 정화 칸 둘레를 한 바퀴 돌고 "-25%"가 떠오른다.
+/// - clease_04 : 다음 정화 대기시간이 줄면 별빛이 정화 칸 둘레를 한 바퀴 돈다. (감산 비율 글자는 넣으면 함께 뜬다)
 /// - shield_01 : 최대 보호막이 늘면 보호막 칸 뒤 고리가 몇 번 빛나고 "최대 3 > 4"가 뜬다.
 /// 특성 연출은 게임 시간으로 흐른다. (보상 선택으로 멈춰 있는 동안은 기다렸다가 재생한다)
 /// </summary>
@@ -54,7 +54,7 @@ public class SkillSlotsHud : MonoBehaviour
     [SerializeField] private RectTransform _cleanseRefundOrbiter;
     [Tooltip("별이 지나간 자리에 남는 빛 알갱이 견본 (꺼 둔 자식)")]
     [SerializeField] private Image _cleanseRefundTrail;
-    [Tooltip("감산 비율 글자. 비율로 다시 쓴다 (예: -25%)")]
+    [Tooltip("감산 비율 글자 (선택). 비워 두면 글자 없이 별빛만 돈다")]
     [SerializeField] private TMP_Text _cleanseRefundText;
     [Tooltip("칸 중심에서 별까지의 거리 (픽셀)")]
     [SerializeField, Min(0f)] private float _refundOrbitRadius = 46f;
