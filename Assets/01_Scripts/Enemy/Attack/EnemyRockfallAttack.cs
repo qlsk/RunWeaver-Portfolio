@@ -94,7 +94,7 @@ public class EnemyRockfallAttack : MonoBehaviour
             _targetDetector == null || _targetDetector.Target == null || Time.time < _nextAttackTime ||
             (_health != null && _health.IsDead) || (_statusEffects != null && _statusEffects.IsStaggered))
             return false;
-        if (((Vector2)(_targetDetector.Target.position - transform.position)).sqrMagnitude > _attackRange * _attackRange)
+        if ((_targetDetector.LastKnownTargetPosition - (Vector2)transform.position).sqrMagnitude > _attackRange * _attackRange)
             return false;
 
         _remainingMarks = Mathf.Max(1, _rockCount);
@@ -134,7 +134,8 @@ public class EnemyRockfallAttack : MonoBehaviour
         // 표식마다 현재 위치를 새로 기록하지만 이미 표시한 중심은 바꾸지 않는다.
         if (_remainingMarks > 0 && Time.time >= _nextMarkTime)
         {
-            Vector2 center = _targetDetector.Target.position;
+            // 증기처럼 추적이 느려지는 효과를 받도록 마지막으로 관측한 위치에 떨어뜨린다.
+            Vector2 center = _targetDetector.LastKnownTargetPosition;
             var strike = new Strike { Center = center, ImpactTime = Time.time + _pendingWarning };
             strike.Warning = CreateVisual("RockfallWarning", _rangeImage, center, _rangeColor, _sortingOrder);
             Vector3 warningScale = strike.Warning.transform.localScale;

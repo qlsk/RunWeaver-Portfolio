@@ -23,7 +23,7 @@ public class PetrifyReaction : MonoBehaviour
         }
 
         HashSet<EnemyHealth> enemies = new();
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(context.HitPosition, _petrifyRadius))
+        foreach (Collider2D collider in ReactionAreaShape.OverlapAll(context.HitPosition, _petrifyRadius))
         {
             if (!collider.TryGetComponent(out EnemyHealth enemy))
                 continue;
