@@ -8,6 +8,8 @@ public class EnemyNavigation : MonoBehaviour
     [SerializeField] private EnemyNavigationGrid _grid;
     [SerializeField] private float _agentRadius = 0.3f;
     [SerializeField] private float _repathInterval = 0.4f;
+    [Tooltip("Grid를 사용하지 않고 목적지로 직진합니다. 장애물 통과에는 별도로 충돌 제외 설정이 필요합니다.")]
+    [SerializeField] private bool _ignoreObstacles;
     private readonly EnemyPathfinder _pathfinder = new EnemyPathfinder();
     private readonly List<Vector2> _path = new List<Vector2>();
     private int _waypointIndex, _gridVersion = -1;
@@ -46,6 +48,15 @@ public class EnemyNavigation : MonoBehaviour
         }
 
         Vector2 position = _body != null ? _body.position : (Vector2)transform.position;
+        if (_ignoreObstacles)
+        {
+            ClearPath();
+            Vector2 toDestination = goal.Destination - position;
+            float remainingDistance = Mathf.Max(0f,
+                toDestination.magnitude - Mathf.Max(0f, goal.StoppingDistance));
+            return toDestination.normalized * Mathf.Min(moveSpeed, remainingDistance / Time.fixedDeltaTime);
+        }
+
         if (!ResolveGrid(position))
         {
             return Vector2.zero;

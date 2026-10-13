@@ -53,6 +53,16 @@ public class MissionManager : MonoBehaviour
     [SerializeField] private bool _useForcedMissionType;
     [SerializeField] private MissionType _forcedMissionType = MissionType.SoulCollect;
 
+    [Header("심도별 처치 목표량 (인스펙터 튜닝용)")]
+    [Tooltip("적 처치: 1층 기본값 + (심도-1) * 심도당 증가분")]
+    [SerializeField, Min(0)] private int _killBaseCount = 5;
+    [SerializeField, Min(0)] private int _killPerDepth = 2;
+    [Tooltip("엘리트 1킬이 일반 처치 몇 킬로 집계되는지")]
+    [SerializeField, Min(1)] private int _eliteKillValue = 3;
+    [Tooltip("영혼 수집: 1층 기본값 + (심도-1) * 심도당 증가분")]
+    [SerializeField, Min(1)] private int _soulBaseCount = 5;
+    [SerializeField, Min(0)] private int _soulPerDepth = 1;
+
     private MissionBase _currentMission;
     private GameObject _spawnedMissionObject;
     private MissionType? _lastMissionType;
@@ -104,7 +114,7 @@ public class MissionManager : MonoBehaviour
 
         Debug.Log($"[MissionManager] ===== Depth {depth} 무작위 미션 추첨: {randomType} =====");
 
-        SetupMissionStrategy(randomType);
+        SetupMissionStrategy(randomType, depth);
 
         if (_currentMission != null)
         {
@@ -231,7 +241,14 @@ public class MissionManager : MonoBehaviour
         return zones;
     }
 
-    private void SetupMissionStrategy(MissionType type)
+    /// <summary>
+    /// 심도에 따른 처치 목표량. 1층 기본값 + (심도-1) * 증가분.
+    /// </summary>
+    private int GetKillTarget(int depth) => _killBaseCount + Mathf.Max(0, depth - 1) * _killPerDepth;
+
+    private int GetSoulTarget(int depth) => _soulBaseCount + Mathf.Max(0, depth - 1) * _soulPerDepth;
+
+    private void SetupMissionStrategy(MissionType type, int depth)
     {
         MissionBase[] oldMissions = GetComponents<MissionBase>();
         foreach (var old in oldMissions)
@@ -243,12 +260,15 @@ public class MissionManager : MonoBehaviour
         {
             case MissionType.EnemyKill:
                 _currentMission = gameObject.AddComponent<EnemyKillMission>();
+                ((EnemyKillMission)_currentMission).SetTargetCounts(
+                    GetKillTarget(depth), _eliteKillValue);
                 break;
 
             case MissionType.SoulCollect:
                 List<SoulHarvestZone> spawnedHarvestZones = SpawnSoulHarvestZones();
 
                 var soulMission = gameObject.AddComponent<SoulCollectMission>();
+                soulMission.SetTargetSoulCount(GetSoulTarget(depth));
                 if (spawnedHarvestZones.Count > 0)
                 {
                     soulMission.SetHarvestZones(spawnedHarvestZones); // ★ 생성된 영혼 수집 구역들 직접 주입 ★

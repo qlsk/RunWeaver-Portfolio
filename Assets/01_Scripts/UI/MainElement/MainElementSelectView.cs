@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,16 +8,17 @@ using UnityEngine.UI;
 /// 원정 출발 전 메인 원소 선택 화면. 확정한 원소의 룬 효과를 기본 원소 슬롯에 장착한다.
 ///
 /// 조작
-/// - 원소 선택 중: 좌/우 방향키로 원을 따라 원소를 바꾸고, F를 누르거나 아래 방향키를 누르면 Confirm 버튼으로 내려간다.
-/// - 버튼 선택 중: 좌/우 방향키로 Confirm / Cancel을 오가고, F로 누른다. 위 방향키를 누르면 원소 선택으로 돌아간다.
+/// - W/A/S/D(또는 방향키): 위(불), 왼쪽(물), 아래(흙), 오른쪽(바람)에 있는 원소 구슬을 바로 고른다.
+/// - F 또는 Space: 고른 원소로 확정한다. (마우스가 Cancel 버튼 위에 있으면 취소)
 /// - Esc: Cancel
 /// - 마우스로 원소 구슬과 버튼을 눌러도 된다.
 ///
-/// 연출 (실제 시간)
-/// - 열기 : 어둡게 깔리고, 링·구슬·제목·버튼이 아래에서 살짝 떠오르며 나타난다. 도중에 F/클릭이면 바로 끝낸다.
-/// - 확정 : 고른 구슬이 커지며 가운데로 모이고 나머지는 가운데로 빨려 들며 사라진다.
-///          가운데에서 원소 색 빛이 터진 뒤 원소를 장착하고 Confirmed를 알린다.
-/// - 취소 : 아래로 살짝 가라앉으며 사라진 뒤 Cancelled를 알린다.
+/// 연출 (실제 시간) : 프리팹 Animator(MainElementSelect.controller)의 클립이 한다. 연출할 때만 Animator를 켠다.
+/// - 열기(Open) : 어둡게 깔리고, 링·구슬·제목·버튼이 아래에서 살짝 떠오르며 나타난다. 도중에 F/Space/클릭이면 바로 끝낸다.
+/// - 확정(Confirm원소) : 고른 구슬이 커지며 가운데로 모이고 나머지는 가운데로 빨려 들며 사라진다.
+///          가운데에서 원소 색 빛(Circle/Burst)이 터진 뒤 원소를 장착하고 Confirmed를 알린다.
+/// - 취소(Cancel) : 아래로 살짝 가라앉으며 사라진 뒤 Cancelled를 알린다.
+/// 연출이 끝나면 Animator를 끄고, 구슬 크기 같은 선택 표시는 Refresh가 다시 맞춘다.
 /// </summary>
 [DisallowMultipleComponent]
 public class MainElementSelectView : MonoBehaviour
@@ -50,14 +50,12 @@ public class MainElementSelectView : MonoBehaviour
 
     [Header("키")]
     [SerializeField] private KeyCode _submitKey = KeyCode.F;
+    [SerializeField] private KeyCode _altSubmitKey = KeyCode.Space;
     [SerializeField] private KeyCode _cancelKey = KeyCode.Escape;
 
     [Header("연출")]
-    [SerializeField, Min(0.01f)] private float _openDuration = 0.45f;
-    [SerializeField] private float _openRise = 36f;
-    [SerializeField, Min(0.01f)] private float _cancelDuration = 0.25f;
-    [Tooltip("고른 구슬이 가운데로 모이는 시간")] [SerializeField, Min(0.01f)] private float _gatherDuration = 0.45f;
-    [Tooltip("가운데에서 빛이 터지는 시간")] [SerializeField, Min(0.01f)] private float _burstDuration = 0.5f;
+    [Tooltip("열기, 확정, 취소 클립을 재생하는 Animator (연출할 때만 켠다)")]
+    [SerializeField] private Animator _animator;
 
     private int _selectedIndex;
     private bool _isButtonFocused;
@@ -73,15 +71,8 @@ public class MainElementSelectView : MonoBehaviour
 
     private Phase _phase;
     private bool _skipOpening;
-    private UiRiseParts _parts;
     private MainElementButtonView _hoveredButton;
     private MainElementOrbView _hoveredOrb;
-    private Vector2[] _orbBasePositions;
-    private CanvasGroup[] _orbGroups;
-    private Graphic _ringGraphic;
-    private float _ringAlpha = 1f;
-    private CanvasGroup _infoGroup;
-    private readonly List<GameObject> _bursts = new();
 
     /// <summary>Confirm을 눌렀을 때 (고른 원소)</summary>
     public event Action<ReactionElement> Confirmed;
@@ -128,14 +119,18 @@ public class MainElementSelectView : MonoBehaviour
         _isMouseFocused = false;
         _isConfirmFocused = true;
         Refresh();
-        PrepareAnimation();
         StartCoroutine(OpenRoutine());
     }
 
     private void OnDisable()
     {
         StopAllCoroutines();
-        ResetAnimation();
+        // 다시 켜질 때 Open 클립이 처음부터 모든 모습을 다시 맞춘다.
+        if (_animator != null)
+        {
+            _animator.enabled = false;
+        }
+
         _phase = Phase.Idle;
 
         // 비활성화되면 PointerExit이 오지 않으므로 기록해 둔 포인터 대상을 비운다.
@@ -177,7 +172,7 @@ public class MainElementSelectView : MonoBehaviour
     {
         if (_phase == Phase.Opening)
         {
-            if (Input.GetKeyDown(_submitKey) || Input.GetMouseButtonDown(0))
+            if (IsSubmitPressed() || Input.GetMouseButtonDown(0))
             {
                 _skipOpening = true;
             }
@@ -196,47 +191,79 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
-        if (!_isButtonFocused)
+        // W/A/S/D(또는 방향키) : 그 방향에 있는 원소 구슬을 바로 고른다.
+        if (TryGetDirectionPressed(out Vector2 direction))
         {
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                Select(_selectedIndex + 1);
-            }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                Select(_selectedIndex - 1);
-            }
-            else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(_submitKey))
-            {
-                FocusButtons(true);
-            }
-
+            SelectByDirection(direction);
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
+        // F/Space : 확정. 마우스가 Cancel 버튼 위에 있으면 취소한다.
+        if (IsSubmitPressed())
         {
-            _isConfirmFocused = !_isConfirmFocused;
-            _isMouseFocused = false;
-            Refresh();
-        }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            _isButtonFocused = false;
-            _isMouseFocused = false;
-            Refresh();
-        }
-        else if (Input.GetKeyDown(_submitKey))
-        {
-            if (_isConfirmFocused)
-            {
-                Confirm();
-            }
-            else
+            if (_isButtonFocused && !_isConfirmFocused)
             {
                 Cancel();
             }
+            else
+            {
+                Confirm();
+            }
         }
+    }
+
+    private bool IsSubmitPressed() => Input.GetKeyDown(_submitKey) || Input.GetKeyDown(_altSubmitKey);
+
+    // 방향 입력 : WASD와 방향키를 같이 받는다.
+    private static bool TryGetDirectionPressed(out Vector2 direction)
+    {
+        direction = Vector2.zero;
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) direction = Vector2.up;
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) direction = Vector2.left;
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) direction = Vector2.down;
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) direction = Vector2.right;
+        return direction != Vector2.zero;
+    }
+
+    /// <summary>원의 가운데에서 보아 direction 쪽에 가장 가까이 놓인 구슬을 고른다. (위 불, 오른쪽 바람, 아래 흙, 왼쪽 물)</summary>
+    private void SelectByDirection(Vector2 direction)
+    {
+        if (_orbs == null || _orbs.Length == 0)
+        {
+            return;
+        }
+
+        int best = -1;
+        float bestDot = float.NegativeInfinity;
+        for (int i = 0; i < _orbs.Length; i++)
+        {
+            if (_orbs[i] == null)
+            {
+                continue;
+            }
+
+            Vector2 position = ((RectTransform)_orbs[i].transform).anchoredPosition;
+            if (position.sqrMagnitude < 0.0001f)
+            {
+                continue;
+            }
+
+            float dot = Vector2.Dot(position.normalized, direction);
+            if (dot > bestDot)
+            {
+                bestDot = dot;
+                best = i;
+            }
+        }
+
+        if (best < 0)
+        {
+            return;
+        }
+
+        _isButtonFocused = false;
+        _isMouseFocused = false;
+        Select(best);
     }
 
     private void HandleConfirmHovered() => HandleButtonHovered(_confirmButton);
@@ -400,119 +427,50 @@ public class MainElementSelectView : MonoBehaviour
 
     // ───────────────────────── 연출 ─────────────────────────
 
-    private void PrepareAnimation()
+    /// <summary>클립을 처음부터 재생하고 끝날 때까지(실제 시간) 기다린다. skip이 켜지면 바로 끝 프레임으로 넘긴다.</summary>
+    private IEnumerator PlayClip(string state, Func<bool> skip = null)
     {
-        _parts ??= new UiRiseParts(transform, _openRise);
-
-        if (_orbs != null && _orbBasePositions == null)
+        if (_animator == null || _animator.runtimeAnimatorController == null)
         {
-            _orbBasePositions = new Vector2[_orbs.Length];
-            _orbGroups = new CanvasGroup[_orbs.Length];
-            for (int i = 0; i < _orbs.Length; i++)
-            {
-                if (_orbs[i] == null)
-                {
-                    continue;
-                }
-
-                var rect = (RectTransform)_orbs[i].transform;
-                _orbBasePositions[i] = rect.anchoredPosition;
-                _orbGroups[i] = _orbs[i].GetComponent<CanvasGroup>();
-                if (_orbGroups[i] == null)
-                {
-                    _orbGroups[i] = _orbs[i].gameObject.AddComponent<CanvasGroup>();
-                }
-            }
-
-            // 구슬들이 놓인 링 (구슬의 부모 이미지)
-            Transform container = _orbs.Length > 0 && _orbs[0] != null ? _orbs[0].transform.parent : null;
-            _ringGraphic = container != null ? container.GetComponent<Graphic>() : null;
-            if (_ringGraphic != null)
-            {
-                _ringAlpha = _ringGraphic.color.a;
-            }
-
-            // 가운데 정보(이름, 효과)는 링 안에 있으므로 따로 사라지게 한다.
-            Transform info = _nameText != null ? _nameText.transform.parent : null;
-            if (info == null || info == container)
-            {
-                info = _nameText != null ? _nameText.transform : null;
-            }
-
-            if (info != null)
-            {
-                _infoGroup = info.GetComponent<CanvasGroup>();
-                if (_infoGroup == null)
-                {
-                    _infoGroup = info.gameObject.AddComponent<CanvasGroup>();
-                }
-            }
+            yield break;
         }
 
-        ResetAnimation();
+        _animator.enabled = true;
+        _animator.Play(state, 0, 0f);
+        _animator.Update(0f);
+        float length = _animator.GetCurrentAnimatorStateInfo(0).length;
+        float elapsed = 0f;
+        while (elapsed < length && (skip == null || !skip()))
+        {
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        _animator.Play(state, 0, 1f);
+        _animator.Update(0f);
     }
 
-    /// <summary>구슬 위치와 크기, 투명도, 링, 터지는 빛을 원래대로 돌린다.</summary>
-    private void ResetAnimation()
+    /// <summary>열린 모습(Open의 끝 프레임)으로 맞추고 Animator를 끈다. 선택 표시는 Refresh가 다시 맞춘다.</summary>
+    private void StopAnimation()
     {
-        if (_orbs != null && _orbBasePositions != null)
-        {
-            for (int i = 0; i < _orbs.Length; i++)
-            {
-                if (_orbs[i] == null)
-                {
-                    continue;
-                }
-
-                ((RectTransform)_orbs[i].transform).anchoredPosition = _orbBasePositions[i];
-                _orbGroups[i].alpha = 1f;
-            }
-        }
-
-        SetRingAlpha(1f);
-        if (_infoGroup != null)
-        {
-            _infoGroup.alpha = 1f;
-        }
-
-        foreach (GameObject burst in _bursts)
-        {
-            if (burst != null)
-            {
-                Destroy(burst);
-            }
-        }
-
-        _bursts.Clear();
-        _parts?.Restore();
-        Refresh();
-    }
-
-    private void SetRingAlpha(float alpha)
-    {
-        if (_ringGraphic == null)
+        if (_animator == null || _animator.runtimeAnimatorController == null)
         {
             return;
         }
 
-        Color color = _ringGraphic.color;
-        color.a = _ringAlpha * alpha;
-        _ringGraphic.color = color;
+        _animator.enabled = true;
+        _animator.Play("Open", 0, 1f);
+        _animator.Update(0f);
+        _animator.enabled = false;
+        Refresh();
     }
 
     private IEnumerator OpenRoutine()
     {
         _phase = Phase.Opening;
         _skipOpening = false;
-        float elapsed = 0f;
-        while (elapsed < _openDuration && !_skipOpening)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            _parts.Apply(UiRiseParts.EaseOut(elapsed / _openDuration));
-            yield return null;
-        }
-
-        _parts.Apply(1f);
+        yield return PlayClip("Open", () => _skipOpening);
+        StopAnimation();
         _phase = Phase.Idle;
         ApplyPointerState();
     }
@@ -520,14 +478,7 @@ public class MainElementSelectView : MonoBehaviour
     private IEnumerator CancelRoutine()
     {
         _phase = Phase.Closing;
-        float elapsed = 0f;
-        while (elapsed < _cancelDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            _parts.Apply(1f - UiRiseParts.EaseOut(elapsed / _cancelDuration));
-            yield return null;
-        }
-
+        yield return PlayClip("Cancel");
         Debug.Log("[MainElementSelectView] Cancel", this);
         Cancelled?.Invoke();
         FinishIfStillOpen();
@@ -538,7 +489,7 @@ public class MainElementSelectView : MonoBehaviour
     {
         if (isActiveAndEnabled)
         {
-            ResetAnimation();
+            StopAnimation();
             _phase = Phase.Idle;
             ApplyPointerState();
         }
@@ -547,99 +498,9 @@ public class MainElementSelectView : MonoBehaviour
     private IEnumerator ConfirmRoutine()
     {
         _phase = Phase.Closing;
-        MainElementOrbView selected = _orbs[_selectedIndex];
-        Transform container = selected.transform.parent;
-        Color elementColor = ReactionElementStyle.GetColor(selected.Element);
-        float selectedScale = selected.transform.localScale.x;
-
-        // 1. 고른 구슬은 커지며 가운데로, 나머지는 가운데로 빨려 들며 사라진다. 글자와 버튼은 먼저 사라진다.
-        float elapsed = 0f;
-        while (elapsed < _gatherDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = UiRiseParts.EaseOut(elapsed / _gatherDuration);
-            float contentAlpha = 1f - UiRiseParts.EaseOut(elapsed / (_gatherDuration * 0.55f));
-            _parts.FadeContent(contentAlpha, container);
-            if (_infoGroup != null)
-            {
-                _infoGroup.alpha = contentAlpha;
-            }
-
-            SetRingAlpha(1f - t);
-            for (int i = 0; i < _orbs.Length; i++)
-            {
-                if (_orbs[i] == null)
-                {
-                    continue;
-                }
-
-                var rect = (RectTransform)_orbs[i].transform;
-                rect.anchoredPosition = Vector2.Lerp(_orbBasePositions[i], Vector2.zero, t);
-                if (_orbs[i] == selected)
-                {
-                    rect.localScale = Vector3.one * Mathf.Lerp(selectedScale, selectedScale * 1.45f, t);
-                }
-                else
-                {
-                    rect.localScale = Vector3.one * Mathf.Lerp(1f, 0.4f, t);
-                    _orbGroups[i].alpha = 1f - t;
-                }
-            }
-
-            yield return null;
-        }
-
-        // 2. 가운데에서 원소 색 빛이 터지고 구슬은 빛 속으로 사라진다.
-        Image burstColor = SpawnBurst(selected, container, elementColor);
-        Image burstWhite = SpawnBurst(selected, container, new Color(1f, 1f, 1f, 0.9f));
-        elapsed = 0f;
-        while (elapsed < _burstDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / _burstDuration);
-            float eased = UiRiseParts.EaseOut(t);
-            SetBurst(burstColor, Mathf.Lerp(1f, 7f, eased), (1f - t) * 0.95f, elementColor);
-            SetBurst(burstWhite, Mathf.Lerp(0.8f, 3f, eased), (1f - t) * (1f - t) * 0.9f, Color.white);
-            int index = _selectedIndex;
-            _orbGroups[index].alpha = 1f - UiRiseParts.EaseOut(t / 0.5f);
-            selected.transform.localScale = Vector3.one * selectedScale * Mathf.Lerp(1.45f, 1.9f, eased);
-            yield return null;
-        }
-
+        yield return PlayClip("Confirm" + SelectedElement);
         EquipAndNotify();
         FinishIfStillOpen();
-    }
-
-    private Image SpawnBurst(MainElementOrbView orb, Transform container, Color color)
-    {
-        if (orb.Glow == null)
-        {
-            return null;
-        }
-
-        GameObject burst = Instantiate(orb.Glow.gameObject, container, false);
-        burst.name = "Fx_Burst";
-        burst.SetActive(true);
-        _bursts.Add(burst);
-        var rect = (RectTransform)burst.transform;
-        rect.anchoredPosition = Vector2.zero;
-        rect.SetAsLastSibling();
-        var image = burst.GetComponent<Image>();
-        image.raycastTarget = false;
-        image.color = color;
-        return image;
-    }
-
-    private static void SetBurst(Image burst, float scale, float alpha, Color color)
-    {
-        if (burst == null)
-        {
-            return;
-        }
-
-        burst.rectTransform.localScale = Vector3.one * scale;
-        color.a = alpha;
-        burst.color = color;
     }
 
     private void Refresh()

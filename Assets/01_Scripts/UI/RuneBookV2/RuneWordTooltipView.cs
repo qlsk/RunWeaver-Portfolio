@@ -221,7 +221,8 @@ public class RuneWordTooltipView : MonoBehaviour
             RuneEffectCategory.Element => "원소",
             RuneEffectCategory.Enhancement => "강화",
             RuneEffectCategory.Behaviour => "동작",
-            RuneEffectCategory.Control => "제어",
+            // 제어 카테고리는 룬 북에서 없앴다. 남은 제어 룬 워드(흡수)는 특수로 보여 준다.
+            RuneEffectCategory.Control => "특수",
             RuneEffectCategory.Special => "특수",
             _ => category.ToString()
         };

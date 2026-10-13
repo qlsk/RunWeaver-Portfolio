@@ -175,8 +175,21 @@ public class StageManager : MonoBehaviour
     /// <summary>현재 목표 이름 (HUD 표시용)</summary>
     public string ObjectiveName => CurrentMissionText?.DisplayName ?? string.Empty;
 
-    /// <summary>현재 목표 설명 (HUD 표시용)</summary>
-    public string ObjectiveDescription => CurrentMissionText?.Description ?? string.Empty;
+    /// <summary>현재 목표 설명 (HUD 표시용). 제단 방어 중에는 제단 HP를 실시간으로 덧붙인다.</summary>
+    public string ObjectiveDescription
+    {
+        get
+        {
+            string baseText = CurrentMissionText?.Description ?? string.Empty;
+            if (_currentMission is AltarDefenseMission altar && altar.TargetAltar != null)
+            {
+                DefenseAltar target = altar.TargetAltar;
+                string hpText = $"제단 HP: {target.CurrentHp:F0}/{target.MaxHp:F0}";
+                return string.IsNullOrEmpty(baseText) ? hpText : $"{baseText} ({hpText})";
+            }
+            return baseText;
+        }
+    }
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
@@ -1057,12 +1070,34 @@ public class StageManager : MonoBehaviour
             _missionManager.StopCurrentMission();
         }
 
-        if (finalReason != RunEndReason.Cleared && _playerHealth != null && !_playerHealth.IsDead)
+        if (finalReason == RunEndReason.Cleared)
+        {
+            StopPlayerAfterClear();
+        }
+        else if (_playerHealth != null && !_playerHealth.IsDead)
         {
             _playerHealth.Kill();
         }
 
         SafeEventNotifier.Notify(RunEnded, finalReason);
+    }
+
+    private void StopPlayerAfterClear()
+    {
+        if (_playerHealth == null) return;
+
+        if (_playerHealth.TryGetComponent(out Dash dash))
+            dash.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out PlayerMove movement))
+            movement.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out Rigidbody2D body))
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.constraints |= RigidbodyConstraints2D.FreezePosition;
+        }
     }
 
     // ───────────────────────── 내부 처리 ─────────────────────────
@@ -1124,12 +1159,19 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    /// <summary>카메라가 맵을 가로질러 따라가지 않도록 플레이어 위치로 바로 옮긴다. (z는 유지)</summary>
+    /// <summary>카메라 추적 Rig를 플레이어 위치로 바로 옮긴다.</summary>
     private static void SnapCameraToPlayer(Vector3 playerPosition)
     {
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
+            return;
+        }
+
+        CameraFollow cameraFollow = mainCamera.GetComponentInParent<CameraFollow>();
+        if (cameraFollow != null)
+        {
+            cameraFollow.SnapToPosition(playerPosition);
             return;
         }
 

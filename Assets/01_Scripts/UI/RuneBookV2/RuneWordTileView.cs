@@ -53,6 +53,9 @@ public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public event Action<RuneWordTileView> PointerExited;
     public event Action<RuneWordTileView> Clicked;
 
+    /// <summary>우클릭 : 장착 칸에 들어 있는 이 룬 워드를 뺀다.</summary>
+    public event Action<RuneWordTileView> RightClicked;
+
     public string EntryId => _entryId;
     public RuneBookEntryData Entry { get; private set; }
     public RectTransform RectTransform => (RectTransform)transform;
@@ -90,6 +93,10 @@ public class RuneWordTileView : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             Clicked?.Invoke(this);
+        }
+        else if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            RightClicked?.Invoke(this);
         }
     }
 

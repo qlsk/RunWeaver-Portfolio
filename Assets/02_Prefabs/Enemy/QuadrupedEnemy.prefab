@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 5423167464123742615, guid: 112c9ee5a28d83646a32f7ea29282bf6, type: 3}
+  m_Sprite: {fileID: 7636887440316509746, guid: 9f5f1633e87e8d542aac5c1ca4f7c07f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -530,6 +530,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!50 &4617150492149879079
 Rigidbody2D:
   serializedVersion: 5
@@ -591,7 +592,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.03515005, y: -0.70299375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -601,7 +602,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.315, y: 1.3506591}
+  m_Size: {x: 1.1462822, y: 0.33834767}
   m_EdgeRadius: 0
 --- !u!114 &8116234138727132672
 MonoBehaviour:
@@ -615,6 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67fdddb36a73f9345b32c76f2fc99d3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDashAttack
+  _externallyControlled: 0
   _targetDetector: {fileID: 11171715310889570}
   _attackRange: 5
   _dashDistance: 5
@@ -627,8 +629,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   _rangeImage: {fileID: 2887546521715123605, guid: c2ac29f0cb8a5cb4cb867f40cb9f43ad, type: 3}
+  _rangeOrigin: {fileID: 0}
   _rangeWidth: 0.8
   _rangeColor: {r: 1, g: 1, b: 1, a: 0.35}
+  _chargedRangeAlpha: 0.9
   _rangeSortingLayer: Default
   _rangeSortingOrder: 0
 --- !u!114 &1191855456333718874
@@ -643,6 +647,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  _useTankAnimations: 0
+  _impactShakeAmplitude: 0.3
+  _impactShakeDuration: 0.15
+  _rockShakeAmplitude: 0.15
+  _rockShakeDuration: 0.15
+  _dashShakeAmplitude: 0.12
+  _dashShakeInterval: 0.16
+  _dashShakeDuration: 0.08
+  _reverse: 1
 --- !u!114 &8041545278497892238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -695,6 +708,7 @@ MonoBehaviour:
   _knockbackVfxScale: 0.7
   _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackVfxRotationOffset: 90
+  _detachedVfxLifetime: 1.2
 --- !u!114 &7844724774766397485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -722,6 +736,7 @@ MonoBehaviour:
   _grid: {fileID: 0}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 0
 --- !u!114 &6723807525666544776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -800,7 +815,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.035149813, y: -0.12302387}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -810,5 +825,5 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.315, y: 1.3506591}
+  m_Size: {x: 1.4977794, y: 1.4701679}
   m_EdgeRadius: 0
