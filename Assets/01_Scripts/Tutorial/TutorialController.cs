@@ -7,6 +7,7 @@ public class TutorialController : MonoBehaviour
 {
     [SerializeField] private TutorialStepSO[] _steps;
     [SerializeField] private TutorialGuideCardView _guideCardView;
+    [SerializeField] private TutorialKeyHintView _keyHintView;
 
     private Coroutine _startRoutine;
     private StageManager _stageManager;
@@ -131,6 +132,7 @@ public class TutorialController : MonoBehaviour
         StepStarted?.Invoke(index, step);
 
         _guideCardView.Show(step, index + 1, _steps.Length);
+        ShowOverlay(step);
 
         condition.Completed += HandleConditionCompleted;
         condition.Begin(step);
@@ -160,6 +162,27 @@ public class TutorialController : MonoBehaviour
         enabled = false;
     }
 
+    private void ShowOverlay(TutorialStepSO step)
+    {
+        if (step.Overlay != TutorialOverlayKind.KeyHint)
+            return;
+
+        if (_keyHintView == null)
+        {
+            Debug.LogError("[TutorialController] 키 힌트 뷰가 연결되지 않았습니다.", this);
+            return;
+        }
+
+        _keyHintView.Show(step);
+    }
+
+    private void HideOverlay()
+    {
+        // 씬 파괴 중에는 뷰가 먼저 파괴됐을 수 있다.
+        if (_keyHintView != null)
+            _keyHintView.Hide();
+    }
+
     private bool IsStageStartedEarly()
     {
         if (!_steps[CurrentIndex].Condition.IsPreparationPhase())
@@ -176,6 +199,7 @@ public class TutorialController : MonoBehaviour
         _activeCondition.Completed -= HandleConditionCompleted;
         _activeCondition.End();
         _activeCondition = null;
+        HideOverlay();
     }
 
     [ContextMenu("Reset Progress")]

@@ -119,6 +119,55 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &1563444
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1563445}
+  - component: {fileID: 1563446}
+  m_Layer: 0
+  m_Name: TutorialKeyHintView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1563445
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563444}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 709986238}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 120}
+  m_SizeDelta: {x: 600, y: 80}
+  m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &1563446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5b5b5f80c0d0ae4ba0094a921b0cdd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialKeyHintView
+  _hintRoot: {fileID: 1563445}
 --- !u!1 &4711441
 GameObject:
   m_ObjectHideFlags: 0
@@ -2687,6 +2736,7 @@ RectTransform:
   - {fileID: 1485033456}
   - {fileID: 1933891939}
   - {fileID: 1707174801}
+  - {fileID: 1563445}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3404,6 +3454,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 824284732}
   m_CullTransparentMesh: 1
+--- !u!1 &825908839 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4720159671931909724, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
+  m_PrefabInstance: {fileID: 1933891934}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &856864071
 GameObject:
   m_ObjectHideFlags: 0
@@ -16353,6 +16408,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1386216789}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1235407633 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6249037825196121280, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
+  m_PrefabInstance: {fileID: 1933891934}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!4 &1249405974 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: ca5f6504254f45528d1bce332b0113e4, type: 3}
@@ -16421,6 +16487,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+--- !u!114 &1362622285 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6345943286057782244, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
+  m_PrefabInstance: {fileID: 1933891934}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1386216788
 GameObject:
   m_ObjectHideFlags: 0
@@ -19148,6 +19225,9 @@ MonoBehaviour:
   _headerLabel: {fileID: 1933891937}
   _titleText: {fileID: 1933891936}
   _bodyText: {fileID: 1933891935}
+  _actionRow: {fileID: 825908839}
+  _keyText: {fileID: 1362622285}
+  _actionLabel: {fileID: 1235407633}
 --- !u!114 &1707174803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19162,8 +19242,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TutorialController
   _steps:
   - {fileID: 11400000, guid: fb536f70e43bb234799d98da95fd43fe, type: 2}
-  - {fileID: 11400000, guid: eca2debf678463742b2d3a337c26f5c2, type: 2}
+  - {fileID: 11400000, guid: 9f5425f61cbe1aa4dbd9426d353aca73, type: 2}
   _guideCardView: {fileID: 1707174802}
+  _keyHintView: {fileID: 1563446}
 --- !u!1001 &1741632815
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19788,6 +19869,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 428703017246902679, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 428703017246902679, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
@@ -20026,6 +20111,10 @@ PrefabInstance:
     - target: {fileID: 4603098202975015394, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6345943286057782244, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4290829546
       objectReference: {fileID: 0}
     - target: {fileID: 6627143546201570926, guid: 73aadf5a643498d4991e3d6784821791, type: 3}
       propertyPath: m_AnchorMax.y

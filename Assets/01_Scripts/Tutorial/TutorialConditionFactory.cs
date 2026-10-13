@@ -9,9 +9,8 @@ public class TutorialConditionFactory
         {
             case TutorialConditionKind.Move:
                 return new MoveCondition();
-                break;
-            // case TutorialConditionKind.StatueInteract:
-            //     break;
+            case TutorialConditionKind.StatueInteract:
+                return new StatueInteractCondition();
             // case TutorialConditionKind.ElementConfirm:
             //     break;
             // case TutorialConditionKind.RuneConfirm:

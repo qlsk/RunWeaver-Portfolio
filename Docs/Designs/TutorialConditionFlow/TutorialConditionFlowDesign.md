@@ -487,3 +487,135 @@ private bool IsStageStartedEarly();
 - 조건: 마지막 단계 완료.
 - 결과: `Finish`가 카드를 숨기고 완료를 저장한다. 이어지는 `OnDisable`은 추가 정리를 하지 않는다.
 
+## 7. 3번 단위 — StatueInteract 조건과 키 힌트
+
+> 상태: **구현됨** · 2번 단위(6장)까지의 구조를 확장한다.
+
+### 7.1 확정 요구사항
+
+- `StatueInteract` 조건: 시작 석상(`ExpeditionStatue`)과 상호작용해 주력 원소 선택 창이 열리면 완료한다.
+- 카드에 "행동 행"(키 아이콘 + 행동 라벨)을 표시한다. 이 단위에서는 `Key` 종류만 지원하고, 나머지 종류(`Mouse`, `MultiKey`, `Steps`, `ConditionText`)는 필요한 단위에서 추가한다. 지원하지 않는 종류와 `None`은 행을 숨긴다.
+- 키 힌트 알약 오버레이: **단계 SO가 알약 프리팹을 직접 참조**한다. 뷰는 프리팹을 생성해 `Label` 문구만 채우고, 단계가 끝나면 파괴한다. 키 아이콘은 프리팹 변형마다 고정되어 있다(기본 F, `_WASD`, `_Space`, `_Mouse`).
+- 단계 문구는 `TutorialFlow.md`의 단계 설명을 바탕으로 한 **임시 문구**이다. 용어·말투 통일은 아직 미결이다.
+- 임시 단계 에셋을 `Step01_Move`(WASD 알약), `Step02_StatueInteract`(F 알약, 카드 키 행)로 교체했고 `Step02_Move`는 삭제했다.
+
+### 7.2 선언
+
+파일: `TutorialActionRowKind.cs`, `TutorialOverlayKind.cs` (신규)
+
+```csharp
+public enum TutorialActionRowKind { None, Key, Mouse, MultiKey, Steps, ConditionText }
+public enum TutorialOverlayKind { None, KeyHint, WorldMarker, Spotlight }
+```
+
+파일: `TutorialStepSO.cs` (수정, 필드 추가)
+
+```csharp
+[SerializeField] private TutorialActionRowKind _actionRow;
+[SerializeField] private string[] _keyLabels;
+[SerializeField] private string _actionLabel;
+[SerializeField] private TutorialOverlayKind _overlay;
+[SerializeField] private GameObject _overlayPrefab;
+[SerializeField] private string _overlayText;
+
+public TutorialActionRowKind ActionRow { get; }
+public IReadOnlyList<string> KeyLabels { get; }
+public string ActionLabel { get; }
+public TutorialOverlayKind Overlay { get; }
+public GameObject OverlayPrefab { get; }
+public string OverlayText { get; }
+```
+
+파일: `StatueInteractCondition.cs` (신규)
+
+```csharp
+public class StatueInteractCondition : ITutorialCondition
+{
+    private ExpeditionStatue _statue;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleInteracted();
+}
+```
+
+`Begin`은 씬에서 `ExpeditionStatue`를 찾는다. 없으면 오류를 남기고 구독하지 않는다(조건은 완료되지 않는다). 있으면 `Interacted`를 구독한다. `Tick`은 비어 있다. `End`는 구독을 해제하고 참조를 비운다. `HandleInteracted`는 `Completed`를 발생시킨다. `Interacted`는 상호작용으로 선택 창이 열릴 때 발생하며, 이 이벤트 발생 이후에는 조건이 상태를 건드리지 않는다.
+
+파일: `TutorialConditionFactory.cs` (수정): `Create`가 `StatueInteract`이면 `StatueInteractCondition`을 돌려준다.
+
+파일: `TutorialGuideCardView.cs` (수정)
+
+```csharp
+[SerializeField] private GameObject _actionRow;
+[SerializeField] private TMP_Text _keyText;
+[SerializeField] private TMP_Text _actionLabel;
+
+private void ShowActionRow(TutorialStepSO step);
+```
+
+`Show`는 마지막에 `ShowActionRow`를 호출한다. `ShowActionRow`는 행동 행 종류가 `Key`이면 행을 켜고, 키 라벨 첫 항목(없으면 빈 문자열)을 키 아이콘에, 행동 라벨을 라벨에 넣는다. 그 외 종류면 행을 숨긴다. 연결 대상은 카드 프리팹의 `ActionRow`, `ActionRow/KeyIcon/KeyText`, `ActionRow/ActionLabel`이다. `Awake`는 이 세 참조가 연결되었는지 검사해 하나라도 비어 있으면 오류를 한 번 남기고, `ShowActionRow`는 비어 있는 참조가 있으면 해당 표시를 생략해 조건 시작을 막지 않는다.
+
+파일: `TutorialKeyHintView.cs` (신규)
+
+```csharp
+public class TutorialKeyHintView : MonoBehaviour
+{
+    private const string LabelName = "Label";
+
+    [SerializeField] private RectTransform _hintRoot;
+
+    private GameObject _current;
+
+    public void Show(TutorialStepSO step);
+    public void Hide();
+}
+```
+
+`Show`는 먼저 이전 알약을 `Hide`로 정리한다. 단계의 오버레이 프리팹이 없으면 오류를 남기고 종료한다. 있으면 `_hintRoot` 아래에 생성하고, 자식 `Label`의 텍스트에 오버레이 문구를 넣는다. `Hide`는 현재 알약이 있으면 먼저 비활성화한 뒤 파괴하고 참조를 비운다. `Destroy`는 프레임 끝에 실행되므로, 단계 전환처럼 같은 프레임에 새 알약이 만들어져도 이전 알약이 함께 활성 상태로 남지 않게 하기 위해서이다.
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+[SerializeField] private TutorialKeyHintView _keyHintView;
+
+private void ShowOverlay(TutorialStepSO step);
+private void HideOverlay();
+```
+
+`BeginStep`은 카드 `Show` 직후 `ShowOverlay`를 호출한다. `ShowOverlay`는 오버레이 종류가 `KeyHint`일 때만 동작한다(나머지 종류는 해당 단위에서 추가). 키 힌트 뷰가 연결되지 않았으면 오류를 남기고 반환해 조건 시작은 이어지며, 연결되어 있으면 뷰의 `Show`를 호출한다. `HideOverlay`는 키 힌트 뷰가 파괴되지 않았을 때 `Hide`를 호출한다. 오버레이 정리는 `EndActiveCondition`의 끝에서 수행하므로, 단계 완료·`Finish`·`OnDisable` 중단 모두 같은 경로로 정리된다.
+
+### 7.3 Unity 에디터 작업
+
+- `Canvas` 아래에 `TutorialKeyHintView` 오브젝트를 만든다(화면 하단 중앙 앵커, 위치 y=120). 컴포넌트를 붙이고 `_hintRoot`에 자기 `RectTransform`을 연결한다. 알약 위치는 이 오브젝트의 위치로 조정한다.
+- 카드 뷰의 `_actionRow`, `_keyText`, `_actionLabel`을 `Canvas/TutorialGuideCard` 인스턴스의 해당 자식에 연결한다.
+- 컨트롤러의 `_keyHintView`를 연결하고 `_steps`를 `Step01_Move`, `Step02_StatueInteract` 순서로 한다.
+
+### 7.4 알려진 한계
+
+2번 단계 전에 플레이어가 석상과 미리 상호작용하면 `Interacted`가 이미 지나간 뒤여서 2단계가 완료되지 않는다. 이후 1층이 시작되면 2번 단위의 선행 행동 중단이 튜토리얼을 종료한다. 더 빨리 감지하려면 석상 쪽에 상호작용 상태 조회가 필요하며, 4번 단위(`ElementConfirm`)에서 석상의 흐름을 확인할 때 함께 검토한다.
+
+### 7.5 검증 시나리오
+
+**정상**
+- 조건: 완료 기록 없음, 도착 연출 종료.
+- 행동: WASD로 약 3 이동한 뒤 석상에서 F로 상호작용한다.
+- 결과: 1단계에는 이동 알약과 카드(행동 행 숨김)가 보인다. 이동 후 2단계 카드로 교체되며 행동 행에 `F`와 "상호작용"이 표시되고 F 알약으로 바뀐다. 상호작용하면 카드와 알약이 사라지고 완료가 저장된다.
+
+**오버레이 정리**
+- 조건: 알약이 표시된 상태.
+- 행동: 단계를 완료하거나 컨트롤러를 끈다.
+- 결과: 알약이 남지 않고, 단계 전환 시 이전 알약이 새 알약과 겹치지 않는다.
+
+**석상 없음**
+- 조건: 씬에 `ExpeditionStatue`가 없다.
+- 행동: 2단계 시작.
+- 결과: 오류 로그가 남고 카드는 표시되지만 단계는 완료되지 않는다.
+
+**프리팹 미지정**
+- 조건: 오버레이 종류가 `KeyHint`인데 프리팹이 비어 있다.
+- 행동: 해당 단계 시작.
+- 결과: 오류 로그가 남고 알약은 표시되지 않지만 단계는 정상 진행된다.
+
