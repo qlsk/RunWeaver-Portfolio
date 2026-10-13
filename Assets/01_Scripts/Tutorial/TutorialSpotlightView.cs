@@ -80,6 +80,7 @@ public class TutorialSpotlightView : MonoBehaviour
 
         foreach (string targetId in targetIds)
         {
+            bool isTargetFound = false;
             foreach (Target target in _targets)
             {
                 if (target.Id != targetId || target.Rect == null)
@@ -92,9 +93,19 @@ public class TutorialSpotlightView : MonoBehaviour
                     RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, screen, camera, out Vector2 local);
                     min = Vector2.Min(min, local);
                     max = Vector2.Max(max, local);
-                    found = true;
                 }
+
+                isTargetFound = true;
             }
+
+            // 일부 대상만 비추면 잘못된 안내가 되므로, 하나라도 없으면 실패로 본다.
+            if (!isTargetFound)
+            {
+                Debug.LogError($"[TutorialSpotlightView] 스포트라이트 대상 '{targetId}'를 찾을 수 없습니다.");
+                return false;
+            }
+
+            found = true;
         }
 
         if (!found)

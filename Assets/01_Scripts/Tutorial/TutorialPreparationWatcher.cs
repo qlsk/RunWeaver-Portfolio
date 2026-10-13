@@ -11,6 +11,7 @@ public class TutorialPreparationWatcher
     private ExpeditionStatue _statue;
     private MainElementSelectView _elementView;
     private RuneBookV2Presenter _runeBookPresenter;
+    private StageManager _stageManager;
     private Func<TutorialConditionKind> _getCurrentKind;
 
     public event Action OutOfOrderDetected;
@@ -36,6 +37,13 @@ public class TutorialPreparationWatcher
             _runeBookPresenter.Confirmed += HandleRunesConfirmed;
         else
             Debug.LogWarning("[TutorialPreparationWatcher] RuneBookV2Presenter를 찾을 수 없습니다.");
+
+        // StageManager.Instance는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
+        _stageManager = UnityEngine.Object.FindAnyObjectByType<StageManager>();
+        if (_stageManager != null)
+            _stageManager.MissionCleared += HandleMissionCleared;
+        else
+            Debug.LogWarning("[TutorialPreparationWatcher] StageManager를 찾을 수 없습니다.");
     }
 
     public void End()
@@ -49,9 +57,13 @@ public class TutorialPreparationWatcher
         if (_runeBookPresenter != null)
             _runeBookPresenter.Confirmed -= HandleRunesConfirmed;
 
+        if (_stageManager != null)
+            _stageManager.MissionCleared -= HandleMissionCleared;
+
         _statue = null;
         _elementView = null;
         _runeBookPresenter = null;
+        _stageManager = null;
         _getCurrentKind = null;
     }
 
@@ -68,6 +80,12 @@ public class TutorialPreparationWatcher
     private void HandleRunesConfirmed()
     {
         Check(TutorialConditionKind.RuneConfirm);
+    }
+
+    /// <summary>미션 클리어는 보상 확정 단계의 사건이다. 그보다 앞 단계에서 클리어하면 이후 단계의 사건을 놓치므로 순서가 어긋난 것으로 본다.</summary>
+    private void HandleMissionCleared(int depth)
+    {
+        Check(TutorialConditionKind.RewardConfirm);
     }
 
     private void Check(TutorialConditionKind eventKind)

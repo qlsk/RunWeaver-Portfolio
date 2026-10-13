@@ -32,6 +32,10 @@ public class TutorialRecordCardView : MonoBehaviour
 
     private void OnDisable()
     {
+        // 컴포넌트를 끄는 것만으로는 코루틴이 멈추지 않으므로 직접 멈춘다.
+        if (_playRoutine != null)
+            StopCoroutine(_playRoutine);
+
         _queue.Clear();
         _playRoutine = null;
 

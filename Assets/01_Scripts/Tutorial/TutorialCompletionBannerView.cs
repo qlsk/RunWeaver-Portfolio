@@ -27,6 +27,10 @@ public class TutorialCompletionBannerView : MonoBehaviour
         if (_controller != null)
             _controller.Finished -= HandleFinished;
 
+        // 컴포넌트를 끄는 것만으로는 코루틴이 멈추지 않으므로 직접 멈춘다.
+        if (_showRoutine != null)
+            StopCoroutine(_showRoutine);
+
         _showRoutine = null;
 
         if (_current != null)

@@ -27,6 +27,7 @@ public class TutorialSkipPresenter : MonoBehaviour
         {
             _continueButton = FindButton(_dialog.transform, ContinueButtonName);
             _skipButton = FindButton(_dialog.transform, SkipButtonName);
+            SetDialogNavigation();
             _dialog.SetActive(false);
         }
 
@@ -84,19 +85,50 @@ public class TutorialSkipPresenter : MonoBehaviour
         if (_dialog == null || !_dialog.activeSelf)
             return false;
 
-        _dialog.SetActive(false);
+        CloseDialog();
         return true;
+    }
+
+    /// <summary>대화상자를 닫고 키보드 선택을 건너뛰기 메뉴 항목으로 되돌린다.</summary>
+    private void CloseDialog()
+    {
+        _dialog.SetActive(false);
+
+        if (_menuButton != null && _menuButton.gameObject.activeInHierarchy)
+            SetEventSelection(_menuButton.gameObject);
+    }
+
+    /// <summary>두 버튼 사이만 좌우로 오가게 해 방향키가 뒤쪽 메뉴 버튼으로 새지 않게 한다.</summary>
+    private void SetDialogNavigation()
+    {
+        if (_continueButton == null || _skipButton == null)
+            return;
+
+        _continueButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnRight = _skipButton };
+        _skipButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = _continueButton };
+    }
+
+    private static void SetEventSelection(GameObject target)
+    {
+        if (UnityEngine.EventSystems.EventSystem.current != null)
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(target);
     }
 
     private void HandleMenuClicked()
     {
-        if (_dialog != null)
-            _dialog.SetActive(true);
+        if (_dialog == null)
+            return;
+
+        _dialog.SetActive(true);
+
+        // 키보드 입력이 뒤쪽 메뉴 대신 대화상자를 조작하도록 선택을 옮긴다. 기본은 안전한 "계속 진행"이다.
+        if (_continueButton != null)
+            SetEventSelection(_continueButton.gameObject);
     }
 
     private void HandleContinueClicked()
     {
-        _dialog.SetActive(false);
+        CloseDialog();
     }
 
     private void HandleSkipClicked()

@@ -273,21 +273,48 @@ public class TutorialController : MonoBehaviour
             return;
         }
 
-        RuneEffectLoadout loadout = runeManager.RuneEffectLoadout;
-        if (string.IsNullOrEmpty(loadout.GetEquippedEffectId(RuneEffectLoadout.PrimaryElementSlotIndex)))
-            loadout.EquipPrimaryElement(_skipDefaultElementId);
+        // 규칙에 어긋나는 기본값이 건너뛰기 전체를 막지 않도록, 장착 실패는 경고만 남기고 넘어간다.
+        try
+        {
+            RuneEffectLoadout loadout = runeManager.RuneEffectLoadout;
+            if (string.IsNullOrEmpty(loadout.GetEquippedEffectId(RuneEffectLoadout.PrimaryElementSlotIndex)))
+                loadout.EquipPrimaryElement(_skipDefaultElementId);
 
+            EquipSkipDefaultRuneWords(loadout);
+        }
+        catch (InvalidOperationException exception)
+        {
+            Debug.LogWarning($"[TutorialController] 기본 장착을 하지 못했습니다: {exception.Message}", this);
+        }
+    }
+
+    /// <summary>기본 룬 워드를 룬북과 같은 장착 규칙(원소 수, 삽입 위치, 충돌)으로 검증해 빈 칸에 넣는다.</summary>
+    private void EquipSkipDefaultRuneWords(RuneEffectLoadout loadout)
+    {
         if (_skipDefaultRuneWordIds == null)
             return;
 
-        List<string> slotIds = new(loadout.EquippedEffectIds);
+        string[] slotIds = new string[loadout.ActiveSlotCount];
+        for (int i = 0; i < slotIds.Length && i < loadout.EquippedEffectIds.Count; i++)
+            slotIds[i] = loadout.EquippedEffectIds[i];
+
         bool isChanged = false;
         foreach (string runeWordId in _skipDefaultRuneWordIds)
         {
-            if (string.IsNullOrEmpty(runeWordId) || slotIds.Contains(runeWordId) || slotIds.Count >= loadout.ActiveSlotCount)
+            if (string.IsNullOrEmpty(runeWordId) || Array.IndexOf(slotIds, runeWordId) >= 0)
                 continue;
 
-            slotIds.Add(runeWordId);
+            int slot = loadout.FindEquipSlot(slotIds, runeWordId, out EquipError error);
+            if (slot < 0)
+            {
+                Debug.LogWarning($"[TutorialController] 기본 룬 워드 '{runeWordId}'를 장착할 수 없습니다: {error}", this);
+                continue;
+            }
+
+            for (int i = slotIds.Length - 1; i > slot; i--)
+                slotIds[i] = slotIds[i - 1];
+
+            slotIds[slot] = runeWordId;
             isChanged = true;
         }
 

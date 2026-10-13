@@ -18,29 +18,60 @@ public class TutorialRecordTracker : MonoBehaviour
     private int _lastRuneStoneTotal;
     private bool _isTimeLowNotified;
     private bool _isHealthLowNotified;
+    private bool _isStarted;
+    private float _nextBindTime;
+
+    private const float BindRetrySeconds = 2f;
 
     private void OnEnable()
     {
         Bullet.ReactionExecuted += HandleReactionExecuted;
         EnemyHealth.OnDamageDealt += HandleEnemyDamaged;
+
+        // 처음 켜질 때는 다른 오브젝트가 준비된 Start에서 연결하고, 다시 켜질 때만 여기서 연결한다.
+        if (_isStarted)
+            BindSceneObjects();
     }
 
     private void Start()
     {
-        // Instance 프로퍼티는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
-        _playerHealth = FindAnyObjectByType<PlayerHealth>();
-        if (_playerHealth != null)
-            _playerHealth.Damaged += HandlePlayerDamaged;
+        _isStarted = true;
+        BindSceneObjects();
+    }
 
-        _missionManager = FindAnyObjectByType<MissionManager>();
-        if (_missionManager != null)
-            _missionManager.OnMissionStarted += HandleMissionStarted;
+    /// <summary>
+    /// 아직 연결하지 못한 씬 객체를 찾아 구독한다. 이미 연결된 것은 건드리지 않아 여러 번 불러도 안전하다.
+    /// Instance 프로퍼티는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
+    /// </summary>
+    private void BindSceneObjects()
+    {
+        if (_playerHealth == null)
+        {
+            _playerHealth = FindAnyObjectByType<PlayerHealth>();
+            if (_playerHealth != null)
+                _playerHealth.Damaged += HandlePlayerDamaged;
+        }
 
-        _stageManager = FindAnyObjectByType<StageManager>();
+        if (_missionManager == null)
+        {
+            _missionManager = FindAnyObjectByType<MissionManager>();
+            if (_missionManager != null)
+                _missionManager.OnMissionStarted += HandleMissionStarted;
+        }
+
+        if (_stageManager == null)
+            _stageManager = FindAnyObjectByType<StageManager>();
     }
 
     private void Update()
     {
+        // 대상이 파괴되었거나 아직 없으면 가끔 다시 찾는다. (매 프레임 찾지 않는다)
+        if ((_playerHealth == null || _missionManager == null || _stageManager == null) && Time.unscaledTime >= _nextBindTime)
+        {
+            _nextBindTime = Time.unscaledTime + BindRetrySeconds;
+            BindSceneObjects();
+        }
+
         BindRuneStoneInventory();
         PollRemainingTime();
         PollHealth();
@@ -62,7 +93,10 @@ public class TutorialRecordTracker : MonoBehaviour
 
         _playerHealth = null;
         _missionManager = null;
+        _stageManager = null;
         _runeStoneInventory = null;
+        _isTimeLowNotified = false;
+        _isHealthLowNotified = false;
     }
 
     /// <summary>사건이 일어났음을 알린다. 조건이 맞고 아직 보지 않은 카드를 모두 띄운다.</summary>
