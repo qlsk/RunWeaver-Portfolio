@@ -87,15 +87,24 @@ public static class Sfx
     public static void PlayLoopFor(string id, float seconds)
     {
         PlayLoop(id);
-        if (_runner != null && _loops.ContainsKey(id))
+        if (_runner != null && _loops.TryGetValue(id, out AudioSource source) && source != null)
         {
-            _runner.StartCoroutine(StopAfter(id, Mathf.Max(0.1f, seconds)));
+            _runner.StartCoroutine(LoopLife(id, source, Mathf.Max(0.1f, seconds), source.volume));
         }
     }
 
-    private static IEnumerator StopAfter(string id, float seconds)
+    private static IEnumerator LoopLife(string id, AudioSource source, float seconds, float baseVolume)
     {
-        yield return new WaitForSeconds(seconds);
+        float elapsed = 0f;
+        while (elapsed < seconds)
+        {
+            if (source == null) yield break;
+            if (!_loops.ContainsKey(id)) yield break;
+            elapsed += Time.deltaTime;
+            source.pitch = 1f + 0.05f * Mathf.Sin(elapsed * 7.3f);
+            source.volume = baseVolume * (1f + 0.12f * Mathf.Sin(elapsed * 5.1f + 1f));
+            yield return null;
+        }
         StopLoop(id);
     }
 
