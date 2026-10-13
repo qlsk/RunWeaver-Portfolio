@@ -18,6 +18,15 @@ public sealed class BulletHitEffects
 
     public bool HasPendingEcho => _echoReservations != null && _echoReservations.Count > 0;
 
+    // 진행 중인 연쇄 수. 연쇄가 끝나기 전에 탄환이 사라지면 연쇄로 맞은 적의 반향 예약을 처리할 곳이 없어진다.
+    private int _runningChainCount;
+
+    /// <summary>연쇄가 아직 이어지는 중인지</summary>
+    public bool IsChainRunning => _runningChainCount > 0;
+
+    /// <summary>탄환이 끝난 뒤에도 남아서 처리할 일(반향 예약, 진행 중인 연쇄)이 있는지</summary>
+    public bool HasPendingWork => HasPendingEcho || IsChainRunning;
+
     private readonly float _chainDelay;
     public BulletHitEffects(PlayerAttackData attackData, BulletRuntime runtime,
         Action<ReactionElement, ReactionElement, ReactionContext> executeReaction,
@@ -57,8 +66,9 @@ public sealed class BulletHitEffects
 
         if (configuration.SecondaryElement.HasValue)
         {
+            // 원소 반응 피해 증가 (보상 특성 attack_03)는 반응이 실제로 일어날 때 한 번만 곱한다.
             _executeReaction(configuration.PrimaryElement.Value, configuration.SecondaryElement.Value,
-                new ReactionContext(hitPosition, hitDamage, direction));
+                new ReactionContext(hitPosition, hitDamage * ReactionDamageBonus.Multiplier, direction));
             return true;
         }
 
@@ -139,7 +149,7 @@ public sealed class BulletHitEffects
     /// - 한 번 튈 때마다 _chainDelay(기본 0.1초, 게임 시간)만큼 늦게 적용한다.
     /// - 연쇄 피해는 매번 직접 맞은 피해의 50%다. (RuneEffectConfiguration.ChainDamageMultiplier)
     /// 원소 처리 함수는 Chain을 호출하지 않으므로 반응에서 연쇄가 재귀적으로 발생하지 않는다.
-    /// 탄환이 먼저 사라져도 연쇄는 끝까지 이어진다.
+    /// 연쇄로 맞은 적에게도 반향을 예약한다. 연쇄가 끝날 때까지 탄환은 보이지 않게 남아 있다가 (HasPendingWork) 반향까지 처리한다.
     public void ApplyChain(EnemyHealth directTarget, Vector2 hitPosition, float hitDamage)
     {
         RuneEffectConfiguration configuration = _attackData.Configuration;
@@ -151,6 +161,20 @@ public sealed class BulletHitEffects
     }
 
     private async UniTaskVoid RunChainAsync(EnemyHealth directTarget, Vector2 hitPosition, float chainDamage,
+        int count)
+    {
+        _runningChainCount++;
+        try
+        {
+            await RunChainStepsAsync(directTarget, hitPosition, chainDamage, count);
+        }
+        finally
+        {
+            _runningChainCount--;
+        }
+    }
+
+    private async UniTask RunChainStepsAsync(EnemyHealth directTarget, Vector2 hitPosition, float chainDamage,
         int count)
     {
         var visited = new HashSet<EnemyHealth>();
