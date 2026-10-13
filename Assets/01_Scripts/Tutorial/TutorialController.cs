@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -16,6 +17,12 @@ public class TutorialController : MonoBehaviour
     [Header("룬석 지급")]
     [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
     [SerializeField] private string[] _grantedRuneWordIds;
+
+    [Header("건너뛰기")]
+    [Tooltip("건너뛰면 주 원소가 비어 있을 때 장착하는 기본 원소 룬 효과 id")]
+    [SerializeField] private string _skipDefaultElementId = "rune_fire";
+    [Tooltip("건너뛰면 자리가 있을 때 추가로 장착하는 기본 룬 워드 id. 값은 아직 정해지지 않은 임시값")]
+    [SerializeField] private string[] _skipDefaultRuneWordIds = { "rune_water" };
 
     [Header("임무 실패 없음")]
     [Tooltip("피해로는 이 비율(최대 체력 대비) 아래로 내려가지 않는다. 값은 아직 정해지지 않은 임시값")]
@@ -231,6 +238,61 @@ public class TutorialController : MonoBehaviour
     {
         Debug.LogWarning("[TutorialController] 현재 단계보다 앞선 석상 조작이 감지되어 튜토리얼을 중단합니다.");
         enabled = false;
+    }
+
+    /// <summary>
+    /// 튜토리얼을 건너뛴다. 기본 원소와 룬 워드를 장착하고, 출발 준비 중이면 석상을 건너뛰어 1층을 시작한 뒤 완료로 기록한다.
+    /// 컨트롤러를 끄므로 규칙 해제와 화면 정리는 OnDisable이 맡는다.
+    /// </summary>
+    public void Skip()
+    {
+        if (!IsRunning)
+            return;
+
+        EquipSkipDefaults();
+
+        if (_stageManager != null && _stageManager.IsWaitingForPreparation)
+        {
+            ExpeditionStatue statue = FindAnyObjectByType<ExpeditionStatue>();
+            if (statue != null)
+                statue.SkipPreparation();
+            else
+                Debug.LogWarning("[TutorialController] ExpeditionStatue를 찾을 수 없어 출발 준비를 건너뛰지 못합니다.", this);
+        }
+
+        TutorialProgressStore.MarkCompleted();
+        enabled = false;
+    }
+
+    private void EquipSkipDefaults()
+    {
+        PlayerRuneManager runeManager = PlayerRuneManager.Instance;
+        if (runeManager == null || !runeManager.IsInitialized)
+        {
+            Debug.LogWarning("[TutorialController] 룬 시스템이 준비되지 않아 기본 장착을 하지 못합니다.", this);
+            return;
+        }
+
+        RuneEffectLoadout loadout = runeManager.RuneEffectLoadout;
+        if (string.IsNullOrEmpty(loadout.GetEquippedEffectId(RuneEffectLoadout.PrimaryElementSlotIndex)))
+            loadout.EquipPrimaryElement(_skipDefaultElementId);
+
+        if (_skipDefaultRuneWordIds == null)
+            return;
+
+        List<string> slotIds = new(loadout.EquippedEffectIds);
+        bool isChanged = false;
+        foreach (string runeWordId in _skipDefaultRuneWordIds)
+        {
+            if (string.IsNullOrEmpty(runeWordId) || slotIds.Contains(runeWordId) || slotIds.Count >= loadout.ActiveSlotCount)
+                continue;
+
+            slotIds.Add(runeWordId);
+            isChanged = true;
+        }
+
+        if (isChanged)
+            loadout.ConfirmEquipment(slotIds);
     }
 
     private void ReleaseRules()

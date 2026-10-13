@@ -1463,3 +1463,108 @@ public class TutorialRecordTracker : MonoBehaviour
 
 **정리**
 - 추적기나 뷰가 꺼질 때 구독이 해제되고 떠 있는 카드가 사라진다.
+
+## 19. 17번 단위 — 튜토리얼 건너뛰기
+
+> 상태: **구현됨** · 기존 게임 코드(`ExpeditionStatue`)에 소규모 메서드를 추가했다. 기본 룬 워드 값은 임시값이다.
+
+### 19.1 확정 요구사항
+
+- 일시정지 메뉴에 "튜토리얼 건너뛰기" 항목을 둔다. 튜토리얼이 진행 중(`IsRunning`)일 때만 보이고, 누르면 확인 대화상자(`TutorialSkipDialog`: "계속 진행"/"건너뛰기")를 연다. 길게 누르기 힌트는 상시 노출하지 않는다.
+- 건너뛰면 **기본 원소(불)와 기본 룬 워드를 자동 장착**하고, 건너뛴 것도 **완료로 기록**한다(중단과 달리 다음 실행에서 튜토리얼이 뜨지 않는다).
+- 아직 출발 준비 중이면(시작 석상 대기) 석상을 건너뛰어 1층을 시작한다. 주 원소가 이미 장착되어 있으면 기본 원소로 덮어쓰지 않는다. 기본 룬 워드는 비어 있는 칸이 있을 때만 추가한다.
+- 건너뛰기는 `Finished`를 발생시키지 않으므로 완료 배너(20장)는 뜨지 않는다.
+- 기본 룬 워드는 임시로 `rune_water`이다(Inspector 필드, 미정).
+
+### 19.2 기존 코드 변경 (게임 코드)
+
+파일: `Preparation/ExpeditionStatue.cs` (수정)
+
+```csharp
+public void SkipPreparation();
+```
+
+이미 무너지는 중이거나 1층이 시작됐으면 아무것도 하지 않는다. 아니면 원소 선택·룬 확정 대기 상태를 풀고 무너짐 상태로 바꾼 뒤 붕괴 연출 코루틴을 시작한다. 연출 중 기존 경로와 똑같이 `BeginRun`이 불려 1층이 시작된다.
+
+### 19.3 튜토리얼 코드
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+[SerializeField] private string _skipDefaultElementId;
+[SerializeField] private string[] _skipDefaultRuneWordIds;
+
+public void Skip();
+private void EquipSkipDefaults();
+```
+
+`Skip`의 처리 순서:
+
+1. 실행 중이 아니면 종료한다.
+2. `EquipSkipDefaults`로 기본 장착을 한다.
+3. 출발 준비 중이면 석상을 찾아 `SkipPreparation`을 부른다. 석상이 없으면 경고만 남긴다.
+4. 완료로 기록한다.
+5. 컨트롤러를 끈다. 규칙 해제(룬북 잠금, 미션 고정, 체력 하한, 시간 연장), 오버레이와 카드 정리는 `OnDisable`이 맡는다.
+
+`EquipSkipDefaults`는 룬 시스템이 준비되지 않았으면 경고만 남긴다. 준비되었으면 주 원소 칸이 비어 있을 때만 기본 원소를 장착하고, 현재 장착 목록에 기본 룬 워드를 빈 칸 수만큼 추가해 확정한다. 이미 있는 것은 건너뛰고 바뀐 것이 있을 때만 확정한다.
+
+파일: `TutorialSkipPresenter.cs` (신규)
+
+```csharp
+public class TutorialSkipPresenter : MonoBehaviour
+{
+    [SerializeField] private TutorialController _controller;
+    [SerializeField] private Button _menuButton;
+    [SerializeField] private GameObject _dialog;
+}
+```
+
+`Awake`는 대화상자 안에서 이름(`ContinueButton`, `SkipButton`)으로 버튼을 찾고 대화상자를 꺼 둔다. 연결이 비어 있으면 오류를 남긴다. `OnEnable`/`OnDisable`이 버튼 클릭 리스너를 맺고 푼다. `LateUpdate`는 컨트롤러가 실행 중일 때만 메뉴 항목을 켜고, 메뉴가 닫혀 항목이 숨으면 대화상자도 닫는다. 메뉴 항목을 누르면 대화상자를 열고, "계속 진행"은 닫기만 하며, "건너뛰기"는 닫은 뒤 `Skip`을 부른다.
+
+### 19.4 Unity 에디터 작업
+
+- 일시정지 메뉴(`Canvas/PauseUI/Content/MenuPanel/Buttons`)에 탐사 포기 버튼을 본뜬 `TutorialSkipButton`을 만들었다(문구 "튜토리얼 건너뛰기", 위치 y=-282, 클릭 리스너 없음). 안내 문구(`Hint`)를 아래로 내렸다.
+- `Content` 아래에 `TutorialSkipDialog` 프리팹 인스턴스를 비활성으로 두었다.
+- `Canvas` 아래 `TutorialSkipPresenter` 오브젝트에 컨트롤러, 메뉴 버튼, 대화상자를 연결했다.
+
+### 19.5 검증 시나리오
+
+**표시 조건**
+- 튜토리얼 진행 중에만 메뉴에 항목이 보인다. 완료·중단 후에는 보이지 않는다.
+
+**출발 전 건너뛰기**
+- 조건: 석상 상호작용 전.
+- 행동: 메뉴에서 건너뛰기를 확인한다.
+- 결과: 불 원소와 기본 룬 워드가 장착되고 석상이 붕괴하며 1층이 시작된다. 룬북 잠금이 풀리고 카드·알약이 사라진다. 재시작해도 튜토리얼이 뜨지 않는다.
+
+**주 원소 보존**
+- 조건: 이미 물을 주 원소로 장착했다.
+- 결과: 불로 덮어쓰지 않는다.
+
+**계속 진행**
+- 대화상자에서 "계속 진행"을 누르면 아무 변화 없이 닫힌다.
+
+## 20. 19번 단위 — 완료 배너
+
+> 상태: **구현됨**
+
+- 튜토리얼을 끝까지 마치면(`Finished`) 완료 배너(`TutorialCompletionBanner`)를 3초 동안 보여준다. 마지막 단계(`PortalEnter`)가 다음 층 시작 시 완료되므로 "다음 층 도착 시" 표시가 된다. 건너뛰기에서는 뜨지 않는다.
+- 프리팹의 '다음 층 도착 시, 3초 표시' 라벨은 시안 설명이라 숨긴다. 배너 문구는 프리팹 기본 문구("협회 지침 완료", 지침서 안내)를 그대로 쓴다.
+
+파일: `TutorialCompletionBannerView.cs` (신규)
+
+```csharp
+public class TutorialCompletionBannerView : MonoBehaviour
+{
+    [SerializeField] private TutorialController _controller;
+    [SerializeField] private GameObject _bannerPrefab;
+    [SerializeField] private RectTransform _root;
+    [SerializeField] private float _displaySeconds;
+}
+```
+
+`OnEnable`에서 컨트롤러의 `Finished`를 구독하고 `OnDisable`에서 해제하며 떠 있는 배너를 파괴한다. 컨트롤러가 완료 때 스스로 꺼져도 이 뷰는 별개의 오브젝트라 계속 동작한다. `Finished`가 오면 프리팹이 없으면 오류를 남기고, 있으면 이전 표시를 멈추고 배너를 생성해 설명 라벨을 숨긴 뒤 실제 시간으로 표시 시간만큼 기다렸다가 파괴한다.
+
+Unity 에디터 작업: `Canvas` 아래 전체 화면 `TutorialCompletionBannerRoot`에 이 뷰를 붙이고 컨트롤러, 프리팹, 루트를 연결했다.
+
+검증: 필수 10단계를 마치고 다음 층이 시작되면 배너가 3초 뜬 뒤 사라진다. 건너뛰면 뜨지 않는다. 중단되어도 뜨지 않는다.
