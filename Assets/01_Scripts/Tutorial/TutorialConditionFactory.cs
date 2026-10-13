@@ -11,8 +11,8 @@ public class TutorialConditionFactory
                 return new MoveCondition();
             case TutorialConditionKind.StatueInteract:
                 return new StatueInteractCondition();
-            // case TutorialConditionKind.ElementConfirm:
-            //     break;
+            case TutorialConditionKind.ElementConfirm:
+                return new ElementConfirmCondition();
             // case TutorialConditionKind.RuneConfirm:
             //     break;
             // case TutorialConditionKind.MissionStart:

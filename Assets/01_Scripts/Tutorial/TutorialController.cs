@@ -12,6 +12,7 @@ public class TutorialController : MonoBehaviour
     private Coroutine _startRoutine;
     private StageManager _stageManager;
     private ITutorialCondition _activeCondition;
+    private TutorialPreparationWatcher _preparationWatcher;
 
     public int CurrentIndex { get; private set; }
     public bool IsRunning { get; private set; }
@@ -69,6 +70,7 @@ public class TutorialController : MonoBehaviour
 
         _startRoutine = null;
         EndActiveCondition();
+        EndPreparationWatcher();
 
         if (!IsRunning)
             return;
@@ -113,6 +115,11 @@ public class TutorialController : MonoBehaviour
 
         _startRoutine = null;
         IsRunning = true;
+
+        _preparationWatcher = new TutorialPreparationWatcher();
+        _preparationWatcher.OutOfOrderDetected += HandleOutOfOrderDetected;
+        _preparationWatcher.Begin(() => _steps[CurrentIndex].Condition);
+
         BeginStep(0);
     }
 
@@ -181,6 +188,22 @@ public class TutorialController : MonoBehaviour
         // 씬 파괴 중에는 뷰가 먼저 파괴됐을 수 있다.
         if (_keyHintView != null)
             _keyHintView.Hide();
+    }
+
+    private void HandleOutOfOrderDetected()
+    {
+        Debug.LogWarning("[TutorialController] 현재 단계보다 앞선 석상 조작이 감지되어 튜토리얼을 중단합니다.");
+        enabled = false;
+    }
+
+    private void EndPreparationWatcher()
+    {
+        if (_preparationWatcher == null)
+            return;
+
+        _preparationWatcher.OutOfOrderDetected -= HandleOutOfOrderDetected;
+        _preparationWatcher.End();
+        _preparationWatcher = null;
     }
 
     private bool IsStageStartedEarly()

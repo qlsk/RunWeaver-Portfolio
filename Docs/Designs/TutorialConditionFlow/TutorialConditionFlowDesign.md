@@ -595,7 +595,7 @@ private void HideOverlay();
 
 ### 7.4 알려진 한계
 
-2번 단계 전에 플레이어가 석상과 미리 상호작용하면 `Interacted`가 이미 지나간 뒤여서 2단계가 완료되지 않는다. 이후 1층이 시작되면 2번 단위의 선행 행동 중단이 튜토리얼을 종료한다. 더 빨리 감지하려면 석상 쪽에 상호작용 상태 조회가 필요하며, 4번 단위(`ElementConfirm`)에서 석상의 흐름을 확인할 때 함께 검토한다.
+2단계 전에 플레이어가 석상과 미리 상호작용하는 경우의 정체는 8장의 순서 감시(`TutorialPreparationWatcher`)로 해결했다.
 
 ### 7.5 검증 시나리오
 
@@ -618,4 +618,103 @@ private void HideOverlay();
 - 조건: 오버레이 종류가 `KeyHint`인데 프리팹이 비어 있다.
 - 행동: 해당 단계 시작.
 - 결과: 오류 로그가 남고 알약은 표시되지 않지만 단계는 정상 진행된다.
+
+## 8. 4번 단위 — ElementConfirm 조건과 선행 조작 즉시 중단
+
+> 상태: **구현됨** · 6장의 선행 행동 정책(튜토리얼 중단)을 석상 조작 전반으로 확장한다.
+
+### 8.1 확정 요구사항
+
+- `ElementConfirm` 조건: 주력 원소 선택 창에서 원소를 확정하면 완료한다. 게임 코드는 수정하지 않는다. `MainElementSelectView.Confirmed`(`Action<ReactionElement>`)가 이미 public이므로 조건이 직접 구독한다.
+- **선행 석상 조작은 즉시 중단한다.** 현재 단계보다 뒤 단계에 해당하는 석상 조작이 먼저 일어나면 튜토리얼을 중단한다(완료 기록 없음). 지난 단계의 조작은 무시한다. 예를 들어 이동 중 석상 상호작용은 중단이고, 취소 후 다시 상호작용하는 것은 무시한다.
+- 3단계 문구는 임시 문구이고 카드 행동 행과 오버레이는 없다. 원소 점 표시(`TutorialElementDots`)는 이 단위에 포함하지 않는다.
+
+### 8.2 선언
+
+파일: `ElementConfirmCondition.cs` (신규)
+
+```csharp
+public class ElementConfirmCondition : ITutorialCondition
+{
+    private MainElementSelectView _view;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleConfirmed(ReactionElement element);
+}
+```
+
+`Begin`은 비활성 상태까지 포함해 씬에서 `MainElementSelectView`를 찾는다(팝업이라 평소에는 꺼져 있다). 없으면 오류를 남기고 구독하지 않는다. 있으면 `Confirmed`를 구독한다. `End`는 구독을 해제하고 참조를 비운다. `HandleConfirmed`는 `Completed`를 발생시킨다. `TutorialConditionFactory`는 `ElementConfirm`에 이 조건을 돌려준다.
+
+파일: `TutorialPreparationWatcher.cs` (신규)
+
+```csharp
+public class TutorialPreparationWatcher
+{
+    private ExpeditionStatue _statue;
+    private MainElementSelectView _elementView;
+    private Func<TutorialConditionKind> _getCurrentKind;
+
+    public event Action OutOfOrderDetected;
+
+    public void Begin(Func<TutorialConditionKind> getCurrentKind);
+    public void End();
+    private void HandleStatueInteracted();
+    private void HandleElementConfirmed(ReactionElement element);
+    private void Check(TutorialConditionKind eventKind);
+}
+```
+
+감시자는 조건 객체와 별개로 튜토리얼이 실행되는 동안 석상 상호작용(`Interacted`)과 원소 확정(`Confirmed`)을 계속 구독한다. 이벤트는 각각 `StatueInteract`, `ElementConfirm` 단계에 대응한다. `Check`는 이벤트가 나타내는 단계가 현재 단계보다 뒤이면 `OutOfOrderDetected`를 발생시킨다. 이 비교는 `TutorialConditionKind`의 선언 순서가 단계 진행 순서와 같다는 전제를 쓴다. 현재 단계는 `Begin`에서 받은 함수로 매번 조회하므로 단계가 바뀌어도 감시자를 다시 만들 필요가 없다. 석상이나 원소 선택 뷰를 찾지 못하면 경고만 남기고 해당 감시를 건너뛴다. `End`는 두 구독을 해제하고 참조를 비운다. 6번 단위(`RuneConfirm`)에서 룬 확정 이벤트를 같은 방식으로 추가한다.
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+private TutorialPreparationWatcher _preparationWatcher;
+
+private void HandleOutOfOrderDetected();
+private void EndPreparationWatcher();
+```
+
+`StartRoutine`은 `IsRunning`을 켠 뒤 `BeginStep(0)` 전에 감시자를 만들어 `OutOfOrderDetected`를 구독하고 `Begin`을 호출한다. 현재 단계 조회 함수는 `_steps[CurrentIndex].Condition`이다. `HandleOutOfOrderDetected`는 경고를 남기고 컴포넌트를 끈다. `OnDisable`은 `EndActiveCondition` 다음에 `EndPreparationWatcher`를 호출해 감시자의 구독 해제와 참조 정리를 한다. 이벤트 처리 중에 구독을 해제하는 것은 안전하다.
+
+### 8.3 Unity 에디터 작업
+
+- `Assets/11_Data/Tutorial/Step03_ElementConfirm.asset`을 만든다(조건 `ElementConfirm`, 행동 행 `None`, 오버레이 `None`).
+- 컨트롤러의 `_steps`에 이 에셋을 세 번째로 추가한다.
+
+### 8.4 검증 시나리오
+
+**정상**
+- 조건: 2단계 완료 직후(원소 선택 창이 열린 상태).
+- 행동: 원소를 선택하고 확정한다.
+- 결과: 3단계가 완료되고 `_steps`의 마지막이면 카드가 사라지며 완료가 저장된다.
+
+**선행 석상 상호작용**
+- 조건: 1단계(`Move`) 진행 중.
+- 행동: 이동을 끝내기 전에 석상과 상호작용한다.
+- 결과: 경고 로그가 남고 카드와 알약이 사라지며 컨트롤러가 꺼진다. 완료 기록은 남지 않는다.
+
+**선행 원소 확정**
+- 조건: 2단계(`StatueInteract`) 진행 중. 석상 상호작용 없이 원소 선택 창이 열리는 디버그 경로를 사용한다.
+- 행동: 원소를 확정한다.
+- 결과: 원소 확정은 현재 단계(2)보다 뒤 단계(3)의 조작이므로 튜토리얼이 중단된다. 정상 플레이에서는 상호작용이 먼저 감지되어 그 시점에 중단된다.
+
+**지난 단계 조작 무시**
+- 조건: 3단계 진행 중.
+- 행동: 원소 선택을 취소하고 다시 석상과 상호작용한다.
+- 결과: 상호작용 이벤트는 지난 단계이므로 무시되고 튜토리얼은 계속된다.
+
+**정리**
+- 조건: 튜토리얼 실행 중.
+- 행동: 컨트롤러를 끈다(완료·중단 포함).
+- 결과: 조건과 감시자의 구독이 모두 해제되어 이후 석상 조작이 튜토리얼에 영향을 주지 않는다.
+
+**뷰 없음**
+- 조건: 씬에 `MainElementSelectView`가 없다.
+- 행동: 3단계 시작.
+- 결과: 조건이 오류를 남기고 완료되지 않으며, 감시자는 경고만 남긴다.
 
