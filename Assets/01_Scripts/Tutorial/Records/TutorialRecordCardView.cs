@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -22,17 +23,8 @@ public class TutorialRecordCardView : MonoBehaviour
     private Coroutine _playRoutine;
     private GameObject _current;
 
-    public void Enqueue(RecordCardSO card)
-    {
-        _queue.Enqueue(card);
-
-        if (_playRoutine == null)
-            _playRoutine = StartCoroutine(PlayQueue());
-    }
-
     private void OnDisable()
     {
-        // 컴포넌트를 끄는 것만으로는 코루틴이 멈추지 않으므로 직접 멈춘다.
         if (_playRoutine != null)
             StopCoroutine(_playRoutine);
 
@@ -45,22 +37,21 @@ public class TutorialRecordCardView : MonoBehaviour
         _current = null;
     }
 
+    public void Enqueue(RecordCardSO card)
+    {
+        _queue.Enqueue(card);
+        _playRoutine ??= StartCoroutine(PlayQueue());
+    }
+
     private IEnumerator PlayQueue()
     {
         while (_queue.Count > 0)
             yield return ShowCard(_queue.Dequeue());
-
         _playRoutine = null;
     }
 
     private IEnumerator ShowCard(RecordCardSO card)
     {
-        if (card.CardPrefab == null)
-        {
-            Debug.LogError($"[TutorialRecordCardView] 기록 카드 '{card.Id}'의 프리팹이 지정되지 않았습니다.");
-            yield break;
-        }
-
         _current = Instantiate(card.CardPrefab, _root);
         PlaceCard((RectTransform)_current.transform);
 
@@ -70,10 +61,9 @@ public class TutorialRecordCardView : MonoBehaviour
         SetText(FooterName, card.Footer);
 
         Transform fill = FindDeep(_current.transform, TimerFillName);
-        float elapsed = 0f;
+        var elapsed = 0f;
         while (elapsed < card.DisplaySeconds)
         {
-            // 기록 카드는 룬북 등으로 게임이 멈춰 있어도 시간이 흘러야 하므로 실제 시간을 쓴다.
             elapsed += Time.unscaledDeltaTime;
             if (fill != null)
                 fill.localScale = new Vector3(1f - Mathf.Clamp01(elapsed / card.DisplaySeconds), 1f, 1f);
@@ -98,7 +88,6 @@ public class TutorialRecordCardView : MonoBehaviour
         if (child == null)
             return;
 
-        // 문구가 없는 칸(예: 꼬리말)은 숨긴다.
         child.gameObject.SetActive(!string.IsNullOrEmpty(text));
         if (child.TryGetComponent(out TMP_Text label))
             label.text = text;
@@ -106,12 +95,6 @@ public class TutorialRecordCardView : MonoBehaviour
 
     private static Transform FindDeep(Transform parent, string childName)
     {
-        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
-        {
-            if (child.name == childName)
-                return child;
-        }
-
-        return null;
+        return parent.GetComponentsInChildren<Transform>(true).FirstOrDefault(child => child.name == childName);
     }
 }

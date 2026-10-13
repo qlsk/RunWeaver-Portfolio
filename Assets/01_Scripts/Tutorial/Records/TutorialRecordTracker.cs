@@ -1,15 +1,13 @@
 using UnityEngine;
 
-/// <summary>게임 안의 첫 사건을 감시해 알맞은 상황 안내 카드를 한 번씩 띄운다. 본 기록은 저장해 다시 보여주지 않는다.</summary>
 public class TutorialRecordTracker : MonoBehaviour
 {
     [SerializeField] private RecordCardSO[] _cards;
     [SerializeField] private TutorialRecordCardView _view;
 
     [Header("긴박 카드 기준")]
-    [SerializeField, Min(0f)] private float _remainingTimeWarningSeconds = 10f;
-    [Tooltip("체력이 최대 체력 대비 이 비율 이하이면 체력 위험 카드를 띄운다. 값은 아직 정해지지 않은 임시값")]
-    [SerializeField, Range(0f, 1f)] private float _healthDangerRatio = 0.3f;
+    [SerializeField][Min(0f)] private float _remainingTimeWarningSeconds = 10f;
+    [SerializeField][Range(0f, 1f)] private float _healthDangerRatio = 0.3f;
 
     private PlayerHealth _playerHealth;
     private MissionManager _missionManager;
@@ -21,14 +19,11 @@ public class TutorialRecordTracker : MonoBehaviour
     private bool _isStarted;
     private float _nextBindTime;
 
-    private const float BindRetrySeconds = 2f;
-
     private void OnEnable()
     {
         Bullet.ReactionExecuted += HandleReactionExecuted;
         EnemyHealth.OnDamageDealt += HandleEnemyDamaged;
 
-        // 처음 켜질 때는 다른 오브젝트가 준비된 Start에서 연결하고, 다시 켜질 때만 여기서 연결한다.
         if (_isStarted)
             BindSceneObjects();
     }
@@ -39,24 +34,18 @@ public class TutorialRecordTracker : MonoBehaviour
         BindSceneObjects();
     }
 
-    /// <summary>
-    /// 아직 연결하지 못한 씬 객체를 찾아 구독한다. 이미 연결된 것은 건드리지 않아 여러 번 불러도 안전하다.
-    /// Instance 프로퍼티는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
-    /// </summary>
     private void BindSceneObjects()
     {
         if (_playerHealth == null)
         {
             _playerHealth = FindAnyObjectByType<PlayerHealth>();
-            if (_playerHealth != null)
-                _playerHealth.Damaged += HandlePlayerDamaged;
+            _playerHealth.Damaged += HandlePlayerDamaged;
         }
 
         if (_missionManager == null)
         {
             _missionManager = FindAnyObjectByType<MissionManager>();
-            if (_missionManager != null)
-                _missionManager.OnMissionStarted += HandleMissionStarted;
+            _missionManager.OnMissionStarted += HandleMissionStarted;
         }
 
         if (_stageManager == null)
@@ -65,13 +54,6 @@ public class TutorialRecordTracker : MonoBehaviour
 
     private void Update()
     {
-        // 대상이 파괴되었거나 아직 없으면 가끔 다시 찾는다. (매 프레임 찾지 않는다)
-        if ((_playerHealth == null || _missionManager == null || _stageManager == null) && Time.unscaledTime >= _nextBindTime)
-        {
-            _nextBindTime = Time.unscaledTime + BindRetrySeconds;
-            BindSceneObjects();
-        }
-
         BindRuneStoneInventory();
         PollRemainingTime();
         PollHealth();
@@ -123,7 +105,6 @@ public class TutorialRecordTracker : MonoBehaviour
 
     private void HandleReactionExecuted(ReactionElement primary, ReactionElement secondary)
     {
-        // 서로 다른 원소의 순서는 구분하지 않으므로 이름 순으로 정렬한 쌍을 키로 쓴다.
         string first = primary.ToString();
         string second = secondary.ToString();
         string key = string.CompareOrdinal(first, second) <= 0 ? $"{first}+{second}" : $"{second}+{first}";
@@ -154,7 +135,6 @@ public class TutorialRecordTracker : MonoBehaviour
         _lastRuneStoneTotal = total;
     }
 
-    /// <summary>룬 시스템은 로딩 뒤에 준비되므로 준비되는 때에 한 번 연결한다. 연결 시점의 보유량은 기준으로만 삼는다.</summary>
     private void BindRuneStoneInventory()
     {
         if (_runeStoneInventory != null)

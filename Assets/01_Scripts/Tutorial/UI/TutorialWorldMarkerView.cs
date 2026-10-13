@@ -1,19 +1,15 @@
 using TMPro;
 using UnityEngine;
 
-/// <summary>월드의 대상(시작 석상, 포탈) 위에 안내 표식을 띄운다. 화면 밖이면 가장자리에 붙이고 화살표로 방향을 알린다.</summary>
 public class TutorialWorldMarkerView : MonoBehaviour
 {
     private const string LabelName = "Label";
     private const string EdgeArrowName = "EdgeArrow";
 
-    [Tooltip("표식을 놓는 전체 화면 RectTransform")]
     [SerializeField] private RectTransform _root;
     [SerializeField] private Canvas _canvas;
-    [Tooltip("대상 위치에서 위로 띄우는 월드 거리")]
     [SerializeField] private Vector3 _worldOffset = new(0f, 3f, 0f);
-    [Tooltip("화면 가장자리에서 띄우는 거리(픽셀)")]
-    [SerializeField, Min(0f)] private float _edgePadding = 80f;
+    [SerializeField][Min(0f)] private float _edgePadding = 80f;
 
     private GameObject _current;
     private RectTransform _currentRect;
@@ -24,12 +20,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
     public void Show(TutorialStepSO step)
     {
         Hide();
-
-        if (step.OverlayPrefab == null)
-        {
-            Debug.LogError("[TutorialWorldMarkerView] 월드 표식 프리팹이 지정되지 않았습니다.");
-            return;
-        }
 
         _targetKind = step.MarkerTarget;
         _current = Instantiate(step.OverlayPrefab, _root);
@@ -42,7 +32,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
         Transform edgeArrow = _current.transform.Find(EdgeArrowName);
         _edgeArrow = edgeArrow != null ? edgeArrow.gameObject : null;
 
-        // 대상을 찾을 때까지 숨긴다. 포탈처럼 나중에 생기는 대상이 있다.
         _current.SetActive(false);
     }
 
@@ -53,7 +42,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
         if (_current == null)
             return;
 
-        // Destroy는 프레임 끝에 실행되므로, 같은 프레임에 새 표식이 생겨도 겹치지 않게 먼저 끈다.
         _current.SetActive(false);
         Destroy(_current);
         _current = null;
@@ -83,7 +71,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
         UpdateEdgeArrow(screen, isOnScreen);
     }
 
-    /// <summary>월드 좌표를 화면 좌표로 바꾼다. 카메라 뒤쪽 대상은 투영 좌표가 뒤집히므로 반대로 돌려 같은 방향 가장자리에 붙게 한다.</summary>
     private static Vector3 ProjectToScreen(Camera worldCamera, Vector3 worldPosition, out bool isBehind)
     {
         Vector3 screen = worldCamera.WorldToScreenPoint(worldPosition);
@@ -97,7 +84,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
         return screen;
     }
 
-    /// <summary>화면 가장자리 여백 안으로 좌표를 제한해 표식을 놓고, 대상이 화면 안에 있는지 돌려준다.</summary>
     private bool PlaceMarker(Vector3 screen, bool isBehind)
     {
         float minX = _edgePadding;
@@ -112,7 +98,6 @@ public class TutorialWorldMarkerView : MonoBehaviour
         return isOnScreen;
     }
 
-    /// <summary>대상이 화면 밖일 때만 가장자리 화살표를 켜고 화면 중심에서 대상 방향으로 돌린다.</summary>
     private void UpdateEdgeArrow(Vector3 screen, bool isOnScreen)
     {
         if (_edgeArrow == null)
@@ -132,10 +117,10 @@ public class TutorialWorldMarkerView : MonoBehaviour
         switch (_targetKind)
         {
             case TutorialMarkerTarget.StartStatue:
-                ExpeditionStatue statue = FindAnyObjectByType<ExpeditionStatue>();
+                var statue = FindAnyObjectByType<ExpeditionStatue>();
                 return statue != null ? statue.transform : null;
             case TutorialMarkerTarget.Portal:
-                Portal portal = FindAnyObjectByType<Portal>();
+                var portal = FindAnyObjectByType<Portal>();
                 return portal != null ? portal.transform : null;
             default:
                 return null;

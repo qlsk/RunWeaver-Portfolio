@@ -1,6 +1,5 @@
 using UnityEngine;
 
-/// <summary>완료 조건 종류(TutorialConditionKind)에 맞는 조건 객체를 만든다. 새 조건은 여기에 한 줄을 더한다.</summary>
 public static class TutorialConditionFactory
 {
     public static ITutorialCondition Create(TutorialConditionKind kind)
@@ -28,7 +27,6 @@ public static class TutorialConditionFactory
             case TutorialConditionKind.PortalEnter:
                 return new PortalEnterCondition();
             default:
-                Debug.LogError("[TutorialConditionFactory] 유효하지 않은 TutorialConditionKind 입니다.");
                 return null;
         }
     }

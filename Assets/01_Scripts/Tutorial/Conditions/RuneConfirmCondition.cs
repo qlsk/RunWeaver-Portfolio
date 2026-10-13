@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 
-/// <summary>룬북에서 룬 장착을 확정하면 완료한다.</summary>
 public class RuneConfirmCondition : ITutorialCondition
 {
     private RuneBookV2Presenter _presenter;
@@ -11,18 +10,10 @@ public class RuneConfirmCondition : ITutorialCondition
     public void Begin(TutorialStepSO step)
     {
         _presenter = UnityEngine.Object.FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
-        if (_presenter == null)
-        {
-            Debug.LogError("[RuneConfirmCondition] RuneBookV2Presenter를 찾을 수 없습니다.");
-            return;
-        }
-
         _presenter.Confirmed += HandleConfirmed;
     }
 
-    public void Tick()
-    {
-    }
+    public void Tick() { }
 
     public void End()
     {

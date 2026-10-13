@@ -13,13 +13,13 @@ public class RecordCardSO : ScriptableObject
     [Tooltip("머리말의 '새 기록 / ' 뒤에 붙는 분류")]
     [SerializeField] private string _category;
     [SerializeField] private string _title;
-    [SerializeField, TextArea] private string _body;
+    [SerializeField][TextArea] private string _body;
     [SerializeField] private string _footer;
 
     [Header("표시")]
     [Tooltip("일반, 원소 반응, 경고 중 알맞은 카드 프리팹")]
     [SerializeField] private GameObject _cardPrefab;
-    [SerializeField, Min(1f)] private float _displaySeconds = 6f;
+    [SerializeField][Min(1f)] private float _displaySeconds = 6f;
 
     public string Id => _id;
     public RecordTriggerKind Trigger => _trigger;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>튜토리얼 진행 중에만 적용하는 규칙을 켜고 끈다. 룬북(Tab) 잠금, 룬석 지급, 1층 미션 고정, 임무 실패 없음(체력 하한과 제한 시간 연장)을 다룬다.</summary>
 public class TutorialRules
 {
     private readonly IReadOnlyList<string> _grantedRuneWordIds;
@@ -16,7 +15,10 @@ public class TutorialRules
     private StageManager _stageManager;
     private bool _runeStonesGranted;
 
-    public TutorialRules(IReadOnlyList<string> grantedRuneWordIds, float minHealthRatio, float timeoutExtendSeconds,
+    public TutorialRules(
+        IReadOnlyList<string> grantedRuneWordIds,
+        float minHealthRatio,
+        float timeoutExtendSeconds,
         TutorialRecordTracker recordTracker)
     {
         _recordTracker = recordTracker;
@@ -32,7 +34,6 @@ public class TutorialRules
         ApplyNoFailure();
     }
 
-    /// <summary>단계가 시작될 때 단계별 규칙을 갱신한다. 룬 장착 단계가 시작되면 룬석을 주고 룬북 잠금을 푼다.</summary>
     public void OnStepStarted(TutorialStepSO step)
     {
         if (step.Condition != TutorialConditionKind.RuneConfirm)
@@ -43,7 +44,6 @@ public class TutorialRules
         ReleaseRuneBookLock();
     }
 
-    /// <summary>적용한 규칙을 되돌린다. 지급한 룬석은 되돌리지 않는다. 여러 번 불러도 안전하다.</summary>
     public void Release()
     {
         ReleaseRuneBookLock();
@@ -54,13 +54,7 @@ public class TutorialRules
 
     private void LockRuneBook()
     {
-        _runeBookToggle = UnityEngine.Object.FindAnyObjectByType<RuneBookV2Toggle>(FindObjectsInactive.Include);
-        if (_runeBookToggle == null)
-        {
-            Debug.LogWarning("[TutorialRules] RuneBookV2Toggle을 찾을 수 없어 룬북을 잠그지 못합니다.");
-            return;
-        }
-
+        _runeBookToggle = Object.FindAnyObjectByType<RuneBookV2Toggle>(FindObjectsInactive.Include);
         _runeBookToggle.IsLocked = true;
     }
 
@@ -72,21 +66,12 @@ public class TutorialRules
         _runeBookToggle = null;
     }
 
-    /// <summary>1층 미션을 영혼 수집으로 고정한다. 시작 석상이 1층을 시작할 때 추첨에 쓰인다.</summary>
     private void FixFirstMission()
     {
-        // MissionManager.Instance는 없으면 새로 만들므로, 생성 없이 기존 인스턴스만 찾는다.
-        _missionManager = UnityEngine.Object.FindAnyObjectByType<MissionManager>();
-        if (_missionManager == null)
-        {
-            Debug.LogWarning("[TutorialRules] MissionManager를 찾을 수 없어 1층 미션을 고정하지 못합니다.");
-            return;
-        }
-
+        _missionManager = Object.FindAnyObjectByType<MissionManager>();
         _missionManager.SetNextMissionOverride(MissionType.SoulCollect);
     }
 
-    /// <summary>아직 추첨에 쓰이지 않은 미션 고정을 풀어 튜토리얼 밖의 추첨에 영향을 주지 않게 한다.</summary>
     private void ReleaseMissionFix()
     {
         if (_missionManager != null)
@@ -95,16 +80,9 @@ public class TutorialRules
         _missionManager = null;
     }
 
-    /// <summary>룬북에서 장착할 수 있는 룬 워드를 지급 대상(허용 룬 워드)으로 제한한다. 나머지는 ???로 가려진다.</summary>
     private void RestrictRuneWords()
     {
-        _runeBookPresenter = UnityEngine.Object.FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
-        if (_runeBookPresenter == null)
-        {
-            Debug.LogWarning("[TutorialRules] RuneBookV2Presenter를 찾을 수 없어 룬 워드를 제한하지 못합니다.");
-            return;
-        }
-
+        _runeBookPresenter = Object.FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
         _runeBookPresenter.SetAllowedEntryIds(_grantedRuneWordIds);
     }
 
@@ -116,21 +94,13 @@ public class TutorialRules
         _runeBookPresenter = null;
     }
 
-    /// <summary>임무 실패 없음: 체력 하한을 걸고, 제한 시간이 끝나면 실패 대신 시간을 늘린다.</summary>
     private void ApplyNoFailure()
     {
-        _playerHealth = UnityEngine.Object.FindAnyObjectByType<PlayerHealth>();
-        if (_playerHealth != null)
-            _playerHealth.MinHealthRatio = _minHealthRatio;
-        else
-            Debug.LogWarning("[TutorialRules] PlayerHealth를 찾을 수 없어 체력 하한을 걸지 못합니다.");
+        _playerHealth = Object.FindAnyObjectByType<PlayerHealth>();
+        _playerHealth.MinHealthRatio = _minHealthRatio;
 
-        // StageManager.Instance는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
-        _stageManager = UnityEngine.Object.FindAnyObjectByType<StageManager>();
-        if (_stageManager != null)
-            _stageManager.MissionTimeoutHandler = HandleMissionTimeout;
-        else
-            Debug.LogWarning("[TutorialRules] StageManager를 찾을 수 없어 제한 시간 초과 처리를 걸지 못합니다.");
+        _stageManager = Object.FindAnyObjectByType<StageManager>();
+        _stageManager.MissionTimeoutHandler = HandleMissionTimeout;
     }
 
     private void ReleaseNoFailure()
@@ -145,22 +115,18 @@ public class TutorialRules
         _stageManager = null;
     }
 
-    /// <summary>제한 시간이 끝나면 실패 대신 남은 시간을 늘린다.</summary>
     private bool HandleMissionTimeout()
     {
         if (_stageManager == null)
             return false;
 
         _stageManager.ExtendMissionTime(_timeoutExtendSeconds);
-        Debug.Log($"[TutorialRules] 제한 시간이 끝나 {_timeoutExtendSeconds}초를 연장했습니다.");
 
-        // 기록 추적기는 선택 사항이다. 연결되지 않았으면 안내 카드만 건너뛴다.
         if (_recordTracker != null)
             _recordTracker.Notify(RecordTriggerKind.TimeExtended);
         return true;
     }
 
-    /// <summary>허용 룬 워드마다 룬 문자를 한 번씩 지급한다. 같은 문자가 여러 단어에 있으면 그 수만큼 쌓인다.</summary>
     private void GrantRuneStones()
     {
         if (_runeStonesGranted || _grantedRuneWordIds == null)
@@ -168,26 +134,12 @@ public class TutorialRules
 
         PlayerRuneManager runeManager = PlayerRuneManager.Instance;
         RuneEffectDatabase effectDatabase = RuneEffectDatabase.Instance;
-        if (runeManager == null || !runeManager.IsInitialized || effectDatabase == null || !effectDatabase.DatabaseReady)
-        {
-            Debug.LogWarning("[TutorialRules] 룬 시스템이 준비되지 않아 룬석을 지급하지 못합니다.");
-            return;
-        }
 
         _runeStonesGranted = true;
         foreach (string runeWordId in _grantedRuneWordIds)
         {
-            if (string.IsNullOrEmpty(runeWordId))
-            {
-                Debug.LogWarning("[TutorialRules] 룬석 지급 목록에 비어 있는 id가 있어 건너뜁니다.");
-                continue;
-            }
-
             if (!effectDatabase.TryGetById(runeWordId, out RuneEffectDefinition effect))
-            {
-                Debug.LogWarning($"[TutorialRules] 룬 효과 '{runeWordId}'를 찾을 수 없어 룬석을 지급하지 못합니다.");
                 continue;
-            }
 
             foreach (char runeCharacter in effect.RuneWord)
                 runeManager.RuneStoneInventory.TryAddRuneStone(runeCharacter, 1);

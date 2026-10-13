@@ -95,8 +95,6 @@ public class TutorialController : MonoBehaviour
         if (!IsRunning)
             return;
 
-        // 건너뛰는 시점의 장착 상태는 원소 룬 효과가 0개, 1개, 2개인 경우만 다룬다.
-        // 이미 장착한 것은 그대로 두고, 모자란 만큼 기본 원소 중 아직 장착하지 않은 것을 채운다.
         RuneEffectLoadout loadout = PlayerRuneManager.Instance.RuneEffectLoadout;
         var slotIds = new List<string>(loadout.EquippedEffectIds);
         foreach (string defaultId in s_skipDefaultElementIds)
@@ -110,7 +108,7 @@ public class TutorialController : MonoBehaviour
 
         loadout.ConfirmEquipment(slotIds);
 
-        if (_stageManager != null && _stageManager.IsWaitingForPreparation)
+        if (_stageManager.IsWaitingForPreparation)
         {
             var statue = FindAnyObjectByType<ExpeditionStatue>();
             statue.SkipPreparation();
@@ -220,17 +218,11 @@ public class TutorialController : MonoBehaviour
             _worldMarkerView.Hide();
     }
 
-    // 석상 조작(상호작용, 원소 확정, 룬 확정)이 단계보다 먼저 일어나는 경우는 감시하지 않는다.
-    // 선택 창과 룬북이 석상 상호작용 뒤에만 열리고, 시작 위치(0, -4)에서 석상 상호작용 범위까지의 여유(약 0.39)가
-    // 1단계 이동량(0.1)보다 크기 때문이다. 시작 위치나 1단계 이동량을 바꾸면 이 전제를 다시 확인해야 한다.
-    // 임무는 UI가 막아 주지 않으므로, 보상 확정 단계보다 먼저 클리어하면 이후 단계가 멈추지 않도록 중단한다.
     private void HandleMissionCleared(int depth)
     {
         int rewardStepIndex = Array.FindIndex(_steps, step => step.Condition == TutorialConditionKind.RewardConfirm);
         if (CurrentIndex >= rewardStepIndex)
             return;
-
-        Debug.LogWarning("[TutorialController] 보상 확정 단계보다 먼저 임무를 클리어해 튜토리얼을 중단합니다.");
         enabled = false;
     }
 

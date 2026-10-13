@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 
-/// <summary>플레이어가 단계의 ConditionValue만큼 누적 이동하면 완료한다. 이동 거리는 XY 평면 기준이다.</summary>
 public class MoveCondition : ITutorialCondition
 {
     private Transform _player;
@@ -17,11 +16,6 @@ public class MoveCondition : ITutorialCondition
         _movedDistance = 0f;
 
         GameObject playerObject = GameObject.FindWithTag("Player");
-        if (playerObject == null)
-        {
-            Debug.LogError("Player object not found.");
-            return;
-        }
 
         _player = playerObject.transform;
         _lastPosition = _player.position;
