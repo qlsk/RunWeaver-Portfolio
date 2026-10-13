@@ -103,6 +103,8 @@ public class TutorialController : MonoBehaviour
         ITutorialCondition condition = TutorialConditionFactory.Create(step.Condition);
         if (condition == null)
         {
+            _guideCardView.Hide();
+            IsRunning = false;
             enabled = false;
             return;
         }
