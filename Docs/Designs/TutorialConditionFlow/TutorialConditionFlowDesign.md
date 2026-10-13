@@ -1655,3 +1655,59 @@ public class GuidebookPresenter : MonoBehaviour
 
 **메뉴 닫힘**
 - 지침서가 열린 채 메뉴가 닫히면(예: 포커스 이동) 다음에 메뉴를 열 때 지침서는 닫혀 있다.
+
+## 22. 6-2번 단위 — 룬 선택 범위 제한
+
+> 상태: **구현됨** · 기존 게임 코드(`RuneBookV2Presenter`)에 소규모 변경을 포함한다. 주력 원소 선택 창은 이번 범위에 포함하지 않았다.
+
+### 22.1 확정 요구사항
+
+- 튜토리얼 동안 룬북에서 **장착할 수 있는 룬 워드를 허용 목록으로 제한**한다. 허용 목록은 룬석 지급 대상(`rune_earth`, `rune_wind`)과 같다.
+- 허용되지 않은 룬 워드는 타일에서 이름이 `???`로 가려지고(룬 문자·설명·아이콘 숨김), 눌러도 장착되지 않으며 "아직 사용할 수 없는 룬 워드입니다." 토스트를 띄운다. 이미 장착된 칸은 그대로 보인다.
+- 제한은 룬 장착 단계가 시작될 때 걸고, 튜토리얼이 끝나거나 중단될 때 해제한다.
+- **주력 원소 선택 창은 제한하지 않는다.** 그래서 주력 원소를 허용 목록 밖(불, 물)으로 고르면 허용 룬 워드와 조합이 불리하거나 의도와 다를 수 있다. 추천 조합 안내와 선택 창 제한은 시안 확정 후 별도 단위로 다룬다(미결).
+
+### 22.2 기존 코드 변경 (게임 코드)
+
+파일: `UI/RuneBookV2/RuneBookV2Presenter.cs` (수정)
+
+```csharp
+private IReadOnlyCollection<string> _allowedEntryIds;
+
+public void SetAllowedEntryIds(IReadOnlyCollection<string> entryIds);
+private bool IsAllowed(string entryId);
+private static RuneBookEntryData MaskEntry(RuneBookEntryData entry);
+```
+
+`SetAllowedEntryIds`는 허용 목록을 정하고 다음 갱신을 예약한다. `null`이면 제한이 없다. `Refresh`는 타일마다 허용되지 않은 룬 워드이면 `MaskEntry`로 가린 항목을 원소 색 없이 보여준다. `HandleTileClicked`는 장착 칸 계산 전에 허용 여부를 확인해 허용되지 않으면 토스트만 띄우고 종료한다. 툴팁은 타일이 들고 있는 항목을 쓰므로 가려진 항목이 그대로 쓰여 `???`로 보인다.
+
+### 22.3 튜토리얼 코드
+
+파일: `TutorialRules.cs` (수정)
+
+```csharp
+private RuneBookV2Presenter _runeBookPresenter;
+
+private void RestrictRuneWords();
+private void ReleaseRuneWordRestriction();
+```
+
+`OnStepStarted`의 룬 장착 단계 처리는 룬석 지급, 룬 워드 제한, 룬북 잠금 해제 순서이다. `RestrictRuneWords`는 비활성 오브젝트까지 포함해 프레젠터를 찾아(없으면 경고) 지급 대상 id를 허용 목록으로 넘긴다. `Release`는 `ReleaseRuneWordRestriction`으로 제한을 푼다.
+
+### 22.4 검증 시나리오
+
+**제한**
+- 조건: 룬 장착 단계의 룬북.
+- 결과: 바위·바람 룬 워드만 보이고 장착된다. 나머지 룬 워드는 `???`로 보이고 눌러도 장착되지 않는다.
+
+**장착된 칸**
+- 조건: 허용 밖 원소(예: 불)를 주력 원소로 장착했다.
+- 결과: 주력 원소 칸은 정상 이름으로 보인다.
+
+**해제**
+- 조건: 튜토리얼이 끝나거나 중단되거나 건너뛴다.
+- 결과: 룬 워드 목록이 모두 정상으로 보이고 장착할 수 있다.
+
+**기존 동작 무회귀**
+- 조건: 튜토리얼이 없는 일반 플레이.
+- 결과: 룬북이 이전과 똑같이 동작한다(허용 목록이 `null`).

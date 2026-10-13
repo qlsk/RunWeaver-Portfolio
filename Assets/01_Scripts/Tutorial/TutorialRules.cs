@@ -11,6 +11,7 @@ public class TutorialRules
 
     private RuneBookV2Toggle _runeBookToggle;
     private MissionManager _missionManager;
+    private RuneBookV2Presenter _runeBookPresenter;
     private PlayerHealth _playerHealth;
     private StageManager _stageManager;
     private bool _runeStonesGranted;
@@ -38,6 +39,7 @@ public class TutorialRules
             return;
 
         GrantRuneStones();
+        RestrictRuneWords();
         ReleaseRuneBookLock();
     }
 
@@ -47,6 +49,7 @@ public class TutorialRules
         ReleaseRuneBookLock();
         ReleaseMissionFix();
         ReleaseNoFailure();
+        ReleaseRuneWordRestriction();
     }
 
     private void LockRuneBook()
@@ -90,6 +93,27 @@ public class TutorialRules
             _missionManager.ClearNextMissionOverride();
 
         _missionManager = null;
+    }
+
+    /// <summary>룬북에서 장착할 수 있는 룬 워드를 지급 대상(허용 룬 워드)으로 제한한다. 나머지는 ???로 가려진다.</summary>
+    private void RestrictRuneWords()
+    {
+        _runeBookPresenter = UnityEngine.Object.FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
+        if (_runeBookPresenter == null)
+        {
+            Debug.LogWarning("[TutorialRules] RuneBookV2Presenter를 찾을 수 없어 룬 워드를 제한하지 못합니다.");
+            return;
+        }
+
+        _runeBookPresenter.SetAllowedEntryIds(_grantedRuneWordIds);
+    }
+
+    private void ReleaseRuneWordRestriction()
+    {
+        if (_runeBookPresenter != null)
+            _runeBookPresenter.SetAllowedEntryIds(null);
+
+        _runeBookPresenter = null;
     }
 
     /// <summary>임무 실패 없음: 체력 하한을 걸고, 제한 시간이 끝나면 실패 대신 시간을 늘린다.</summary>
