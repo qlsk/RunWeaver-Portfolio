@@ -72,6 +72,7 @@ public class Shield : MonoBehaviour
     {
         Debug.Log("ShieldUp");
         _currentShield++;
+        Sfx.Play(Sfx.ShieldInit);
     }
 
     // 쉴드 하나 파괴 (피격 때 사용)
@@ -80,6 +81,7 @@ public class Shield : MonoBehaviour
         if (_currentShield > 0)
         {
             _currentShield--;
+            Sfx.Play(Sfx.ShieldHit);
             ShieldBroken?.Invoke();
         }
     }

@@ -97,6 +97,7 @@ public class PlayerHealth : MonoBehaviour
             return;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(Sfx.PlayerHit);
         Damaged?.Invoke(finalDamage);
         if (_currentHealth - finalDamage <= 0f)
         {
