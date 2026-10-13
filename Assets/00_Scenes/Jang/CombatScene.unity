@@ -2873,7 +2873,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7997101506716382822, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2963,7 +2963,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2644439620610260465, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3110212136527878748, guid: 3afa25caf7d11f6479f784fd707c0f9f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3155,7 +3155,11 @@ PrefabInstance:
     - target: {fileID: 203344501877434308, guid: aac0b636f74365e47a122e1e45f36d13, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 3569d569a30c0fa41ba9678f8b19103f, type: 2}
+      objectReference: {fileID: 9100000, guid: 89f38fce900e18c4481f3d7bda1dbfff, type: 2}
+    - target: {fileID: 1490919106700319465, guid: aac0b636f74365e47a122e1e45f36d13, type: 3}
+      propertyPath: _bulletPrefab
+      value: 
+      objectReference: {fileID: 20875033302838106, guid: d8f266f1199cf1146a0278cad751f668, type: 3}
     - target: {fileID: 1772316485788941319, guid: aac0b636f74365e47a122e1e45f36d13, type: 3}
       propertyPath: m_Sprite
       value: 
