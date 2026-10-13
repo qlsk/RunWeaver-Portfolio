@@ -66,6 +66,7 @@ public class RunePickup : MonoBehaviour
 
         _isCollected = true;
         _isBeingPickedUp = false;
+        Sfx.Play(Sfx.RunePickedUp);
         Destroy(gameObject);
     }
 

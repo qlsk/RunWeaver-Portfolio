@@ -82,6 +82,7 @@ public class Dash : MonoBehaviour
         if (!_canDash || _isDashing) return;
         if (_statusEffects != null && _statusEffects.IsStaggered) return;
         DashStarted?.Invoke();
+        Sfx.Play(Sfx.Dash);
         StartCoroutine(DashCoroutine());
     }
 

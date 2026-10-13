@@ -366,6 +366,7 @@ public class PlayerAttack : MonoBehaviour
 
         _currentAmmo = MagazineSize;
         _isReloading = false;
+        Sfx.Play(Sfx.Reload);
     }
 
     /// <summary>앞으로 발사할 탄환의 주력 원소를 변경한다.</summary>
