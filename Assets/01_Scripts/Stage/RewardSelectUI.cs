@@ -197,7 +197,10 @@ public class RewardSelectUI : MonoBehaviour
         }
 
         if (!wasOpen)
+        {
             PlaySound(_openSound, _openSoundVolume);
+            Sfx.Play(Sfx.RewardShow);
+        }
     }
 
     /// <summary>RewardController가 남은 다시 뽑기 횟수를 알려 준다.</summary>

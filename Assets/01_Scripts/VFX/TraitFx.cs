@@ -81,6 +81,10 @@ public class TraitFx : MonoBehaviour
     [SerializeField] private SpriteRenderer _comet;
     [Tooltip("빛줄기. 왼쪽이 굵다 (TraitFx_Streak)")]
     [SerializeField] private SpriteRenderer _streak;
+    [Tooltip("빛기둥. 기준점이 가운데 (MissionFx_Pillar)")]
+    [SerializeField] private SpriteRenderer _pillar;
+    [Tooltip("속도선. 오른쪽이 밝다 (GuideFly_Tail)")]
+    [SerializeField] private SpriteRenderer _tail;
 
     [Header("색")]
     [Tooltip("공격 특성 (메아리, 반격)")]
@@ -109,11 +113,15 @@ public class TraitFx : MonoBehaviour
 
     [Header("attack_04 메아리 탄환")]
     [Tooltip("혜성 꼬리 크기 (길이, 굵기)")]
-    [SerializeField] private Vector2 _echoTrailSize = new(1.1f, 0.3f);
-    [SerializeField, Range(0f, 1f)] private float _echoTrailAlpha = 0.9f;
-    [SerializeField, Min(0f)] private float _echoGlowSize = 0.45f;
-    [Tooltip("총구 고리 너비")]
+    [SerializeField] private Vector2 _echoTrailSize = new(1.5f, 0.4f);
+    [SerializeField, Range(0f, 1f)] private float _echoTrailAlpha = 1f;
+    [SerializeField, Min(0f)] private float _echoGlowSize = 0.7f;
+    [Tooltip("총구 고리 높이 (첫 고리 기준)")]
     [SerializeField, Min(0f)] private float _echoRingSize = 0.5f;
+    [Tooltip("총구에서 진행 방향으로 번지는 고리 수")]
+    [SerializeField, Min(1)] private int _echoRingCount = 3;
+    [Tooltip("고리 사이 거리")]
+    [SerializeField, Min(0f)] private float _echoRingSpacing = 0.18f;
 
     [Header("attack_05 사냥의 낙인")]
     [Tooltip("발밑 고리 너비")]
@@ -127,12 +135,14 @@ public class TraitFx : MonoBehaviour
     [SerializeField, Min(0f)] private float _veilSize = 1.7f;
     [SerializeField, Range(0f, 1f)] private float _veilAlpha = 0.55f;
 
-    [Header("dash_04 돌파의 각인")]
-    [Tooltip("궤적 빛줄기 굵기")]
-    [SerializeField, Min(0f)] private float _pathWidth = 0.45f;
-    [Tooltip("몸 중심에서 궤적까지의 거리 (아래로 내리면 땅에 가까워진다)")]
-    [SerializeField] private Vector2 _pathOffset = new(0f, -0.3f);
-    [SerializeField, Min(0.01f)] private float _pathDuration = 0.4f;
+    [Header("dash_04 돌파의 각인 (돌진)")]
+    [Tooltip("속도선 길이 (최소, 최대)")]
+    [SerializeField] private Vector2 _dashLineLength = new(0.7f, 1.3f);
+    [SerializeField, Min(0f)] private float _dashLineWidth = 0.12f;
+    [SerializeField, Range(0f, 1f)] private float _dashLineAlpha = 0.85f;
+    [Tooltip("속도선이 몸 둘레로 퍼지는 폭 (위아래)")]
+    [SerializeField, Min(0f)] private float _dashLineSpread = 0.55f;
+    [SerializeField, Min(0.01f)] private float _dashLineDuration = 0.22f;
 
     [Header("dash_05 반격의 발걸음")]
     [SerializeField, Min(0f)] private float _counterGlowSize = 0.6f;
@@ -162,11 +172,17 @@ public class TraitFx : MonoBehaviour
     [SerializeField, Min(0)] private int _healParticleCount = 16;
 
     [Header("clease_05 정화의 파동")]
-    [SerializeField, Min(0)] private int _novaCrescentCount = 12;
-    [Tooltip("초승달이 반경 끝까지 퍼지는 시간")]
-    [SerializeField, Min(0.01f)] private float _novaTravelTime = 0.35f;
-    [Tooltip("퍼지는 고리의 세로 배율")]
-    [SerializeField, Range(0.1f, 1f)] private float _novaFlatten = 0.5f;
+    [Tooltip("미션 클리어 정화 파동 프리팹 (08_VFX/PurificationWave). 반경에 맞게 줄여 빠르게 재생한다")]
+    [SerializeField] private PurificationWave _novaWave;
+    [Tooltip("정화 파동 클립이 퍼지는 최대 반지름 (PurificationWave_Wave 클립의 _radius 끝값)")]
+    [SerializeField, Min(0.01f)] private float _novaWaveClipRadius = 18f;
+    [Tooltip("정화 파동 클립 길이 (초)")]
+    [SerializeField, Min(0.01f)] private float _novaWaveClipLength = 1.64f;
+    [Tooltip("파동이 반경 끝까지 퍼지는 시간")]
+    [SerializeField, Min(0.01f)] private float _novaTravelTime = 0.45f;
+    [Tooltip("맞은 적에 내려오는 빛기둥 크기 (너비, 높이)")]
+    [SerializeField] private Vector2 _novaPillarSize = new(0.4f, 1.8f);
+    [SerializeField, Min(0.01f)] private float _novaPillarDuration = 0.5f;
 
     [Header("shield_02 지속의 문양")]
     [SerializeField, Min(0f)] private float _wardRingSize = 1.5f;
@@ -410,7 +426,7 @@ public class TraitFx : MonoBehaviour
         foreach (SpriteRenderer template in new[]
                  {
                      _ring, _flash, _star, _sparkle, _mote, _glow, _crescent, _veil, _breakRing, _ripple, _shard, _fly,
-                     _shockwave, _comet, _streak
+                     _shockwave, _comet, _streak, _pillar, _tail
                  })
         {
             if (template != null)
@@ -430,18 +446,37 @@ public class TraitFx : MonoBehaviour
 
     // ───────────────────────── 공격 ─────────────────────────
 
-    /// <summary>attack_04 : 메아리 탄환. 총구에 고리가 번지고, 탄환에 금빛 혜성 꼬리가 붙는다.</summary>
+    /// <summary>attack_04 : 메아리 탄환. 총구에서 진행 방향으로 고리가 여러 겹 번지고, 탄환에 금빛 혜성 꼬리가 붙는다.</summary>
     public void PlayEcho(Transform muzzle, IReadOnlyList<Transform> bullets)
     {
         if (muzzle != null)
         {
             float angle = FirstAngle(bullets, muzzle.eulerAngles.z);
-            Spawn(_ring).At(muzzle.position).Turn(angle + 90f).Size(_echoRingSize * 0.5f, _echoRingSize)
-                .Tint(_attackColor, 0.9f).Life(0.25f, 0f, 0.18f);
-            Spawn(_sparkle).At(muzzle.position).Size(0.2f, 0.4f).Life(0.2f, 0f, 0.15f);
+            Vector3 forward = Quaternion.Euler(0f, 0f, angle) * Vector3.right;
+            for (int i = 0; i < _echoRingCount; i++)
+            {
+                float height = _echoRingSize * (1f + 0.35f * i);
+                Spawn(_ring).At(muzzle.position + forward * (_echoRingSpacing * i)).Turn(angle + 90f)
+                    .Size(new Vector2(height * 0.4f, 0f), new Vector2(height, 0f)).Tint(_attackColor, 0.9f - 0.2f * i)
+                    .Wait(0.04f * i).Life(0.3f, 0f, 0.22f);
+            }
+
+            Spawn(_flash).At(muzzle.position).Size(0.3f, 0.6f).Tint(_attackColor).Life(0.15f, 0f, 0.12f);
         }
 
         TrailBullets(bullets, _echoTrailSize, _echoTrailAlpha, _echoGlowSize);
+        if (bullets == null)
+        {
+            return;
+        }
+
+        foreach (Transform bullet in bullets)
+        {
+            if (bullet != null)
+            {
+                Spawn(_sparkle).On(bullet, Vector2.zero).Turn(0f, 180f).Size(0.35f).Pulse(4f, 0.2f).Forever(0.05f, 3f);
+            }
+        }
     }
 
     /// <summary>attack_05 : 낙인 표식. 발밑 고리와 머리 위 별이 적을 따라다닌다.</summary>
@@ -496,38 +531,39 @@ public class TraitFx : MonoBehaviour
         Spawn(_flash).On(player, offset).Size(0.45f).Tint(_blockColor, 0.7f).Life(0.2f, 0f, 0.15f);
     }
 
-    /// <summary>dash_04 : 대시 궤적에 빛줄기가 남고, 지나친 적에게 초승달 베기가 그어진다. hits : 맞은 적의 몸 위치</summary>
-    public void PlayPathStrike(Vector3 from, Vector3 to, IReadOnlyList<Vector3> hits)
+    /// <summary>dash_04 : 돌진하는 동안 몸 뒤로 바람빛 속도선과 빛 알갱이가 흐른다. (대시 잔상과 함께 보인다)</summary>
+    public void SpawnDashLine(Transform player, Vector2 moveDirection)
     {
-        Vector3 start = from + (Vector3)_pathOffset;
-        Vector3 end = to + (Vector3)_pathOffset;
-        Vector3 delta = end - start;
-        float length = delta.magnitude;
-        if (length > 0.05f)
-        {
-            // 빛줄기 그림은 왼쪽이 굵다. 굵은 쪽을 도착 지점에 둔다.
-            float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg + 180f;
-            Vector3 middle = (start + end) * 0.5f;
-            Spawn(_streak).At(middle).Turn(angle)
-                .Size(new Vector2(length + 0.5f, _pathWidth), new Vector2(length + 0.5f, _pathWidth * 0.25f))
-                .Tint(_dashColor, 0.9f).Life(_pathDuration, 0f, _pathDuration * 0.75f);
-            Spawn(_streak).At(middle).Turn(angle)
-                .Size(new Vector2(length, _pathWidth * 0.35f), new Vector2(length, _pathWidth * 0.1f))
-                .Tint(Color.white, 0.8f).Life(_pathDuration * 0.75f, 0f, _pathDuration * 0.5f);
-        }
-
-        if (hits == null)
+        if (player == null || moveDirection.sqrMagnitude < 0.0001f)
         {
             return;
         }
 
-        for (int i = 0; i < hits.Count; i++)
-        {
-            Vector3 position = hits[i] + (Vector3)_enemyBodyOffset;
-            float delay = 0.04f * i;
-            Spawn(_crescent).At(position).Turn(35f).Size(0.45f, 0.7f).Wait(delay).Life(0.3f, 0f, 0.2f);
-            Spawn(_flash).At(position).Size(0.8f).Tint(_dashColor, 0.8f).Wait(delay).Life(0.2f, 0f, 0.15f);
-        }
+        Vector2 direction = moveDirection.normalized;
+        Vector2 side = new(-direction.y, direction.x);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        Vector3 body = player.position + (Vector3)_playerBodyOffset;
+
+        // 속도선 그림은 오른쪽이 밝다. 밝은 쪽을 진행 방향(몸 쪽)으로 둔다.
+        float length = Random.Range(_dashLineLength.x, Mathf.Max(_dashLineLength.x, _dashLineLength.y));
+        Vector3 position = body - (Vector3)(direction * (length * 0.5f + Random.Range(0.1f, 0.5f))) +
+                           (Vector3)(side * Random.Range(-_dashLineSpread, _dashLineSpread));
+        Spawn(_tail).At(position).Turn(angle).Size(new Vector2(length, _dashLineWidth))
+            .Tint(_dashColor, _dashLineAlpha * Random.Range(0.6f, 1f)).Move(-direction * 1.5f, 4f)
+            .Life(_dashLineDuration, 0f, _dashLineDuration * 0.8f);
+
+        Vector3 motePosition = body - (Vector3)(direction * Random.Range(0.2f, 0.8f)) +
+                               (Vector3)(side * Random.Range(-_dashLineSpread, _dashLineSpread));
+        Spawn(_mote).At(motePosition).Move(-direction * 0.8f + Vector2.up * 0.2f).Size(Random.Range(0.06f, 0.1f))
+            .Tint(_dashColor, 0.85f).Life(0.4f, 0f, 0.3f);
+    }
+
+    /// <summary>dash_04 : 돌진에 맞은 적이 바람빛으로 짧게 번쩍인다. position : 적 Transform 위치</summary>
+    public void PlayDashHit(Vector3 position)
+    {
+        Vector3 body = position + (Vector3)_enemyBodyOffset;
+        Spawn(_flash).At(body).Size(0.5f, 0.9f).Tint(_dashColor, 0.85f).Life(0.2f, 0f, 0.15f);
+        Spawn(_sparkle).At(body).Turn(0f, 180f).Size(0.25f, 0.45f).Life(0.25f, 0f, 0.2f);
     }
 
     /// <summary>dash_05 : 반격 대기. 총구에 별빛이 맺힌다. 쏘거나 시간이 지나면 Release한다.</summary>
@@ -722,7 +758,10 @@ public class TraitFx : MonoBehaviour
         }
     }
 
-    /// <summary>clease_05 : 정화 초승달이 고리로 퍼져 나가고, 닿은 적이 번쩍인다. hits : 맞은 적의 몸 위치</summary>
+    /// <summary>
+    /// clease_05 : 미션 클리어 정화 파동을 반경에 맞게 작게 재생하고, 파동이 닿은 적에게 빛기둥이 내려온다.
+    /// hits : 맞은 적의 위치 (Transform 위치)
+    /// </summary>
     public void PlayNova(Transform player, float radius, IReadOnlyList<Vector3> hits)
     {
         if (player == null)
@@ -730,34 +769,41 @@ public class TraitFx : MonoBehaviour
             return;
         }
 
-        Vector3 center = player.position + (Vector3)_playerBodyOffset;
-        float speed = radius / _novaTravelTime;
-        for (int i = 0; i < _novaCrescentCount; i++)
+        Vector3 center = player.position;
+        if (_novaWave != null)
         {
-            float angle = i * 360f / Mathf.Max(1, _novaCrescentCount);
-            float radians = angle * Mathf.Deg2Rad;
-            Vector2 direction = new(Mathf.Cos(radians), Mathf.Sin(radians) * _novaFlatten);
-            Spawn(_crescent).At(center + (Vector3)(direction * 0.3f)).Move(direction * speed).Turn(angle)
-                .Size(0.45f, 0.65f).Tint(_cleanseColor, 0.85f).Life(_novaTravelTime + 0.1f, 0.03f, 0.2f);
+            PurificationWave wave = Instantiate(_novaWave, center, Quaternion.identity);
+            wave.transform.localScale = Vector3.one * (radius / _novaWaveClipRadius);
+            if (wave.TryGetComponent(out Animator animator))
+            {
+                animator.speed = _novaWaveClipLength / _novaTravelTime;
+            }
         }
-
-        Spawn(_ring).At(player.position + (Vector3)_playerFeetOffset).OnGround()
-            .Size(new Vector2(0.5f, 0.5f * _novaFlatten), new Vector2(radius * 2f, radius * 2f * _novaFlatten),
-                _novaTravelTime)
-            .Tint(_cleanseColor, 0.55f).Life(_novaTravelTime + 0.15f, 0f, 0.2f);
-        Spawn(_glow).At(center).Size(2f).Tint(_cleanseColor, 0.25f).Life(0.3f, 0f, 0.25f);
 
         if (hits == null)
         {
             return;
         }
 
+        float speed = radius / _novaTravelTime;
         foreach (Vector3 hit in hits)
         {
-            Vector3 position = hit + (Vector3)_enemyBodyOffset;
-            float delay = Mathf.Min(_novaTravelTime, Vector2.Distance(center, position) / Mathf.Max(0.01f, speed));
-            Spawn(_flash).At(position).Size(0.8f).Wait(delay).Life(0.2f, 0f, 0.15f);
-            Spawn(_sparkle).At(position).Size(0.35f).Tint(_cleanseColor).Wait(delay).Life(0.25f, 0f, 0.2f);
+            float delay = Mathf.Min(_novaTravelTime, Vector2.Distance(center, hit) / Mathf.Max(0.01f, speed));
+            Vector3 feet = hit + (Vector3)_enemyFeetOffset;
+            float height = _novaPillarSize.y;
+            Spawn(_pillar).At(feet + Vector3.up * (height * 0.5f))
+                .Size(new Vector2(_novaPillarSize.x * 1.4f, height * 0.6f), new Vector2(_novaPillarSize.x * 0.6f, height),
+                    _novaPillarDuration)
+                .Tint(_cleanseColor).Wait(delay).Life(_novaPillarDuration, 0.05f, _novaPillarDuration * 0.7f);
+            Spawn(_glow).At(feet).Size(0.5f, 1.1f).Tint(_cleanseColor, 0.6f).Wait(delay)
+                .Life(_novaPillarDuration, 0f, _novaPillarDuration * 0.7f);
+            for (int i = 0; i < 5; i++)
+            {
+                float life = Random.Range(0.5f, 0.8f);
+                Spawn(_mote).At(feet + new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(0f, 0.6f), 0f))
+                    .Move(new Vector2(0f, Random.Range(0.8f, 1.4f))).Size(Random.Range(0.06f, 0.1f))
+                    .Tint(_cleanseColor, 0.9f).Wait(delay + Random.Range(0f, 0.15f)).Life(life, 0.05f, life * 0.5f);
+            }
         }
     }
 

@@ -21536,6 +21536,8 @@ MonoBehaviour:
   _closeKeys: 090000001b000000
   _blockers:
   - {fileID: 1627062966}
+  _closeOnConfirm: 1
+  _closeDelayAfterConfirm: 0.55
 --- !u!222 &2298331047223903762
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -26557,6 +26559,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 8526868689881822135, guid: e2cbb61bb05381e42a16b4e3e0872ebd, type: 3}
+      propertyPath: _dashSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 3c4b9371c7a720f4faa176db9ebbb45e, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -40,6 +40,7 @@ public class CleanseTraitHandler : MonoBehaviour
     private bool _isSwiftEmitting;
     private bool _wasDashing;
     private Vector3 _lastPosition;
+    private Rigidbody2D _playerBody;
 
     public bool MoveSpeedWindowActive =>
         _traits != null && _traits.Has("clease_02") && Time.time < _moveWindowUntil;
@@ -60,6 +61,7 @@ public class CleanseTraitHandler : MonoBehaviour
         {
             _playerTransform = player.transform;
             _lastPosition = _playerTransform.position;
+            _playerBody = player.GetComponentInChildren<Rigidbody2D>();
             _afterimage = player.GetComponentInChildren<DashAfterimage>();
         }
 
@@ -89,8 +91,11 @@ public class CleanseTraitHandler : MonoBehaviour
             return;
         }
 
+        // 물리 이동은 FixedUpdate에서 일어나므로 위치 차이 대신 Rigidbody 속도로 본다. (프레임마다 0이 끼어 깜빡이지 않게)
         Vector3 position = _playerTransform.position;
-        Vector3 delta = position - _lastPosition;
+        Vector2 velocity = _playerBody != null
+            ? _playerBody.linearVelocity
+            : (Vector2)(position - _lastPosition) / Mathf.Max(Time.deltaTime, 0.0001f);
         _lastPosition = position;
 
         // clease_02 : 이속 증가 동안 움직이면 잔상과 바람 줄기를 남긴다.
@@ -99,7 +104,7 @@ public class CleanseTraitHandler : MonoBehaviour
         _wasDashing = dashing;
 
         float deltaTime = Time.deltaTime;
-        bool moving = deltaTime > 0f && delta.magnitude / deltaTime >= _swiftMinSpeed;
+        bool moving = deltaTime > 0f && velocity.magnitude >= _swiftMinSpeed;
         if (!MoveSpeedWindowActive || !moving)
         {
             StopSwiftEmission();
@@ -123,7 +128,7 @@ public class CleanseTraitHandler : MonoBehaviour
         TraitFx fx = TraitFx.Instance;
         if (fx != null)
         {
-            fx.SpawnSwiftTrail(_playerTransform, delta);
+            fx.SpawnSwiftTrail(_playerTransform, velocity);
         }
     }
 
@@ -233,7 +238,7 @@ public class CleanseTraitHandler : MonoBehaviour
             EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth enemy in enemies)
             {
-                if (enemy == null)
+                if (enemy == null || enemy.IsDead)
                 {
                     continue;
                 }

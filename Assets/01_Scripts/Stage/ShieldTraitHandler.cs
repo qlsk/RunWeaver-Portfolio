@@ -16,8 +16,12 @@ public class ShieldTraitHandler : MonoBehaviour
     [SerializeField, Min(0f)] private float _ruptureKnockbackDuration = 0.3f;
 
     [Header("shield_05 수호자의 걸음 (발자국 연출)")]
-    [Tooltip("발자국 간격 (초)")]
-    [SerializeField, Min(0.05f)] private float _stepInterval = 0.28f;
+    [Tooltip("플레이어 몸통 애니메이터의 달리기 상태 이름")]
+    [SerializeField] private string _runStateName = "Run";
+    [Tooltip("달리기 클립에서 발이 땅에 닿는 순간 (0~1, 클립 길이 비율). 클립 한 번에 두 걸음")]
+    [SerializeField] private float[] _footfallPhases = { 0.42f, 0.92f };
+    [Tooltip("애니메이터를 못 찾았을 때 쓰는 발자국 간격 (초)")]
+    [SerializeField, Min(0.05f)] private float _fallbackStepInterval = 0.2f;
     [Tooltip("이 속도(월드 단위/초)보다 빠를 때만 걷는 것으로 본다")]
     [SerializeField, Min(0f)] private float _stepMinSpeed = 0.5f;
     [Tooltip("왼발, 오른발이 옆으로 벌어지는 거리")]
@@ -28,6 +32,10 @@ public class ShieldTraitHandler : MonoBehaviour
     private TraitManager _traits;
     private Transform _playerTransform;
 
+    private Rigidbody2D _playerBody;
+    private Animator _bodyAnimator;
+    private int _runStateHash;
+    private float _lastRunTime = float.NaN;
     private Vector3 _lastPosition;
     private float _stepTimer;
     private bool _isLeftStep;
@@ -43,7 +51,17 @@ public class ShieldTraitHandler : MonoBehaviour
         {
             _playerTransform = player.transform;
             _lastPosition = _playerTransform.position;
+            _playerBody = player.GetComponentInChildren<Rigidbody2D>();
         }
+
+        // 달리기 애니메이션(PlayerAnimation이 붙은 몸통)의 재생 위치에 발자국을 맞춘다.
+        PlayerAnimation bodyAnimation = FindAnyObjectByType<PlayerAnimation>();
+        if (bodyAnimation != null)
+        {
+            _bodyAnimator = bodyAnimation.GetComponent<Animator>();
+        }
+
+        _runStateHash = Animator.StringToHash(_runStateName);
 
         if (_shield != null)
         {
@@ -68,32 +86,79 @@ public class ShieldTraitHandler : MonoBehaviour
         }
 
         Vector3 position = _playerTransform.position;
-        Vector3 delta = position - _lastPosition;
+        Vector2 velocity = _playerBody != null
+            ? _playerBody.linearVelocity
+            : (Vector2)(position - _lastPosition) / Mathf.Max(Time.deltaTime, 0.0001f);
         _lastPosition = position;
 
-        // shield_05 : 보호막이 있는 동안 걸으면 발자국을 남긴다.
-        float deltaTime = Time.deltaTime;
-        if (_traits == null || !_traits.Has("shield_05") || _shield == null || _shield.CurrentShield <= 0 ||
-            deltaTime <= 0f || delta.magnitude / deltaTime < _stepMinSpeed)
+        // shield_05 : 보호막이 있는 동안 걸으면 발이 땅에 닿을 때마다 발자국을 남긴다.
+        bool active = _traits != null && _traits.Has("shield_05") && _shield != null && _shield.CurrentShield > 0 &&
+                      Time.deltaTime > 0f && velocity.magnitude >= _stepMinSpeed;
+        if (_bodyAnimator != null && _bodyAnimator.isActiveAndEnabled)
+        {
+            UpdateStepsByAnimation(active, velocity);
+        }
+        else
+        {
+            UpdateStepsByTimer(active, velocity);
+        }
+    }
+
+    private void UpdateStepsByAnimation(bool active, Vector2 velocity)
+    {
+        AnimatorStateInfo state = _bodyAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!active || state.shortNameHash != _runStateHash)
+        {
+            _lastRunTime = float.NaN;
+            return;
+        }
+
+        // normalizedTime은 반복할수록 커진다 (뒷걸음질로 역재생하면 작아진다).
+        float time = state.normalizedTime;
+        if (!float.IsNaN(_lastRunTime) && _footfallPhases != null)
+        {
+            float low = Mathf.Min(_lastRunTime, time);
+            float high = Mathf.Max(_lastRunTime, time);
+            foreach (float phase in _footfallPhases)
+            {
+                // low < phase + n <= high 인 정수 n이 있으면 이번 프레임에 발이 닿았다.
+                if (Mathf.Floor(high - phase) > Mathf.Floor(low - phase))
+                {
+                    SpawnStep(velocity);
+                }
+            }
+        }
+
+        _lastRunTime = time;
+    }
+
+    private void UpdateStepsByTimer(bool active, Vector2 velocity)
+    {
+        if (!active)
         {
             _stepTimer = 0f;
             return;
         }
 
-        _stepTimer -= deltaTime;
+        _stepTimer -= Time.deltaTime;
         if (_stepTimer > 0f)
         {
             return;
         }
 
-        _stepTimer = _stepInterval;
+        _stepTimer = _fallbackStepInterval;
+        SpawnStep(velocity);
+    }
+
+    private void SpawnStep(Vector2 velocity)
+    {
         TraitFx fx = TraitFx.Instance;
         if (fx == null)
         {
             return;
         }
 
-        Vector2 direction = ((Vector2)delta).normalized;
+        Vector2 direction = velocity.sqrMagnitude > 0.0001f ? velocity.normalized : Vector2.right;
         Vector2 side = new Vector2(-direction.y, direction.x) * (_isLeftStep ? _stepSideOffset : -_stepSideOffset);
         _isLeftStep = !_isLeftStep;
         fx.SpawnWardStep(fx.PlayerFeet(_playerTransform) + (Vector3)side);
@@ -135,7 +200,7 @@ public class ShieldTraitHandler : MonoBehaviour
         EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth enemy in enemies)
         {
-            if (enemy == null)
+            if (enemy == null || enemy.IsDead)
             {
                 continue;
             }

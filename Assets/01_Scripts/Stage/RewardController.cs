@@ -471,6 +471,7 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
         {
             if (_traits != null && option.Trait != null)
             {
+                Sfx.Play(Sfx.TraitSelect);
                 // 선택 확정 이후에만 보유에 반영된다. shield_01은 1회성 최대치 증가라 즉시 적용.
                 if (_traits.AcquireTrait(option.Trait) && option.Trait.Id == "shield_01")
                 {
@@ -539,6 +540,8 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
             _popupController.OpenPopup(_rewardUI.RootObject);
         }
 
+        // 피격 정지 프레임 도중이면 연출을 끝낸다. (끝난 연출이 timeScale을 1로 되돌려 보상 화면 뒤에서 게임이 흐르지 않게)
+        GameTimeScale.BeginPause();
         Time.timeScale = 0f;
     }
 

@@ -81,7 +81,8 @@ public class MarkedPrey : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    // 사망 연출 중에는 컴포넌트가 꺼지므로 그때 표식 연출도 거둔다.
+    private void OnDisable()
     {
         _visual?.Release();
         _visual = null;
