@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// attack 카테고리 핸들러. 발동 지점: 발사(Fired), 적중(OnDamageDealt).
+/// attack 카테고리 핸들러. 발동 지점: 발사(Fired).
 ///
-/// - attack_04 메아리: 발사 카운터, N회마다 추가탄 1발 (횟수 미포함, Fired 미발행).
-/// - attack_05 낙인: 적중 시 표식 3초, 표식 적 추가 피해 15%. 추가 피해의 재귀 호출은 가드로 차단.
+/// - attack_04 메아리: 발사 카운터, N회마다 추가탄 1발 (횟수 미포함, Fired 미발행). 추가탄에 금빛 혜성 꼬리 연출.
+/// - attack_05 낙인: 탄환 적중 때 MarkedPrey가 처리한다. (Bullet이 직접 부른다)
 /// - attack_01/02 수치형은 TraitStatComposer가 처리한다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -15,7 +14,6 @@ public class AttackTraitHandler : MonoBehaviour
     private TraitManager _traits;
 
     private int _fireCount;
-    private bool _resolvingBonus;
 
     private void Start()
     {
@@ -27,9 +25,6 @@ public class AttackTraitHandler : MonoBehaviour
             _attack.Fired -= HandleFired;
             _attack.Fired += HandleFired;
         }
-
-        EnemyHealth.OnDamageDealt -= HandleDamageDealt;
-        EnemyHealth.OnDamageDealt += HandleDamageDealt;
     }
 
     private void OnDestroy()
@@ -38,8 +33,6 @@ public class AttackTraitHandler : MonoBehaviour
         {
             _attack.Fired -= HandleFired;
         }
-
-        EnemyHealth.OnDamageDealt -= HandleDamageDealt;
     }
 
     private void HandleFired()
@@ -59,39 +52,11 @@ public class AttackTraitHandler : MonoBehaviour
         if (_fireCount % every == 0)
         {
             _attack.FireExtraShot(_traits.GetMagnitude("attack_04", 0.5f));
-        }
-    }
-
-    private void HandleDamageDealt(EnemyHealth enemy, float damage)
-    {
-        if (_traits == null || !_traits.Has("attack_05") || enemy == null || _resolvingBonus)
-        {
-            return;
-        }
-
-        float duration = _traits.GetDuration("attack_05", 3f);
-        float bonusRatio = _traits.GetMagnitude("attack_05", 0.15f);
-
-        MarkedPrey mark = enemy.GetComponent<MarkedPrey>();
-        if (mark != null && mark.IsActive)
-        {
-            // 표식 적 추가 피해. 재귀 호출 가드.
-            _resolvingBonus = true;
-            try
+            TraitFx fx = TraitFx.Instance;
+            if (fx != null)
             {
-                enemy.TakeDamage(damage * bonusRatio);
-            }
-            finally
-            {
-                _resolvingBonus = false;
+                fx.PlayEcho(_attack.FirePoint, _attack.LastExtraBullets);
             }
         }
-
-        if (mark == null)
-        {
-            mark = enemy.gameObject.AddComponent<MarkedPrey>();
-        }
-
-        mark.Apply(duration);
     }
 }

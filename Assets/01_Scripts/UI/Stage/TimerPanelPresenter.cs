@@ -4,8 +4,12 @@ using UnityEngine;
 
 /// <summary>
 /// 스테이지 남은 제한 시간을 MM:SS로 표시한다. (기획서 8-3)
-/// 10초 이하: 빨간색 / 5초 이하: 1초마다 글자가 커졌다 돌아오는 강조 / 제한 시간 없음: 별도 문구
-/// 경고(빨간색, 강조)는 상태 소스가 허용할 때만 켠다. (정화 카운트다운, 생존 미션에서는 끈다)
+/// 경고(색, 강조, 소리)는 상태 소스가 허용할 때만 켠다. (정화 카운트다운, 생존 미션에서는 끈다)
+/// - 미션 중 : 타이머 위에 "제한 시간" 라벨을 띄운다. (시작 카운트다운의 "임무 시작까지" 라벨과 같은 양식)
+/// - 30초 이하 : 주황색. 30초가 되는 순간 글자가 한 번 크게 튀고 주의 소리를 낸다.
+/// - 10초 이하 : 빨간색. 1초마다 글자가 커졌다 돌아오고 째깍 소리를 낸다.
+/// - 시작 카운트다운 : 카운트다운 색. 마지막 몇 초만 1초마다 강조한다. (소리 없음)
+/// - 제한 시간 없음 : 별도 문구
 /// 목표 이름·설명·달성도는 씬에 연결된 텍스트에 표시한다. (크기, 폰트, 위치는 씬에서 조절)
 /// </summary>
 [DisallowMultipleComponent]
@@ -16,12 +20,31 @@ public class TimerPanelPresenter : MonoBehaviour
     [SerializeField] private StageStatusSource _source;
     [SerializeField] private TMP_Text _timerText;
 
+    [Header("주의 (경고 전 단계)")]
+    [Tooltip("이 시간(초) 이하부터 주의 색으로 바꾸고, 이 시간이 되는 순간 한 번 강조한다")]
+    [SerializeField, Min(0)] private int _cautionSeconds = 30;
+    [SerializeField] private Color _cautionColor = new(1f, 0.72f, 0.25f, 1f);
+    [SerializeField, Min(1f)] private float _cautionScale = 1.5f;
+    [SerializeField, Min(0.01f)] private float _cautionDuration = 0.5f;
+
     [Header("경고")]
     [SerializeField, Min(0)] private int _warningSeconds = 10;
     [SerializeField] private Color _warningColor = new(0.9f, 0.15f, 0.1f, 1f);
-    [SerializeField, Min(0)] private int _emphasisSeconds = 5;
+    [Tooltip("미션 중 이 시간(초) 이하에서 1초마다 글자를 강조한다")]
+    [SerializeField, Min(0)] private int _emphasisSeconds = 10;
     [SerializeField, Min(1f)] private float _emphasisScale = 1.3f;
     [SerializeField, Min(0.01f)] private float _emphasisDuration = 0.3f;
+
+    [Header("소리 (비워두면 소리를 내지 않는다)")]
+    [Tooltip("주의 시간(30초)이 되는 순간")]
+    [SerializeField] private AudioClip _cautionSound;
+    [Tooltip("경고 구간에서 1초마다")]
+    [SerializeField] private AudioClip _warningTickSound;
+    [SerializeField, Range(0f, 1f)] private float _soundVolume = 0.8f;
+
+    [Header("제한 시간 라벨")]
+    [Tooltip("시간이 다 되면 실패하는 미션 중에 타이머 위에 보여줄 라벨. 시작 카운트다운 라벨과 같은 자리에 꺼진 상태로 둔다")]
+    [SerializeField] private GameObject _timeLimitLabel;
 
     [Header("제한 시간 없음")]
     [SerializeField] private string _noTimeLimitText = "--:--";
@@ -42,6 +65,8 @@ public class TimerPanelPresenter : MonoBehaviour
     [SerializeField] private Color _countdownColor = new(0.55f, 0.85f, 1f, 1f);
     [SerializeField] private string _countdownPrefix = "카운트다운";
     [SerializeField] private GameObject _countdownLabel;
+    [Tooltip("시작 카운트다운 중 이 시간(초) 이하에서 1초마다 글자를 강조한다")]
+    [SerializeField, Min(0)] private int _countdownEmphasisSeconds = 5;
 
     private Color _normalColor = Color.white;
     private Vector3 _normalScale = Vector3.one;
@@ -49,6 +74,7 @@ public class TimerPanelPresenter : MonoBehaviour
     private bool _shownWarning;
     private Coroutine _emphasisRoutine;
     private bool _shownCountdown;
+    private AudioSource _audioSource;
 
     private void Awake()
     {
@@ -111,23 +137,60 @@ public class TimerPanelPresenter : MonoBehaviour
         if (seconds == _shownSeconds && isWarningEnabled == _shownWarning && isCountdown == _shownCountdown)
             return;
 
+        int previousSeconds = _shownSeconds;
         bool isNewSecond = seconds != _shownSeconds;
         _shownSeconds = seconds;
         _shownWarning = isWarningEnabled;
+        _shownCountdown = isCountdown;
 
         string prefix = isCountdown ? _countdownPrefix : string.Empty;
         _timerText.text = $"{prefix}{seconds / SecondsPerMinute:00}:{seconds % SecondsPerMinute:00}";
-        _timerText.color = isCountdown
-            ? _countdownColor
-            : (isWarningEnabled && seconds <= _warningSeconds ? _warningColor : _normalColor);
+        _timerText.color = GetTimerColor(seconds, isWarningEnabled, isCountdown);
 
         if (_countdownLabel != null)
             _countdownLabel.SetActive(isCountdown);
 
+        SetTimeLimitLabelVisible(isWarningEnabled && !isCountdown);
+
         if (!isWarningEnabled)
+        {
             StopEmphasis();
-        else if (isNewSecond && seconds <= _emphasisSeconds && seconds > 0)
-            PlayEmphasis();
+            return;
+        }
+
+        if (!isNewSecond || seconds <= 0)
+            return;
+
+        if (isCountdown)
+        {
+            if (seconds <= _countdownEmphasisSeconds)
+                PlayEmphasis(_emphasisScale, _emphasisDuration);
+        }
+        else if (seconds <= _emphasisSeconds)
+        {
+            PlayEmphasis(_emphasisScale, _emphasisDuration);
+            PlaySound(_warningTickSound);
+        }
+        else if (seconds <= _cautionSeconds && previousSeconds > _cautionSeconds)
+        {
+            // 주의 시간을 넘어가는 순간 한 번만 크게 강조한다.
+            PlayEmphasis(_cautionScale, _cautionDuration);
+            PlaySound(_cautionSound);
+        }
+    }
+
+    private Color GetTimerColor(int seconds, bool isWarningEnabled, bool isCountdown)
+    {
+        if (isCountdown)
+            return _countdownColor;
+
+        if (!isWarningEnabled)
+            return _normalColor;
+
+        if (seconds <= _warningSeconds)
+            return _warningColor;
+
+        return seconds <= _cautionSeconds ? _cautionColor : _normalColor;
     }
 
     private void SetObjective(string objectiveName, string progressText)
@@ -156,12 +219,21 @@ public class TimerPanelPresenter : MonoBehaviour
         StopEmphasis();
         _timerText.text = _noTimeLimitText;
         _timerText.color = _normalColor;
+        SetTimeLimitLabelVisible(false);
     }
 
-    private void PlayEmphasis()
+    private void SetTimeLimitLabelVisible(bool isVisible)
+    {
+        if (_timeLimitLabel != null && _timeLimitLabel.activeSelf != isVisible)
+        {
+            _timeLimitLabel.SetActive(isVisible);
+        }
+    }
+
+    private void PlayEmphasis(float scale, float duration)
     {
         StopEmphasis();
-        _emphasisRoutine = StartCoroutine(EmphasisRoutine());
+        _emphasisRoutine = StartCoroutine(EmphasisRoutine(scale, duration));
     }
 
     private void StopEmphasis()
@@ -178,18 +250,34 @@ public class TimerPanelPresenter : MonoBehaviour
         }
     }
 
-    private IEnumerator EmphasisRoutine()
+    private IEnumerator EmphasisRoutine(float scale, float duration)
     {
         float elapsed = 0f;
-        while (elapsed < _emphasisDuration)
+        while (elapsed < duration)
         {
-            float t = elapsed / _emphasisDuration;
-            _timerText.transform.localScale = _normalScale * Mathf.Lerp(_emphasisScale, 1f, t);
+            float t = elapsed / duration;
+            _timerText.transform.localScale = _normalScale * Mathf.Lerp(scale, 1f, t);
             elapsed += Time.unscaledDeltaTime;
             yield return null;
         }
 
         _timerText.transform.localScale = _normalScale;
         _emphasisRoutine = null;
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip == null || !Application.isPlaying)
+            return;
+
+        if (_audioSource == null)
+        {
+            _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.playOnAwake = false;
+            _audioSource.spatialBlend = 0f;
+        }
+
+        _audioSource.volume = GameSettings.MasterVolume * GameSettings.SfxVolume;
+        _audioSource.PlayOneShot(clip, _soundVolume);
     }
 }
