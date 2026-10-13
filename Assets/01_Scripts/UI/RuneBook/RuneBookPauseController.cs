@@ -33,7 +33,8 @@ public class RuneBookPauseController : MonoBehaviour
         }
 
         _isPaused = true;
-        _previousTimeScale = Time.timeScale;
+        // 피격 정지 프레임 도중이면 연출을 끝내고 연다. (끝난 연출이 일시정지를 풀거나, 닫을 때 멈춘 채 남지 않게)
+        _previousTimeScale = GameTimeScale.BeginPause();
         Time.timeScale = 0f;
 
         _disabledBehaviours.Clear();
