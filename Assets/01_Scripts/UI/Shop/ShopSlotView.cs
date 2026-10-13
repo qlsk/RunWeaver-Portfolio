@@ -98,6 +98,8 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
     private bool _isHovered;
     private bool _isSelected;
     private float _holdScale = 1f;
+    private ShopSfx _sfx;
+    private bool _hasSearchedSfx;
 
     /// <summary>칸을 눌렀을 때 (빈 칸은 발생하지 않는다)</summary>
     public event Action<ShopSlotView> Clicked;
@@ -240,14 +242,28 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
     {
         float deltaTime = Time.unscaledDeltaTime;
 
+        // 기다리던 연출이 막 시작되면 소리를 낸다.
+        bool wasAppearWaiting = _appearTime <= 0f;
+        bool wasFlipWaiting = _flipTime <= 0f;
+
         Advance(ref _appearTime, _appearDuration, deltaTime);
         Advance(ref _purchaseTime, _purchaseDuration, deltaTime);
         Advance(ref _deniedTime, _deniedDuration, deltaTime);
         Advance(ref _stampTime, _stampDuration, deltaTime);
 
+        if (wasAppearWaiting && !(_appearTime <= 0f))
+        {
+            GetSfx()?.PlaySlotAppear();
+        }
+
         if (!float.IsNaN(_flipTime))
         {
             _flipTime += deltaTime;
+            if (wasFlipWaiting && _flipTime > 0f)
+            {
+                GetSfx()?.PlaySlotFlip();
+            }
+
             if (!_flipApplied && _flipTime >= _flipDuration * 0.5f)
             {
                 _flipApplied = true;
@@ -267,6 +283,18 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         _holdScale = Mathf.Lerp(_holdScale, targetHold, ShopEase.Damp(_scaleSharpness, deltaTime));
 
         ApplyVisual();
+    }
+
+    private ShopSfx GetSfx()
+    {
+        if (!_hasSearchedSfx)
+        {
+            _hasSearchedSfx = true;
+            _sfx = GetComponentInParent<ShopSfx>(true);
+        }
+
+        // 파괴된 오브젝트도 진짜 null로 돌려줘서 ?.로 불러도 안전하게 한다.
+        return _sfx != null ? _sfx : null;
     }
 
     private static void Advance(ref float time, float duration, float deltaTime)

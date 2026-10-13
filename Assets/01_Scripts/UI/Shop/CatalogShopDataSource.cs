@@ -15,13 +15,20 @@ using UnityEngine;
 /// - 룬 문자 : 무작위 룬 문자 RuneStoneAmount개 (PlayerRuneManager의 룬 문자 인벤토리)
 /// - 포션 : 즉시 최대 체력 × HealRatio만큼 회복 (PlayerHealth)
 /// 지급할 수 없는 상태면(플레이어나 인벤토리가 없음) 골드를 쓰지 않고 구매를 막는다.
+///
+/// 단독 테스트 (_openOnStart가 켜져 있고 원정 지갑이 없을 때)
+/// - 시작하면 ShopPresenter.OpenShop으로 열어 입장 연출과 효과음까지 실제처럼 나온다.
+/// - 플레이어가 없어도 룬 문자와 포션을 살 수 있다. (룬 문자는 로그만 남기고, 포션은 테스트 체력을 회복한다)
+/// - 상점을 나간 뒤 _testReopenKey를 누르면 다시 연다.
 /// </summary>
 public class CatalogShopDataSource : ShopDataSource
 {
     [SerializeField] private ShopCatalogSO _catalog;
     [Tooltip("원정 지갑이 없을 때(단독 테스트) 쓰는 시작 골드")]
-    [SerializeField, Min(0)] private int _startingGold = 5000;
+    [SerializeField, Min(0)] private int _startingGold = 50000;
     [SerializeField] private bool _openOnStart = true;
+    [Tooltip("단독 테스트에서 상점을 나간 뒤 다시 여는 키")]
+    [SerializeField] private KeyCode _testReopenKey = KeyCode.F5;
 
     [Header("테스트용 플레이어 체력 (씬에 PlayerHealth가 없을 때 사용)")]
     [SerializeField, Min(0f)] private float _testCurrentHealth = 45f;
@@ -35,6 +42,10 @@ public class CatalogShopDataSource : ShopDataSource
     public override IReadOnlyList<ShopOfferData> Offers => _offers;
 
     private Wallet _boundWallet;
+    private ShopPresenter _testPresenter;
+
+    /// <summary>ShopScene 단독 테스트 중인지. (원정 중이 아님)</summary>
+    private bool IsStandaloneTest => _openOnStart && CurrentWallet == null;
 
     public override int Gold => CurrentWallet != null ? CurrentWallet.Balance : _gold;
 
@@ -73,10 +84,32 @@ public class CatalogShopDataSource : ShopDataSource
 
     private void Start()
     {
-        if (_openOnStart)
+        if (!_openOnStart)
+        {
+            return;
+        }
+
+        // 실제 게임처럼 상점 창을 열어 입장 연출(인사, 효과음)까지 보이게 한다.
+        _testPresenter = FindAnyObjectByType<ShopPresenter>(FindObjectsInactive.Include);
+        if (_testPresenter != null)
+        {
+            _testPresenter.OpenShop();
+        }
+        else
         {
             Open();
         }
+    }
+
+    private void Update()
+    {
+        if (!_openOnStart || _testPresenter == null || _testPresenter.isActiveAndEnabled ||
+            !Input.GetKeyDown(_testReopenKey))
+        {
+            return;
+        }
+
+        _testPresenter.OpenShop();
     }
 
     public override bool TryGetPlayerHealth(out float current, out float max)
@@ -231,13 +264,15 @@ public class CatalogShopDataSource : ShopDataSource
                 return item != null && !string.IsNullOrEmpty(item.RuneEffectId);
 
             case ShopItemType.RuneStone:
-                PlayerRuneManager runeManager = PlayerRuneManager.Instance;
-                RuneStoneDatabase stoneDatabase = RuneStoneDatabase.Instance;
-                return runeManager != null && runeManager.IsInitialized &&
-                       stoneDatabase != null && stoneDatabase.DatabaseReady && stoneDatabase.GetAll().Count > 0;
+                return CanGrantRuneStones() || IsStandaloneTest;
 
             case ShopItemType.Potion:
                 PlayerHealth health = FindAnyObjectByType<PlayerHealth>();
+                if (health == null && IsStandaloneTest)
+                {
+                    return offer.HealRatio > 0f && _testCurrentHealth < _testMaxHealth;
+                }
+
                 return health != null && !health.IsDead && offer.HealRatio > 0f &&
                        health.CurrentHealth < health.MaxHealth;
 
@@ -258,16 +293,37 @@ public class CatalogShopDataSource : ShopDataSource
                 break;
 
             case ShopItemType.RuneStone:
+                if (!CanGrantRuneStones())
+                {
+                    Debug.Log($"[Shop] (단독 테스트) 룬 문자 {(item != null ? item.RuneStoneAmount : 1)}개 지급 생략", this);
+                    break;
+                }
+
                 GrantRandomRuneStones(item != null ? item.RuneStoneAmount : 1);
                 break;
 
             case ShopItemType.Potion:
                 PlayerHealth health = FindAnyObjectByType<PlayerHealth>();
+                if (health == null)
+                {
+                    _testCurrentHealth = Mathf.Min(_testMaxHealth, _testCurrentHealth + _testMaxHealth * offer.HealRatio);
+                    Debug.Log($"[Shop] (단독 테스트) 체력 회복 → {_testCurrentHealth:0}/{_testMaxHealth:0}", this);
+                    break;
+                }
+
                 float healAmount = health.MaxHealth * offer.HealRatio;
                 health.Heal(healAmount);
                 Debug.Log($"[Shop] 체력 {healAmount:0} 회복 → {health.CurrentHealth:0}/{health.MaxHealth:0}", this);
                 break;
         }
+    }
+
+    private static bool CanGrantRuneStones()
+    {
+        PlayerRuneManager runeManager = PlayerRuneManager.Instance;
+        RuneStoneDatabase stoneDatabase = RuneStoneDatabase.Instance;
+        return runeManager != null && runeManager.IsInitialized &&
+               stoneDatabase != null && stoneDatabase.DatabaseReady && stoneDatabase.GetAll().Count > 0;
     }
 
     /// <summary>룬 문자를 amount개 지급한다. 하나마다 종류를 무작위로 고른다.</summary>
