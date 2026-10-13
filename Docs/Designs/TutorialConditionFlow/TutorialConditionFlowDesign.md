@@ -1,7 +1,8 @@
 # 튜토리얼 조건 감시 구조와 완료 처리 — 구현 설계
 
-> 상태: **설계 (미구현)** · 기준 브랜치 `feature/growth` · 작성일 2026-10-13
+> 상태: **구현됨 (Codex 리뷰 반영, Unity 실행 검증은 별도 확인)** · 기준 브랜치 `feature/growth` · 작성일 2026-10-13 · 구현 반영 갱신 2026-10-13
 > 튜토리얼 구현 19단위 중 **1번 단위**이다. 기준 기획은 `Docs/Architecture/Tutorial/TutorialFlow.md`이다.
+> 최초 설계 이후 바뀐 점: `GameBootstrap` 대기 제거(전투 씬에서 제거 예정), 카드 뷰 파일 위치(`Tutorial/` 직하), 팩토리 클래스 형태, 조건 생성 실패 시 정리 처리. 각 위치에 반영했다.
 
 ## 1. 기능 개요 및 요구사항
 
@@ -13,13 +14,13 @@
 
 - 조건 감시 구조: 조건 하나를 `ITutorialCondition` 구현체 하나로 표현하고, `TutorialConditionKind`로 생성한다.
 - `Move` 조건 구현 (누적 이동 거리).
-- 튜토리얼 시작 대기: 부팅 완료, 도착 연출 종료, 1층 준비 대기 상태 확인.
+- 튜토리얼 시작 대기: 도착 연출 종료, 1층 준비 대기 상태 확인. (데이터 준비 대기는 하지 않는다. 아래 "확정 결정" 참조)
 - 단계 전환과 마지막 단계 완료 시 종료 처리 (`TutorialProgressStore.MarkCompleted`).
 - 최소 카드 뷰: 헤더(`NN / 전체`), 제목, 본문만 표시한다.
 
 ### 시작·종료 조건
 
-- 시작: 이미 완료된 적이 없고, 1층이 "시작 석상 대기" 상태이며, 부팅이 끝나고, 플레이어 도착 연출이 끝났을 때 0번 단계를 시작한다.
+- 시작: 이미 완료된 적이 없고, 1층이 "시작 석상 대기" 상태이며, 플레이어 도착 연출이 끝났을 때 0번 단계를 시작한다.
 - 종료: 마지막 단계의 조건이 충족되면 카드를 숨기고 완료를 저장한 뒤 컨트롤러를 끈다.
 - 이미 완료 기록이 있으면 시작하지 않는다.
 
@@ -37,20 +38,25 @@
 
 ## 2. 기존 코드 분석 및 변경 범위
 
-### 확인된 사실
+### 설계 시점에 확인한 사실
 
-- `Assets/01_Scripts/Tutorial/`에는 `.meta`만 있고 스크립트가 없다. 이 단위는 새로 작성한다.
+- `Assets/01_Scripts/Tutorial/`에는 `.meta`만 있고 스크립트가 없었다. 이 단위는 새로 작성했다.
 - `StageManager.Instance.IsWaitingForPreparation`: 시작 석상에서 출발 준비를 끝내기 전까지 참이다. 석상이 `BeginPreparedRun()`을 호출하면 거짓이 되고 1층이 시작된다. (`StageManager.cs`)
-- `GameBootstrap.State`: `BootstrapState`(`NotStarted/Initializing/Ready/Failed`).
-- `PortalPlayerHider.IsAnyHiding`: 도착 연출 등으로 플레이어를 숨기거나 조작을 막고 있는 hider가 있는지 나타내는 static 프로퍼티이다. **현재 커밋되지 않은 작업 트리 변경**이므로 이 단위의 커밋에 함께 포함해야 한다.
+- `GameBootstrap.State`: `BootstrapState`(`NotStarted/Initializing/Ready/Failed`). 정식 흐름에서는 `LoadingSceneController`가 `Ready`를 기다린 뒤 `CombatScene`으로 넘기고, `GameSession`은 씬이 바뀌어도 유지된다.
+- `PortalPlayerHider.IsAnyHiding`: 도착 연출 등으로 플레이어를 숨기거나 조작을 막고 있는 hider가 있는지 나타내는 static 프로퍼티이다. 설계 시점에는 미커밋 변경이었고 이 단위의 첫 커밋에 포함됐다.
 - 카드 프리팹 `Assets/10_UI/Prefabs/Tutorial/Cards/TutorialGuideCard.prefab`은 커스텀 스크립트 없는 순수 UI이다. 자식 이름은 `Header/HeaderLabel`, `TitleText`, `BodyText`, `ProgressBar/Fill`, `ActionRow`, `ConditionText`이다.
 - `CombatScene.unity`의 한 게임 오브젝트(`fileID 2055402654`)에 삭제된 `TutorialGuideCardView`, `TutorialController` 컴포넌트가 Missing 상태로 남아 있다.
 - 적과 플레이어 애니메이션이 `Rigidbody2D`를 사용한다. 플레이어 이동 스크립트는 확인하지 못했다.
 
+### 확정 결정
+
+- **`GameBootstrap` 대기를 하지 않는다.** `GameBootstrap`은 추후 전투 씬에서 제거할 예정이고, 데이터 준비는 로딩 씬에서 끝난 뒤 전투 씬이 시작되므로 컨트롤러는 `GameBootstrap`/`BootstrapState`를 참조하지 않는다. 전투 씬에서 바로 플레이하는 디버그 경로(`CombatSceneTestSetup`)가 데이터 준비를 기다리는 문제는 `GameBootstrap` 제거 시 그쪽에서 함께 다룬다.
+- "전투 씬에서만 동작"은 씬 배치로 보장한다. 컨트롤러는 `CombatScene`에만 있고, 시작 시 `StageManager.Instance` 존재 확인이 추가 방어 역할을 한다.
+
 ### 제안 및 가정
 
-- 이동 거리는 XY 평면 거리로 계산한다. 구현 시 실제 플레이어 이동 평면을 확인하고 다르면 평면을 맞춘다.
-- `Move`의 기본 거리 값은 정하지 않았다. 임시 에셋에 3, 5 정도를 넣고 플레이하며 조정한다.
+- 이동 거리는 XY 평면 거리로 계산한다(`Vector2.Distance`). 실제 플레이어 이동 평면은 아직 확인하지 못했으므로 다르면 평면을 맞춘다.
+- `Move`의 기본 거리 값은 정하지 않았다. 임시 에셋에 3, 5를 넣었고 플레이하며 조정한다.
 
 ### 생성 파일 (`Assets/01_Scripts/Tutorial/`)
 
@@ -61,16 +67,16 @@
 - `MoveCondition.cs`
 - `TutorialConditionFactory.cs`
 - `TutorialController.cs`
-- `UI/TutorialGuideCardView.cs`
+- `TutorialGuideCardView.cs` (`UI/` 하위 폴더 없이 `Tutorial/` 직하에 둔다)
 
 ### 생성 에셋과 씬 변경
 
-- `Assets/11_Data/Tutorial/`에 임시 `TutorialStepSO` 2개 (둘 다 `Move`).
+- `Assets/11_Data/Tutorial/`에 임시 `TutorialStepSO` 2개: `Step01_Move`(거리 3), `Step02_Move`(거리 5).
 - `CombatScene`: Missing 컴포넌트 제거, 컨트롤러·카드 뷰 추가, 카드 프리팹 인스턴스 배치.
 
 ### 영향 관계
 
-기존 게임 코드는 수정하지 않는다. `StageManager`, `GameBootstrap`, `PortalPlayerHider`는 읽기만 한다. `MissionManager`에 남은 `SetNextMissionOverride(object)` 스텁은 7번 단위 소관이며 이 단위에서 건드리지 않는다.
+기존 게임 코드 중 `PortalPlayerHider`에는 `IsAnyHiding` 프로퍼티만 추가했다. `StageManager`는 읽기만 하고 `GameBootstrap`은 참조하지 않는다. `MissionManager`에 남은 `SetNextMissionOverride(object)` 스텁은 7번 단위 소관이며 이 단위에서 건드리지 않는다.
 
 ## 3. 전체 실행 흐름 및 설계 구조
 
@@ -226,17 +232,17 @@ public class MoveCondition : ITutorialCondition
 팩토리는 조건 종류에서 구현체를 만드는 유일한 위치이다. 이후 단위는 이 `switch`에 한 줄을 추가한다. 파일: `TutorialConditionFactory.cs` (신규)
 
 ```csharp
-public static class TutorialConditionFactory
+public class TutorialConditionFactory
 {
     public static ITutorialCondition Create(TutorialConditionKind kind);
 }
 ```
 
-`Create`는 `Move`이면 새 `MoveCondition`을 돌려준다. 그 외 종류는 구현되지 않았다는 오류를 로그로 남기고 `null`을 돌려준다. 호출한 컨트롤러가 `null`을 실패로 처리한다.
+`Create`는 `Move`이면 새 `MoveCondition`을 돌려준다. 그 외 종류는 유효하지 않은 조건이라는 오류를 로그로 남기고 `null`을 돌려준다. 예외는 던지지 않으며, 호출한 컨트롤러가 `null`을 실패로 처리한다. 인스턴스 상태가 없으므로 구현은 일반 `class`의 static 메서드이다(`static class`로 바꿔도 동작은 같다).
 
 ### 4.4 카드 뷰
 
-카드 뷰는 진행 상태를 모르고, 받은 데이터를 표시만 한다. 파일: `UI/TutorialGuideCardView.cs` (신규)
+카드 뷰는 진행 상태를 모르고, 받은 데이터를 표시만 한다. 파일: `TutorialGuideCardView.cs` (신규, `Tutorial/` 직하)
 
 ```csharp
 public class TutorialGuideCardView : MonoBehaviour
@@ -267,7 +273,6 @@ public class TutorialController : MonoBehaviour
 {
     [SerializeField] private TutorialStepSO[] _steps;
     [SerializeField] private TutorialGuideCardView _guideCardView;
-    [SerializeField] private GameBootstrap _bootstrap;
 
     private Coroutine _startRoutine;
     private ITutorialCondition _activeCondition;
@@ -307,17 +312,16 @@ public class TutorialController : MonoBehaviour
 1. 한 프레임 기다린다. 다른 오브젝트의 `Awake`와 `Start`가 먼저 끝나도록 하기 위해서이다.
 2. `StageManager.Instance`가 없으면 경고를 남기고 종료한다.
 3. `IsWaitingForPreparation`이 거짓이면 이미 1층이 시작된 것이므로 경고를 남기고 종료한다.
-4. `GameBootstrap.State`가 `Ready`가 될 때까지 매 프레임 기다린다. 기다리는 동안 `Failed`가 되면 경고를 남기고 종료한다. 석상이 먼저 출발 준비를 끝내 `IsWaitingForPreparation`이 거짓이 되어도 종료한다.
-5. `PortalPlayerHider.IsAnyHiding`이 거짓이 될 때까지 같은 방식으로 기다린다. 도착 연출 중에 카드가 먼저 뜨는 것을 막는다.
-6. 기다림이 끝난 직후 `IsWaitingForPreparation`을 한 번 더 확인하고, 거짓이면 종료한다.
-7. 모든 조건이 통과하면 `_startRoutine`을 비우고 `IsRunning`을 참으로 한 뒤 `BeginStep(0)`을 호출한다.
+4. `PortalPlayerHider.IsAnyHiding`이 거짓이 될 때까지 매 프레임 기다린다. 도착 연출 중에 카드가 먼저 뜨는 것을 막는다. 데이터 준비 상태(`GameBootstrap`)는 기다리지 않는다.
+5. 기다림이 끝난 직후 `IsWaitingForPreparation`을 한 번 더 확인하고, 거짓이면 경고를 남기고 종료한다. 기다리는 동안 석상이 먼저 출발 준비를 끝낸 경우를 잡기 위해서이다.
+6. 모든 조건이 통과하면 `_startRoutine`을 비우고 `IsRunning`을 참으로 한 뒤 `BeginStep(0)`을 호출한다.
 
-이후 단위에서 튜토리얼 규칙 적용(`TutorialRules.Apply`)이 7번 직전에 들어간다.
+이후 단위에서 튜토리얼 규칙 적용(`TutorialRules.Apply`)이 6번 직전에 들어간다.
 
 `BeginStep(index)`의 처리 순서:
 
 1. `CurrentIndex`를 갱신하고 해당 단계 데이터를 가져온다.
-2. 팩토리로 조건 객체를 만든다. `null`이면 오류를 로그로 남기고 컴포넌트를 끄고 종료한다. 이때 카드 표시와 이벤트 발생은 일어나지 않는다.
+2. 팩토리로 조건 객체를 만든다. `null`이면 직전 단계 카드가 남지 않도록 카드 뷰의 `Hide`를 호출하고, `IsRunning`을 거짓으로 하며, 컴포넌트를 끄고 종료한다. 이때 새 카드 표시, `StepStarted` 발생, 완료 저장은 일어나지 않는다. 완료 저장을 하는 `Finish`는 사용하지 않는다. 첫 단계에서 실패하면 숨길 카드가 없어도 `Hide`는 무해하다.
 3. 만든 조건 객체를 `_activeCondition`에 저장하고 `StepStarted`를 발생시킨다.
 4. 카드 뷰의 `Show`를 단계 데이터, 사람 기준 번호(`index + 1`), 전체 단계 수로 호출한다.
 5. 조건의 `Completed`를 `HandleConditionCompleted`로 구독하고 `Begin`을 호출한다. 구독을 `Begin` 앞에 두는 이유는 `Begin` 중에 즉시 완료되는 조건이 있어도 놓치지 않기 위해서이다.
@@ -342,14 +346,14 @@ public class TutorialController : MonoBehaviour
 
 `EndActiveCondition`은 활성 조건이 있으면 `Completed` 구독을 해제하고 `End`를 호출한 뒤 `_activeCondition`을 비운다. 없으면 아무것도 하지 않는다.
 
-`OnDisable`은 시작 코루틴이 남아 있으면 멈추고 핸들을 비운 뒤 `EndActiveCondition`을 호출한다. 진행 중 컴포넌트가 꺼지는 경우의 완전한 정리(카드 숨김, 상태 복구)는 2번 단위에서 보강한다.
+`OnDisable`은 시작 코루틴이 남아 있으면 멈추고, 핸들은 항상 비운 뒤, 코루틴 유무와 관계없이 `EndActiveCondition`을 호출한다. 정상 시작 후에는 핸들이 이미 비어 있으므로 코루틴 존재 여부로 조건 정리를 건너뛰면 안 된다. 진행 중 컴포넌트가 꺼지는 경우의 나머지 정리(카드 숨김, `IsRunning` 복구)는 2번 단위에서 보강한다.
 
 `ResetProgress`는 `TutorialProgressStore.ResetForDebug`를 호출한다. Inspector 컨텍스트 메뉴로만 실행하는 개발 편의 기능이다.
 
 **Unity 에디터 작업**:
 
 1. `CombatScene`에서 `fileID 2055402654` 오브젝트를 찾아 Missing으로 남은 컴포넌트 2개를 제거한다.
-2. 같은 오브젝트에 `TutorialController`를 추가한다. `_steps`에 4.1에서 만든 임시 에셋 2개를 순서대로 넣고, `_guideCardView`에 4.4의 뷰를, `_bootstrap`에 씬의 `GameBootstrap`을 연결한다.
+2. 같은 오브젝트에 `TutorialController`를 추가한다. `_steps`에 4.1에서 만든 임시 에셋 2개를 순서대로 넣고, `_guideCardView`에 4.4의 뷰를 연결한다.
 3. 뷰와 컨트롤러가 같은 오브젝트에 있어도 괜찮다. 단 `_cardRoot`는 별도의 프리팹 인스턴스여야 한다.
 
 ## 5. 검증 기준 및 테스트 시나리오
@@ -376,11 +380,6 @@ public class TutorialController : MonoBehaviour
 - 행동: 이동하지 않고 대기한다.
 - 결과: 카드가 바뀌지 않는다.
 
-**예외: 부팅 실패**
-- 조건: `GameBootstrap`이 `Failed`가 되는 상황.
-- 행동: 씬 시작.
-- 결과: 경고 로그가 남고 컨트롤러가 꺼지며 카드는 나타나지 않는다.
-
 **예외: 1층이 이미 시작됨**
 - 조건: 컨트롤러가 시작을 기다리는 중 석상 상호작용으로 출발 준비를 마쳐 1층이 시작된 경우.
 - 행동: 석상과 상호작용한다.
@@ -391,18 +390,29 @@ public class TutorialController : MonoBehaviour
 - 행동: 씬 시작.
 - 결과: 오류 로그가 남고 컨트롤러가 꺼진다.
 
-**예외: 미구현 조건**
-- 조건: 단계 에셋의 조건이 `Move` 외 값이다.
-- 행동: 해당 단계에 도달한다.
-- 결과: 구현되지 않았다는 오류 로그가 남고 컨트롤러가 꺼진다. 카드는 바뀌지 않는다.
+**예외: 미구현 조건 (첫 단계)**
+- 조건: 첫 단계 에셋의 조건이 `Move` 외 값이다.
+- 행동: 씬 시작.
+- 결과: 오류 로그가 남고 컨트롤러가 꺼지며 `IsRunning`은 거짓이다. 카드는 나타나지 않고 완료 기록도 남지 않는다.
+
+**예외: 미구현 조건 (중간 단계)**
+- 조건: `Move` 단계 다음에 `Move` 외 조건의 단계가 있다.
+- 행동: `Move` 단계를 완료한다.
+- 결과: 오류 로그가 남고 직전 단계 카드가 숨겨진다. `IsRunning`과 `enabled`가 모두 거짓이고 완료 기록은 남지 않는다.
+
+**경계: 진행 중 컴포넌트 비활성화**
+- 조건: 조건 감시 중(예: `Move` 진행 중).
+- 행동: 컨트롤러 컴포넌트를 끈다.
+- 결과: 조건의 `Completed` 구독이 해제되고 `End`가 한 번 호출된다. 카드 숨김 등 나머지 정리는 2번 단위 소관이다.
 
 **예외: 플레이어 없음**
 - 조건: Player 태그 오브젝트가 없다.
 - 행동: 1단계 시작.
 - 결과: 오류 로그가 남고, 카드는 표시되지만 단계가 완료되지 않는다.
 
-## 구현 중 확인할 항목
+## 남은 확인 항목
 
 - 플레이어 실제 이동 평면 (XY 가정 검증).
-- `Move` 기본 거리 값.
-- `PortalPlayerHider.IsAnyHiding` 미커밋 변경을 이 단위의 구현 커밋에 함께 포함.
+- `Move` 기본 거리 값 (임시 3, 5 조정).
+- 위 시나리오의 Unity 플레이 검증.
+- `GameBootstrap`을 전투 씬에서 제거할 때 `CombatSceneTestSetup`의 데이터 준비 대기 경로 정리.
