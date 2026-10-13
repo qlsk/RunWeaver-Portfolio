@@ -23,6 +23,9 @@ public class TutorialGuideCardView : MonoBehaviour
 
     public void Hide()
     {
+        if (_cardRoot == null)
+            return;
+
         _cardRoot.SetActive(false);
     }
 }

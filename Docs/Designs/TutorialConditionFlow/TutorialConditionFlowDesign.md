@@ -416,3 +416,74 @@ public class TutorialController : MonoBehaviour
 - `Move` 기본 거리 값 (임시 3, 5 조정).
 - 위 시나리오의 Unity 플레이 검증.
 - `GameBootstrap`을 전투 씬에서 제거할 때 `CombatSceneTestSetup`의 데이터 준비 대기 경로 정리.
+
+## 6. 2번 단위 — 중도 이탈 처리
+
+> 상태: **구현됨** · 1번 단위(4장)의 `TutorialController`를 확장한다.
+
+### 6.1 확정 요구사항
+
+- 튜토리얼 중단 경로를 `OnDisable` 한 곳으로 통일한다. 시작 실패, 선행 행동, 조건 생성 실패, 씬 이탈 모두 컴포넌트가 꺼지면서 같은 정리를 거친다.
+- **선행 행동은 튜토리얼을 중단한다.** 출발 준비 단계에서 1층이 먼저 시작되면 튜토리얼을 종료한다.
+- **중단은 완료 기록을 남기지 않는다.** 다음 실행에서 처음부터 다시 시작한다. 완료 저장은 `Finish`에서만 한다. 건너뛰기(17번 단위)가 완료 기록을 담당한다.
+
+### 6.2 선언
+
+파일: `TutorialConditionKind.cs` (수정, 확장 클래스 추가)
+
+```csharp
+public static class TutorialConditionKindExtensions
+{
+    public static bool IsPreparationPhase(this TutorialConditionKind kind);
+}
+```
+
+`IsPreparationPhase`는 `Move`, `StatueInteract`, `ElementConfirm`이면 참이다. 이 조건들은 1층이 시작되기 전(`StageManager.IsWaitingForPreparation`)에 진행된다. `RuneConfirm`은 시작 석상이 룬 확정 직후 `BeginPreparedRun`을 호출해 1층 시작과 겹칠 수 있으므로 제외한다. 6번 단위(`RuneConfirm`)에서 석상의 이벤트 순서를 확인하고 필요하면 이 판정을 조정한다.
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+private StageManager _stageManager;
+private bool IsStageStartedEarly();
+```
+
+`StageManager.Instance`는 인스턴스가 없으면 `null`을 돌려주지 않고 빈 GameObject를 만든 뒤 예외를 던진다. 그래서 컨트롤러는 `Instance`를 쓰지 않고, `StartRoutine`에서 `FindAnyObjectByType<StageManager>()`로 기존 인스턴스만 찾아 `_stageManager`에 보관한다. 이후 존재 확인은 이 참조의 Unity null(파괴 여부) 검사로 한다.
+
+파일: `TutorialGuideCardView.cs` (수정): `Hide`가 카드 루트 파괴 여부를 확인한다.
+
+### 6.3 처리 흐름
+
+`Update`는 실행 중이고 활성 조건이 있으면, `Tick` 호출 전에 `IsStageStartedEarly`를 확인한다. 참이면 경고를 남기고 컴포넌트를 끈 뒤 종료한다.
+
+`IsStageStartedEarly`의 처리 순서:
+
+1. 현재 단계의 조건이 출발 준비 단계(`IsPreparationPhase`)가 아니면 거짓을 돌려준다.
+2. 보관한 `_stageManager`가 파괴되었거나 `IsWaitingForPreparation`이 거짓이면 참을 돌려준다.
+
+`StartRoutine`은 한 프레임 기다린 뒤 `FindAnyObjectByType`으로 `StageManager`를 찾아 보관한다(1번 단위의 `StageManager.Instance` 검사를 대체). 없으면 경고 후 컨트롤러를 끈다. 도착 연출 대기 뒤의 재확인도 보관한 참조의 파괴 여부와 `IsWaitingForPreparation`을 함께 본다.
+
+`OnDisable`의 처리 순서:
+
+1. 시작 코루틴이 남아 있으면 멈추고 핸들을 비운다.
+2. `EndActiveCondition`으로 활성 조건의 구독 해제와 `End`를 수행한다.
+3. `IsRunning`이 거짓이면(시작 전 종료, 정상 `Finish` 후) 여기서 종료한다.
+4. 참이면 `Finish`를 거치지 않은 중단이다. `IsRunning`을 거짓으로 하고 카드 뷰가 파괴되지 않았다면 `Hide`를 호출한다. 씬 파괴 중에는 카드 뷰가 먼저 파괴되었을 수 있으므로 Unity null 검사를 한다. 완료 기록은 남기지 않는다.
+
+`BeginStep`의 조건 생성 실패 분기는 컴포넌트만 끈다. 카드 숨김과 `IsRunning` 해제는 `OnDisable`이 맡는다.
+
+### 6.4 검증 시나리오
+
+**선행 행동**
+- 조건: 1단계(`Move`) 진행 중.
+- 행동: 이동을 끝내기 전에 시작 석상으로 출발 준비를 마쳐 1층을 시작한다.
+- 결과: 경고 로그가 남고 카드가 사라지며 컨트롤러가 꺼진다. `IsRunning`은 거짓이고 완료 기록은 남지 않는다. 다음 실행에서 튜토리얼이 처음부터 시작된다.
+
+**씬 이탈**
+- 조건: 튜토리얼 진행 중.
+- 행동: 다른 씬으로 이동하거나 플레이를 종료한다.
+- 결과: 오류(MissingReferenceException) 없이 정리되고 완료 기록은 남지 않는다.
+
+**정상 완료 후 비활성화**
+- 조건: 마지막 단계 완료.
+- 결과: `Finish`가 카드를 숨기고 완료를 저장한다. 이어지는 `OnDisable`은 추가 정리를 하지 않는다.
+

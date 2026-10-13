@@ -9,6 +9,7 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialGuideCardView _guideCardView;
 
     private Coroutine _startRoutine;
+    private StageManager _stageManager;
     private ITutorialCondition _activeCondition;
 
     public int CurrentIndex { get; private set; }
@@ -50,6 +51,13 @@ public class TutorialController : MonoBehaviour
         if (_activeCondition == null)
             return;
 
+        if (IsStageStartedEarly())
+        {
+            Debug.LogWarning("[TutorialController] 출발 준비 단계 중 1층이 시작되어 튜토리얼을 중단합니다.");
+            enabled = false;
+            return;
+        }
+
         _activeCondition.Tick();
     }
 
@@ -60,20 +68,32 @@ public class TutorialController : MonoBehaviour
 
         _startRoutine = null;
         EndActiveCondition();
+
+        if (!IsRunning)
+            return;
+
+        // Finish를 거치지 않은 중단이다. 완료 기록은 남기지 않는다.
+        IsRunning = false;
+
+        // 씬 파괴 중에는 카드 뷰가 먼저 파괴됐을 수 있다.
+        if (_guideCardView != null)
+            _guideCardView.Hide();
     }
 
     private IEnumerator StartRoutine()
     {
         yield return null;
 
-        if (StageManager.Instance == null)
+        // StageManager.Instance는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
+        _stageManager = FindAnyObjectByType<StageManager>();
+        if (_stageManager == null)
         {
             Debug.LogWarning("[TutorialController] StageManager 객체가 없습니다.");
             enabled = false;
             yield break;
         }
 
-        if (!StageManager.Instance.IsWaitingForPreparation)
+        if (!_stageManager.IsWaitingForPreparation)
         {
             Debug.LogWarning("[TutorialController] 이미 1층이 시작됐습니다.");
             enabled = false;
@@ -83,7 +103,7 @@ public class TutorialController : MonoBehaviour
         while (PortalPlayerHider.IsAnyHiding)
             yield return null;
 
-        if (!StageManager.Instance.IsWaitingForPreparation)
+        if (_stageManager == null || !_stageManager.IsWaitingForPreparation)
         {
             Debug.LogWarning("[TutorialController] 이미 1층이 시작됐습니다.");
             enabled = false;
@@ -103,8 +123,6 @@ public class TutorialController : MonoBehaviour
         ITutorialCondition condition = TutorialConditionFactory.Create(step.Condition);
         if (condition == null)
         {
-            _guideCardView.Hide();
-            IsRunning = false;
             enabled = false;
             return;
         }
@@ -140,6 +158,14 @@ public class TutorialController : MonoBehaviour
         IsRunning = false;
         Finished?.Invoke();
         enabled = false;
+    }
+
+    private bool IsStageStartedEarly()
+    {
+        if (!_steps[CurrentIndex].Condition.IsPreparationPhase())
+            return false;
+
+        return _stageManager == null || !_stageManager.IsWaitingForPreparation;
     }
 
     private void EndActiveCondition()
