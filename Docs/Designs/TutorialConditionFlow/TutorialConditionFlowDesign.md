@@ -973,3 +973,94 @@ private void ReleaseMissionFix();
 **고정 해제**
 - 조건: 고정이 쓰이기 전에 튜토리얼이 중단된다.
 - 결과: 고정이 해제되어 이후 추첨은 원래대로 동작한다.
+
+## 12. 8번 단위 — Acknowledge 조건과 스포트라이트
+
+> 상태: **구현됨**
+
+### 12.1 확정 요구사항
+
+- `Acknowledge` 조건: 확인 입력으로 완료한다. 확정 입력은 F로 통일하고 Space는 대시 전용이므로 **F 키**를 쓴다. 단계가 시작된 프레임의 입력은 무시한다(이전 단계를 끝낸 같은 프레임의 F가 이어서 이 단계를 닫는 것을 막는다).
+- 스포트라이트 오버레이: 프리팹(`TutorialSpotlight`)의 `Hole`을 대상 UI의 화면 영역에 맞추고 호출 문구를 단계 SO의 오버레이 문구로 바꾼다. 대상이 여러 개이면 영역을 합친다.
+- 6단계는 타이머(`Canvas/TimerPanel`)와 목표(`Canvas/ObjectivePanel`)를 함께 비춘다.
+- 임무 타이머는 **멈추지 않는다.** 기획의 "시간 정지 또는 미시작"은 구현하지 않고, 타이머가 0이 되어도 실패하지 않는 규칙(10번 단위)에 맡긴다.
+
+### 12.2 선언
+
+파일: `AcknowledgeCondition.cs` (신규)
+
+```csharp
+public class AcknowledgeCondition : ITutorialCondition
+{
+    private int _beginFrame;
+    private bool _isActive;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+}
+```
+
+`Begin`은 시작 프레임을 기록하고 활성화한다. `Tick`은 비활성이거나 시작과 같은 프레임이면 종료하고, F가 이번 프레임에 눌렸을 때만 비활성화한 뒤 `Completed`를 발생시킨다. `End`는 비활성화한다. 팩토리가 `Acknowledge`에 이 조건을 돌려준다.
+
+파일: `TutorialStepSO.cs` (수정)
+
+```csharp
+[SerializeField] private string[] _spotlightTargetIds;
+
+public IReadOnlyList<string> SpotlightTargetIds { get; }
+```
+
+파일: `TutorialSpotlightView.cs` (신규)
+
+```csharp
+public class TutorialSpotlightView : MonoBehaviour
+{
+    [SerializeField] private RectTransform _root;
+    [SerializeField] private Canvas _canvas;
+    [SerializeField] private Target[] _targets;
+
+    private GameObject _current;
+
+    public void Show(TutorialStepSO step);
+    public void Hide();
+    private bool TryGetTargetBounds(IReadOnlyList<string> targetIds, out Vector2 center, out Vector2 size);
+}
+```
+
+`Target`은 대상 id(`Id`)와 실제 UI(`Rect`)를 잇는 직렬화 구조체이다. `Show`의 처리 순서:
+
+1. 이전 스포트라이트를 `Hide`로 정리한다.
+2. 오버레이 프리팹이 없으면 오류를 남기고 종료한다.
+3. `TryGetTargetBounds`로 대상 영역을 구한다. 구하지 못하면(대상 id가 없거나 연결이 비어 있음) 오류를 남기고 종료한다.
+4. 프리팹을 `_root` 아래에 생성하고, `Hole`의 위치를 영역 중심으로, 크기를 영역 크기에 여백을 더한 값으로 맞춘다.
+5. 호출 문구 라벨에 단계의 오버레이 문구를 넣는다.
+
+`TryGetTargetBounds`는 각 대상 UI의 월드 모서리를 화면 좌표로 바꾼 뒤 `_root` 기준 로컬 좌표로 변환해 모든 모서리의 최소·최대로 영역을 합친다. 캔버스가 오버레이 모드가 아니면 캔버스 카메라를 쓴다. `Hole`이 중앙 앵커이고 루트가 전체 화면이므로 로컬 좌표가 그대로 `anchoredPosition`이 된다. `Hide`는 키 힌트 뷰와 같이 비활성화한 뒤 파괴한다.
+
+파일: `TutorialController.cs` (수정): `_spotlightView` 필드를 추가하고 `ShowOverlay`가 오버레이 종류별로 키 힌트·스포트라이트 뷰를 호출한다(뷰가 연결되지 않았으면 오류를 남기고 진행은 유지). `HideOverlay`는 두 뷰를 모두 정리한다.
+
+### 12.3 Unity 에디터 작업
+
+- `Canvas` 아래에 전체 화면으로 늘린 `TutorialSpotlightRoot`를 만들고 `TutorialSpotlightView`를 붙여 `_root`, `_canvas`, 대상 목록(`MissionTimer` → `TimerPanel`, `MissionObjective` → `ObjectivePanel`)을 연결한다.
+- 컨트롤러의 `_spotlightView`를 연결한다.
+- `Step06_MissionGoal.asset`(조건 `Acknowledge`, 행동 행 `Key` F/"확인", 오버레이 `Spotlight`, 프리팹 `TutorialSpotlight`, 대상 id 2개)을 `_steps`의 여섯 번째에 추가한다.
+
+### 12.4 검증 시나리오
+
+**정상**
+- 조건: 5단계가 끝나 6단계가 시작된다.
+- 결과: 타이머와 목표 영역이 밝게 비춰지고 나머지는 어두워진다. F를 누르면 6단계가 완료된다.
+
+**입력 이월 방지**
+- 조건: 5단계를 F 상호작용으로 완료한다.
+- 결과: 같은 입력으로 6단계가 즉시 닫히지 않는다.
+
+**대상 누락**
+- 조건: 대상 id가 목록에 없거나 UI 연결이 비어 있다.
+- 결과: 오류 로그가 남고 스포트라이트는 없지만 F로 단계는 진행된다.
+
+**정리**
+- 결과: 단계가 끝나거나 튜토리얼이 중단되면 스포트라이트가 사라진다.

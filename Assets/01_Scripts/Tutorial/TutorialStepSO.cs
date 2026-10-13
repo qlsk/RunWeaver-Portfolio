@@ -18,6 +18,8 @@ public class TutorialStepSO : ScriptableObject
     [SerializeField] private TutorialOverlayKind _overlay;
     [SerializeField] private GameObject _overlayPrefab;
     [SerializeField] private string _overlayText;
+    [Tooltip("스포트라이트 오버레이가 비출 UI의 대상 id (TutorialSpotlightView의 대상 목록과 맞춘다)")]
+    [SerializeField] private string[] _spotlightTargetIds;
 
     public string Title => _title;
     public string Body => _body;
@@ -29,4 +31,5 @@ public class TutorialStepSO : ScriptableObject
     public TutorialOverlayKind Overlay => _overlay;
     public GameObject OverlayPrefab => _overlayPrefab;
     public string OverlayText => _overlayText;
+    public IReadOnlyList<string> SpotlightTargetIds => _spotlightTargetIds;
 }

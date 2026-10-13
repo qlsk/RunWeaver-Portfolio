@@ -2737,6 +2737,7 @@ RectTransform:
   - {fileID: 1933891939}
   - {fileID: 1707174801}
   - {fileID: 1563445}
+  - {fileID: 1913303928}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -19246,8 +19247,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9c7ad0233ff3f594eb919704587e5dbe, type: 2}
   - {fileID: 11400000, guid: c2da95a11afdda740a5fab4baebfaa97, type: 2}
   - {fileID: 11400000, guid: 2ac99e90115587e4f940d7c1ea855d7f, type: 2}
+  - {fileID: 11400000, guid: 72d77b784bdc7e44a89650a62ad67bd9, type: 2}
   _guideCardView: {fileID: 1707174802}
   _keyHintView: {fileID: 1563446}
+  _spotlightView: {fileID: 1913303929}
   _grantedRuneWordIds:
   - rune_earth
   - rune_wind
@@ -19826,6 +19829,61 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7c14aa619259ce94d93152bd2434e979, type: 3}
+--- !u!1 &1913303927
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1913303928}
+  - component: {fileID: 1913303929}
+  m_Layer: 0
+  m_Name: TutorialSpotlightRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1913303928
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913303927}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 709986238}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1913303929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913303927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b4fa4c6720fae744867911450ab6ac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialSpotlightView
+  _root: {fileID: 1913303928}
+  _canvas: {fileID: 709986237}
+  _targets:
+  - Id: MissionTimer
+    Rect: {fileID: 83017506}
+  - Id: MissionObjective
+    Rect: {fileID: 1695525132}
 --- !u!1001 &1933891934
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialStepSO[] _steps;
     [SerializeField] private TutorialGuideCardView _guideCardView;
     [SerializeField] private TutorialKeyHintView _keyHintView;
+    [SerializeField] private TutorialSpotlightView _spotlightView;
 
     [Header("룬석 지급")]
     [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
@@ -181,16 +182,21 @@ public class TutorialController : MonoBehaviour
 
     private void ShowOverlay(TutorialStepSO step)
     {
-        if (step.Overlay != TutorialOverlayKind.KeyHint)
-            return;
-
-        if (_keyHintView == null)
+        switch (step.Overlay)
         {
-            Debug.LogError("[TutorialController] 키 힌트 뷰가 연결되지 않았습니다.", this);
-            return;
+            case TutorialOverlayKind.KeyHint:
+                if (_keyHintView == null)
+                    Debug.LogError("[TutorialController] 키 힌트 뷰가 연결되지 않았습니다.", this);
+                else
+                    _keyHintView.Show(step);
+                break;
+            case TutorialOverlayKind.Spotlight:
+                if (_spotlightView == null)
+                    Debug.LogError("[TutorialController] 스포트라이트 뷰가 연결되지 않았습니다.", this);
+                else
+                    _spotlightView.Show(step);
+                break;
         }
-
-        _keyHintView.Show(step);
     }
 
     private void HideOverlay()
@@ -198,6 +204,9 @@ public class TutorialController : MonoBehaviour
         // 씬 파괴 중에는 뷰가 먼저 파괴됐을 수 있다.
         if (_keyHintView != null)
             _keyHintView.Hide();
+
+        if (_spotlightView != null)
+            _spotlightView.Hide();
     }
 
     private void HandleOutOfOrderDetected()
