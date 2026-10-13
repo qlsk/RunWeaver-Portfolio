@@ -19105,6 +19105,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1707174801}
   - component: {fileID: 1707174802}
+  - component: {fileID: 1707174803}
   m_Layer: 5
   m_Name: TutorialController
   m_TagString: Untagged
@@ -19147,6 +19148,22 @@ MonoBehaviour:
   _headerLabel: {fileID: 1933891937}
   _titleText: {fileID: 1933891936}
   _bodyText: {fileID: 1933891935}
+--- !u!114 &1707174803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1707174800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a3f9620a8514e339ae8bb52720dcd00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialController
+  _steps:
+  - {fileID: 11400000, guid: fb536f70e43bb234799d98da95fd43fe, type: 2}
+  - {fileID: 11400000, guid: eca2debf678463742b2d3a337c26f5c2, type: 2}
+  _guideCardView: {fileID: 1707174802}
 --- !u!1001 &1741632815
 PrefabInstance:
   m_ObjectHideFlags: 0
