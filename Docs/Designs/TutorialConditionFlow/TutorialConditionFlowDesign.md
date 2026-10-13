@@ -1746,3 +1746,14 @@ private void ReleaseRuneWordRestriction();
 `TutorialController.EquipSkipDefaults`는 기본 원소 장착과 기본 룬 워드 장착을 `InvalidOperationException`을 잡아 경고만 남기고 건너뛰기를 계속한다. 기본 룬 워드는 `EquipSkipDefaultRuneWords`가 활성 칸 수 길이의 배열에 현재 장착을 채운 뒤 룬북과 같은 규칙(`RuneEffectLoadout.FindEquipSlot`: 원소 수 제한, 중복, 종료 효과 충돌, 칸 부족)으로 후보마다 삽입 위치를 구해 같은 방식으로 뒤로 밀며 넣는다. 부적합한 후보는 사유(`EquipError`)를 경고로 남기고 제외하며, 바뀐 것이 있을 때만 확정한다.
 
 검증: 이미 원소 두 개가 있거나 칸이 가득한 구성, 종료 효과와 충돌하는 후보에서도 예외 없이 건너뛰기가 완료(석상 건너뛰기, 완료 기록, 규칙 해제)된다.
+
+## 24. 스크립트 폴더 구성
+
+> 7~19번 단위와 리뷰 반영이 끝난 뒤 `Assets/01_Scripts/Tutorial/`의 스크립트 32개를 역할별 하위 폴더로 나눴다. 파일과 `.meta`를 함께 옮겨 GUID가 유지되므로 씬·에셋 참조는 그대로이고, 네임스페이스가 없어 코드 변경도 없다. 앞 장들이 말하는 "Tutorial/ 직하" 같은 위치 서술은 아래 구성이 우선한다.
+
+- `Core/` — 진행의 뼈대와 데이터: `TutorialController`, `TutorialStepSO`, `TutorialRules`, `TutorialProgressStore`, `TutorialPreparationWatcher`, `TutorialConditionKind`(확장 클래스 포함), `TutorialActionRowKind`, `TutorialOverlayKind`, `TutorialMarkerTarget`
+- `Conditions/` — 완료 조건 계약, 생성, 구현체: `ITutorialCondition`, `TutorialConditionFactory`, `MoveCondition`, `StatueInteractCondition`, `ElementConfirmCondition`, `RuneConfirmCondition`, `MissionStartCondition`, `AcknowledgeCondition`, `EnemyKillCondition`, `DashCondition`, `RewardConfirmCondition`, `PortalEnterCondition`
+- `UI/` — 화면에 보이는 뷰와 프레젠터: `TutorialGuideCardView`, `TutorialKeyHintView`, `TutorialSpotlightView`, `TutorialWorldMarkerView`, `TutorialCompletionBannerView`, `TutorialSkipPresenter`, `GuidebookPresenter`
+- `Records/` — 상황 안내 카드(새 기록): `RecordCardSO`, `RecordTriggerKind`, `TutorialRecordTracker`, `TutorialRecordCardView`
+
+새 완료 조건은 `Conditions/`에 파일을 추가하고 `TutorialConditionFactory`에 한 줄을 더하면 된다. 새 오버레이 뷰는 `UI/`에 두고 `TutorialController`의 오버레이 분기에 추가한다.
