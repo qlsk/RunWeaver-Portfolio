@@ -66,8 +66,9 @@ public sealed class BulletHitEffects
 
         if (configuration.SecondaryElement.HasValue)
         {
+            // 원소 반응 피해 증가 (보상 특성 attack_03)는 반응이 실제로 일어날 때 한 번만 곱한다.
             _executeReaction(configuration.PrimaryElement.Value, configuration.SecondaryElement.Value,
-                new ReactionContext(hitPosition, hitDamage, direction));
+                new ReactionContext(hitPosition, hitDamage * ReactionDamageBonus.Multiplier, direction));
             return true;
         }
 
