@@ -1190,3 +1190,33 @@ private bool HandleMissionTimeout();
 **기존 동작 무회귀**
 - 조건: 튜토리얼이 없는 일반 플레이.
 - 결과: 체력이 0 이하가 되면 사망하고 제한 시간이 끝나면 실패한다.
+
+## 15. 11번 단위 — Dash 조건
+
+> 상태: **구현됨**
+
+- `Dash` 조건: 플레이어가 대시를 한 번 시작하면 완료한다. 입력(`PlayerInputHandler.DashPressed`)이 아니라 대시가 실제로 시작될 때 발생하는 `Dash.DashStarted`를 구독하므로 쿨다운 중의 입력은 세지 않는다. 게임 코드는 수정하지 않는다.
+- 피격을 기다리지 않는다. 안전한 시점에 Space를 한 번 누르면 완료된다(기획 확정 사항).
+- 8단계 문구는 임시 문구이고, 카드 키 행은 `Space`/"대시", 오버레이는 Space 변형 알약(`TutorialKeyHintPill_Space`)이다.
+
+파일: `DashCondition.cs` (신규)
+
+```csharp
+public class DashCondition : ITutorialCondition
+{
+    private Dash _dash;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleDashStarted();
+}
+```
+
+`Begin`은 씬에서 `Dash`를 찾는다. 없으면 오류를 남기고 구독하지 않는다. 있으면 `DashStarted`를 구독한다. `End`는 구독을 해제하고 참조를 비운다. 팩토리가 `Dash`에 이 조건을 돌려준다.
+
+Unity 에디터 작업: `Step08_Dash.asset`(조건 `Dash`, 행동 행 `Key` Space/"대시", 오버레이 `KeyHint` Space 알약 "대시")을 `_steps`의 여덟 번째에 추가했다.
+
+검증: 대시를 한 번 하면 8단계가 완료된다. 쿨다운 중에 Space를 눌러도 완료되지 않는다. 단계 전환 시 알약이 Space 알약으로 바뀐다.

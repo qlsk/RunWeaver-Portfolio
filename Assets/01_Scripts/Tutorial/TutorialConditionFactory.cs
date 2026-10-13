@@ -21,8 +21,8 @@ public class TutorialConditionFactory
                 return new AcknowledgeCondition();
             case TutorialConditionKind.EnemyKill:
                 return new EnemyKillCondition();
-            // case TutorialConditionKind.Dash:
-            //     break;
+            case TutorialConditionKind.Dash:
+                return new DashCondition();
             // case TutorialConditionKind.RewardConfirm:
             //     break;
             // case TutorialConditionKind.PortalEnter:
