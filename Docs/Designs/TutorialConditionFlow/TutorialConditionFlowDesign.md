@@ -809,3 +809,92 @@ private void ReleaseRules();
 - 조건: 씬에 `RuneBookV2Toggle`이 없다.
 - 결과: 경고가 남고 튜토리얼은 진행된다.
 
+## 10. 6번 단위 — RuneConfirm 조건과 룬석 지급
+
+> 상태: **구현됨** · 원래 6번 단위의 절반이다. `???` 잠금과 장착 차단을 포함한 룬 선택 범위 제한은 룬북 UI 수정 규모가 커서 **별도 단위(6-2)로 분리**했다.
+
+### 10.1 확정 요구사항
+
+- `RuneConfirm` 조건: 룬북에서 장착을 확정하면 완료한다. 게임 코드는 수정하지 않는다. `RuneBookV2Presenter.Confirmed`(`Action`)가 이미 public이다. 이 이벤트는 확정이 실제로 성공했을 때만 발생한다(룬석 부족 등으로 실패하면 발생하지 않는다).
+- 룬 장착 단계가 시작될 때 **허용 원소 룬 워드의 룬 문자를 지급**한다. 주력 원소는 석상에서 무료로 장착되고 두 번째 원소부터 룬 문자를 소모하므로, 지급은 두 번째 원소를 장착하기 위한 것이다.
+- **허용 룬 워드는 바위(`rune_earth`)와 바람(`rune_wind`)** 이다. 각 단어의 룬 문자를 1회분씩 지급하며, 두 단어가 `ᚱ`를 함께 쓰므로 `ᚱ`는 2개가 된다. 단어 id는 컨트롤러 Inspector 필드로 두고, 코드에 고정하지 않는다.
+- 지급한 룬석은 튜토리얼이 중단되어도 회수하지 않는다. 지급은 한 번만 한다.
+- 룬 선택 범위 제한(허용 2개만 열고 나머지는 `???` 표시, 주력 원소 선택 창과의 정합)은 이 단위에 포함하지 않는다.
+
+### 10.2 선언
+
+파일: `RuneConfirmCondition.cs` (신규)
+
+```csharp
+public class RuneConfirmCondition : ITutorialCondition
+{
+    private RuneBookV2Presenter _presenter;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleConfirmed();
+}
+```
+
+`Begin`은 비활성 오브젝트까지 포함해 `RuneBookV2Presenter`를 찾는다(룬북은 평소 꺼져 있다). 없으면 오류를 남기고 구독하지 않는다. 있으면 `Confirmed`를 구독한다. `End`는 구독을 해제하고 참조를 비운다. `TutorialConditionFactory`는 `RuneConfirm`에 이 조건을 돌려준다.
+
+파일: `TutorialRules.cs` (수정)
+
+```csharp
+private readonly IReadOnlyList<string> _grantedRuneWordIds;
+private bool _runeStonesGranted;
+
+public TutorialRules(IReadOnlyList<string> grantedRuneWordIds);
+private void GrantRuneStones();
+```
+
+`OnStepStarted`는 시작한 단계의 조건이 `RuneConfirm`일 때만 동작해 `GrantRuneStones`를 호출한 뒤 `Release`(5번 단위의 룬북 잠금 해제)를 호출한다. 순서는 룬석을 먼저 주고 잠금을 푸는 것이다.
+
+`GrantRuneStones`의 처리 순서:
+
+1. 이미 지급했거나 지급 대상 id 목록이 없으면 종료한다.
+2. `PlayerRuneManager.Instance`가 없거나 초기화되지 않았거나, `RuneEffectDatabase.Instance`가 없거나 `DatabaseReady`가 거짓이면 경고를 남기고 종료한다. DB가 준비되지 않으면 `TryGetById`가 정상 id도 찾지 못하므로 준비 여부를 함께 확인한다. 지급 완료로 기록하지 않지만, `OnStepStarted`는 단계 시작 때 한 번만 불리므로 **재시도 경로는 없다.** 4단계 시점에는 로딩이 끝나 있으므로 실제로는 일어나기 어려운 경우로 보고 경고만 남긴다.
+3. 지급 완료로 기록한다.
+4. 각 id를 확인한다. null이거나 빈 문자열이면 경고를 남기고 건너뛴다. DB에서 찾지 못하는 id도 경고를 남기고 다음 id로 넘어간다.
+5. 찾은 룬 효과의 룬 워드 문자마다 `RuneStoneInventory.TryAddRuneStone(문자, 1)`을 호출한다. 같은 문자가 여러 단어에 있으면 그 수만큼 쌓인다.
+
+파일: `TutorialController.cs` (수정): 룬석 지급 대상 id 배열 `_grantedRuneWordIds`를 Inspector 필드로 받아 `TutorialRules` 생성자에 넘긴다.
+
+파일: `TutorialPreparationWatcher.cs` (수정): 룬 확정(`RuneBookV2Presenter.Confirmed`)을 `RuneConfirm` 단계 이벤트로 추가 감시한다. 8장의 규칙대로 현재 단계보다 뒤 단계의 이벤트만 중단 사유가 된다.
+
+### 10.3 Unity 에디터 작업
+
+- `Assets/11_Data/Tutorial/Step04_RuneConfirm.asset`을 만든다(조건 `RuneConfirm`, 행동 행 `None`, 오버레이 `None`). 컨트롤러 `_steps`의 네 번째에 추가한다.
+- 컨트롤러 `_grantedRuneWordIds`에 `rune_earth`, `rune_wind`를 넣는다.
+
+### 10.4 검증 시나리오
+
+**지급**
+- 조건: 룬 장착 단계가 시작된다.
+- 결과: 바위·바람 룬 워드의 룬 문자가 각 1회분 지급되고(`ᚱ`는 2개), 룬북의 룬 문자 목록에 반영된다. 룬북 잠금이 풀린다.
+
+**정상 완료**
+- 조건: 두 번째 원소 룬 워드를 장착한다.
+- 행동: 룬북에서 Confirm한다.
+- 결과: 4단계가 완료된다. 룬석이 부족해 확정이 실패하면 완료되지 않는다.
+
+**중복 지급 방지**
+- 조건: 룬 장착 단계가 한 번 시작된 뒤.
+- 행동: 같은 규칙 객체에서 단계 시작이 다시 알려진다.
+- 결과: 룬 문자가 다시 지급되지 않는다.
+
+**잘못된 id**
+- 조건: 지급 목록에 DB에 없는 id, null 또는 빈 문자열이 있다.
+- 결과: 예외 없이 경고가 남고 나머지 id의 지급과 잠금 해제, 조건 구독은 계속된다.
+
+**룬 시스템·DB 미준비**
+- 조건: 지급 시점에 `PlayerRuneManager`가 초기화되지 않았거나 효과 DB가 로딩 중이다.
+- 결과: 경고만 남고 지급은 건너뛴다(재시도 없음). 튜토리얼은 계속되고 지급 완료로 기록되지 않는다.
+
+**중단 시 회수 없음**
+- 조건: 룬석 지급 후 튜토리얼이 중단된다.
+- 결과: 지급된 룬석은 그대로 남는다.
+

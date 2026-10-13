@@ -13,8 +13,8 @@ public class TutorialConditionFactory
                 return new StatueInteractCondition();
             case TutorialConditionKind.ElementConfirm:
                 return new ElementConfirmCondition();
-            // case TutorialConditionKind.RuneConfirm:
-            //     break;
+            case TutorialConditionKind.RuneConfirm:
+                return new RuneConfirmCondition();
             // case TutorialConditionKind.MissionStart:
             //     break;
             // case TutorialConditionKind.Acknowledge:

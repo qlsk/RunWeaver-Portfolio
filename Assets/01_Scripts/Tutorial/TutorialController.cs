@@ -9,6 +9,10 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialGuideCardView _guideCardView;
     [SerializeField] private TutorialKeyHintView _keyHintView;
 
+    [Header("룬석 지급")]
+    [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
+    [SerializeField] private string[] _grantedRuneWordIds;
+
     private Coroutine _startRoutine;
     private StageManager _stageManager;
     private ITutorialCondition _activeCondition;
@@ -122,7 +126,7 @@ public class TutorialController : MonoBehaviour
         _preparationWatcher.OutOfOrderDetected += HandleOutOfOrderDetected;
         _preparationWatcher.Begin(() => _steps[CurrentIndex].Condition);
 
-        _rules = new TutorialRules();
+        _rules = new TutorialRules(_grantedRuneWordIds);
         _rules.Apply();
 
         BeginStep(0);

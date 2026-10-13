@@ -10,6 +10,7 @@ public class TutorialPreparationWatcher
 {
     private ExpeditionStatue _statue;
     private MainElementSelectView _elementView;
+    private RuneBookV2Presenter _runeBookPresenter;
     private Func<TutorialConditionKind> _getCurrentKind;
 
     public event Action OutOfOrderDetected;
@@ -29,6 +30,12 @@ public class TutorialPreparationWatcher
             _elementView.Confirmed += HandleElementConfirmed;
         else
             Debug.LogWarning("[TutorialPreparationWatcher] MainElementSelectView를 찾을 수 없습니다.");
+
+        _runeBookPresenter = UnityEngine.Object.FindAnyObjectByType<RuneBookV2Presenter>(FindObjectsInactive.Include);
+        if (_runeBookPresenter != null)
+            _runeBookPresenter.Confirmed += HandleRunesConfirmed;
+        else
+            Debug.LogWarning("[TutorialPreparationWatcher] RuneBookV2Presenter를 찾을 수 없습니다.");
     }
 
     public void End()
@@ -39,8 +46,12 @@ public class TutorialPreparationWatcher
         if (_elementView != null)
             _elementView.Confirmed -= HandleElementConfirmed;
 
+        if (_runeBookPresenter != null)
+            _runeBookPresenter.Confirmed -= HandleRunesConfirmed;
+
         _statue = null;
         _elementView = null;
+        _runeBookPresenter = null;
         _getCurrentKind = null;
     }
 
@@ -52,6 +63,11 @@ public class TutorialPreparationWatcher
     private void HandleElementConfirmed(ReactionElement element)
     {
         Check(TutorialConditionKind.ElementConfirm);
+    }
+
+    private void HandleRunesConfirmed()
+    {
+        Check(TutorialConditionKind.RuneConfirm);
     }
 
     private void Check(TutorialConditionKind eventKind)
