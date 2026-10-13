@@ -26,6 +26,9 @@ public class PlayerHealth : MonoBehaviour
         set => _invincibilityDuration = Mathf.Max(0f, value);
     }
 
+    /// <summary>보상 특성용: 보호막이 피격을 막았을 때의 무적 시간 배율 (기본 1). (shield_02)</summary>
+    public float ShieldBlockInvincibilityMultiplier { get; set; } = 1f;
+
     private Shield _shield;
 
     public event Action Died;
@@ -73,10 +76,14 @@ public class PlayerHealth : MonoBehaviour
     // 피격
     public void TakeDamage(float damage)
     {
-        Debug.Log($"Current Shield = {_shield.CurrentShield}");
+        TakeElementDamage(damage, null);
+    }
+
+    public void TakeElementDamage(float damage, ReactionElement? element)
+    {
         if (_isDead || damage <= 0f) return;
         if (_hitInvincibility || _dashInvincibility) return;
-        StartCoroutine(TakeDamageCoroutine(damage));
+        StartCoroutine(TakeDamageCoroutine(damage, element));
     }
 
     /// <summary>지속 피해는 피격/대시 무적을 무시하고 새 피격 무적을 만들지 않는다.</summary>
@@ -93,6 +100,7 @@ public class PlayerHealth : MonoBehaviour
             return;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(Sfx.PlayerHit);
         Damaged?.Invoke(finalDamage);
         // 하한보다 이미 낮은 체력은 올리지 않는다.
         float floor = Mathf.Min(_currentHealth, _maxHealth * Mathf.Clamp01(MinHealthRatio));
@@ -108,19 +116,27 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    private IEnumerator TakeDamageCoroutine(float damage)
+    private IEnumerator TakeDamageCoroutine(float damage, ReactionElement? element)
     {
         _hitInvincibility = true;
-        if (_shield.CurrentShield > 0)
+        float invincibility = _invincibilityDuration;
+        if (_shield != null && _shield.CurrentShield > 0)
         {
             _shield.DestroyShield();
+            invincibility *= Mathf.Max(0f, ShieldBlockInvincibilityMultiplier);
         }
         else
         {
+            float finalDamage = Mathf.Max(0f, damage) * DamageTakenMultiplier;
             ApplyDamage(damage);
+            if (finalDamage > 0f && !_isDead && element.HasValue &&
+                TryGetComponent(out PlayerStatusEffectController statusEffects))
+            {
+                statusEffects.ApplyElementEffect(element.Value, damage);
+            }
         }
 
-        yield return new WaitForSeconds(_invincibilityDuration);
+        yield return new WaitForSeconds(invincibility);
         _hitInvincibility = false;
     }
 

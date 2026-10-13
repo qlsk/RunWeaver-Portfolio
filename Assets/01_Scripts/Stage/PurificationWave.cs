@@ -134,6 +134,7 @@ public class PurificationWave : MonoBehaviour
         _radius = 0f;
         _animator.Play(s_waveHash, 0, 0f);
         _animator.Update(0f);
+        Sfx.Play(Sfx.CleanseDone);
     }
 
     /// <summary>지정한 위치로 옮겨 파동을 시작한다.</summary>

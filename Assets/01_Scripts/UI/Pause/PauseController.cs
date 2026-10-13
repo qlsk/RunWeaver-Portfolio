@@ -250,7 +250,8 @@ public class PauseController : MonoBehaviour
         }
 
         _openedFrame = Time.frameCount;
-        _previousTimeScale = Time.timeScale;
+        // 피격 정지 프레임 도중이면 연출을 끝내고 연다. (끝난 연출이 일시정지를 풀거나, 닫을 때 멈춘 채 남지 않게)
+        _previousTimeScale = GameTimeScale.BeginPause();
         Time.timeScale = 0f;
         IsGamePaused = true;
 
@@ -453,8 +454,8 @@ public class PauseController : MonoBehaviour
             return true;
         }
 
-        // 다른 무언가가 이미 게임을 멈춰 둔 경우 (연출 등)
-        if (Time.timeScale <= 0f)
+        // 다른 무언가가 이미 게임을 멈춰 둔 경우 (연출 등). 피격 정지 프레임처럼 잠깐 멈춘 것은 막지 않는다.
+        if (Time.timeScale <= 0f && !GameTimeScale.IsTimeEffectActive)
         {
             return true;
         }

@@ -44,6 +44,15 @@ public class RewardGenerator : MonoBehaviour
     /// </summary>
     public List<RewardOption> GenerateOptions(int depth)
     {
+        return GenerateOptions(depth, null);
+    }
+
+    /// <summary>
+    /// exclude에 있는 선택지(다시 뽑기 전에 보여준 카드)는 빼고 뽑는다.
+    /// 빼고 나서 3종이 안 되면 뺀 선택지도 다시 후보에 넣어 채운다.
+    /// </summary>
+    public List<RewardOption> GenerateOptions(int depth, IReadOnlyList<RewardOption> exclude)
+    {
         int safeDepth = Mathf.Max(1, depth);
         int runeCount = _baseRuneStoneCount + (safeDepth - 1) * _runeStonePerDepth;
 
@@ -107,6 +116,16 @@ public class RewardGenerator : MonoBehaviour
 
         Shuffle(candidates);
 
+        // 방금 보여준 카드는 뒤로 미뤄, 다른 후보가 모자랄 때만 쓰이게 한다.
+        if (exclude != null && exclude.Count > 0)
+        {
+            List<RewardOption> fresh = candidates.FindAll(option => !ContainsSame(exclude, option));
+            List<RewardOption> shown = candidates.FindAll(option => ContainsSame(exclude, option));
+            candidates.Clear();
+            candidates.AddRange(fresh);
+            candidates.AddRange(shown);
+        }
+
         List<RewardOption> options = new(3);
         int take = Mathf.Min(3, candidates.Count);
         for (int i = 0; i < take; i++)
@@ -134,6 +153,35 @@ public class RewardGenerator : MonoBehaviour
 
         Debug.Log($"[RewardGenerator] 후보 {candidates.Count}종(패시브 {passives.Count}, 특성 {traits.Count}) → 선택: {string.Join(", ", options.ConvertAll(o => o.Title))}", this);
         return options;
+    }
+
+    private static bool ContainsSame(IReadOnlyList<RewardOption> list, RewardOption option)
+    {
+        foreach (RewardOption other in list)
+        {
+            if (IsSame(other, option))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>같은 보상인지 (종류와 대상이 같으면 같다. 룬석 개수, 패시브 레벨은 보지 않는다)</summary>
+    private static bool IsSame(RewardOption a, RewardOption b)
+    {
+        if (a == null || b == null || a.Type != b.Type)
+        {
+            return false;
+        }
+
+        return a.Type switch
+        {
+            RewardType.Trait => a.Trait != null && b.Trait != null && a.Trait.Id == b.Trait.Id,
+            RewardType.Passive => a.Passive != null && b.Passive != null && a.Passive.StatType == b.Passive.StatType,
+            _ => true
+        };
     }
 
     private List<PassiveData> GetEffectivePassivePool()

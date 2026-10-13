@@ -12,6 +12,8 @@ public class PlayerMove : MonoBehaviour
     private readonly float _playerMoveSpeed = 5f;
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
+    private float _stepTimer;
+    private const float StepInterval = 0.35f;
 
     /// <summary>보상 특성용 이동속도 배율 (기본 1).</summary>
     public float TraitMoveSpeedMultiplier { get; set; } = 1f;
@@ -113,5 +115,19 @@ public class PlayerMove : MonoBehaviour
 
         float multiplier = _statusEffects != null ? _statusEffects.MoveSpeedMultiplier : 1f;
         _playerRigidbody2D.linearVelocity = moveDirection * (_playerMoveSpeed * multiplier * TraitMoveSpeedMultiplier);
+
+        if (moveDirection != Vector2.zero)
+        {
+            _stepTimer -= Time.fixedDeltaTime;
+            if (_stepTimer <= 0f)
+            {
+                _stepTimer = StepInterval;
+                Sfx.Play(Sfx.Footsteps);
+            }
+        }
+        else
+        {
+            _stepTimer = 0f;
+        }
     }
 }

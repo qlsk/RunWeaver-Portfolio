@@ -69,8 +69,8 @@ public class EndingMenuView : MonoBehaviour
         {
             Select((_selectedIndex + 1) % _items.Length, false);
         }
-        else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) ||
-                 Input.GetKeyDown(KeyCode.Space))
+        else if (Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.Return) ||
+                 Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
         {
             Confirm(_selectedIndex);
             return;

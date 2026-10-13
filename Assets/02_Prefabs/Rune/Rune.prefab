@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8970719769596857867}
   - component: {fileID: 7604851959272145055}
   - component: {fileID: 1708942384468795452}
+  - component: {fileID: 4436976214358609101}
   m_Layer: 0
   m_Name: Rune
   m_TagString: Rune
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.09, y: -0.77, z: 0}
-  m_LocalScale: {x: 0.33, y: 0.33, z: 0.33}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -107,8 +108,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunePickup
   _runeCharacter: 0
   _quantity: 1
-  _moveSpeed: 10
+  _moveSpeed: 5
   _pickupTime: 3
+  _attractRadius: 2
 --- !u!61 &1708942384468795452
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -155,3 +157,21 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &4436976214358609101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6002212942864115299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e7064046c7a4d9f8e54c436c567e903, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RunePickupFx
+  _glowSprite: {fileID: 21300000, guid: 7a9d97e093a848cca8942b48e9da02a8, type: 3}
+  _effectMaterial: {fileID: 2100000, guid: 36bac5512b9c4192bb441b00f9240553, type: 2}
+  _color: {r: 0.55, g: 0.85, b: 1, a: 0.35}
+  _glowDiameter: 0.65
+  _trailTime: 0.25
+  _trailWidth: 0.3

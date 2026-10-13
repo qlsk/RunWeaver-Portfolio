@@ -15,12 +15,20 @@ public sealed class BulletMovement
     private readonly LayerMask _seekEnemyLayers;
     private readonly List<Collider2D> _seekCandidates = new(16);
     private readonly float _startSpeed, _endSpeed;
+    private readonly float _seekTurnTime;
+    private const int SeekCurveSteps = 32;
+    private readonly Vector2[] _seekCurve = new Vector2[SeekCurveSteps + 1];
+    private EnemyHealth _seekTarget;
+    private Vector2 _seekDestination;
+    private Vector2 _seekStart, _seekControl1, _seekControl2;
+    private int _seekCurveIndex;
+    private float _seekRepathRemaining;
     private float _deltaTime;
     public event Action<BulletEndReason> EndRequested;
 
     public BulletMovement(Transform transform, PlayerAttackData attackData, BulletRuntime runtime,
         float seekRadius, LayerMask seekLayers, float arrivalDistance, float reverseDelay, float orbitDuration,
-        float startSpeed, float endSpeed)
+        float startSpeed, float endSpeed, float seekTurnTime = 0.25f)
     {
         this._transform = transform;
         _attackData = attackData;
@@ -32,6 +40,7 @@ public sealed class BulletMovement
         _orbitDuration = orbitDuration;
         _startSpeed = startSpeed;
         _endSpeed = endSpeed;
+        _seekTurnTime = Mathf.Max(0.01f, seekTurnTime);
     }
 
     public void Tick(float deltaTime)
@@ -71,7 +80,7 @@ public sealed class BulletMovement
         if (deltaTime > 0f && _runtime.TravelDistance < _attackData.Range)
         {
             if (_attackData.Configuration.IsSeek)
-                UpdateSeekDirection();
+                UpdateSeekTarget(deltaTime);
             MoveFlyingInDirection(deltaTime);
         }
 
@@ -88,13 +97,16 @@ public sealed class BulletMovement
             remainingProgress;
         float speed = Mathf.Lerp(_startSpeed, _endSpeed, easedProgress) * _attackData.Configuration.SpeedMultiplier;
         float moveDistance = Mathf.Min(speed * deltaTime, remainingDistance);
-        _transform.position += (Vector3)(_runtime.Direction * moveDistance);
+        if (_seekTarget != null && _runtime.ReverseSteeringRemaining <= 0f)
+            MoveAlongSeekCurve(moveDistance);
+        else
+            _transform.position += (Vector3)(_runtime.Direction * moveDistance);
         _runtime.TravelDistance += moveDistance;
         _runtime.TotalTravelDistance += moveDistance;
     }
 
     /// 일반 비행 중 가장 가까운 미적중 적을 추적하며, 없으면 현재 방향을 유지한다.
-    private void UpdateSeekDirection()
+    private void UpdateSeekTarget(float deltaTime)
     {
         if (_seekRadius <= 0f)
             return;
@@ -121,14 +133,86 @@ public sealed class BulletMovement
             closestDistance = distance;
         }
 
+        _seekRepathRemaining -= deltaTime;
         if (closest == null)
+        {
+            _seekTarget = null;
             return;
+        }
 
         Vector2 offset = closest.transform.position - _transform.position;
         if (offset.sqrMagnitude <= 0f)
             return;
 
-        _runtime.Direction = offset.normalized;
+        if (_seekTarget != closest || _seekCurveIndex > SeekCurveSteps ||
+            (_seekRepathRemaining <= 0f &&
+             ((Vector2)closest.transform.position - _seekDestination).sqrMagnitude > 0.01f))
+        {
+            _seekTarget = closest;
+            BuildSeekCurve(closest.transform.position);
+        }
+    }
+
+    private void BuildSeekCurve(Vector2 destination)
+    {
+        _seekStart = _transform.position;
+        _seekDestination = destination;
+        Vector2 forward = _runtime.Direction.normalized;
+        Vector2 toTarget = (destination - _seekStart).normalized;
+        float progress = _attackData.Range > 0f ? _runtime.TravelDistance / _attackData.Range : 1f;
+        float speed = Mathf.Lerp(_startSpeed, _endSpeed, 1f - Mathf.Pow(1f - Mathf.Clamp01(progress), 5f)) *
+                      _attackData.Configuration.SpeedMultiplier;
+        float handle = Mathf.Min(Mathf.Max(0.01f, speed * _seekTurnTime),
+            Vector2.Distance(_seekStart, destination) * 0.5f);
+        _seekControl1 = _seekStart + forward * handle;
+        _seekControl2 = destination - toTarget * Mathf.Min(handle, Vector2.Distance(_seekStart, destination) * 0.5f);
+        if (Vector2.Dot(forward, toTarget) < -0.5f)
+        {
+            float side = forward.x * toTarget.y - forward.y * toTarget.x;
+            Vector2 lateral = new Vector2(-forward.y, forward.x) * (side < 0f ? -1f : 1f);
+            _seekControl2 += lateral * handle;
+        }
+
+        for (int i = 0; i <= SeekCurveSteps; i++)
+        {
+            float t = (float)i / SeekCurveSteps;
+            float u = 1f - t;
+            _seekCurve[i] = u * u * u * _seekStart + 3f * u * u * t * _seekControl1 +
+                            3f * u * t * t * _seekControl2 + t * t * t * destination;
+        }
+        _seekCurveIndex = 1;
+        _seekRepathRemaining = 0.1f;
+    }
+
+    private void MoveAlongSeekCurve(float distance)
+    {
+        Vector2 position = _transform.position;
+        while (distance > 0f && _seekCurveIndex <= SeekCurveSteps)
+        {
+            Vector2 offset = _seekCurve[_seekCurveIndex] - position;
+            float length = offset.magnitude;
+            if (length <= 0.00001f)
+            {
+                _seekCurveIndex++;
+                continue;
+            }
+            float step = Mathf.Min(distance, length);
+            position += offset * (step / length);
+            distance -= step;
+            float segmentLength = Vector2.Distance(_seekCurve[_seekCurveIndex - 1], _seekCurve[_seekCurveIndex]);
+            float fraction = segmentLength > 0f ? 1f - (length - step) / segmentLength : 1f;
+            float t = (_seekCurveIndex - 1 + fraction) / SeekCurveSteps;
+            float u = 1f - t;
+            Vector2 tangent = u * u * (_seekControl1 - _seekStart) +
+                              2f * u * t * (_seekControl2 - _seekControl1) +
+                              t * t * (_seekDestination - _seekControl2);
+            if (tangent.sqrMagnitude > 0.000001f)
+                _runtime.Direction = tangent.normalized;
+            if (step >= length)
+                _seekCurveIndex++;
+        }
+        position += _runtime.Direction * distance;
+        _transform.position = new Vector3(position.x, position.y, _transform.position.z);
         UpdateRotation();
     }
 
@@ -229,6 +313,7 @@ public sealed class BulletMovement
         }
 
         _runtime.Direction = -_runtime.Direction;
+        _seekTarget = null;
         _runtime.ReverseSteeringRemaining = _reverseSteeringDelay;
         UpdateRotation();
         return true;

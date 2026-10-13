@@ -54,13 +54,17 @@ public class EnemyHealth : MonoBehaviour
         if (killed) _isDead = true;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(killed ? Sfx.EnemyDeath : Sfx.EnemyHit);
         OnDamaged?.Invoke();
         OnDamageDealt?.Invoke(this, actualDamage);
 
         if (killed)
         {
             OnDeath?.Invoke(this);
-            Destroy(gameObject);
+
+            // 기본 사망 연출(정화되듯 빛으로 흩어짐)이 끝나면 연출이 적을 없앤다. 연출을 끄면 바로 없앤다.
+            if (!EnemyDeathFx.TryPlay(this))
+                Destroy(gameObject);
         }
 
         Debug.Log($"HP reduced by {actualDamage}. Current HP: {_currentHealth}");

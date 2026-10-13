@@ -60,6 +60,24 @@ public class PlayerAttack : MonoBehaviour
     public float DamageMultiplier { get; set; } = 1f;
     public float FireIntervalMultiplier { get; set; } = 1f;
 
+    /// <summary>보상 특성용: 다음 공격 1회에만 곱하는 피해 배율 (기본 1). 공격하면 1로 돌아간다. (dash_05)</summary>
+    public float NextAttackDamageMultiplier { get; set; } = 1f;
+
+    /// <summary>특성 연출용: 마지막 공격이 NextAttackDamageMultiplier로 강화되었는지. (Fired 직후에 읽는다)</summary>
+    public bool LastAttackWasEmpowered { get; private set; }
+
+    private readonly List<Transform> _lastAttackBullets = new();
+    private readonly List<Transform> _lastExtraBullets = new();
+
+    /// <summary>특성 연출용: 마지막 공격(Fire)의 첫 발사 탄환들. 다음 공격 때 바뀐다. (연발 추가탄 제외)</summary>
+    public IReadOnlyList<Transform> LastAttackBullets => _lastAttackBullets;
+
+    /// <summary>특성 연출용: 마지막 FireExtraShot(메아리)의 탄환들.</summary>
+    public IReadOnlyList<Transform> LastExtraBullets => _lastExtraBullets;
+
+    /// <summary>특성 연출용: 총구 위치.</summary>
+    public Transform FirePoint => _firePosition != null ? _firePosition.transform : transform;
+
     private int _magazineBonus;
 
     /// <summary>보상 특성용: 탄창 보너스 탄수 누적.</summary>
@@ -232,6 +250,7 @@ public class PlayerAttack : MonoBehaviour
 
         float damage = _bulletDamage *
                        DamageMultiplier *
+                       NextAttackDamageMultiplier *
                        _runeEffectConfiguration.SpreadDamageMultiplier *
                        _runeEffectConfiguration.MultipleDamageMultiplier *
                        _runeEffectConfiguration.PowerDamageMultiplier;
@@ -245,8 +264,10 @@ public class PlayerAttack : MonoBehaviour
 
         _currentAmmo--;
         _bulletFireCoolTimer = 0f;
+        LastAttackWasEmpowered = NextAttackDamageMultiplier > 1f;
+        NextAttackDamageMultiplier = 1f;
 
-        SpawnBullets(_attackData);
+        SpawnBullets(_attackData, _lastAttackBullets);
         Fired?.Invoke();
 
         _remainingBurstShots = _attackData.Configuration.ShotsPerAttack - 1;
@@ -265,9 +286,11 @@ public class PlayerAttack : MonoBehaviour
         _multipleTimer = _multipleInterval;
     }
 
-    private void SpawnBullets(PlayerAttackData attackData)
+    /// <summary>탄환을 만든다. spawned가 있으면 만든 탄환을 담는다. (특성 연출용)</summary>
+    private void SpawnBullets(PlayerAttackData attackData, List<Transform> spawned = null)
     {
         BulletVisualEffects visualEffects = GetVisualEffects(attackData.Configuration.PrimaryElement);
+        spawned?.Clear();
         for (var i = 0; i < attackData.Configuration.BulletsPerShot; i++)
         {
             float angle = attackData.Configuration.IsSpread ? (i - 1) * _spreadAngle : 0f;
@@ -279,6 +302,7 @@ public class PlayerAttack : MonoBehaviour
 
             PlayerAttackData bulletData = attackData.WithDirection(bulletDirection);
             bullet.Initialize(bulletData, visualEffects);
+            spawned?.Add(bullet.transform);
         }
 
         // 산탄 수와 관계없이 한 발사당 한 번 재생한다. 연발은 각 발사마다 이 메서드를 호출한다.
@@ -355,7 +379,7 @@ public class PlayerAttack : MonoBehaviour
             _attackData.Range,
             _attackData.Configuration,
             _attackData.Owner != null ? _attackData.Owner : transform);
-        SpawnBullets(bonus);
+        SpawnBullets(bonus, _lastExtraBullets);
     }
 
     private void UpdateReload()
@@ -366,6 +390,7 @@ public class PlayerAttack : MonoBehaviour
 
         _currentAmmo = MagazineSize;
         _isReloading = false;
+        Sfx.Play(Sfx.Reload);
     }
 
     /// <summary>앞으로 발사할 탄환의 주력 원소를 변경한다.</summary>

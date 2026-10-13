@@ -26,6 +26,12 @@ using UnityEngine.UI;
 /// - 아래 띠의 "활성화 n / m"은 장착한 룬 수 / 열린 칸 수다.
 /// - 연출(열기, 장착/해제, 경고, 룬석 부족, Confirm)은 RuneBookV2Fx가 맡는다. 없으면 붙인다.
 ///
+/// 보기 전용 (보상 선택 중 Tab으로 연 룬북)
+/// - 장착을 바꾸거나 Confirm할 수 없다. 확인 버튼 대신 청동 봉인 "돌아가기 [TAB]"(_viewOnlyCloseButton)과 안내 문구,
+///   "열람 중" 책갈피(_viewOnlyBadge)를 보여준다. 그림은 모두 프리팹에 할당한 이미지다.
+/// - 칸이나 룬 워드를 누르면 그 칸이 짧게 떨고 안내 문구가 붉게 반짝인다.
+/// - 돌아가기 봉인을 누르면 ViewOnlyCloseRequested를 보낸다. (RuneBookV2Toggle이 받아 룬북을 닫는다)
+///
 /// 완성품 (상점에서 산 룬 워드)
 /// - 완성품이 있는 룬 워드를 새로 넣으면 룬 문자 대신 완성품을 쓴다. (앞 칸부터, 보유 수만큼)
 /// - Confirm할 때 완성품으로 넣은 칸마다 완성품을 1개 소모한다.
@@ -41,8 +47,17 @@ public class RuneBookV2Presenter : MonoBehaviour
     [Tooltip("확정 확인 창 프리팹 (RuneBookConfirmDialog). 비워두면 확인 없이 바로 확정한다")]
     [SerializeField] private RuneBookConfirmDialog _confirmDialogPrefab;
 
-    [Tooltip("보기 전용으로 열었을 때 Confirm 자리에 보여줄 안내 (마을에서 Tab으로 연 룬북)")]
-    [SerializeField] private string _viewOnlyText = "보기 전용 - 룬 장착은 게이트에서";
+    [Header("보기 전용")]
+    [Tooltip("보기 전용으로 열었을 때 보여줄 안내 (보상 선택 중 Tab으로 연 룬북)")]
+    [SerializeField] private string _viewOnlyText = "보상 선택 중에는 장착을 바꿀 수 없어요";
+    [Tooltip("보기 전용에서 확인 버튼 대신 보여줄 닫기 버튼 (청동 봉인 \"돌아가기 [TAB]\"). 꺼진 상태로 둔다")]
+    [SerializeField] private Button _viewOnlyCloseButton;
+    [Tooltip("보기 전용 안내 문구. 비워두면 확인 버튼의 안내 문구(_confirmInfoText)를 쓴다")]
+    [SerializeField] private TMP_Text _viewOnlyInfoText;
+    [Tooltip("보기 전용일 때만 켜는 표시 (\"열람 중\" 책갈피). 꺼진 상태로 둔다")]
+    [SerializeField] private GameObject _viewOnlyBadge;
+    [Tooltip("보기 전용에서 칸을 눌렀을 때 안내 문구가 반짝이는 색")]
+    [SerializeField] private Color _viewOnlyFlashColor = new(0.86f, 0.28f, 0.18f, 1f);
 
     [Header("Rune Words")]
     [SerializeField] private RuneWordTileView[] _tiles;
@@ -156,14 +171,19 @@ public class RuneBookV2Presenter : MonoBehaviour
     /// <summary>Confirm으로 장착을 확정했을 때 (시작 석상이 받아 출발 연출을 시작한다)</summary>
     public event Action Confirmed;
 
+    /// <summary>보기 전용에서 돌아가기 봉인을 눌렀을 때 (RuneBookV2Toggle이 받아 룬북을 닫는다)</summary>
+    public event Action ViewOnlyCloseRequested;
+
+    private TMP_Text ViewOnlyInfoText => _viewOnlyInfoText != null ? _viewOnlyInfoText : _confirmInfoText;
+
     private void Awake()
     {
         Initialize();
     }
 
     /// <summary>
-    /// 보기 전용으로 바꾼다. (마을에서 Tab으로 연 룬북)
-    /// 보기 전용에서는 Confirm 버튼을 숨기고 장착 변경을 막는다. 툴팁은 그대로 보인다.
+    /// 보기 전용으로 바꾼다. (보상 선택 중 Tab으로 연 룬북)
+    /// 보기 전용에서는 Confirm 버튼 대신 돌아가기 봉인을 보여주고 장착 변경을 막는다. 툴팁은 그대로 보인다.
     /// </summary>
     public void SetViewOnly(bool isViewOnly)
     {
@@ -289,6 +309,11 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             _confirmButton.onClick.RemoveListener(HandleConfirmClicked);
         }
+
+        if (_viewOnlyCloseButton != null)
+        {
+            _viewOnlyCloseButton.onClick.RemoveListener(HandleViewOnlyCloseClicked);
+        }
     }
 
     private void Initialize()
@@ -344,6 +369,11 @@ public class RuneBookV2Presenter : MonoBehaviour
         if (_confirmButton != null)
         {
             _confirmButton.onClick.AddListener(HandleConfirmClicked);
+        }
+
+        if (_viewOnlyCloseButton != null)
+        {
+            _viewOnlyCloseButton.onClick.AddListener(HandleViewOnlyCloseClicked);
         }
     }
 
@@ -434,6 +464,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         if (_isViewOnly)
         {
+            PlayViewOnlyBlocked(tile);
             return;
         }
 
@@ -486,6 +517,7 @@ public class RuneBookV2Presenter : MonoBehaviour
     {
         if (_isViewOnly)
         {
+            PlayViewOnlyBlocked(socket);
             return;
         }
 
@@ -498,7 +530,13 @@ public class RuneBookV2Presenter : MonoBehaviour
     /// </summary>
     private void HandleTileRightClicked(RuneWordTileView tile)
     {
-        if (_isViewOnly || tile.Entry == null)
+        if (_isViewOnly)
+        {
+            PlayViewOnlyBlocked(tile);
+            return;
+        }
+
+        if (tile.Entry == null)
         {
             return;
         }
@@ -703,6 +741,20 @@ public class RuneBookV2Presenter : MonoBehaviour
         {
             _tooltip.Hide();
         }
+    }
+
+    private void HandleViewOnlyCloseClicked()
+    {
+        if (_isViewOnly)
+        {
+            ViewOnlyCloseRequested?.Invoke();
+        }
+    }
+
+    /// <summary>보기 전용에서 칸을 눌렀을 때 : 칸이 짧게 떨고 안내 문구가 반짝인다.</summary>
+    private void PlayViewOnlyBlocked(Component target)
+    {
+        _fx.PlayViewOnlyBlocked(target, ViewOnlyInfoText, _viewOnlyFlashColor);
     }
 
     private void HandleConfirmClicked()
@@ -1063,6 +1115,16 @@ public class RuneBookV2Presenter : MonoBehaviour
             _confirmButton.gameObject.SetActive(!_isViewOnly);
         }
 
+        if (_viewOnlyCloseButton != null)
+        {
+            _viewOnlyCloseButton.gameObject.SetActive(_isViewOnly);
+        }
+
+        if (_viewOnlyBadge != null)
+        {
+            _viewOnlyBadge.SetActive(_isViewOnly);
+        }
+
         if (_isViewOnly)
         {
             if (_confirmGlow != null)
@@ -1070,10 +1132,11 @@ public class RuneBookV2Presenter : MonoBehaviour
                 _confirmGlow.SetActive(false);
             }
 
-            if (_confirmInfoText != null)
+            TMP_Text infoText = ViewOnlyInfoText;
+            if (infoText != null)
             {
-                _confirmInfoText.text = _viewOnlyText;
-                _confirmInfoText.color = _infoColor;
+                infoText.text = _viewOnlyText;
+                infoText.color = _infoColor;
             }
 
             return;

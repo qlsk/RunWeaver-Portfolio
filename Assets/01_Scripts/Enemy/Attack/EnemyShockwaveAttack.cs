@@ -14,6 +14,7 @@ public class EnemyShockwaveAttack : MonoBehaviour
     [SerializeField] private Color _color = new Color(0.3f, 1f, 0.75f, 0.9f);
     private EnemyMotor _motor;
     private EnemyHealth _health;
+    private Enemy _enemy;
     private EnemyStatusEffectController _status;
     private ShockwaveRingVisual _ring;
     private Vector2 _center;
@@ -28,6 +29,7 @@ public class EnemyShockwaveAttack : MonoBehaviour
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _motor = GetComponent<EnemyMotor>();
         _health = GetComponent<EnemyHealth>();
         _status = GetComponentInParent<EnemyStatusEffectController>();
@@ -86,7 +88,7 @@ public class EnemyShockwaveAttack : MonoBehaviour
             if (!touching && !crossed) continue;
             // 대시 무적이면 TakeDamage가 무시되며, 통과한 파동은 다시 때리지 않는다.
             _crossed.Add(player);
-            player.TakeDamage(_damage);
+            player.TakeElementDamage(_damage, _enemy != null ? _enemy.AttackElement : null);
             if (State == EnemyAttackState.Idle) return;
         }
     }

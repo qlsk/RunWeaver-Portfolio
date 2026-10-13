@@ -283,6 +283,7 @@ GameObject:
   - component: {fileID: 8526868689881822135}
   - component: {fileID: 3754110856340387365}
   - component: {fileID: 6754240136049947221}
+  - component: {fileID: 950900002}
   - component: {fileID: 4227018696710508661}
   - component: {fileID: 7379405763346980659}
   - component: {fileID: 6342265282032336166}
@@ -1443,4 +1444,42 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
+--- !u!114 &950900002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566649832509364097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e98d649e8aee4f3c91c0a67cf48a9841, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffectController
+  _playerHealth: {fileID: 6754240136049947221}
+  _vfxTarget: {fileID: 538103108649232349}
+  _burnVisual:
+    Prefab: {fileID: 857701135076163181, guid: 2e9d2ce239b7488bab03e97d6a04cb36, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _slowVisual:
+    Prefab: {fileID: 3282494113180683151, guid: 054eb0d4451440faa9d233b633b402f2, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _attackSlowVisual:
+    Prefab: {fileID: 2064584436310274632, guid: 63d68c1641024f5cb253481ec10e4d42, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _staggerVisual:
+    Prefab: {fileID: 857701135076163181, guid: 7f3b3e6507494d03bfb6cf0271661300, type: 3}
+    Scale: 0.7
+    Offset: {x: 0, y: -0.3, z: 0}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.1
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _attackSlowDuration: 3
+  _attackIntervalMultiplier: 1.5
+  _staggerDuration: 0.5

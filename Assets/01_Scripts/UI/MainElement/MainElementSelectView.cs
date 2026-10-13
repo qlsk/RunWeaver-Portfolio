@@ -320,6 +320,16 @@ public class MainElementSelectView : MonoBehaviour
 
         _selectedIndex = (index % _orbs.Length + _orbs.Length) % _orbs.Length;
         Refresh();
+        if (_phase == Phase.Idle && _orbs[_selectedIndex] != null)
+        {
+            Sfx.Play(_orbs[_selectedIndex].Element switch
+            {
+                ReactionElement.Fire => Sfx.ElementFire,
+                ReactionElement.Water => Sfx.ElementWater,
+                ReactionElement.Wind => Sfx.ElementWind,
+                _ => Sfx.ElementEarth,
+            });
+        }
     }
 
     private void FocusButtons(bool confirm, bool byMouse = false)

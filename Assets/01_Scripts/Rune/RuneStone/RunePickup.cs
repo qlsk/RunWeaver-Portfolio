@@ -10,6 +10,11 @@ public class RunePickup : MonoBehaviour
     [SerializeField] private float _moveSpeed = 5f;
     private SpriteRenderer _spriteRenderer;
 
+    private bool _isFollowing;
+    private Vector3 _followStart;
+    private float _followDuration;
+    private float _followElapsed;
+
     private bool _isBeingPickedUp;
     private bool _isCollected;
 
@@ -17,6 +22,7 @@ public class RunePickup : MonoBehaviour
     public int Quantity => _quantity;
 
     [SerializeField] private float _pickupTime = 3f;
+    [SerializeField, Min(0f)] private float _attractRadius = 2f;
     private float _pickupCoolTimer = 0;
 
     public void Initialize(char runeCharacter, int quantity, Sprite runeIcon)
@@ -60,6 +66,7 @@ public class RunePickup : MonoBehaviour
 
         _isCollected = true;
         _isBeingPickedUp = false;
+        Sfx.Play(Sfx.RunePickedUp);
         Destroy(gameObject);
     }
 
@@ -79,7 +86,11 @@ public class RunePickup : MonoBehaviour
     private void Update()
     {
         _pickupCoolTimer += Time.deltaTime;
-        if (_pickupCoolTimer >= _pickupTime)
+        bool isPlayerNearby = _player != null
+            && ((Vector2)(_player.transform.position - transform.position)).sqrMagnitude
+            <= _attractRadius * _attractRadius;
+
+        if (_isFollowing || isPlayerNearby || _pickupCoolTimer >= _pickupTime)
         {
             FollowPlayer();
         }
@@ -87,10 +98,23 @@ public class RunePickup : MonoBehaviour
 
     private void FollowPlayer()
     {
-        if (_player == null) return;
+        if (_player == null || _moveSpeed <= 0f) return;
 
-        Vector2 direction = _player.transform.position - transform.position;
-        direction.Normalize();
-        transform.Translate(_moveSpeed * Time.deltaTime * direction);
+        Vector3 target = _player.transform.position;
+        target.z = transform.position.z;
+
+        if (!_isFollowing)
+        {
+            _isFollowing = true;
+            _followStart = transform.position;
+            float distance = Vector3.Distance(_followStart, target);
+            _followDuration = Mathf.Max(0.2f, distance / _moveSpeed);
+            _followElapsed = 0f;
+        }
+
+        _followElapsed += Time.deltaTime;
+        float progress = Mathf.Clamp01(_followElapsed / _followDuration);
+        float easedProgress = progress >= 1f ? 1f : 1f - Mathf.Pow(2f, -10f * progress);
+        transform.position = Vector3.Lerp(_followStart, target, easedProgress);
     }
 }

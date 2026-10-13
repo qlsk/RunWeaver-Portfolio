@@ -12,35 +12,81 @@ public class EnemyNavigation : MonoBehaviour
     [SerializeField] private bool _ignoreObstacles;
     private readonly EnemyPathfinder _pathfinder = new EnemyPathfinder();
     private readonly List<Vector2> _path = new List<Vector2>();
+    private readonly List<Collider2D> _colliders = new List<Collider2D>();
+    private readonly RaycastHit2D[] _escapeHits = new RaycastHit2D[16];
     private int _waypointIndex, _gridVersion = -1;
     private float _nextRepathTime;
     private bool _warnedMissingGrid;
     private Vector2 _destination;
     private Rigidbody2D _body;
     private float _requiredRadius;
+    private Vector2 _navigationOffset;
 
     private void Start()
     {
         _body = GetComponent<Rigidbody2D>();
-        _requiredRadius = Mathf.Max(0.01f, _agentRadius);
-        // 루트 이동 위치에서 충돌체의 가장 먼 모서리까지 보수적으로 감싼다.
-        foreach (Collider2D collider in GetComponentsInChildren<Collider2D>())
+        RefreshRequiredRadius();
+    }
+
+    private void RefreshRequiredRadius()
+    {
+        float requiredRadius = Mathf.Max(0.01f, _agentRadius);
+        // 몸체 중심에서 경로를 검사한다. 루트와 몸체 사이의 Offset은 크기에 더하지 않는다.
+        Bounds bodyBounds = default;
+        bool hasBodyBounds = false;
+        GetComponentsInChildren<Collider2D>(false, _colliders);
+        foreach (Collider2D collider in _colliders)
         {
             if (!collider.enabled || collider.isTrigger || collider.attachedRigidbody != _body)
             {
                 continue;
             }
 
-            Bounds bounds = collider.bounds;
-            Vector2 offset = (Vector2)bounds.center - (Vector2)transform.position;
-            Vector2 extent = bounds.extents;
-            _requiredRadius = Mathf.Max(_requiredRadius,
-                new Vector2(Mathf.Abs(offset.x) + extent.x, Mathf.Abs(offset.y) + extent.y).magnitude);
+            if (!hasBodyBounds)
+            {
+                bodyBounds = collider.bounds;
+                hasBodyBounds = true;
+            }
+            else
+            {
+                bodyBounds.Encapsulate(collider.bounds);
+            }
+        }
+
+        Vector2 navigationOffset = Vector2.zero;
+        if (hasBodyBounds)
+        {
+            navigationOffset = (Vector2)bodyBounds.center - (Vector2)transform.position;
+            Vector2 extent = bodyBounds.extents;
+            requiredRadius = Mathf.Max(requiredRadius, extent.magnitude);
+        }
+
+        if (Mathf.Approximately(_requiredRadius, requiredRadius) &&
+            (navigationOffset - _navigationOffset).sqrMagnitude <= 0.00000001f) return;
+
+        _requiredRadius = requiredRadius;
+        _navigationOffset = navigationOffset;
+        _warnedMissingGrid = false;
+        ClearPath();
+        if (_grid != null && _grid.AgentRadius < _requiredRadius)
+        {
+            _grid = null;
+            _gridVersion = -1;
+        }
+
+        if (_agentRadius < _requiredRadius)
+        {
+            float minimumRadius = Mathf.Ceil(_requiredRadius * 1000f) / 1000f;
+            Debug.LogWarning(
+                $"EnemyNavigation ({name}): Inspector의 Agent Radius({_agentRadius})가 필요한 반지름보다 작습니다. " +
+                $"Agent Radius를 최소 {minimumRadius:F3} 이상으로 설정하세요. (Offset 제외, 월드 크기 기준)", this);
         }
     }
 
     public Vector2 CalculateVelocity(MovementGoal goal, float moveSpeed)
     {
+        if (isActiveAndEnabled) RefreshRequiredRadius();
+
         if (!isActiveAndEnabled || goal.ShouldStop || moveSpeed <= 0f)
         {
             ClearPath();
@@ -57,6 +103,9 @@ public class EnemyNavigation : MonoBehaviour
             return toDestination.normalized * Mathf.Min(moveSpeed, remainingDistance / Time.fixedDeltaTime);
         }
 
+        position += _navigationOffset;
+        Vector2 destination = goal.Destination + _navigationOffset;
+
         if (!ResolveGrid(position))
         {
             return Vector2.zero;
@@ -68,7 +117,7 @@ public class EnemyNavigation : MonoBehaviour
             _gridVersion = _grid.Version;
         }
 
-        if (Vector2.Distance(position, goal.Destination) <= Mathf.Max(0f, goal.StoppingDistance))
+        if (Vector2.Distance(position, destination) <= Mathf.Max(0f, goal.StoppingDistance))
         {
             ClearPath();
             return Vector2.zero;
@@ -76,8 +125,8 @@ public class EnemyNavigation : MonoBehaviour
 
         if (Time.time >= _nextRepathTime)
         {
-            _destination = goal.Destination;
-            _pathfinder.TryFindPath(_grid, position, _destination, _path);
+            _destination = destination;
+            _pathfinder.TryFindPath(_grid, position, _destination, _path, CanReachWaypoint);
             _waypointIndex = 0;
             // 여러 몬스터가 같은 프레임에 반복 탐색하지 않도록 간격을 분산한다.
             float stagger = (GetInstanceID() & 255) / 255f * 0.1f;
@@ -101,20 +150,50 @@ public class EnemyNavigation : MonoBehaviour
         }
 
         Vector2 next = _path[_waypointIndex];
-        // if (!_grid.CanMoveDirectly(position, next))
-        // {
-        //     _path.Clear();
-        //     return Vector2.zero;
-        // }
+        if (!CanReachWaypoint(next))
+        {
+            _path.Clear();
+            _waypointIndex = 0;
+            return Vector2.zero;
+        }
 
         Vector2 delta = next - position;
         float distance = delta.magnitude;
-        if (_waypointIndex == _path.Count - 1 && Vector2.Distance(_destination, goal.Destination) <= 0.001f)
+        if (_waypointIndex == _path.Count - 1 && Vector2.Distance(_destination, destination) <= 0.001f)
         {
             distance = Mathf.Max(0f, distance - Mathf.Max(0f, goal.StoppingDistance));
         }
 
         return delta.normalized * Mathf.Min(moveSpeed, distance / Time.fixedDeltaTime);
+    }
+
+    private bool CanReachWaypoint(Vector2 next)
+    {
+        Vector2 position = (_body != null ? _body.position : (Vector2)transform.position) + _navigationOffset;
+        if (_grid.CanMoveDirectly(position, next)) return true;
+
+        // 벽 근처에서 안전 원만 장애물에 겹치면 실제 몸체가 통과할 수 있는 출구를 검사한다.
+        if (_grid.IsPositionClear(position) || !_grid.IsPositionClear(next)) return false;
+        Vector2 delta = next - position;
+        if (delta.sqrMagnitude <= 0.00000001f) return false;
+        Vector2 direction = delta.normalized;
+        bool hasBody = false;
+        foreach (Collider2D collider in _colliders)
+        {
+            if (!collider.enabled || collider.isTrigger || collider.attachedRigidbody != _body) continue;
+            hasBody = true;
+            int count = collider.Cast(direction, _grid.ObstacleFilter, _escapeHits, delta.magnitude);
+            if (count == _escapeHits.Length) return false;
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit2D hit = _escapeHits[i];
+                // 이미 닿은 벽에서는 벽에서 멀어지는 이동만 허용한다.
+                if (hit.distance <= 0.001f && Vector2.Dot(direction, hit.normal) > 0.001f) continue;
+                return false;
+            }
+        }
+
+        return hasBody;
     }
 
     private bool ResolveGrid(Vector2 position)
@@ -151,7 +230,11 @@ public class EnemyNavigation : MonoBehaviour
 
         if (!_warnedMissingGrid)
         {
-            Debug.LogWarning("EnemyNavigation: 몬스터 반지름을 수용하는 구축된 Grid를 연결하세요.", this);
+            float minimumRadius = Mathf.Ceil(_requiredRadius * 1000f) / 1000f;
+            Debug.LogWarning(
+                $"EnemyNavigation ({name}): 사용 가능한 Grid가 없어 이동할 수 없습니다. " +
+                $"EnemyNavigationGrid의 Agent Radius를 최소 {minimumRadius:F3} 이상으로 설정하고, " +
+                "Enemy 위치를 포함하는 Grid를 활성화한 뒤 Build Grid를 실행하세요.", this);
             _warnedMissingGrid = true;
         }
 
@@ -171,7 +254,7 @@ public class EnemyNavigation : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Vector3 previous = transform.position;
+        Vector3 previous = transform.position + (Vector3)_navigationOffset;
         for (int i = _waypointIndex; i < _path.Count; i++)
         {
             Vector3 next = new Vector3(_path[i].x, _path[i].y, previous.z);

@@ -26,6 +26,9 @@ public class Bullet : MonoBehaviour
     [SerializeField][Min(0f)]
     private float _seekRadius = 5f;
 
+    [SerializeField, Min(0.01f), Tooltip("유도 곡선의 제어점 거리 = 현재 속도 × 이 값. 클수록 완만하게 회전합니다.")]
+    private float _seekTurnTime = 0.25f;
+
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
 
     [Header("Fix")]
@@ -78,7 +81,7 @@ public class Bullet : MonoBehaviour
         _isInitialized = true;
         _movement = new BulletMovement(transform, _attackData, _runtime,
             _seekRadius, _seekEnemyLayers,
-            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed);
+            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed, _seekTurnTime);
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
@@ -139,7 +142,7 @@ public class Bullet : MonoBehaviour
     {
         _hitEffects?.TickEcho(Time.deltaTime);
 
-        if (_isLingering && !_hitEffects.HasPendingEcho)
+        if (_isLingering && !_hitEffects.HasPendingWork)
         {
             Destroy(gameObject);
         }
@@ -170,7 +173,9 @@ public class Bullet : MonoBehaviour
             return;
 
         bool isPierce = _attackData.Configuration.IsPierce;
-        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce);
+        // 보상 특성 사냥의 낙인(attack_05) : 표식이 있는 적에게는 피해가 늘어난다.
+        float markMultiplier = MarkedPrey.GetHitMultiplier(enemyHealth);
+        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce) * markMultiplier;
         _runtime.RecordHit();
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
         bool reversedThisHit = false;
@@ -180,6 +185,7 @@ public class Bullet : MonoBehaviour
         {
             PlayHitEffect(hitPosition, _runtime.Direction);
             float actualDamage = enemyHealth.ApplyDamage(hitDamage);
+            MarkedPrey.MarkOnHit(enemyHealth, hitPosition, markMultiplier > 1f);
 
             if (actualDamage > 0f &&
                 _attackData.Owner != null &&
@@ -321,7 +327,8 @@ public class Bullet : MonoBehaviour
         if (_movement != null)
             _movement.EndRequested -= RequestEnd;
 
-        if (_hitEffects is { HasPendingEcho: true })
+        // 반향 예약이나 진행 중인 연쇄가 남아 있으면 보이지 않게 남아서 끝까지 처리한다.
+        if (_hitEffects is { HasPendingWork: true })
         {
             _isLingering = true;
 
