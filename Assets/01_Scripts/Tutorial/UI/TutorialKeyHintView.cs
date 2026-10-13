@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>키 힌트 알약 오버레이를 만들어 문구를 채우고, 끝나면 파괴한다.</summary>
 public class TutorialKeyHintView : MonoBehaviour
 {
     private const string LabelName = "Label";

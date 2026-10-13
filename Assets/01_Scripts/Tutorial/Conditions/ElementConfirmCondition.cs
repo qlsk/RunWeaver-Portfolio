@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+/// <summary>주력 원소 선택 창에서 원소를 확정하면 완료한다.</summary>
 public class ElementConfirmCondition : ITutorialCondition
 {
     private MainElementSelectView _view;

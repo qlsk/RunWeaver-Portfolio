@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+/// <summary>임무 보상 선택 창에서 보상을 확정하면 완료한다.</summary>
 public class RewardConfirmCondition : ITutorialCondition
 {
     private RewardSelectUI _rewardSelectUi;

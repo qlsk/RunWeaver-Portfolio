@@ -78,15 +78,28 @@ public class TutorialWorldMarkerView : MonoBehaviour
 
         _current.SetActive(true);
 
-        Vector3 screen = worldCamera.WorldToScreenPoint(_target.position + _worldOffset);
-        bool isBehind = screen.z < 0f;
+        Vector3 screen = ProjectToScreen(worldCamera, _target.position + _worldOffset, out bool isBehind);
+        bool isOnScreen = PlaceMarker(screen, isBehind);
+        UpdateEdgeArrow(screen, isOnScreen);
+    }
+
+    /// <summary>월드 좌표를 화면 좌표로 바꾼다. 카메라 뒤쪽 대상은 투영 좌표가 뒤집히므로 반대로 돌려 같은 방향 가장자리에 붙게 한다.</summary>
+    private static Vector3 ProjectToScreen(Camera worldCamera, Vector3 worldPosition, out bool isBehind)
+    {
+        Vector3 screen = worldCamera.WorldToScreenPoint(worldPosition);
+        isBehind = screen.z < 0f;
         if (isBehind)
         {
-            // 카메라 뒤쪽 대상은 투영 좌표가 뒤집히므로 반대로 돌려 같은 방향 가장자리에 붙인다.
             screen.x = Screen.width - screen.x;
             screen.y = Screen.height - screen.y;
         }
 
+        return screen;
+    }
+
+    /// <summary>화면 가장자리 여백 안으로 좌표를 제한해 표식을 놓고, 대상이 화면 안에 있는지 돌려준다.</summary>
+    private bool PlaceMarker(Vector3 screen, bool isBehind)
+    {
         float minX = _edgePadding;
         float maxX = Screen.width - _edgePadding;
         float minY = _edgePadding;
@@ -94,20 +107,24 @@ public class TutorialWorldMarkerView : MonoBehaviour
         bool isOnScreen = !isBehind && screen.x >= minX && screen.x <= maxX && screen.y >= minY && screen.y <= maxY;
 
         Vector2 clamped = new(Mathf.Clamp(screen.x, minX, maxX), Mathf.Clamp(screen.y, minY, maxY));
-        Camera uiCamera = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay ? _canvas.worldCamera : null;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, clamped, uiCamera, out Vector2 local);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, clamped, _canvas.GetUiCamera(), out Vector2 local);
         _currentRect.anchoredPosition = local;
+        return isOnScreen;
+    }
 
+    /// <summary>대상이 화면 밖일 때만 가장자리 화살표를 켜고 화면 중심에서 대상 방향으로 돌린다.</summary>
+    private void UpdateEdgeArrow(Vector3 screen, bool isOnScreen)
+    {
         if (_edgeArrow == null)
             return;
 
         _edgeArrow.SetActive(!isOnScreen);
-        if (!isOnScreen)
-        {
-            Vector2 direction = new Vector2(screen.x, screen.y) - new Vector2(Screen.width, Screen.height) * 0.5f;
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            _edgeArrow.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
-        }
+        if (isOnScreen)
+            return;
+
+        Vector2 direction = new Vector2(screen.x, screen.y) - new Vector2(Screen.width, Screen.height) * 0.5f;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        _edgeArrow.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
     }
 
     private Transform ResolveTarget()

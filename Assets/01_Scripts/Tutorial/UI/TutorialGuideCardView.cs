@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>필수 단계 안내 카드. 단계 번호, 제목, 본문, 행동 행(키·마우스)을 표시한다.</summary>
 public class TutorialGuideCardView : MonoBehaviour
 {
     [SerializeField] private GameObject _cardRoot;

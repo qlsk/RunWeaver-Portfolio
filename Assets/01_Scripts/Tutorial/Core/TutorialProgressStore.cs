@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>튜토리얼 완료 여부와 본 기록 id를 PlayerPrefs에 저장한다.</summary>
 public static class TutorialProgressStore
 {
     private const string CompletedKey = "Tutorial.Completed";

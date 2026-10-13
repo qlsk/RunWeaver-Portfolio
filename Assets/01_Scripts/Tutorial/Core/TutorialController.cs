@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>튜토리얼 필수 단계를 순서대로 진행한다. 시작 대기, 단계 전환, 오버레이, 규칙, 건너뛰기를 맡고 완료·중단 정리는 OnDisable에서 한다.</summary>
 public class TutorialController : MonoBehaviour
 {
+    private const string AlreadyStartedMessage = "이미 1층이 시작됐습니다.";
+
     [SerializeField] private TutorialStepSO[] _steps;
     [SerializeField] private TutorialGuideCardView _guideCardView;
     [SerializeField] private TutorialKeyHintView _keyHintView;
@@ -52,14 +54,14 @@ public class TutorialController : MonoBehaviour
 
         if (_steps == null || _steps.Length == 0)
         {
-            Debug.LogError("Tutorial Steps have not been set.");
+            Debug.LogError("[TutorialController] 단계 목록이 비어 있습니다.", this);
             enabled = false;
             return;
         }
 
         if (_steps.Any(step => step == null))
         {
-            Debug.LogError("Steps have not been set.");
+            Debug.LogError("[TutorialController] 단계 목록에 비어 있는 항목이 있습니다.", this);
             enabled = false;
             return;
         }
@@ -77,8 +79,7 @@ public class TutorialController : MonoBehaviour
 
         if (IsStageStartedEarly())
         {
-            Debug.LogWarning("[TutorialController] 출발 준비 단계 중 1층이 시작되어 튜토리얼을 중단합니다.");
-            enabled = false;
+            StopWithWarning("출발 준비 단계 중 1층이 시작되어 튜토리얼을 중단합니다.");
             return;
         }
 
@@ -114,15 +115,13 @@ public class TutorialController : MonoBehaviour
         _stageManager = FindAnyObjectByType<StageManager>();
         if (_stageManager == null)
         {
-            Debug.LogWarning("[TutorialController] StageManager 객체가 없습니다.");
-            enabled = false;
+            StopWithWarning("StageManager 객체가 없습니다.");
             yield break;
         }
 
         if (!_stageManager.IsWaitingForPreparation)
         {
-            Debug.LogWarning("[TutorialController] 이미 1층이 시작됐습니다.");
-            enabled = false;
+            StopWithWarning(AlreadyStartedMessage);
             yield break;
         }
 
@@ -131,8 +130,7 @@ public class TutorialController : MonoBehaviour
 
         if (_stageManager == null || !_stageManager.IsWaitingForPreparation)
         {
-            Debug.LogWarning("[TutorialController] 이미 1층이 시작됐습니다.");
-            enabled = false;
+            StopWithWarning(AlreadyStartedMessage);
             yield break;
         }
 
@@ -339,6 +337,13 @@ public class TutorialController : MonoBehaviour
         _preparationWatcher.OutOfOrderDetected -= HandleOutOfOrderDetected;
         _preparationWatcher.End();
         _preparationWatcher = null;
+    }
+
+    /// <summary>경고를 남기고 컨트롤러를 끈다. 정리는 OnDisable이 맡는다.</summary>
+    private void StopWithWarning(string message)
+    {
+        Debug.LogWarning($"[TutorialController] {message}", this);
+        enabled = false;
     }
 
     private bool IsStageStartedEarly()

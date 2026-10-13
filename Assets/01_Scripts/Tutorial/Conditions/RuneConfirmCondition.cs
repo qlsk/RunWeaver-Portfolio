@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+/// <summary>룬북에서 룬 장착을 확정하면 완료한다.</summary>
 public class RuneConfirmCondition : ITutorialCondition
 {
     private RuneBookV2Presenter _presenter;

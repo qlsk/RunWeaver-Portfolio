@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+/// <summary>시작 석상과 상호작용해 주력 원소 선택 창이 열리면 완료한다.</summary>
 public class StatueInteractCondition : ITutorialCondition
 {
     private ExpeditionStatue _statue;

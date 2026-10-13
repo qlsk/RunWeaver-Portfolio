@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>필수 단계 하나의 문구, 완료 조건, 카드 행동 행, 오버레이 데이터.</summary>
 [CreateAssetMenu(menuName = "Scriptable Objects/Tutorial Step SO")]
 public class TutorialStepSO : ScriptableObject
 {

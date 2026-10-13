@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+/// <summary>시작 오브젝트와 상호작용해 미션이 시작되면 완료한다.</summary>
 public class MissionStartCondition : ITutorialCondition
 {
     private MissionManager _missionManager;

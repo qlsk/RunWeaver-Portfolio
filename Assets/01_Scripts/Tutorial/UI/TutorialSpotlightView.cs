@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+/// <summary>대상 UI의 화면 영역만 밝게 비추는 스포트라이트 오버레이.</summary>
 public class TutorialSpotlightView : MonoBehaviour
 {
     private const string HoleName = "Hole";
@@ -63,56 +65,57 @@ public class TutorialSpotlightView : MonoBehaviour
         _current = null;
     }
 
-    /// <summary>대상 id에 해당하는 UI들의 화면 영역을 합쳐 루트 기준 중심과 크기로 돌려준다.</summary>
-    private bool TryGetTargetBounds(System.Collections.Generic.IReadOnlyList<string> targetIds, out Vector2 center, out Vector2 size)
+    /// <summary>대상 id에 해당하는 UI들의 화면 영역을 합쳐 루트 기준 중심과 크기로 돌려준다. 하나라도 없으면 실패한다.</summary>
+    private bool TryGetTargetBounds(IReadOnlyList<string> targetIds, out Vector2 center, out Vector2 size)
     {
         center = Vector2.zero;
         size = Vector2.zero;
 
-        if (targetIds == null || _targets == null || _root == null)
+        if (targetIds == null || targetIds.Count == 0 || _targets == null || _root == null)
             return false;
 
-        Camera camera = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay ? _canvas.worldCamera : null;
+        Camera camera = _canvas.GetUiCamera();
         Vector2 min = new(float.MaxValue, float.MaxValue);
         Vector2 max = new(float.MinValue, float.MinValue);
-        Vector3[] corners = new Vector3[4];
-        bool found = false;
 
         foreach (string targetId in targetIds)
         {
-            bool isTargetFound = false;
-            foreach (Target target in _targets)
-            {
-                if (target.Id != targetId || target.Rect == null)
-                    continue;
-
-                target.Rect.GetWorldCorners(corners);
-                foreach (Vector3 corner in corners)
-                {
-                    Vector2 screen = RectTransformUtility.WorldToScreenPoint(camera, corner);
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, screen, camera, out Vector2 local);
-                    min = Vector2.Min(min, local);
-                    max = Vector2.Max(max, local);
-                }
-
-                isTargetFound = true;
-            }
-
             // 일부 대상만 비추면 잘못된 안내가 되므로, 하나라도 없으면 실패로 본다.
-            if (!isTargetFound)
+            if (!TryAddTargetBounds(targetId, camera, ref min, ref max))
             {
                 Debug.LogError($"[TutorialSpotlightView] 스포트라이트 대상 '{targetId}'를 찾을 수 없습니다.");
                 return false;
             }
-
-            found = true;
         }
-
-        if (!found)
-            return false;
 
         center = (min + max) * 0.5f;
         size = max - min;
         return true;
+    }
+
+    /// <summary>같은 id를 가진 대상 UI의 네 모서리를 루트 기준 로컬 좌표로 바꿔 영역에 더한다. 대상이 없으면 false.</summary>
+    private bool TryAddTargetBounds(string targetId, Camera camera, ref Vector2 min, ref Vector2 max)
+    {
+        Vector3[] corners = new Vector3[4];
+        bool isFound = false;
+
+        foreach (Target target in _targets)
+        {
+            if (target.Id != targetId || target.Rect == null)
+                continue;
+
+            target.Rect.GetWorldCorners(corners);
+            foreach (Vector3 corner in corners)
+            {
+                Vector2 screen = RectTransformUtility.WorldToScreenPoint(camera, corner);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, screen, camera, out Vector2 local);
+                min = Vector2.Min(min, local);
+                max = Vector2.Max(max, local);
+            }
+
+            isFound = true;
+        }
+
+        return isFound;
     }
 }
