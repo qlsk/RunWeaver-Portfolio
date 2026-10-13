@@ -10,6 +10,8 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialKeyHintView _keyHintView;
     [SerializeField] private TutorialSpotlightView _spotlightView;
     [SerializeField] private TutorialWorldMarkerView _worldMarkerView;
+    [Tooltip("상황 안내 카드 추적기. 시간 연장 안내에 쓰며 비워 두면 그 카드만 건너뛴다")]
+    [SerializeField] private TutorialRecordTracker _recordTracker;
 
     [Header("룬석 지급")]
     [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
@@ -134,7 +136,7 @@ public class TutorialController : MonoBehaviour
         _preparationWatcher.OutOfOrderDetected += HandleOutOfOrderDetected;
         _preparationWatcher.Begin(() => _steps[CurrentIndex].Condition);
 
-        _rules = new TutorialRules(_grantedRuneWordIds, _minHealthRatio, _timeoutExtendSeconds);
+        _rules = new TutorialRules(_grantedRuneWordIds, _minHealthRatio, _timeoutExtendSeconds, _recordTracker);
         _rules.Apply();
 
         BeginStep(0);

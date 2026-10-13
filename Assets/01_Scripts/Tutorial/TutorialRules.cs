@@ -7,6 +7,7 @@ public class TutorialRules
     private readonly IReadOnlyList<string> _grantedRuneWordIds;
     private readonly float _minHealthRatio;
     private readonly float _timeoutExtendSeconds;
+    private readonly TutorialRecordTracker _recordTracker;
 
     private RuneBookV2Toggle _runeBookToggle;
     private MissionManager _missionManager;
@@ -14,8 +15,10 @@ public class TutorialRules
     private StageManager _stageManager;
     private bool _runeStonesGranted;
 
-    public TutorialRules(IReadOnlyList<string> grantedRuneWordIds, float minHealthRatio, float timeoutExtendSeconds)
+    public TutorialRules(IReadOnlyList<string> grantedRuneWordIds, float minHealthRatio, float timeoutExtendSeconds,
+        TutorialRecordTracker recordTracker)
     {
+        _recordTracker = recordTracker;
         _grantedRuneWordIds = grantedRuneWordIds;
         _minHealthRatio = minHealthRatio;
         _timeoutExtendSeconds = timeoutExtendSeconds;
@@ -126,6 +129,10 @@ public class TutorialRules
 
         _stageManager.ExtendMissionTime(_timeoutExtendSeconds);
         Debug.Log($"[TutorialRules] 제한 시간이 끝나 {_timeoutExtendSeconds}초를 연장했습니다.");
+
+        // 기록 추적기는 선택 사항이다. 연결되지 않았으면 안내 카드만 건너뛴다.
+        if (_recordTracker != null)
+            _recordTracker.Notify(RecordTriggerKind.TimeExtended);
         return true;
     }
 

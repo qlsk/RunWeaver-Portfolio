@@ -1338,3 +1338,128 @@ public class TutorialWorldMarkerView : MonoBehaviour
 
 **정리**
 - 결과: 단계가 끝나거나 튜토리얼이 중단되면 표식이 사라진다.
+
+## 18. 14~16번 단위 — 상황 안내 카드(새 기록)
+
+> 상태: **구현됨** · 세 단위(14 추적기·표시, 15 사건 감시, 16 긴박 카드)를 한 번에 구현했다. 기존 게임 코드 1곳에 정적 이벤트를 추가했다.
+
+### 18.1 확정 요구사항
+
+- 번호가 없는 상황 안내를 같은 카드 시스템("새 기록")으로 통일한다. 카드는 한 번만 보여주고, 본 기록은 저장해(`PlayerPrefs`) 다시 보여주지 않는다.
+- 카드는 필수 단계와 독립적으로 동작한다. 튜토리얼 컨트롤러가 꺼진 뒤(완료·중단)에도 추적기가 동작해 첫 사건마다 안내한다.
+- 사건 종류(`RecordTriggerKind`): 원소 반응 첫 발생(`FirstReaction`), 피격(`PlayerDamaged`), 룬석 획득(`RuneStoneAcquired`), 첫 적 명중(`FirstEnemyHit`), 임무 시작(`MissionTypeStarted`), 남은 시간 10초(`RemainingTimeLow`), 체력 위험(`HealthLow`), 시간 연장(`TimeExtended`).
+- 카드 위치는 화면 오른쪽 위(안내 카드는 왼쪽 위로 옮겼다). 여러 장이 동시에 생기면 한 장씩 차례로 보여준다. 카드는 일정 시간 뒤 저절로 사라진다(기본 6초).
+- 체력 위험 기준 0.3(최대 체력 대비)은 임시값이다. 문구는 임시 문구이고, 원소 반응 카드의 원소 점 색은 아직 반영하지 않았다.
+- 21장을 에셋으로 만들었다: 임무 5, 원소 반응 10, 피격·룬석 획득·첫 명중 3, 경고 3.
+
+### 18.2 기존 코드 변경 (게임 코드)
+
+파일: `Bullet/Bullet.cs` (수정)
+
+```csharp
+public static event Action<ReactionElement, ReactionElement> ReactionExecuted;
+```
+
+`ExecuteReaction`의 맨 앞에서 이 이벤트를 발생시킨다. 모든 원소 반응이 이 메서드 한 곳을 거치므로 반응 종류별 클래스를 건드리지 않는다.
+
+### 18.3 선언
+
+파일: `RecordTriggerKind.cs`, `RecordCardSO.cs` (신규)
+
+```csharp
+public class RecordCardSO : ScriptableObject
+{
+    [SerializeField] private string _id;
+    [SerializeField] private RecordTriggerKind _trigger;
+    [SerializeField] private string _triggerKey;
+    [SerializeField] private string _category;
+    [SerializeField] private string _title;
+    [SerializeField] private string _body;
+    [SerializeField] private string _footer;
+    [SerializeField] private GameObject _cardPrefab;
+    [SerializeField] private float _displaySeconds;
+}
+```
+
+`_triggerKey`는 사건을 더 좁히는 키이다. 원소 반응은 이름 순으로 정렬한 영문 쌍(예: `Fire+Water`), 임무 시작은 임무 종류 이름이고, 비우면 해당 사건 전체에 반응한다. `_cardPrefab`은 일반, 원소 반응, 경고 프리팹 중 하나이다.
+
+파일: `TutorialProgressStore.cs` (수정)
+
+```csharp
+public static bool IsRecordSeen(string recordId);
+public static int SeenRecordCount { get; }
+public static void MarkRecordSeen(string recordId);
+```
+
+본 기록 id를 `|`로 이은 문자열로 저장한다. `ResetForDebug`는 완료 기록과 본 기록을 모두 지운다. `SeenRecordCount`는 협회 지침서(17번 단위)의 "기록 N/전체"에 쓴다.
+
+파일: `TutorialRecordCardView.cs` (신규)
+
+```csharp
+public class TutorialRecordCardView : MonoBehaviour
+{
+    [SerializeField] private RectTransform _root;
+    [SerializeField] private Vector2 _cardOffset;
+
+    private readonly Queue<RecordCardSO> _queue;
+    private Coroutine _playRoutine;
+    private GameObject _current;
+
+    public void Enqueue(RecordCardSO card);
+    private IEnumerator PlayQueue();
+    private IEnumerator ShowCard(RecordCardSO card);
+}
+```
+
+`Enqueue`는 카드를 대기열에 넣고, 재생 코루틴이 없으면 시작한다. `PlayQueue`는 대기열이 빌 때까지 한 장씩 `ShowCard`를 기다린다. `ShowCard`의 처리 순서:
+
+1. 카드 프리팹이 없으면 오류를 남기고 건너뛴다.
+2. 프리팹을 `_root` 아래에 생성하고 화면 오른쪽 위 기준 위치(`_cardOffset`)에 놓는다.
+3. 머리말("새 기록 / 분류"), 제목, 본문, 꼬리말의 텍스트를 이름으로 찾아 채운다. 문구가 비어 있는 칸은 숨긴다.
+4. 표시 시간 동안 타이머 막대를 줄이며 기다린다. 룬북 등으로 게임이 멈춰 있어도 흘러야 하므로 실제 시간(`unscaledDeltaTime`)을 쓴다.
+5. 카드를 파괴한다.
+
+`OnDisable`은 대기열을 비우고 현재 카드를 파괴한다.
+
+파일: `TutorialRecordTracker.cs` (신규)
+
+```csharp
+public class TutorialRecordTracker : MonoBehaviour
+{
+    [SerializeField] private RecordCardSO[] _cards;
+    [SerializeField] private TutorialRecordCardView _view;
+    [SerializeField] private float _remainingTimeWarningSeconds;
+    [SerializeField] private float _healthDangerRatio;
+
+    public void Notify(RecordTriggerKind trigger, string key = "");
+}
+```
+
+`Notify`는 사건 종류와 키가 맞고 아직 보지 않은 카드를 모두 찾아 본 기록으로 저장한 뒤 뷰에 넘긴다. 사건 출처는 다음과 같다. 정적 이벤트(`Bullet.ReactionExecuted`, `EnemyHealth.OnDamageDealt`)는 `OnEnable`에서, 인스턴스 이벤트(`PlayerHealth.Damaged`, `MissionManager.OnMissionStarted`)는 `Start`에서 `FindAnyObjectByType`으로 찾아 구독한다(`Instance` 프로퍼티는 없으면 새로 만들기 때문). 룬석 인벤토리는 로딩 뒤에 준비되므로 `Update`에서 준비되는 때에 한 번 연결하고, 연결 시점의 보유량을 기준으로 삼아 이후 총량이 늘어날 때만 룬석 획득으로 본다. 남은 시간 10초와 체력 위험은 `Update`에서 매 프레임 확인하며, 조건에 처음 들어선 순간에만 알린다(조건을 벗어나면 다시 알릴 수 있게 되지만 본 기록이라 카드는 다시 뜨지 않는다). 시간 연장은 `TutorialRules`가 제한 시간 초과를 처리할 때 직접 `Notify`한다. `OnDisable`은 모든 구독을 해제한다.
+
+파일: `TutorialRules.cs`, `TutorialController.cs` (수정): 컨트롤러에 `_recordTracker`(선택)를 두고 규칙에 넘긴다. 규칙은 제한 시간을 연장할 때 `TimeExtended`를 알린다.
+
+### 18.4 Unity 에디터 작업
+
+- `Assets/11_Data/Tutorial/Records/`에 기록 카드 21장을 만들었다.
+- `Canvas` 아래에 전체 화면 `TutorialRecordCardRoot`(`TutorialRecordCardView`)와 `TutorialRecordTracker` 오브젝트를 만들고, 추적기에 카드 목록과 뷰를 연결했다. 컨트롤러의 `_recordTracker`를 연결했다.
+- 안내 카드(`TutorialGuideCard`)를 기획대로 왼쪽 위(앵커·피벗 (0,1), 위치 (24,-24))로 옮겼다.
+
+### 18.5 검증 시나리오
+
+**한 번만 표시**
+- 행동: 같은 사건(예: 불+물 반응)을 두 번 일으킨다.
+- 결과: 첫 번째만 카드가 뜨고 저장된다. 재시작해도 다시 뜨지 않는다. `ResetForDebug`를 하면 다시 뜬다.
+
+**차례 표시**
+- 조건: 한 번에 여러 사건이 겹친다(예: 임무 시작과 룬석 획득).
+- 결과: 카드가 한 장씩 차례로 뜬다.
+
+**사건별**
+- 피격, 첫 명중, 룬석 획득(총량 증가), 임무 시작(종류별), 원소 반응(원소 쌍별)에서 각각 알맞은 카드가 뜬다. 룬 시스템 준비 시점의 기존 보유량은 획득으로 세지 않는다.
+
+**긴박 카드**
+- 남은 시간이 10초 이하가 되면 경고 카드가 한 번 뜬다. 체력이 30% 이하가 되면 체력 위험 카드가 뜬다. 튜토리얼 중 제한 시간이 연장되면 시간 연장 카드가 뜬다.
+
+**정리**
+- 추적기나 뷰가 꺼질 때 구독이 해제되고 떠 있는 카드가 사라진다.
