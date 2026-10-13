@@ -24,6 +24,10 @@ public static class Sfx
     public const string Dash = "Dash";
     public const string CleanseSpell = "CleanseSpell";
     public const string MissionStart = "MissionStart";
+    public const string ElementFire = "ElementFire";
+    public const string ElementWater = "ElementWater";
+    public const string ElementWind = "ElementWind";
+    public const string ElementEarth = "ElementEarth";
 
     private const int PoolSize = 8;
 
@@ -125,6 +129,10 @@ public static class Sfx
         Add(Dash, library.Dash);
         Add(CleanseSpell, library.CleanseSpell);
         Add(MissionStart, library.MissionStart);
+        Add(ElementFire, library.ElementFire);
+        Add(ElementWater, library.ElementWater);
+        Add(ElementWind, library.ElementWind);
+        Add(ElementEarth, library.ElementEarth);
         return _clips.Count > 0;
     }
 
