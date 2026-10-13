@@ -24,4 +24,8 @@ public class SfxLibrary : ScriptableObject
     public AudioClip Dash;
     public AudioClip CleanseSpell;
     public AudioClip MissionStart;
+    public AudioClip ElementFire;
+    public AudioClip ElementWater;
+    public AudioClip ElementWind;
+    public AudioClip ElementEarth;
 }

@@ -455,7 +455,7 @@ GameObject:
   - component: {fileID: 7452658974309964560}
   - component: {fileID: 7452658974309964561}
   m_Layer: 8
-  m_Name: TankEnemy
+  m_Name: Boss
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -513,6 +513,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyContactAttack
   _damage: 10
   _attackCooldown: 0.5
+  _altarAttackCooldown: 1.5
 --- !u!114 &1312008304262661485
 MonoBehaviour:
   m_ObjectHideFlags: 0
