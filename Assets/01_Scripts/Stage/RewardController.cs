@@ -33,6 +33,10 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     [SerializeField, FormerlySerializedAs("rewardUI")] private RewardSelectUI _rewardUI;
     [SerializeField, FormerlySerializedAs("dropper")] private RuneStoneDropper _dropper;
     [SerializeField, FormerlySerializedAs("passives")] private PassiveStatManager _passives;
+
+    [Header("다시 뽑기")]
+    [Tooltip("보상 화면마다 주는 다시 뽑기 횟수. 다음 보상으로 넘어가지 않는다")]
+    [SerializeField, Min(0)] private int _rerollsPerReward = 1;
     private TraitManager _traits;
 
     private MissionManager _missionManager;
@@ -45,6 +49,8 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
     private Coroutine _messageWaitRoutine;
     private Coroutine _pauseWaitRoutine;
     private bool _pausedByReward;
+    private int _rerollsRemaining;
+    private readonly System.Collections.Generic.List<RewardOption> _shownOptions = new();
 
     private void Start()
     {
@@ -298,7 +304,9 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
             return;
         }
 
-        _rewardUI.Open(_generator.GenerateOptions(_pendingDepth));
+        _rerollsRemaining = _rerollsPerReward;
+        _rewardUI.SetRerollRemaining(_rerollsRemaining);
+        ShowOptions(_generator.GenerateOptions(_pendingDepth));
 
         _state = RewardState.UIOpen;
         PauseGame();
@@ -306,16 +314,26 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
 
     /// <summary>
     /// 리롤: 같은 층 기준으로 새 선택지 3장을 다시 뽑아 표시한다. 확정 전이라 지급 없음.
+    /// 보상 화면마다 _rerollsPerReward번만 되고, 방금 보여준 3장은 빼고 뽑는다.
     /// </summary>
     private void HandleRerollRequested()
     {
-        if (_state != RewardState.UIOpen || _generator == null || _rewardUI == null)
+        if (_state != RewardState.UIOpen || _generator == null || _rewardUI == null || _rerollsRemaining <= 0)
         {
             return;
         }
 
-        Debug.Log("[RewardController] 리롤: 새 선택지 생성", this);
-        _rewardUI.Open(_generator.GenerateOptions(_pendingDepth));
+        _rerollsRemaining--;
+        _rewardUI.SetRerollRemaining(_rerollsRemaining);
+        Debug.Log($"[RewardController] 리롤: 새 선택지 생성 (남은 횟수 {_rerollsRemaining})", this);
+        ShowOptions(_generator.GenerateOptions(_pendingDepth, _shownOptions));
+    }
+
+    private void ShowOptions(System.Collections.Generic.List<RewardOption> options)
+    {
+        _shownOptions.Clear();
+        _shownOptions.AddRange(options);
+        _rewardUI.Open(options);
     }
 
     private void HandleOptionConfirmed(RewardOption option)

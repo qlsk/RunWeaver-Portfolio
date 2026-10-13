@@ -15,6 +15,8 @@ using UnityEngine.UI;
 /// - 선택 → 확정 버튼 2단계로 오선택을 방지한다. 선택 없이 닫을 수 없다.
 /// - 시간 정지/재개(Time.timeScale)는 RewardController가 맡는다. 이 UI는 표시/선택/확정만 한다.
 /// - 입력: 마우스 클릭 + 숫자키 1~3 + 방향키 이동 + Enter/Space 확정.
+/// - 다시 뽑기는 RewardController가 정한 횟수만큼만 된다 (SetRerollRemaining).
+/// - 연출(열기·리롤·확정)은 UI 루트의 RewardSelectPresentation이 맡는다. 연출 중에는 입력을 받지 않는다.
 /// </summary>
 [DisallowMultipleComponent]
 public class RewardSelectUI : MonoBehaviour
@@ -32,6 +34,8 @@ public class RewardSelectUI : MonoBehaviour
     [SerializeField] private Text _externalConfirmLabel;
     [Tooltip("리롤 버튼 (테스트용, 선택 사항. 비우면 리롤 없음)")]
     [SerializeField] private Button _externalRerollButton;
+    [Tooltip("연출. 비워 두면 외부 UI 루트에서 찾는다")]
+    [SerializeField] private RewardSelectPresentation _presentation;
 
     [Header("보상 UI 효과음")]
     [SerializeField] private AudioClip _openSound;
@@ -104,6 +108,7 @@ public class RewardSelectUI : MonoBehaviour
     private readonly List<RewardCardPresentation> _cardPresentations = new();
 
     private int _selectedIndex = -1;
+    private int _rerollsRemaining;
     private bool _confirmLocked;
     private AudioSource _audioSource;
     private AudioSource _rerollAudioSource;
@@ -123,7 +128,7 @@ public class RewardSelectUI : MonoBehaviour
 
     private void Update()
     {
-        if (!IsOpen || _confirmLocked)
+        if (!IsOpen || _confirmLocked || IsPresentationBusy)
         {
             return;
         }
@@ -157,6 +162,51 @@ public class RewardSelectUI : MonoBehaviour
             return;
         }
 
+        // 이미 열려 있으면 리롤: 지금 카드를 태운 뒤 새 카드로 바꾼다.
+        if (wasOpen && _presentation != null)
+        {
+            List<RewardOption> next = new(options);
+            _selectedIndex = -1;
+            RefreshConfirmButton();
+            _presentation.PlayReroll(() => ApplyOptions(next));
+            return;
+        }
+
+        ApplyOptions(options);
+
+        if (!string.IsNullOrEmpty(_openTitleText))
+        {
+            _titleText.text = _openTitleText;
+        }
+
+        _root.SetActive(true);
+        if (_presentation != null)
+        {
+            _presentation.SetRerollRemaining(_rerollsRemaining);
+            _presentation.PlayOpen();
+        }
+
+        if (!wasOpen)
+            PlaySound(_openSound, _openSoundVolume);
+    }
+
+    /// <summary>RewardController가 남은 다시 뽑기 횟수를 알려 준다.</summary>
+    public void SetRerollRemaining(int remaining)
+    {
+        _rerollsRemaining = Mathf.Max(0, remaining);
+        if (_externalRerollButton != null)
+        {
+            _externalRerollButton.interactable = _rerollsRemaining > 0;
+        }
+
+        if (_presentation != null)
+        {
+            _presentation.SetRerollRemaining(_rerollsRemaining);
+        }
+    }
+
+    private void ApplyOptions(IReadOnlyList<RewardOption> options)
+    {
         _currentOptions.Clear();
         _currentOptions.AddRange(options);
         _selectedIndex = -1;
@@ -185,21 +235,20 @@ public class RewardSelectUI : MonoBehaviour
         }
 
         RefreshCardVisuals();
-
-        if (!string.IsNullOrEmpty(_openTitleText))
-        {
-            _titleText.text = _openTitleText;
-        }
         RefreshConfirmButton();
-        _root.SetActive(true);
-        if (!wasOpen)
-            PlaySound(_openSound, _openSoundVolume);
     }
+
+    private bool IsPresentationBusy => _presentation != null && _presentation.IsBusy;
 
     public void Close()
     {
         _selectedIndex = -1;
         _confirmLocked = false;
+        if (_presentation != null)
+        {
+            _presentation.ResetAll();
+        }
+
         if (_root != null)
         {
             _root.SetActive(false);
@@ -208,7 +257,7 @@ public class RewardSelectUI : MonoBehaviour
 
     public void SelectSlot(int index)
     {
-        if (!IsOpen || index < 0 || index >= _currentOptions.Count)
+        if (!IsOpen || _confirmLocked || IsPresentationBusy || index < 0 || index >= _currentOptions.Count)
         {
             return;
         }
@@ -235,7 +284,7 @@ public class RewardSelectUI : MonoBehaviour
 
     public void ConfirmSelected()
     {
-        if (!IsOpen || _confirmLocked)
+        if (!IsOpen || _confirmLocked || IsPresentationBusy)
         {
             return;
         }
@@ -249,6 +298,13 @@ public class RewardSelectUI : MonoBehaviour
         PlaySound(_confirmSound, _confirmSoundVolume);
         RewardOption option = _currentOptions[_selectedIndex];
         Debug.Log($"[RewardSelectUI] 보상 확정: {option.Title}");
+        if (_presentation != null)
+        {
+            // 확정 연출이 끝난 뒤에 지급·닫기를 맡긴다.
+            _presentation.PlayConfirm(_selectedIndex, option.Title, () => OnOptionConfirmed?.Invoke(option));
+            return;
+        }
+
         OnOptionConfirmed?.Invoke(option);
     }
 
@@ -257,7 +313,7 @@ public class RewardSelectUI : MonoBehaviour
     /// </summary>
     public void RequestReroll()
     {
-        if (!IsOpen || _confirmLocked)
+        if (!IsOpen || _confirmLocked || IsPresentationBusy || _rerollsRemaining <= 0)
         {
             return;
         }
@@ -321,6 +377,11 @@ public class RewardSelectUI : MonoBehaviour
 
     private void RefreshCardVisuals()
     {
+        if (_presentation != null)
+        {
+            _presentation.SetSelection(_selectedIndex);
+        }
+
         for (int i = 0; i < _cardBackgrounds.Count; i++)
         {
             bool selected = i == _selectedIndex;
@@ -430,6 +491,11 @@ public class RewardSelectUI : MonoBehaviour
 
         _root = _externalRoot;
         _titleText = _externalTitle;
+        if (_presentation == null)
+        {
+            _presentation = _externalRoot.GetComponent<RewardSelectPresentation>();
+        }
+
         _confirmButton = _externalConfirmButton;
         _confirmLabel = _externalConfirmLabel;
 

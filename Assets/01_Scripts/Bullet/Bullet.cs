@@ -139,7 +139,7 @@ public class Bullet : MonoBehaviour
     {
         _hitEffects?.TickEcho(Time.deltaTime);
 
-        if (_isLingering && !_hitEffects.HasPendingEcho)
+        if (_isLingering && !_hitEffects.HasPendingWork)
         {
             Destroy(gameObject);
         }
@@ -319,7 +319,8 @@ public class Bullet : MonoBehaviour
         if (_movement != null)
             _movement.EndRequested -= RequestEnd;
 
-        if (_hitEffects is { HasPendingEcho: true })
+        // 반향 예약이나 진행 중인 연쇄가 남아 있으면 보이지 않게 남아서 끝까지 처리한다.
+        if (_hitEffects is { HasPendingWork: true })
         {
             _isLingering = true;
 

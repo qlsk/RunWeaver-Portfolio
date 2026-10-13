@@ -6,6 +6,7 @@ using UnityEngine;
 /// - 쓰는 쪽(PlayerAttack 등)이 조회하는 구조라 보상 쪽은 값을 밀어넣기만 한다.
 /// - 쉴드 유지(shield_05)처럼 이벤트가 없는 조건은 매 프레임 폴링으로 반영한다 (싼 연산).
 /// - 탄창은 누적 방식이라 목표 보너스와의 차분만 적용한다.
+/// - 원소 반응 피해(attack_03)는 ReactionDamageBonus에 넣고, 탄환이 반응을 일으킬 때 읽는다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TraitStatComposer : MonoBehaviour
@@ -62,6 +63,8 @@ public class TraitStatComposer : MonoBehaviour
 
     private void OnDestroy()
     {
+        ReactionDamageBonus.Multiplier = 1f;
+
         if (_attack != null)
         {
             _attack.Fired -= HandleFired;
@@ -168,6 +171,11 @@ public class TraitStatComposer : MonoBehaviour
                 _appliedMagazineBonus = targetBonus;
             }
         }
+
+        // 원소 반응 피해: attack_03
+        ReactionDamageBonus.Multiplier = _traits.Has("attack_03")
+            ? 1f + _traits.GetMagnitude("attack_03", 0.2f)
+            : 1f;
 
         // 이동 속도: 패시브 × shield_05(유지 중) × clease_02(윈도우)
         float moveMult = passiveMove;
