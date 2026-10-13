@@ -142,6 +142,18 @@ public class StageManager : MonoBehaviour
     /// </summary>
     public float RemainingTime => _remainingTime;
 
+    /// <summary>
+    /// 미션 제한 시간이 끝났을 때 실패 처리 전에 불린다. true를 돌려주면 처리된 것으로 보고 실패시키지 않는다. (튜토리얼)
+    /// 처리하는 쪽이 ExtendMissionTime으로 시간을 늘려야 다음 프레임에 같은 처리가 반복되지 않는다.
+    /// </summary>
+    public Func<bool> MissionTimeoutHandler { get; set; }
+
+    /// <summary>남은 제한 시간을 늘린다.</summary>
+    public void ExtendMissionTime(float seconds)
+    {
+        _remainingTime += Mathf.Max(0f, seconds);
+    }
+
     private MissionCatalogSO.MissionText CurrentMissionText
     {
         get
@@ -449,6 +461,11 @@ public class StageManager : MonoBehaviour
         // 생존 미션은 생존 시간이 끝나면 미션이 스스로 완료된다.
         if (_remainingTime <= 0f && _currentMission is not SurvivalMission)
         {
+            if (MissionTimeoutHandler != null && MissionTimeoutHandler())
+            {
+                return;
+            }
+
             Debug.Log("[StageManager] 미션 제한 시간 초과 → 미션 실패");
             EndRun(RunEndReason.MissionFailed);
         }

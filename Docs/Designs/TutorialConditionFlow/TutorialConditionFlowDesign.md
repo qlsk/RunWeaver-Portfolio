@@ -1118,3 +1118,75 @@ public class EnemyKillCondition : ITutorialCondition
 
 **종류 전환**
 - 결과: 키 행 단계에서 마우스 행 단계로, 다시 키 행 단계로 넘어가도 아이콘이 알맞게 바뀐다.
+
+## 14. 10번 단위 — 임무 실패 없음
+
+> 상태: **구현됨** · 기존 게임 코드 2개 파일에 소규모 훅을 추가한다. 확정되지 않은 수치는 임시값이다.
+
+### 14.1 확정 요구사항
+
+- 튜토리얼 동안 **임무 제한 시간이 0이 되어도 실패하지 않는다.** 타이머는 표시·진행하고, 0이 되면 실패 대신 남은 시간을 늘린다.
+- **체력 하한**: 피해로는 최대 체력 대비 일정 비율 아래로 내려가지 않는다. 탐사 포기(`Kill`) 같은 강제 사망은 막지 않는다.
+- 규칙은 튜토리얼이 끝나거나 중단될 때 반드시 해제한다(1층에서만 적용).
+- **임시값**: 체력 하한 비율 0.2, 시간 연장 30초. 컨트롤러 Inspector 필드로 두고 정해지면 조정한다.
+- "정령 추가 스폰"은 구현하지 않는다. 기존 몬스터 스포너가 임무 중 계속 스폰하므로 연장된 시간 동안 적이 이어진다. 연장을 알리는 안내 카드는 16번 단위에서 붙인다.
+
+### 14.2 기존 코드 변경 (게임 코드)
+
+파일: `Player/PlayerHealth.cs` (수정)
+
+```csharp
+public float MinHealthRatio { get; set; }
+```
+
+`ApplyDamage`의 체력 계산을 하한을 반영하도록 바꿨다. 하한 값은 `min(현재 체력, 최대 체력 × 비율)`이고, 다음 체력은 `max(하한, 현재 체력 - 피해)`이다. 다음 체력이 0 이하이면 기존처럼 사망 처리한다. 비율이 0이면 하한이 0이라 기존 동작과 같다. 이미 하한보다 낮은 체력은 올리지 않는다.
+
+파일: `Stage/StageManager.cs` (수정)
+
+```csharp
+public Func<bool> MissionTimeoutHandler { get; set; }
+
+public void ExtendMissionTime(float seconds);
+```
+
+`UpdateMissionTimer`는 제한 시간이 끝났을 때(생존 미션 제외) 실패 처리 전에 핸들러를 호출하고, 참을 돌려주면 실패 처리를 건너뛴다. 핸들러는 `ExtendMissionTime`으로 시간을 늘려야 다음 프레임에 같은 처리가 반복되지 않는다. 핸들러가 없으면 기존 동작이다.
+
+### 14.3 튜토리얼 코드
+
+파일: `TutorialRules.cs` (수정)
+
+```csharp
+private readonly float _minHealthRatio;
+private readonly float _timeoutExtendSeconds;
+private PlayerHealth _playerHealth;
+private StageManager _stageManager;
+
+public TutorialRules(IReadOnlyList<string> grantedRuneWordIds, float minHealthRatio, float timeoutExtendSeconds);
+private void ApplyNoFailure();
+private void ReleaseNoFailure();
+private bool HandleMissionTimeout();
+```
+
+`Apply`는 룬북 잠금, 미션 고정에 이어 `ApplyNoFailure`를 호출한다. `ApplyNoFailure`는 `PlayerHealth`를 찾아 체력 하한을 걸고, `StageManager`를 `FindAnyObjectByType`으로 찾아(`Instance`는 없으면 새로 만든다) 제한 시간 초과 핸들러를 건다. 둘 중 못 찾으면 경고만 남긴다. `HandleMissionTimeout`은 남은 시간을 늘리고 참을 돌려준다. `Release`는 `ReleaseNoFailure`로 체력 하한을 0으로 되돌리고 핸들러를 해제한다.
+
+파일: `TutorialController.cs` (수정): `_minHealthRatio`(0~1, 기본 0.2)와 `_timeoutExtendSeconds`(최소 1, 기본 30) Inspector 필드를 추가해 규칙 생성자에 넘긴다.
+
+### 14.4 검증 시나리오
+
+**체력 하한**
+- 조건: 튜토리얼 진행 중.
+- 행동: 체력이 하한 근처까지 피해를 계속 받는다.
+- 결과: 하한 아래로 내려가지 않아 사망하지 않는다. 튜토리얼이 끝나면 다시 사망할 수 있다.
+
+**시간 초과**
+- 조건: 영혼 수집 임무가 진행 중이다.
+- 행동: 제한 시간이 0이 될 때까지 기다린다.
+- 결과: 실패하지 않고 남은 시간이 30초 늘어난다. 다시 0이 되면 또 늘어난다.
+
+**해제**
+- 조건: 튜토리얼이 끝나거나 중단된다.
+- 결과: 체력 하한이 없어지고 제한 시간 초과가 기존대로 실패 처리된다.
+
+**기존 동작 무회귀**
+- 조건: 튜토리얼이 없는 일반 플레이.
+- 결과: 체력이 0 이하가 되면 사망하고 제한 시간이 끝나면 실패한다.

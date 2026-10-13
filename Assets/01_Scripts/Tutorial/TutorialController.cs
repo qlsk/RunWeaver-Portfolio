@@ -14,6 +14,12 @@ public class TutorialController : MonoBehaviour
     [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
     [SerializeField] private string[] _grantedRuneWordIds;
 
+    [Header("임무 실패 없음")]
+    [Tooltip("피해로는 이 비율(최대 체력 대비) 아래로 내려가지 않는다. 값은 아직 정해지지 않은 임시값")]
+    [SerializeField, Range(0f, 1f)] private float _minHealthRatio = 0.2f;
+    [Tooltip("제한 시간이 끝났을 때 늘려 주는 시간(초). 값은 아직 정해지지 않은 임시값")]
+    [SerializeField, Min(1f)] private float _timeoutExtendSeconds = 30f;
+
     private Coroutine _startRoutine;
     private StageManager _stageManager;
     private ITutorialCondition _activeCondition;
@@ -127,7 +133,7 @@ public class TutorialController : MonoBehaviour
         _preparationWatcher.OutOfOrderDetected += HandleOutOfOrderDetected;
         _preparationWatcher.Begin(() => _steps[CurrentIndex].Condition);
 
-        _rules = new TutorialRules(_grantedRuneWordIds);
+        _rules = new TutorialRules(_grantedRuneWordIds, _minHealthRatio, _timeoutExtendSeconds);
         _rules.Apply();
 
         BeginStep(0);

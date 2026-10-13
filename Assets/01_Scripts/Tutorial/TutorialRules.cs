@@ -1,24 +1,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>튜토리얼 진행 중에만 적용하는 규칙을 켜고 끈다. 룬북(Tab) 잠금, 룬석 지급, 1층 미션 고정을 다룬다.</summary>
+/// <summary>튜토리얼 진행 중에만 적용하는 규칙을 켜고 끈다. 룬북(Tab) 잠금, 룬석 지급, 1층 미션 고정, 임무 실패 없음(체력 하한과 제한 시간 연장)을 다룬다.</summary>
 public class TutorialRules
 {
     private readonly IReadOnlyList<string> _grantedRuneWordIds;
+    private readonly float _minHealthRatio;
+    private readonly float _timeoutExtendSeconds;
 
     private RuneBookV2Toggle _runeBookToggle;
     private MissionManager _missionManager;
+    private PlayerHealth _playerHealth;
+    private StageManager _stageManager;
     private bool _runeStonesGranted;
 
-    public TutorialRules(IReadOnlyList<string> grantedRuneWordIds)
+    public TutorialRules(IReadOnlyList<string> grantedRuneWordIds, float minHealthRatio, float timeoutExtendSeconds)
     {
         _grantedRuneWordIds = grantedRuneWordIds;
+        _minHealthRatio = minHealthRatio;
+        _timeoutExtendSeconds = timeoutExtendSeconds;
     }
 
     public void Apply()
     {
         LockRuneBook();
         FixFirstMission();
+        ApplyNoFailure();
     }
 
     /// <summary>단계가 시작될 때 단계별 규칙을 갱신한다. 룬 장착 단계가 시작되면 룬석을 주고 룬북 잠금을 푼다.</summary>
@@ -36,6 +43,7 @@ public class TutorialRules
     {
         ReleaseRuneBookLock();
         ReleaseMissionFix();
+        ReleaseNoFailure();
     }
 
     private void LockRuneBook()
@@ -79,6 +87,46 @@ public class TutorialRules
             _missionManager.ClearNextMissionOverride();
 
         _missionManager = null;
+    }
+
+    /// <summary>임무 실패 없음: 체력 하한을 걸고, 제한 시간이 끝나면 실패 대신 시간을 늘린다.</summary>
+    private void ApplyNoFailure()
+    {
+        _playerHealth = UnityEngine.Object.FindAnyObjectByType<PlayerHealth>();
+        if (_playerHealth != null)
+            _playerHealth.MinHealthRatio = _minHealthRatio;
+        else
+            Debug.LogWarning("[TutorialRules] PlayerHealth를 찾을 수 없어 체력 하한을 걸지 못합니다.");
+
+        // StageManager.Instance는 없으면 새로 만들거나 예외를 던지므로, 생성 없이 기존 인스턴스만 찾는다.
+        _stageManager = UnityEngine.Object.FindAnyObjectByType<StageManager>();
+        if (_stageManager != null)
+            _stageManager.MissionTimeoutHandler = HandleMissionTimeout;
+        else
+            Debug.LogWarning("[TutorialRules] StageManager를 찾을 수 없어 제한 시간 초과 처리를 걸지 못합니다.");
+    }
+
+    private void ReleaseNoFailure()
+    {
+        if (_playerHealth != null)
+            _playerHealth.MinHealthRatio = 0f;
+
+        if (_stageManager != null)
+            _stageManager.MissionTimeoutHandler = null;
+
+        _playerHealth = null;
+        _stageManager = null;
+    }
+
+    /// <summary>제한 시간이 끝나면 실패 대신 남은 시간을 늘린다.</summary>
+    private bool HandleMissionTimeout()
+    {
+        if (_stageManager == null)
+            return false;
+
+        _stageManager.ExtendMissionTime(_timeoutExtendSeconds);
+        Debug.Log($"[TutorialRules] 제한 시간이 끝나 {_timeoutExtendSeconds}초를 연장했습니다.");
+        return true;
     }
 
     /// <summary>허용 룬 워드마다 룬 문자를 한 번씩 지급한다. 같은 문자가 여러 단어에 있으면 그 수만큼 쌓인다.</summary>
