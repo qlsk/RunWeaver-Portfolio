@@ -419,6 +419,7 @@ public class StageManager : MonoBehaviour
 
         UnregisterStartInteractable();
         SetPhase(StagePhase.InMission);
+        Sfx.Play(Sfx.MissionStart);
 
         if (_isBossStage)
         {

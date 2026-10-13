@@ -54,6 +54,7 @@ public class EnemyHealth : MonoBehaviour
         if (killed) _isDead = true;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(killed ? Sfx.EnemyDeath : Sfx.EnemyHit);
         OnDamaged?.Invoke();
         OnDamageDealt?.Invoke(this, actualDamage);
 
