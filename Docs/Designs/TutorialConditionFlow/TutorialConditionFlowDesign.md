@@ -718,3 +718,94 @@ private void EndPreparationWatcher();
 - 행동: 3단계 시작.
 - 결과: 조건이 오류를 남기고 완료되지 않으며, 감시자는 경고만 남긴다.
 
+## 9. 5번 단위 — 룬북 잠금 규칙
+
+> 상태: **구현됨** · 기존 게임 코드 2개 파일에 소규모 변경을 포함한다.
+
+### 9.1 확정 요구사항
+
+- 룬 장착 단계(`RuneConfirm`) 이전에는 룬북(Tab)을 열 수 없고, HUD의 [룬북][TAB] 힌트도 숨긴다.
+- **잠금 해제 시점은 룬 장착 단계가 시작될 때**이다. 그 시점에 석상이 룬북을 열어 주며, 플레이어가 Confirm 없이 닫아도 Tab으로 다시 열 수 있어야 하기 때문이다. 튜토리얼이 끝나거나 중단될 때도 반드시 해제한다.
+- 잠금은 **Tab 입력 경로만** 막는다. 석상이 코드로 부르는 `RuneBookV2Toggle.Open()`은 막지 않는다. 열린 룬북을 닫는 입력(Tab, Esc)도 막지 않는다.
+- 기존 게임 코드 수정 범위(승인됨): 잠금 프로퍼티 추가와 HUD의 매 프레임 폴링. 이벤트·구독은 추가하지 않는다.
+- 일시정지 힌트([일시정지][ESC])는 숨기지 않는다.
+
+### 9.2 기존 코드 변경 (게임 코드)
+
+파일: `UI/RuneBookV2/RuneBookV2Toggle.cs` (수정)
+
+```csharp
+public bool IsLocked { get; set; }
+```
+
+`HandleOpenRuneBookPressed`(Tab 입력 처리)가 `IsLocked`이면 열지 않고 반환한다. `Open()`과 닫기 경로는 변경하지 않는다.
+
+파일: `UI/HUD/HudMenuHints.cs` (수정)
+
+```csharp
+private GameObject[] _runeBookHintObjects;
+private bool _isRuneBookHintHidden;
+
+private float AddKey(float right, string sprite, out Image image);
+private void RefreshRuneBookHintVisibility();
+```
+
+`Build`가 룬북 힌트 오브젝트(TAB 키, 룬북 아이콘, 알림 빛)를 배열로 보관한다. 알림 점은 룬북 아이콘의 자식이라 함께 숨겨진다. 이를 위해 `AddKey`가 만든 이미지를 `out`으로 돌려주도록 시그니처를 바꿨다(호출은 두 곳). `Update`는 매 프레임 `RefreshRuneBookHintVisibility`를 먼저 호출하고, 이 메서드는 토글의 `IsLocked`가 직전 상태와 다를 때만 힌트 오브젝트의 활성 상태를 바꾼다.
+
+### 9.3 튜토리얼 코드
+
+파일: `TutorialRules.cs` (신규)
+
+```csharp
+public class TutorialRules
+{
+    private RuneBookV2Toggle _runeBookToggle;
+
+    public void Apply();
+    public void OnStepStarted(TutorialStepSO step);
+    public void Release();
+}
+```
+
+`Apply`는 비활성 오브젝트를 포함해 씬에서 `RuneBookV2Toggle`을 찾는다. 없으면 경고를 남기고 반환하며, 있으면 `IsLocked`를 참으로 한다. `OnStepStarted`는 시작한 단계의 조건이 `RuneConfirm`이면 `Release`를 호출한다. `Release`는 보관한 토글이 파괴되지 않았다면 `IsLocked`를 거짓으로 하고 참조를 비우며, 여러 번 불러도 안전하다.
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+private TutorialRules _rules;
+
+private void ReleaseRules();
+```
+
+`StartRoutine`은 감시자를 시작한 뒤 `BeginStep(0)` 전에 규칙을 만들어 `Apply`한다. `BeginStep`은 조건 생성에 성공한 직후 `StepStarted` 발생 전에 `_rules.OnStepStarted`를 호출한다. `OnDisable`은 감시자 정리 다음에 `ReleaseRules`를 호출해 완료·중단·씬 이탈 어느 경로든 잠금을 푼다.
+
+### 9.4 알려진 한계
+
+- HUD 힌트는 잠금이 걸리는 첫 프레임까지(씬 시작부터 도착 연출이 끝나 `Apply`가 불리기 전) 보일 수 있다. 이 구간은 층 전환 화면이 덮고 있어 눈에 띄지 않을 것으로 보지만 실행 확인이 필요하다.
+- 현재 단계 에셋에는 `RuneConfirm` 단계가 아직 없어 `Finish`/중단에서만 잠금이 풀린다. 6번 단위에서 `RuneConfirm` 단계를 추가하면 설계대로 해당 단계 시작 시 풀린다.
+
+### 9.5 검증 시나리오
+
+**잠금**
+- 조건: 튜토리얼 실행 중, 룬 장착 단계 이전.
+- 행동: Tab을 누른다.
+- 결과: 룬북이 열리지 않고, HUD에서 [룬북][TAB] 힌트가 보이지 않는다. [일시정지][ESC] 힌트는 보인다.
+
+**석상은 잠금과 무관**
+- 조건: 잠금 상태에서 원소를 확정한다.
+- 행동: 석상 흐름이 룬북을 연다.
+- 결과: 룬북이 정상적으로 열린다.
+
+**해제 (룬 장착 단계 시작)**
+- 조건: `RuneConfirm` 단계가 있는 단계 목록.
+- 행동: 해당 단계가 시작된다.
+- 결과: 룬북을 Esc로 닫은 뒤 Tab으로 다시 열 수 있고, [룬북][TAB] 힌트가 다시 보인다.
+
+**해제 (완료·중단)**
+- 조건: 튜토리얼이 완료되거나 중단된다(선행 조작, 컨트롤러 비활성화).
+- 결과: 잠금이 풀리고 힌트가 복구된다.
+
+**룬북 토글 없음**
+- 조건: 씬에 `RuneBookV2Toggle`이 없다.
+- 결과: 경고가 남고 튜토리얼은 진행된다.
+

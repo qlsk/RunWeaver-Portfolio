@@ -40,6 +40,8 @@ public class HudMenuHints : MonoBehaviour
     private float _nextCheck;
     private float _notifyTime;
     private bool _primed;
+    private GameObject[] _runeBookHintObjects;
+    private bool _isRuneBookHintHidden;
 
     public static HudMenuHints Create(RuneBookV2Toggle toggle)
     {
@@ -76,10 +78,10 @@ public class HudMenuHints : MonoBehaviour
 
         // 오른쪽에서 왼쪽으로 : [일시정지][ESC]  [룬북][TAB]
         float x = -_margin.x;
-        x = AddKey(x, "HudHint_KeyEsc");
+        x = AddKey(x, "HudHint_KeyEsc", out _);
         x = AddIcon(x - 6f, "HudHint_Pause", out _);
         x -= _groupGap;
-        x = AddKey(x, "HudHint_KeyTab");
+        x = AddKey(x, "HudHint_KeyTab", out Image tabKey);
         AddIcon(x - 6f, "HudHint_RuneBook", out _bookIcon);
 
         // 알림 : 아이콘 뒤 빛과 오른쪽 위 점
@@ -94,12 +96,19 @@ public class HudMenuHints : MonoBehaviour
             _dot.rectTransform.anchoredPosition = Vector2.zero;
         }
 
+        // 룬북을 잠그는 동안 숨길 힌트 (점은 룬북 아이콘의 자식이라 함께 숨겨진다)
+        var runeBookHints = new List<GameObject>();
+        if (tabKey != null) runeBookHints.Add(tabKey.gameObject);
+        if (_bookIcon != null) runeBookHints.Add(_bookIcon.gameObject);
+        if (_glow != null) runeBookHints.Add(_glow.gameObject);
+        _runeBookHintObjects = runeBookHints.ToArray();
+
         SetNotification(false);
     }
 
-    private float AddKey(float right, string sprite)
+    private float AddKey(float right, string sprite, out Image image)
     {
-        Image image = CreateImage(sprite, sprite, (RectTransform)_canvasObject.transform, 0f);
+        image = CreateImage(sprite, sprite, (RectTransform)_canvasObject.transform, 0f);
         if (image == null)
         {
             return right;
@@ -163,6 +172,8 @@ public class HudMenuHints : MonoBehaviour
             return;
         }
 
+        RefreshRuneBookHintVisibility();
+
         StageManager stage = StageManager.Instance;
         int depth = stage != null ? stage.CurrentDepth : 1;
         float baseAlpha = depth >= _fadeFromDepth ? _fadedAlpha : 1f;
@@ -223,6 +234,25 @@ public class HudMenuHints : MonoBehaviour
             {
                 float pop = 1f + 0.5f * Mathf.Clamp01(1f - t / 0.15f);
                 _dot.rectTransform.localScale = Vector3.one * pop;
+            }
+        }
+    }
+
+    /// <summary>룬북이 잠겨 있으면 [룬북][TAB] 힌트를 숨긴다. 잠금이 바뀐 프레임에만 켜고 끈다.</summary>
+    private void RefreshRuneBookHintVisibility()
+    {
+        bool isLocked = _toggle != null && _toggle.IsLocked;
+        if (isLocked == _isRuneBookHintHidden || _runeBookHintObjects == null)
+        {
+            return;
+        }
+
+        _isRuneBookHintHidden = isLocked;
+        foreach (GameObject hint in _runeBookHintObjects)
+        {
+            if (hint != null)
+            {
+                hint.SetActive(!isLocked);
             }
         }
     }

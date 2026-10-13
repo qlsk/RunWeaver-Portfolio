@@ -13,6 +13,7 @@ public class TutorialController : MonoBehaviour
     private StageManager _stageManager;
     private ITutorialCondition _activeCondition;
     private TutorialPreparationWatcher _preparationWatcher;
+    private TutorialRules _rules;
 
     public int CurrentIndex { get; private set; }
     public bool IsRunning { get; private set; }
@@ -71,6 +72,7 @@ public class TutorialController : MonoBehaviour
         _startRoutine = null;
         EndActiveCondition();
         EndPreparationWatcher();
+        ReleaseRules();
 
         if (!IsRunning)
             return;
@@ -120,6 +122,9 @@ public class TutorialController : MonoBehaviour
         _preparationWatcher.OutOfOrderDetected += HandleOutOfOrderDetected;
         _preparationWatcher.Begin(() => _steps[CurrentIndex].Condition);
 
+        _rules = new TutorialRules();
+        _rules.Apply();
+
         BeginStep(0);
     }
 
@@ -136,6 +141,7 @@ public class TutorialController : MonoBehaviour
         }
 
         _activeCondition = condition;
+        _rules.OnStepStarted(step);
         StepStarted?.Invoke(index, step);
 
         _guideCardView.Show(step, index + 1, _steps.Length);
@@ -194,6 +200,15 @@ public class TutorialController : MonoBehaviour
     {
         Debug.LogWarning("[TutorialController] 현재 단계보다 앞선 석상 조작이 감지되어 튜토리얼을 중단합니다.");
         enabled = false;
+    }
+
+    private void ReleaseRules()
+    {
+        if (_rules == null)
+            return;
+
+        _rules.Release();
+        _rules = null;
     }
 
     private void EndPreparationWatcher()

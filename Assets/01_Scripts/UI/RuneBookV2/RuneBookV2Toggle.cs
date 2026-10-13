@@ -32,6 +32,9 @@ public class RuneBookV2Toggle : MonoBehaviour
     /// <summary>닫기 연출 중인지</summary>
     public bool IsClosing => _closeRoutine != null;
 
+    /// <summary>true면 Tab 입력으로 룬북을 열 수 없다. 석상 등 코드가 직접 부르는 Open()은 막지 않는다. (튜토리얼이 켠다)</summary>
+    public bool IsLocked { get; set; }
+
     private void Awake()
     {
         if (_runeBook == null)
@@ -175,7 +178,7 @@ public class RuneBookV2Toggle : MonoBehaviour
 
     private void HandleOpenRuneBookPressed()
     {
-        if (_lastToggleFrame == Time.frameCount)
+        if (IsLocked || _lastToggleFrame == Time.frameCount)
         {
             return;
         }
