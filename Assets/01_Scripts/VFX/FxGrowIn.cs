@@ -32,6 +32,19 @@ public class FxGrowIn : MonoBehaviour
         Apply();
     }
 
+    /// <summary>원래 크기를 바꾼다. (생성한 쪽이 크기를 조정할 때)</summary>
+    public void MultiplyBaseScale(float factor)
+    {
+        if (!_hasBase)
+        {
+            transform.localScale *= factor;
+            return;
+        }
+
+        _baseScale *= factor;
+        Apply();
+    }
+
     private void Update()
     {
         if (_time >= _duration)
