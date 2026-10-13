@@ -898,3 +898,78 @@ private void GrantRuneStones();
 - 조건: 룬석 지급 후 튜토리얼이 중단된다.
 - 결과: 지급된 룬석은 그대로 남는다.
 
+## 11. 7번 단위 — MissionStart 조건과 1층 미션 고정
+
+> 상태: **구현됨** · 기존 게임 코드(`MissionManager`)에 소규모 추가를 포함한다.
+
+### 11.1 확정 요구사항
+
+- `MissionStart` 조건: 시작 오브젝트(임무 표식)와 상호작용해 미션이 시작되면(`MissionManager.OnMissionStarted`) 완료한다. 시작 오브젝트의 자동 시작 타이머로 시작되어도 같은 이벤트이므로 완료된다.
+- 1층 미션은 **영혼 수집(`SoulCollect`)으로 고정**한다. 시작 석상이 1층을 시작할 때 추첨되는 미션 한 번만 고정하며, 고정이 쓰이면 저절로 해제된다.
+- 튜토리얼이 끝나거나 중단되었는데 고정이 아직 쓰이지 않았다면 해제한다(튜토리얼 밖의 추첨에 영향을 주지 않기 위해서).
+- 이전에 되돌린 `SetNextMissionOverride(object)` 스텁 대신 올바른 시그니처로 새로 추가했다.
+
+### 11.2 기존 코드 변경 (게임 코드)
+
+파일: `Stage/MissionManager.cs` (수정)
+
+```csharp
+private MissionType? _nextMissionOverride;
+
+public void SetNextMissionOverride(MissionType type);
+public void ClearNextMissionOverride();
+```
+
+`PickMissionType`은 맨 앞에서 고정값이 있으면 그 값을 돌려주고 고정을 비운다. 기존의 강제 종류(`_useForcedMissionType`)와 셔플 백 로직은 그대로이며, 고정값이 있을 때는 셔플 백을 소모하지 않는다.
+
+### 11.3 튜토리얼 코드
+
+파일: `MissionStartCondition.cs` (신규)
+
+```csharp
+public class MissionStartCondition : ITutorialCondition
+{
+    private MissionManager _missionManager;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleMissionStarted(MissionBase mission);
+}
+```
+
+`Begin`은 `MissionManager.Instance` 대신 `FindAnyObjectByType`으로 기존 인스턴스만 찾는다(`Instance`는 없으면 새로 만든다). 없으면 오류를 남기고 구독하지 않는다. `End`는 구독을 해제하고 참조를 비운다.
+
+파일: `TutorialRules.cs` (수정)
+
+```csharp
+private MissionManager _missionManager;
+
+private void LockRuneBook();
+private void ReleaseRuneBookLock();
+private void FixFirstMission();
+private void ReleaseMissionFix();
+```
+
+`Apply`는 룬북 잠금(`LockRuneBook`)과 미션 고정(`FixFirstMission`)을 적용한다. `OnStepStarted`의 룬 장착 단계 처리는 룬북 잠금만 푼다(`ReleaseRuneBookLock`). `Release`는 룬북 잠금과 미션 고정을 모두 푼다. 미션 고정은 룬 장착 단계에서 풀면 안 되므로(석상이 1층을 시작할 때 쓰인다) 잠금 해제와 분리했다.
+
+### 11.4 Unity 에디터 작업
+
+- `Step05_MissionStart.asset`(조건 `MissionStart`, 행동 행 `Key` F/"상호작용", 오버레이 `KeyHint` 기본 알약 "임무 시작")을 만들어 `_steps`의 다섯 번째에 추가한다.
+
+### 11.5 검증 시나리오
+
+**고정**
+- 조건: 튜토리얼 실행 중.
+- 행동: 석상 연출이 끝나 1층이 시작된다.
+- 결과: 1층 미션이 영혼 수집이다.
+
+**정상 완료**
+- 행동: 임무 표식과 상호작용한다.
+- 결과: 5단계가 완료된다.
+
+**고정 해제**
+- 조건: 고정이 쓰이기 전에 튜토리얼이 중단된다.
+- 결과: 고정이 해제되어 이후 추첨은 원래대로 동작한다.

@@ -15,8 +15,8 @@ public class TutorialConditionFactory
                 return new ElementConfirmCondition();
             case TutorialConditionKind.RuneConfirm:
                 return new RuneConfirmCondition();
-            // case TutorialConditionKind.MissionStart:
-            //     break;
+            case TutorialConditionKind.MissionStart:
+                return new MissionStartCondition();
             // case TutorialConditionKind.Acknowledge:
             //     break;
             // case TutorialConditionKind.EnemyKill:
