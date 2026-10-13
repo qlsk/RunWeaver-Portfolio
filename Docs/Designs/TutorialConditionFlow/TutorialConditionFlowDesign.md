@@ -1757,3 +1757,59 @@ private void ReleaseRuneWordRestriction();
 - `Records/` — 상황 안내 카드(새 기록): `RecordCardSO`, `RecordTriggerKind`, `TutorialRecordTracker`, `TutorialRecordCardView`
 
 새 완료 조건은 `Conditions/`에 파일을 추가하고 `TutorialConditionFactory`에 한 줄을 더하면 된다. 새 오버레이 뷰는 `UI/`에 두고 `TutorialController`의 오버레이 분기에 추가한다.
+
+## 25. 순서 감시자 제거
+
+> 상태: **구현됨** · 8장(선행 석상 조작 즉시 중단)과 23.1장(미션 클리어 감시)의 `TutorialPreparationWatcher`를 없앴다. 이 장이 앞 장들보다 우선한다.
+
+### 25.1 왜 없앨 수 있는가
+
+감시자는 석상 상호작용, 원소 확정, 룬 확정, 미션 클리어가 현재 단계보다 먼저 일어나면 튜토리얼을 중단했다. 이 중 석상 관련 세 사건은 정상 조작에서 단계보다 먼저 일어날 수 없다.
+
+- 원소 선택 창은 석상 상호작용으로만 열리고, 룬북은 원소 확정 직후 석상이 열어 준다. Tab은 4단계 전까지 잠겨 있다. 그래서 2단계 이후의 확정 사건은 UI 순서가 보장한다.
+- 1단계는 플레이어가 시작 위치 `(0, -4)`에서 이동량 0.1만 움직이면 끝난다. 석상 충돌체의 가장 가까운 지점 `(0, -1.61)`과 상호작용 범위(반지름 2) 사이 여유는 약 0.39라, 석상을 상호작용 대상으로 잡기 전에 1단계가 먼저 끝난다. 대시나 넉백으로 빠르게 움직여도 첫 이동 프레임에 끝난다.
+
+따라서 석상 관련 감시와 "출발 준비 단계 중 1층이 시작되면 중단"(`IsStageStartedEarly`, `IsPreparationPhase`)도 필요 없어졌다. 1~3단계 중에는 1층이 시작될 수 없기 때문이다(석상이 룬 확정 뒤에만 `BeginPreparedRun`을 부른다).
+
+> **전제**: 시작 위치와 1단계 이동량이다. 이동량이 석상까지의 여유(약 0.39) 이상이 되거나 시작 위치가 석상에 가까워지면 1단계에서 F로 석상을 먼저 상호작용할 수 있어, 감시가 다시 필요하다. 이 전제를 컨트롤러의 `HandleMissionCleared` 위 주석에 남겼다.
+
+### 25.2 남긴 것: 미션 클리어
+
+임무는 UI가 막아 주지 않는다. 보상 확정 단계(`RewardConfirm`)보다 먼저 임무를 클리어하고 보상을 확정하면, 보상 단계가 이미 지난 확정 이벤트를 기다리며 멈추고 규칙(체력 하한, 시간 연장, 룬북 제한)이 다음 층까지 남는다. 그래서 컨트롤러가 직접 `StageManager.MissionCleared`를 구독한다.
+
+파일: `TutorialController.cs` (수정)
+
+```csharp
+private void HandleMissionCleared(int depth);
+```
+
+`StartRoutine`이 튜토리얼을 시작할 때 구독하고, `OnDisable`이 해제한다. `HandleMissionCleared`의 처리 순서:
+
+1. 단계 목록에서 보상 확정 단계의 위치를 찾는다. 보상 확정 단계가 없으면 -1이 된다.
+2. 현재 단계가 그 위치 이상이면(보상 단계 또는 그 이후) 정상이므로 종료한다. 보상 확정 단계가 없을 때도 종료한다.
+3. 보상 단계보다 앞이면 경고를 남기고 컨트롤러를 끈다. 정리(규칙 해제, 카드·오버레이 숨김)는 `OnDisable`이 맡고 완료 기록은 남기지 않는다.
+
+이 판단은 조건 종류의 선언 순서(enum 크기)가 아니라 단계 목록의 위치를 쓴다. 그래서 "`TutorialConditionKind` 선언 순서가 단계 진행 순서와 같다"는 전제는 더 이상 필요 없다.
+
+### 25.3 제거한 것
+
+- `TutorialPreparationWatcher` 클래스(파일과 `.meta`).
+- `TutorialConditionKindExtensions.IsPreparationPhase` 확장 메서드.
+- 컨트롤러의 `_preparationWatcher` 필드, `EndPreparationWatcher`, `HandleOutOfOrderDetected`.
+
+`_stageManager`는 `StartRoutine`에서 할당된다(`Skip`이 출발 준비 건너뛰기에 쓰고, 미션 클리어 구독에도 쓴다).
+
+### 25.4 검증 시나리오
+
+**정상 흐름**
+- 필수 10단계를 순서대로 진행하면 `MissionCleared`가 9단계에서 발생해 중단되지 않고 정상 완료된다.
+
+**임무를 먼저 클리어**
+- 조건: 8단계(대시) 진행 중 대시하지 않고 영혼 수집을 클리어한다.
+- 결과: 경고와 함께 튜토리얼이 중단되고 규칙이 해제된다. 완료 기록은 남지 않는다.
+
+**석상 조작**
+- 착지 후 이동 없이 F를 누르는 것은 시작 위치가 상호작용 범위 밖이라 석상이 선택되지 않는다. 한 걸음(0.1) 움직이면 1단계가 끝나 2단계가 시작된다.
+
+**정리**
+- 튜토리얼이 끝나거나 중단되면 `MissionCleared` 구독이 해제된다.
