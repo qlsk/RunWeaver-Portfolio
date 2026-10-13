@@ -1,10 +1,15 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class TutorialController : MonoBehaviour
 {
+    // 건너뛰면 장착한 원소 룬 효과가 두 개가 되도록, 없는 만큼 이 순서로 채운다.
+    private static readonly string[] s_skipDefaultElementIds = { "rune_fire", "rune_wind" };
+    private const int SkipElementCount = 2;
+
     [Header("참조")]
     [SerializeField] private TutorialStepSO[] _steps;
     [SerializeField] private TutorialGuideCardView _guideCardView;
@@ -15,10 +20,6 @@ public class TutorialController : MonoBehaviour
 
     [Header("룬석 지급")]
     [SerializeField] private string[] _grantedRuneWordIds;
-
-    [Header("건너뛰기")]
-    [SerializeField] private string _skipDefaultElementId = "rune_fire";
-    [SerializeField] private string[] _skipDefaultRuneWordIds = { "rune_water" };
 
     [Header("임무 실패 없음")]
     [SerializeField][Range(0f, 1f)] private float _minHealthRatio = 0.2f;
@@ -94,57 +95,29 @@ public class TutorialController : MonoBehaviour
         if (!IsRunning)
             return;
 
-        EquipSkipDefaults();
+        // 건너뛰는 시점의 장착 상태는 원소 룬 효과가 0개, 1개, 2개인 경우만 다룬다.
+        // 이미 장착한 것은 그대로 두고, 모자란 만큼 기본 원소 중 아직 장착하지 않은 것을 채운다.
+        RuneEffectLoadout loadout = PlayerRuneManager.Instance.RuneEffectLoadout;
+        var slotIds = new List<string>(loadout.EquippedEffectIds);
+        foreach (string defaultId in s_skipDefaultElementIds)
+        {
+            if (slotIds.Count >= SkipElementCount)
+                break;
+
+            if (!slotIds.Contains(defaultId))
+                slotIds.Add(defaultId);
+        }
+
+        loadout.ConfirmEquipment(slotIds);
 
         if (_stageManager != null && _stageManager.IsWaitingForPreparation)
         {
-            ExpeditionStatue statue = FindAnyObjectByType<ExpeditionStatue>();
+            var statue = FindAnyObjectByType<ExpeditionStatue>();
             statue.SkipPreparation();
         }
 
         TutorialProgressStore.MarkCompleted();
         enabled = false;
-    }
-
-    private void EquipSkipDefaults()
-    {
-        PlayerRuneManager runeManager = PlayerRuneManager.Instance;
-        RuneEffectLoadout loadout = runeManager.RuneEffectLoadout;
-        loadout.EquipPrimaryElement(_skipDefaultElementId);
-        EquipSkipDefaultRuneWords(loadout);
-    }
-
-    private void EquipSkipDefaultRuneWords(RuneEffectLoadout loadout)
-    {
-        if (_skipDefaultRuneWordIds == null)
-            return;
-
-        string[] slotIds = new string[loadout.ActiveSlotCount];
-        for (int i = 0; i < slotIds.Length && i < loadout.EquippedEffectIds.Count; i++)
-            slotIds[i] = loadout.EquippedEffectIds[i];
-
-        bool isChanged = false;
-        foreach (string runeWordId in _skipDefaultRuneWordIds)
-        {
-            if (string.IsNullOrEmpty(runeWordId) || Array.IndexOf(slotIds, runeWordId) >= 0)
-                continue;
-
-            int slot = loadout.FindEquipSlot(slotIds, runeWordId, out EquipError error);
-            if (slot < 0)
-            {
-                Debug.LogWarning($"[TutorialController] 기본 룬 워드 '{runeWordId}'를 장착할 수 없습니다: {error}", this);
-                continue;
-            }
-
-            for (int i = slotIds.Length - 1; i > slot; i--)
-                slotIds[i] = slotIds[i - 1];
-
-            slotIds[slot] = runeWordId;
-            isChanged = true;
-        }
-
-        if (isChanged)
-            loadout.ConfirmEquipment(slotIds);
     }
 
     private IEnumerator StartRoutine()
