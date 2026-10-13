@@ -9,7 +9,9 @@ using Random = UnityEngine.Random;
 /// 시작 석상. 전투 씬 1층 가운데에 서 있다. (마을 씬을 대신한다)
 /// 흐름 : 상호작용(F) → 주력 원소 선택 → 룬북이 열려 보조 룬 워드 선택 → Confirm
 ///        → 석상이 흔들리다 무너진다 → 1층 미션 오브젝트가 서서히 나타난다 → 미션 시작 오브젝트로 시작
-/// - 원소 선택을 취소하거나 룬북을 Confirm 없이 닫으면 석상은 그대로 있고, 다시 상호작용할 수 있다.
+/// - 원소 선택을 취소하면 석상은 그대로 있고, 다시 상호작용할 수 있다.
+/// - 원소를 고른 뒤 열리는 룬북은 닫기 키(Tab, Esc)로 닫을 수 없고 Confirm해야만 닫힌다.
+///   (원소만 장착된 채 룬북을 빠져나가 미션이 시작되지 않는 상태를 막는다)
 /// - 씬이 열리면 원정(지갑, 시작 골드)을 시작한다. (플레이어 시작 위치는 PlayerStartPositioner가 정한다)
 ///   플레이어는 석상 앞 공중에 열린 균열에서 튀어나온다. (PortalArrival)
 /// - 1층은 StageManager가 기다리고 있다가(_waitForPreparation) 석상이 무너진 뒤 BeginPreparedRun으로 시작한다.
@@ -108,7 +110,6 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     }
 
     // 상호작용 흐름. 서로 독립이라 하나의 열거형으로 합치지 않는다.
-    // (예: 룬북을 Confirm 없이 닫은 뒤 다시 원소를 고르는 동안에도 룬북 Confirm 대기는 이어진다)
     private bool _isChoosingElement;
     private bool _isWaitingRuneConfirm;
 
@@ -196,6 +197,10 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     private void OnDisable()
     {
         AbortCrumble();
+        if (_runeBookToggle != null)
+        {
+            _runeBookToggle.IsCloseLocked = false;
+        }
         _circleGlow?.SetProgress(0f);
 
         if (_elementSelectView != null)
@@ -254,6 +259,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
         if (_runeBookToggle != null)
         {
+            // Confirm 전에는 룬북을 빠져나갈 수 없게 한다.
+            _runeBookToggle.IsCloseLocked = true;
             _runeBookToggle.Open();
         }
     }
@@ -287,6 +294,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         yield return new WaitForSecondsRealtime(_runeBookCloseDelay);
         if (_runeBookToggle != null)
         {
+            _runeBookToggle.IsCloseLocked = false;
             _runeBookToggle.Close();
         }
 

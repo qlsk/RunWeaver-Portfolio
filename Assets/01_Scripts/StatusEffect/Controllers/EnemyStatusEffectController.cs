@@ -329,6 +329,14 @@ public class EnemyStatusEffectController : MonoBehaviour
         _knockbackRemaining = duration;
     }
 
+    /// 보상 특성(shield_04 파열의 고리)용: 넉백을 걸고 바람 넉백 연출을 함께 재생한다.
+    public void ApplyKnockbackWithVisual(Vector2 direction, float speed, float duration)
+    {
+        ApplyKnockback(direction, speed, duration);
+        if (_knockbackRemaining > 0f)
+            PlayKnockbackVisual(direction);
+    }
+
     /// 석화 출처만 해제하고 지속 상태를 초기화한다.
     private void ClearPetrify()
     {

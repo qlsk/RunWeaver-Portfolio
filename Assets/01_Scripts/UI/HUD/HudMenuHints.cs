@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 화면 오른쪽 위의 메뉴 안내 (클릭은 되지 않는 표시). [룬북 아이콘][TAB]  [일시정지 아이콘][ESC]
@@ -8,6 +10,8 @@ using UnityEngine;
 /// - 초반 층에서는 또렷하고, _fadeFromDepth 층부터는 옅게 보인다.
 /// - 새로 장착할 수 있게 된 룬 워드가 생기면(룬 문자가 모이거나 완성품을 얻어서) 룬북 아이콘에 하늘색 점과 푸른빛이 켜진다.
 ///   룬북을 열면 꺼지고, 그 뒤 또 새로 장착 가능한 룬 워드가 생기면 다시 켜진다.
+/// - PulseRuneBook : 룬북 아이콘 뒤의 금빛(프리팹의 RuneBookPulse 이미지)이 한 번 부풀었다 사라진다. (룬석 보상 카드를 골랐을 때)
+///   게임이 멈춘 동안에도 움직인다. (실제 시간)
 /// RuneBookV2Toggle이 만든다. (룬북을 쓸 수 있는 전투 씬에서만 보인다)
 /// </summary>
 [DisallowMultipleComponent]
@@ -15,10 +19,17 @@ public class HudMenuHints : MonoBehaviour
 {
     private const string PrefabPath = "HudHints/HudMenuHints";
     private const float CheckInterval = 0.5f;
+    private const string PulseName = "RuneBookPulse";
     private static readonly int s_dimHash = Animator.StringToHash("Dim");
     private static readonly int s_notifyHash = Animator.StringToHash("Notify");
 
     [SerializeField] private int _fadeFromDepth = 3;
+
+    [Header("룬북 강조 (PulseRuneBook)")]
+    [SerializeField, Min(0.01f)] private float _pulseDuration = 1.1f;
+    [SerializeField, Range(0f, 1f)] private float _pulseMaxAlpha = 0.9f;
+    [Tooltip("크기 (시작, 끝)")]
+    [SerializeField] private Vector2 _pulseScale = new(0.8f, 1.2f);
 
     private RuneBookV2Toggle _toggle;
     private GameObject _hints;
@@ -28,6 +39,8 @@ public class HudMenuHints : MonoBehaviour
     private readonly Dictionary<char, int> _cost = new();
     private float _nextCheck;
     private bool _primed;
+    private Image _pulse;
+    private Coroutine _pulseRoutine;
 
     public static HudMenuHints Create(RuneBookV2Toggle toggle)
     {
@@ -59,6 +72,55 @@ public class HudMenuHints : MonoBehaviour
         _hints = Instantiate(prefab);
         _hints.name = prefab.name;
         _animator = _hints.GetComponent<Animator>();
+
+        Transform pulse = _hints.transform.Find(PulseName);
+        _pulse = pulse != null ? pulse.GetComponent<Image>() : null;
+        SetPulse(0f, _pulseScale.x);
+    }
+
+    /// <summary>룬북 아이콘 뒤의 금빛이 한 번 부풀었다 사라진다.</summary>
+    public void PulseRuneBook()
+    {
+        if (_pulse == null || !isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (_pulseRoutine != null)
+        {
+            StopCoroutine(_pulseRoutine);
+        }
+
+        _pulseRoutine = StartCoroutine(PulseRoutine());
+    }
+
+    private IEnumerator PulseRoutine()
+    {
+        float elapsed = 0f;
+        while (elapsed < _pulseDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / _pulseDuration);
+            SetPulse(Mathf.Sin(t * Mathf.PI) * _pulseMaxAlpha, Mathf.Lerp(_pulseScale.x, _pulseScale.y, 1f - (1f - t) * (1f - t)));
+            yield return null;
+        }
+
+        SetPulse(0f, _pulseScale.x);
+        _pulseRoutine = null;
+    }
+
+    private void SetPulse(float alpha, float scale)
+    {
+        if (_pulse == null)
+        {
+            return;
+        }
+
+        Color color = _pulse.color;
+        color.a = alpha;
+        _pulse.color = color;
+        _pulse.enabled = alpha > 0f;
+        _pulse.rectTransform.localScale = Vector3.one * scale;
     }
 
     private void Update()

@@ -18,6 +18,9 @@ public class Cleanse : MonoBehaviour
     /// <summary>연출용: 정화 시전 통지 (해제한 상태이상 원소 목록. 없으면 빈 목록).</summary>
     public event Action<IReadOnlyList<ReactionElement>> Used;
 
+    /// <summary>연출용: 다음 정화 대기시간 감산이 쌓였을 때 (이번에 더한 비율). (clease_04)</summary>
+    public event Action<float> CooldownRefunded;
+
     [Header("정화 재사용 대기시간 (보상 특성용)")]
     [SerializeField, Min(0f)] private float _cooldown = 8f;
     private float _cooldownTimer;
@@ -81,6 +84,10 @@ public class Cleanse : MonoBehaviour
     public void RefundCooldown(float ratio)
     {
         _cooldownRefund = Mathf.Clamp01(_cooldownRefund + Mathf.Max(0f, ratio));
+        if (ratio > 0f)
+        {
+            CooldownRefunded?.Invoke(ratio);
+        }
     }
 
     private void Update()

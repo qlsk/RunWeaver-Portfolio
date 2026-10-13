@@ -26,6 +26,9 @@ public class PlayerHealth : MonoBehaviour
         set => _invincibilityDuration = Mathf.Max(0f, value);
     }
 
+    /// <summary>보상 특성용: 보호막이 피격을 막았을 때의 무적 시간 배율 (기본 1). (shield_02)</summary>
+    public float ShieldBlockInvincibilityMultiplier { get; set; } = 1f;
+
     private Shield _shield;
 
     public event Action Died;
@@ -110,9 +113,11 @@ public class PlayerHealth : MonoBehaviour
     private IEnumerator TakeDamageCoroutine(float damage, ReactionElement? element)
     {
         _hitInvincibility = true;
+        float invincibility = _invincibilityDuration;
         if (_shield != null && _shield.CurrentShield > 0)
         {
             _shield.DestroyShield();
+            invincibility *= Mathf.Max(0f, ShieldBlockInvincibilityMultiplier);
         }
         else
         {
@@ -125,7 +130,7 @@ public class PlayerHealth : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(_invincibilityDuration);
+        yield return new WaitForSeconds(invincibility);
         _hitInvincibility = false;
     }
 
