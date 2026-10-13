@@ -23,10 +23,10 @@ public class TutorialConditionFactory
                 return new EnemyKillCondition();
             case TutorialConditionKind.Dash:
                 return new DashCondition();
-            // case TutorialConditionKind.RewardConfirm:
-            //     break;
-            // case TutorialConditionKind.PortalEnter:
-            //     break;
+            case TutorialConditionKind.RewardConfirm:
+                return new RewardConfirmCondition();
+            case TutorialConditionKind.PortalEnter:
+                return new PortalEnterCondition();
             default:
                 Debug.LogError("[TutorialConditionFactory] 유효하지 않은 TutorialConditionKind 입니다.");
                 return null;

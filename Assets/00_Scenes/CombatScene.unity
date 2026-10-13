@@ -247,6 +247,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9532464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9532465}
+  - component: {fileID: 9532466}
+  m_Layer: 0
+  m_Name: TutorialWorldMarkerRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &9532465
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9532464}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 709986238}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &9532466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9532464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36e62b85aec0c3240bad25a94442c540, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialWorldMarkerView
+  _root: {fileID: 9532465}
+  _canvas: {fileID: 709986237}
+  _worldOffset: {x: 0, y: 3, z: 0}
+  _edgePadding: 80
 --- !u!1 &28388520
 GameObject:
   m_ObjectHideFlags: 0
@@ -2849,6 +2901,7 @@ RectTransform:
   - {fileID: 1707174801}
   - {fileID: 1563445}
   - {fileID: 1913303928}
+  - {fileID: 9532465}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -19367,9 +19420,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 72d77b784bdc7e44a89650a62ad67bd9, type: 2}
   - {fileID: 11400000, guid: ca5359d8335713f43870ce9450d4961b, type: 2}
   - {fileID: 11400000, guid: cbc720498cb72204398ed9be58afa1cc, type: 2}
+  - {fileID: 11400000, guid: d83acd835c2f0f44bbb363bfb7c7d1c7, type: 2}
+  - {fileID: 11400000, guid: 6cf5b1d6ff684334994b5845277da0fe, type: 2}
   _guideCardView: {fileID: 1707174802}
   _keyHintView: {fileID: 1563446}
   _spotlightView: {fileID: 1913303929}
+  _worldMarkerView: {fileID: 9532466}
   _grantedRuneWordIds:
   - rune_earth
   - rune_wind

@@ -9,6 +9,7 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialGuideCardView _guideCardView;
     [SerializeField] private TutorialKeyHintView _keyHintView;
     [SerializeField] private TutorialSpotlightView _spotlightView;
+    [SerializeField] private TutorialWorldMarkerView _worldMarkerView;
 
     [Header("룬석 지급")]
     [Tooltip("룬 장착 단계가 시작될 때 룬 문자를 지급할 룬 효과 id")]
@@ -196,6 +197,12 @@ public class TutorialController : MonoBehaviour
                 else
                     _keyHintView.Show(step);
                 break;
+            case TutorialOverlayKind.WorldMarker:
+                if (_worldMarkerView == null)
+                    Debug.LogError("[TutorialController] 월드 표식 뷰가 연결되지 않았습니다.", this);
+                else
+                    _worldMarkerView.Show(step);
+                break;
             case TutorialOverlayKind.Spotlight:
                 if (_spotlightView == null)
                     Debug.LogError("[TutorialController] 스포트라이트 뷰가 연결되지 않았습니다.", this);
@@ -213,6 +220,9 @@ public class TutorialController : MonoBehaviour
 
         if (_spotlightView != null)
             _spotlightView.Hide();
+
+        if (_worldMarkerView != null)
+            _worldMarkerView.Hide();
     }
 
     private void HandleOutOfOrderDetected()

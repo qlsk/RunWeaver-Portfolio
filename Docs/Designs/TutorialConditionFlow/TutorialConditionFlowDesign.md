@@ -1220,3 +1220,121 @@ public class DashCondition : ITutorialCondition
 Unity 에디터 작업: `Step08_Dash.asset`(조건 `Dash`, 행동 행 `Key` Space/"대시", 오버레이 `KeyHint` Space 알약 "대시")을 `_steps`의 여덟 번째에 추가했다.
 
 검증: 대시를 한 번 하면 8단계가 완료된다. 쿨다운 중에 Space를 눌러도 완료되지 않는다. 단계 전환 시 알약이 Space 알약으로 바뀐다.
+
+## 16. 12번 단위 — RewardConfirm 조건
+
+> 상태: **구현됨**
+
+- `RewardConfirm` 조건: 임무 보상 선택 창에서 보상을 확정하면(`RewardSelectUI.OnOptionConfirmed`) 완료한다. 게임 코드는 수정하지 않는다.
+- 9단계는 행동 행과 오버레이가 없는 임시 문구 단계이다. 보상 선택 화면에 스포트라이트를 쓸지는 시안 결정 후 `Spotlight` 오버레이로 확장할 수 있다(미결).
+
+파일: `RewardConfirmCondition.cs` (신규)
+
+```csharp
+public class RewardConfirmCondition : ITutorialCondition
+{
+    private RewardSelectUI _rewardSelectUi;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleOptionConfirmed(RewardOption option);
+}
+```
+
+`Begin`은 비활성 오브젝트를 포함해 `RewardSelectUI`를 찾는다(보상 창은 평소 꺼져 있다). 없으면 오류를 남기고 구독하지 않는다. 있으면 `OnOptionConfirmed`를 구독한다. `End`는 구독을 해제한다. 팩토리가 `RewardConfirm`에 이 조건을 돌려준다. `Step09_RewardConfirm.asset`을 `_steps`의 아홉 번째에 추가했다.
+
+검증: 보상을 확정하면 9단계가 완료된다. 확정 없이 창을 다른 방식으로 닫으면 완료되지 않는다.
+
+## 17. 13번 단위 — PortalEnter 조건과 월드 표식
+
+> 상태: **구현됨**
+
+### 17.1 확정 요구사항
+
+- `PortalEnter` 조건: 포탈을 써서 **다음 층이 시작되면**(`StageManager.StageStarted`, 깊이 2 이상) 완료한다. `Portal.OnPlayerEntered`는 포탈 범위에 들어갔을 때 발생하는 근접 이벤트라서 쓰지 않는다. 포탈 사용에서 새 층 시작까지의 연출 시간 뒤에 완료되며, 튜토리얼 규칙(체력 하한, 시간 연장)도 그때 해제된다.
+- 월드 표식 오버레이: 대상 위에 표식을 띄우고, 화면 밖이면 가장자리에 붙이며 화살표로 방향을 알린다. 대상은 단계 SO의 `TutorialMarkerTarget`(`StartStatue`, `Portal`)으로 고르고, 대상이 아직 없으면(포탈은 임무 클리어 후 생성) 찾을 때까지 숨긴다.
+- 10단계는 카드 키 행 `F`/"상호작용"과 포탈 월드 표식("다음 층")을 쓴다. 표식 문구는 기획의 "Descend" 한글화 요청에 따라 한글이다.
+
+### 17.2 선언
+
+파일: `TutorialMarkerTarget.cs` (신규): `enum TutorialMarkerTarget { None, StartStatue, Portal }`
+
+파일: `TutorialStepSO.cs` (수정): `_markerTarget` 필드와 `MarkerTarget` 프로퍼티.
+
+파일: `PortalEnterCondition.cs` (신규)
+
+```csharp
+public class PortalEnterCondition : ITutorialCondition
+{
+    private StageManager _stageManager;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleStageStarted(int depth);
+}
+```
+
+`Begin`은 `StageManager.Instance` 대신 `FindAnyObjectByType`으로 기존 인스턴스만 찾아(`Instance`는 없으면 새로 만든다) `StageStarted`를 구독한다. `HandleStageStarted`는 깊이가 2 이상일 때만 `Completed`를 발생시킨다. 팩토리가 `PortalEnter`에 이 조건을 돌려준다.
+
+파일: `TutorialWorldMarkerView.cs` (신규)
+
+```csharp
+public class TutorialWorldMarkerView : MonoBehaviour
+{
+    [SerializeField] private RectTransform _root;
+    [SerializeField] private Canvas _canvas;
+    [SerializeField] private Vector3 _worldOffset;
+    [SerializeField] private float _edgePadding;
+
+    private GameObject _current;
+    private RectTransform _currentRect;
+    private GameObject _edgeArrow;
+    private TutorialMarkerTarget _targetKind;
+    private Transform _target;
+
+    public void Show(TutorialStepSO step);
+    public void Hide();
+    private void LateUpdate();
+    private Transform ResolveTarget();
+}
+```
+
+`Show`는 이전 표식을 정리하고, 프리팹이 없으면 오류를 남기고 종료한다. 있으면 `_root` 아래에 생성해 라벨 문구를 넣고 대상을 찾을 때까지 비활성으로 둔다. `LateUpdate`의 처리 순서:
+
+1. 표식이 없으면 종료한다.
+2. 대상이 없으면 `ResolveTarget`으로 찾는다. 대상이나 카메라가 없으면 표식을 숨기고 종료한다.
+3. 대상 위치에 오프셋을 더해 화면 좌표로 바꾼다. 카메라 뒤쪽이면 좌표를 뒤집어 같은 방향의 가장자리에 붙인다.
+4. 화면 안(가장자리 여백 안쪽)인지 판정하고, 좌표를 여백 안으로 제한해 `_root` 기준 로컬 좌표로 표식 위치를 정한다.
+5. 화면 밖이면 가장자리 화살표를 켜고 화면 중심에서 대상 방향으로 돌린다. 화면 안이면 끈다.
+
+`ResolveTarget`은 대상 종류에 따라 시작 석상 또는 포탈의 Transform을 돌려준다. 대상이 파괴되면(Unity null) 다시 찾는다.
+
+파일: `TutorialController.cs` (수정): `_worldMarkerView` 필드를 추가하고 `ShowOverlay`/`HideOverlay`가 `WorldMarker` 종류도 처리한다.
+
+### 17.3 Unity 에디터 작업
+
+- `Canvas` 아래에 전체 화면 `TutorialWorldMarkerRoot`를 만들고 `TutorialWorldMarkerView`를 붙여 `_root`, `_canvas`를 연결한다. 컨트롤러의 `_worldMarkerView`를 연결한다.
+- `Step10_PortalEnter.asset`(조건 `PortalEnter`, 행동 행 `Key` F/"상호작용", 오버레이 `WorldMarker` `TutorialWorldMarker` 프리팹, 대상 `Portal`, 문구 "다음 층")을 `_steps`의 열 번째에 추가했다. 이로써 필수 10단계가 모두 연결되었다.
+
+### 17.4 검증 시나리오
+
+**정상**
+- 조건: 9단계 완료 후 포탈이 생성된다.
+- 결과: 포탈이 생기기 전에는 표식이 보이지 않다가, 생성되면 포탈 위에 "다음 층" 표식이 뜬다. 포탈을 쓰고 다음 층이 시작되면 10단계가 완료되고 튜토리얼이 끝난다.
+
+**화면 밖**
+- 조건: 포탈이 화면 밖에 있다.
+- 결과: 표식이 가장자리에 붙고 화살표가 포탈 방향을 가리킨다. 화면 안으로 들어오면 화살표가 사라진다.
+
+**근접 이벤트 무시**
+- 조건: 포탈 범위에 들어가기만 하고 사용하지 않는다.
+- 결과: 완료되지 않는다.
+
+**정리**
+- 결과: 단계가 끝나거나 튜토리얼이 중단되면 표식이 사라진다.
