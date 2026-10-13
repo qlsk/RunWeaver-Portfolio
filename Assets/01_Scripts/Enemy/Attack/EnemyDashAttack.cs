@@ -171,7 +171,7 @@ public class EnemyDashAttack : MonoBehaviour
 
         indicator.localScale = new Vector3(
             path.magnitude / (bounds.size.x * xScale),
-            _rangeWidth / (bounds.size.y * yScale), 1f);
+            GetRangeWidth(path) / (bounds.size.y * yScale), 1f);
 
         Vector3 localCenter = bounds.center;
         if (_rangeIndicator.flipX) localCenter.x = -localCenter.x;
@@ -181,6 +181,29 @@ public class EnemyDashAttack : MonoBehaviour
         _rangeIndicator.enabled = true;
     }
 
+    private float GetRangeWidth(Vector2 path)
+    {
+        if (_bodyCollider == null || !_bodyCollider.enabled ||
+            !_bodyCollider.gameObject.activeInHierarchy)
+            return _rangeWidth;
+
+        // A circle has the same world-space diameter in every dash direction.
+        if (_bodyCollider is CircleCollider2D)
+            return _bodyCollider.bounds.size.x * 2;
+
+        Vector2 perpendicular = new Vector2(-path.y, path.x).normalized;
+        if (_bodyCollider is BoxCollider2D box)
+        {
+            Vector2 horizontal = box.transform.TransformVector(Vector3.right * box.size.x);
+            Vector2 vertical = box.transform.TransformVector(Vector3.up * box.size.y);
+            return 2 * Mathf.Abs(Vector2.Dot(perpendicular, horizontal)) +
+                   2 * Mathf.Abs(Vector2.Dot(perpendicular, vertical));
+        }
+
+        // Use the projected world bounds for other body collider shapes.
+        Vector2 size = _bodyCollider.bounds.size;
+        return 2 * Mathf.Abs(perpendicular.x) * size.x + 2 * Mathf.Abs(perpendicular.y) * size.y;
+    }
     private void UpdateRangeCharge()
     {
         float duration = _stateEndTime - _chargeStartTime;
