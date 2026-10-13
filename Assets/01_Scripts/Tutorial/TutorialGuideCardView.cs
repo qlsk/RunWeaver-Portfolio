@@ -10,6 +10,7 @@ public class TutorialGuideCardView : MonoBehaviour
     [SerializeField] private GameObject _actionRow;
     [SerializeField] private TMP_Text _keyText;
     [SerializeField] private TMP_Text _actionLabel;
+    [SerializeField] private GameObject _mouseIcon;
 
     private void Awake()
     {
@@ -30,18 +31,29 @@ public class TutorialGuideCardView : MonoBehaviour
 
     private void ShowActionRow(TutorialStepSO step)
     {
-        // 키 한 개 행만 지원한다. 나머지 종류는 해당 단위에서 추가하고, 그 전까지는 행을 숨긴다.
+        // 키 행과 마우스 행을 지원한다. 나머지 종류는 해당 단위에서 추가하고, 그 전까지는 행을 숨긴다.
         if (_actionRow == null)
             return;
 
         bool isKeyRow = step.ActionRow == TutorialActionRowKind.Key;
-        _actionRow.SetActive(isKeyRow);
+        bool isMouseRow = step.ActionRow == TutorialActionRowKind.Mouse;
+        _actionRow.SetActive(isKeyRow || isMouseRow);
 
-        if (!isKeyRow || _keyText == null || _actionLabel == null)
+        if (!isKeyRow && !isMouseRow)
             return;
 
-        _keyText.text = step.KeyLabels != null && step.KeyLabels.Count > 0 ? step.KeyLabels[0] : string.Empty;
-        _actionLabel.text = step.ActionLabel;
+        // 키 아이콘은 키 텍스트의 부모 오브젝트이다.
+        if (_keyText != null)
+            _keyText.transform.parent.gameObject.SetActive(isKeyRow);
+
+        if (_mouseIcon != null)
+            _mouseIcon.SetActive(isMouseRow);
+
+        if (isKeyRow && _keyText != null)
+            _keyText.text = step.KeyLabels != null && step.KeyLabels.Count > 0 ? step.KeyLabels[0] : string.Empty;
+
+        if (_actionLabel != null)
+            _actionLabel.text = step.ActionLabel;
     }
 
     public void Hide()

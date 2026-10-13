@@ -19,8 +19,8 @@ public class TutorialConditionFactory
                 return new MissionStartCondition();
             case TutorialConditionKind.Acknowledge:
                 return new AcknowledgeCondition();
-            // case TutorialConditionKind.EnemyKill:
-            //     break;
+            case TutorialConditionKind.EnemyKill:
+                return new EnemyKillCondition();
             // case TutorialConditionKind.Dash:
             //     break;
             // case TutorialConditionKind.RewardConfirm:

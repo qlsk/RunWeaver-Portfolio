@@ -1064,3 +1064,57 @@ public class TutorialSpotlightView : MonoBehaviour
 
 **정리**
 - 결과: 단계가 끝나거나 튜토리얼이 중단되면 스포트라이트가 사라진다.
+
+## 13. 9번 단위 — EnemyKill 조건과 마우스 행동 행
+
+> 상태: **구현됨**
+
+### 13.1 확정 요구사항
+
+- `EnemyKill` 조건: 적이 지정한 수만큼 죽으면 완료한다. 수는 단계의 `ConditionValue`(최소 1)이다. 정적 이벤트 `EnemyHealth.OnDeath`를 구독하며, 누가 죽였는지는 구분하지 않는다. 게임 코드는 수정하지 않는다.
+- 카드 행동 행에 **마우스 종류**를 추가한다. 마우스 아이콘과 행동 라벨을 보이고 키 아이콘은 숨긴다.
+- 7단계 문구는 임시 문구이다("마우스 좌클릭으로 사격해 정령을 처치하라").
+
+### 13.2 선언
+
+파일: `EnemyKillCondition.cs` (신규)
+
+```csharp
+public class EnemyKillCondition : ITutorialCondition
+{
+    private int _targetCount;
+    private int _killCount;
+    private bool _isActive;
+
+    public event Action Completed;
+
+    public void Begin(TutorialStepSO step);
+    public void Tick();
+    public void End();
+    private void HandleEnemyDeath(EnemyHealth enemy);
+}
+```
+
+`Begin`은 목표 수(반올림한 `ConditionValue`, 최소 1)를 정하고 처치 수를 0으로 두며 `EnemyHealth.OnDeath`를 구독한다. `HandleEnemyDeath`는 비활성이면 종료하고, 처치 수를 올려 목표에 닿으면 비활성화한 뒤 `Completed`를 발생시킨다. `End`는 구독을 해제한다. 팩토리가 `EnemyKill`에 이 조건을 돌려준다.
+
+파일: `TutorialGuideCardView.cs` (수정)
+
+```csharp
+[SerializeField] private GameObject _mouseIcon;
+```
+
+`ShowActionRow`는 행동 행 종류가 `Key` 또는 `Mouse`일 때 행을 켠다. 키 아이콘(키 텍스트의 부모)은 `Key`일 때만, 마우스 아이콘은 `Mouse`일 때만 켠다. 라벨은 두 종류 모두 단계의 행동 라벨이고, 키 텍스트는 `Key`일 때만 채운다. 마우스 아이콘 참조는 선택 사항이라 비어 있으면 건너뛴다.
+
+### 13.3 Unity 에디터 작업
+
+- 카드 인스턴스의 `ActionRow` 아래에 `TutorialMouseIcon` 프리팹 인스턴스(`MouseIcon`)를 키 아이콘 자리에 넣고 비활성으로 둔다. 카드 뷰 `_mouseIcon`에 연결한다.
+- `Step07_EnemyKill.asset`(조건 `EnemyKill`, 값 1, 행동 행 `Mouse`/"사격", 오버레이 없음)을 `_steps`의 일곱 번째에 추가한다.
+
+### 13.4 검증 시나리오
+
+**정상**
+- 행동: 적을 한 마리 처치한다.
+- 결과: 7단계가 완료된다. 카드에는 마우스 아이콘과 "사격"이 보이고 키 아이콘은 보이지 않는다.
+
+**종류 전환**
+- 결과: 키 행 단계에서 마우스 행 단계로, 다시 키 행 단계로 넘어가도 아이콘이 알맞게 바뀐다.
