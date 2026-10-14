@@ -88,6 +88,8 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
     // 각 연출의 경과 시간. 음수면 대기 중(지연), NaN이면 재생하지 않는 중
     private float _appearTime = float.NaN;
     private float _flipTime = float.NaN;
+    private bool _appearSoundPlayed;
+    private bool _flipSoundPlayed;
     private float _purchaseTime = float.NaN;
     private float _deniedTime = float.NaN;
     private float _stampTime = float.NaN;
@@ -200,6 +202,7 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         Initialize();
         StopAllEffects();
         _appearTime = -Mathf.Max(0f, delay);
+        _appearSoundPlayed = false;
         _holdScale = 1f;
         ApplyVisual();
     }
@@ -216,6 +219,7 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         FlushPending();
         _flipTime = -Mathf.Max(0f, delay);
         _flipApplied = false;
+        _flipSoundPlayed = false;
         _deferDisplay = true;
     }
 
@@ -241,6 +245,11 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         float deltaTime = Time.unscaledDeltaTime;
 
         Advance(ref _appearTime, _appearDuration, deltaTime);
+        if (!_appearSoundPlayed && !float.IsNaN(_appearTime) && _appearTime >= 0f)
+        {
+            _appearSoundPlayed = true;
+            Sfx.PlayShopCardDeal();
+        }
         Advance(ref _purchaseTime, _purchaseDuration, deltaTime);
         Advance(ref _deniedTime, _deniedDuration, deltaTime);
         Advance(ref _stampTime, _stampDuration, deltaTime);
@@ -248,6 +257,11 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         if (!float.IsNaN(_flipTime))
         {
             _flipTime += deltaTime;
+            if (!_flipSoundPlayed && _flipTime >= 0f)
+            {
+                _flipSoundPlayed = true;
+                Sfx.Play(Sfx.ShopFlip);
+            }
             if (!_flipApplied && _flipTime >= _flipDuration * 0.5f)
             {
                 _flipApplied = true;
