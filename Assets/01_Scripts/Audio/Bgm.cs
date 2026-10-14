@@ -11,26 +11,38 @@ public static class Bgm
         FadingOut
     }
 
+    // 재생기 객체
     private static GameObject s_rootObject;
     private static AudioSource s_audioSource;
+    private static bool s_isSettingsSubscribed;
+
+    // 재생 요청으로 받은 설정값
     private static AudioClip s_currentClip;
-    private static State s_playbackState;
     private static float s_cooldownSeconds;
-    private static float s_cooldownElapsedSeconds;
     private static float s_fadeInDurationSeconds;
+    private static float s_clipVolumeScale;
+
+    // 재생 상태와 진행값
+    private static State s_playbackState;
+    private static float s_cooldownElapsedSeconds;
     private static float s_fadeRatio;
     private static float s_fadeTargetRatio;
     private static float s_fadeDurationSeconds;
-    private static bool s_isSettingsSubscribed;
 
-    public static void Play(AudioClip clip, float cooldownSeconds, float fadeInDurationSeconds)
+    public static void Play(AudioClip clip, float cooldownSeconds, float fadeInDurationSeconds, float clipVolumeScale)
     {
+        // 재생기용 루트 오브젝트가 준비되었는지 확인한다.
         EnsureRoot();
 
+        // 클립, 쿨타임, 페이드인 시간을 저장한다.
         s_currentClip = clip;
         s_cooldownSeconds = cooldownSeconds;
         s_fadeInDurationSeconds = fadeInDurationSeconds;
 
+        // 곡 배율을 저장한다.
+        s_clipVolumeScale = clipVolumeScale;
+
+        // 곡 재생을 시작한다.
         StartClip();
     }
 
@@ -132,6 +144,6 @@ public static class Bgm
         if (s_audioSource == null)
             return;
 
-        s_audioSource.volume = GameSettings.MasterVolume * GameSettings.BgmVolume * s_fadeRatio;
+        s_audioSource.volume = GameSettings.MasterVolume * GameSettings.BgmVolume * s_fadeRatio * s_clipVolumeScale;
     }
 }

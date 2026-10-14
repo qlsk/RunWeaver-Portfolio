@@ -7,11 +7,12 @@ public class TitleBgm : MonoBehaviour
     [SerializeField, Min(0f)] private float _cooldownSeconds = 8f;
     [SerializeField, Min(0f)] private float _fadeInDurationSeconds = 1.5f;
     [SerializeField, Min(0f)] private float _fadeOutDurationSeconds = 2.5f;
+    [SerializeField, Range(0f, 1f)] private float _clipVolumeScale = 0.5f;
 
     private void Start()
     {
         // 클립과 쿨타임, 페이드인 시간으로 재생을 요청한다.
-        Bgm.Play(_bgmClip, _cooldownSeconds, _fadeInDurationSeconds);
+        Bgm.Play(_bgmClip, _cooldownSeconds, _fadeInDurationSeconds, _clipVolumeScale);
     }
 
     public void FadeOut()
