@@ -847,7 +847,6 @@ public class RewardSelectUI : MonoBehaviour
 
     private Font GetDefaultFont()
     {
-        // Arial.ttf 조회는 현 Unity 버전에서 예외를 던지므로 LegacyRuntime.ttf만 쓴다.
-        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        return Resources.Load<Font>("Fonts/RIDIBatang");
     }
 }
