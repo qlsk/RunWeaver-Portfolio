@@ -47,7 +47,9 @@ public static class SaveSystem
             if (s_file == null)
             {
                 s_file = Load();
-                if (MigratePlayerPrefs(s_file))
+                bool isMigrated = MigratePlayerPrefs(s_file);
+                bool isTutorialImported = ImportTutorialPlayerPrefs(s_file);
+                if (isMigrated || isTutorialImported)
                 {
                     Write();
                 }
@@ -226,6 +228,8 @@ public static class SaveSystem
                 tutorial.SeenRecords.Add(id);
         }
 
+        file.IsTutorialPlayerPrefsImported = true;
+
         RecordsSaveData records = file.Records;
         records.HomunculusNumber = Mathf.Max(records.HomunculusNumber,
             PlayerPrefs.GetInt(LegacyHomunculusNumberKey, 0));
@@ -234,6 +238,32 @@ public static class SaveSystem
             float best = PlayerPrefs.GetFloat(LegacyBestClearSecondsKey, -1f);
             if (best > 0f && (records.BestClearSeconds < 0f || best < records.BestClearSeconds))
                 records.BestClearSeconds = best;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 저장 파일을 처음 읽을 때 튜토리얼 PlayerPrefs 값을 한 번 합친다. 합쳤으면 true (파일에 써야 함)
+    /// 튜토리얼 저장소가 PlayerPrefs를 쓰던 동안 쌓인 완료와 본 기록을 잃지 않기 위해서다.
+    /// </summary>
+    private static bool ImportTutorialPlayerPrefs(SaveFile file)
+    {
+        if (file.IsTutorialPlayerPrefsImported)
+        {
+            return false;
+        }
+
+        file.IsTutorialPlayerPrefsImported = true;
+
+        TutorialSaveData tutorial = file.Tutorial;
+        if (PlayerPrefs.GetInt(LegacyTutorialCompletedKey, 0) == 1)
+            tutorial.Completed = true;
+        string seen = PlayerPrefs.GetString(LegacyTutorialSeenRecordsKey, string.Empty);
+        foreach (string id in seen.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!tutorial.SeenRecords.Contains(id))
+                tutorial.SeenRecords.Add(id);
         }
 
         return true;
@@ -306,7 +336,7 @@ public static class SaveSystem
         }
 
         // 지운 뒤 예전 PlayerPrefs 값을 다시 가져오지 않는다.
-        s_file = new SaveFile { PlayerPrefsMigrated = true };
+        s_file = new SaveFile { PlayerPrefsMigrated = true, IsTutorialPlayerPrefsImported = true };
         s_isContinueRequested = false;
     }
 

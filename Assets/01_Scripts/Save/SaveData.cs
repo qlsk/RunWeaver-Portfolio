@@ -31,6 +31,9 @@ public class SaveFile
     /// <summary>예전 PlayerPrefs 저장을 이 파일로 옮겼는지. (한 번만 옮긴다)</summary>
     public bool PlayerPrefsMigrated;
 
+    /// <summary>튜토리얼 PlayerPrefs 값(완료, 본 기록)을 이 파일로 옮겼는지. 한 번만 옮긴다.</summary>
+    public bool IsTutorialPlayerPrefsImported;
+
     /// <summary>진행 중인 판이 있는지. 있으면 타이틀의 "이어하기"가 켜진다.</summary>
     public bool HasRun;
 
@@ -61,6 +64,8 @@ public class SettingsSaveData
 public class TutorialSaveData
 {
     public bool Completed;
+    /// <summary>2층 룬북 튜토리얼을 마쳤는지</summary>
+    public bool IsRuneBookTutorialCompleted;
     /// <summary>협회 지침서에서 본 기록 ID</summary>
     public List<string> SeenRecords = new();
 }
