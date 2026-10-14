@@ -2654,6 +2654,7 @@ RectTransform:
   - {fileID: 2109311788}
   - {fileID: 1727484289}
   - {fileID: 2031499458}
+  - {fileID: 1255537293}
   m_Father: {fileID: 709986238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -17778,6 +17779,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: ca5f6504254f45528d1bce332b0113e4, type: 3}
   m_PrefabInstance: {fileID: 950000077}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1255537292
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1255537293}
+  - component: {fileID: 1255537294}
+  m_Layer: 0
+  m_Name: RuneBookTutorialController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1255537293
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255537292}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 532162775}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1255537294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255537292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 929e00a47b38c5e4dbba383c37a618d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuneBookTutorialController
+  _steps:
+  - {fileID: 11400000, guid: 7603b93ab68d4f7e99d63e97e87eb2a3, type: 2}
+  - {fileID: 11400000, guid: 8faa0015377344fa9e8af873eaff7365, type: 2}
+  _guideCardView: {fileID: 1707174802}
+  _keyHintView: {fileID: 1563446}
+  _targetDepth: 2
+  _grantedRuneWordId: rune_chain
 --- !u!1 &1289855871
 GameObject:
   m_ObjectHideFlags: 0
@@ -21044,8 +21096,8 @@ MonoBehaviour:
   _worldMarkerView: {fileID: 9532466}
   _recordTracker: {fileID: 553566125}
   _grantedRuneWordIds:
-  - rune_earth
   - rune_wind
+  _lockedPrimaryElements: 03000000
   _minHealthRatio: 0.2
   _timeoutExtendSeconds: 30
 --- !u!1 &1727484288
