@@ -453,6 +453,8 @@ GameObject:
   - component: {fileID: 7452658974309964559}
   - component: {fileID: 7452658974309964560}
   - component: {fileID: 7452658974309964561}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 8
   m_Name: Boss
   m_TagString: Enemy
@@ -945,3 +947,29 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.8336763, y: 3.2018669}
   m_EdgeRadius: 0
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: -1.2909935

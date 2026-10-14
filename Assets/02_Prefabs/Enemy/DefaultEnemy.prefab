@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 4159379189657736575}
   - component: {fileID: 8730155746740385116}
   - component: {fileID: 9020738491113294831}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 0
   m_Name: DefaultEnemy
   m_TagString: Enemy
@@ -633,3 +635,29 @@ MonoBehaviour:
   _elementType: 0
   _enemyHealth: {fileID: 1329488125469041431}
   _burn: {fileID: 0}
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736172002666791356}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736172002666791356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: 0
