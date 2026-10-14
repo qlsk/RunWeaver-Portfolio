@@ -81,6 +81,8 @@ public class StageManager : MonoBehaviour
     [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")]
     [SerializeField] private GameObject _bossPrefab;
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
+    [Tooltip("보스 등장 연출 (보스가 공중에서 내려찍으며 나온다). 비워 두면 연출 없이 바로 나온다")]
+    [SerializeField] private BossIntroSequence _bossIntroPrefab;
 
     // 스테이지 진행
     private StagePhase _phase = StagePhase.Ready;
@@ -435,7 +437,7 @@ public class StageManager : MonoBehaviour
 
         if (_isBossStage)
         {
-            SpawnBoss();
+            BeginBossFight();
             return;
         }
 
@@ -983,7 +985,23 @@ public class StageManager : MonoBehaviour
 
     // ───────────────────────── 보스전 ─────────────────────────
 
-    private void SpawnBoss()
+    /// <summary>
+    /// 보스 등장 연출이 있으면 연출 중 내려찍는 순간에 보스를 만들고, 없으면 바로 만든다.
+    /// 연출이 끝날 때까지 보스는 공격하지 않는다. (BossIntroSequence가 묶어 둔다)
+    /// </summary>
+    private void BeginBossFight()
+    {
+        if (_bossIntroPrefab == null)
+        {
+            SpawnBoss();
+            return;
+        }
+
+        BossIntroSequence intro = Instantiate(_bossIntroPrefab);
+        intro.Play(_bossSpawnPosition, SpawnBoss);
+    }
+
+    private GameObject SpawnBoss()
     {
         GameObject prefab = _bossPrefab;
         if (prefab == null)
@@ -996,7 +1014,7 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError("[StageManager] 보스로 쓸 프리팹이 없어 보스 스테이지를 클리어 처리합니다.", this);
             DefeatBoss();
-            return;
+            return null;
         }
 
         GameObject boss = Instantiate(prefab, _bossSpawnPosition, Quaternion.identity);
@@ -1010,10 +1028,11 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError($"[StageManager] 보스 프리팹 '{prefab.name}'에 EnemyHealth가 없어 클리어 처리합니다.", this);
             DefeatBoss();
-            return;
+            return null;
         }
 
         Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
+        return boss;
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)
