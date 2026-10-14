@@ -9,7 +9,7 @@ public class SfxLibrary : ScriptableObject
 {
     [Header("파일명 규칙 매핑 (09_Audio)")]
     public AudioClip RunePickedUp;
-    public AudioClip Footsteps;
+    public AudioClip[] FootstepVariants;
     public AudioClip EnemyDeath;
     public AudioClip EnemyHit;
     public AudioClip PlayerHit;
@@ -29,4 +29,6 @@ public class SfxLibrary : ScriptableObject
     public AudioClip ElementWind;
     public AudioClip ElementEarth;
     public AudioClip StatueBreak;
+    public AudioClip UiClick;
+    public AudioClip UiHover;
 }

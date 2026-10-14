@@ -13,7 +13,9 @@ public class PlayerMove : MonoBehaviour
     private PlayerInputHandler _playerInputHandler;
     private Rigidbody2D _playerRigidbody2D;
     private float _stepTimer;
-    private const float StepInterval = 0.35f;
+    private const float StrideLength = 1.75f;
+    private const float MinStepInterval = 0.22f;
+    private const float MaxStepInterval = 0.6f;
 
     /// <summary>보상 특성용 이동속도 배율 (기본 1).</summary>
     public float TraitMoveSpeedMultiplier { get; set; } = 1f;
@@ -116,13 +118,15 @@ public class PlayerMove : MonoBehaviour
         float multiplier = _statusEffects != null ? _statusEffects.MoveSpeedMultiplier : 1f;
         _playerRigidbody2D.linearVelocity = moveDirection * (_playerMoveSpeed * multiplier * TraitMoveSpeedMultiplier);
 
-        if (moveDirection != Vector2.zero)
+        // 이동 속도에 맞춘 간격으로 발걸음 재생. 멈추면 예약 취소.
+        float speed = _playerRigidbody2D.linearVelocity.magnitude;
+        if (moveDirection != Vector2.zero && speed > 0.5f)
         {
             _stepTimer -= Time.fixedDeltaTime;
             if (_stepTimer <= 0f)
             {
-                _stepTimer = StepInterval;
-                Sfx.Play(Sfx.Footsteps);
+                Sfx.PlayFootstep();
+                _stepTimer = Mathf.Clamp(StrideLength / speed, MinStepInterval, MaxStepInterval);
             }
         }
         else
