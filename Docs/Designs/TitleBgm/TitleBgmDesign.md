@@ -44,9 +44,10 @@
 
 | 구분 | 대상 | 내용 |
 |---|---|---|
-| 신규 | `Assets/01_Scripts/Audio/Bgm.cs` | static 재생기 `Bgm`, 구동 컴포넌트 `BgmRunner` |
-| 신규 | `Assets/01_Scripts/UI/Title/TitleBgm.cs` | 인스펙터 값 보관, 재생 시작·페이드아웃 요청 |
-| 수정 | `Assets/01_Scripts/UI/Title/TitleMenuController.cs` | `TitleBgm` 참조 추가, 새 게임 시작 시 페이드아웃 요청 |
+| 신규 | [Bgm.cs](../../../Assets/01_Scripts/Audio/Bgm.cs) | static 재생기 `Bgm` |
+| 신규 | [BgmRunner.cs](../../../Assets/01_Scripts/Audio/BgmRunner.cs) | 구동 컴포넌트 `BgmRunner` |
+| 신규 | [TitleBgm.cs](../../../Assets/01_Scripts/UI/Title/TitleBgm.cs) | 인스펙터 값 보관, 재생 시작·페이드아웃 요청 |
+| 수정 | [TitleMenuController.cs](../../../Assets/01_Scripts/UI/Title/TitleMenuController.cs) | `TitleBgm` 참조 추가, 새 게임 시작 시 페이드아웃 요청 |
 | 수정 | `Assets/00_Scenes/StartScene.unity` | `TitleBgm` 오브젝트 추가, 참조 연결 |
 | 이동 | 음원 파일 | Downloads의 `Runes_of_the_Old_Gate_2026-10-14T003749.wav` → `Assets/09_Audio/Title_RunesOfTheOldGate.wav` |
 
@@ -95,7 +96,7 @@ stateDiagram-v2
 
 ### 단계 2. 재생기 `Bgm` 선언
 
-`Assets/01_Scripts/Audio/Bgm.cs`에 작성한다. `Sfx`와 같은 위치·방식이며, 구동 컴포넌트는 같은 파일 하단에 둔다.
+`Assets/01_Scripts/Audio/Bgm.cs`에 작성한다. `Sfx`와 같은 위치·방식이다. 구동 컴포넌트 `BgmRunner`는 MonoBehaviour이므로 클래스마다 별도 파일 원칙에 따라 `Assets/01_Scripts/Audio/BgmRunner.cs`에 따로 둔다.
 
 ```csharp
 public static class Bgm
@@ -124,7 +125,11 @@ public static class Bgm
     private static void StartClip();
     private static void ApplyVolume();
 }
+```
 
+`BgmRunner.cs`의 선언은 다음과 같다.
+
+```csharp
 public sealed class BgmRunner : MonoBehaviour
 {
     private void Update();
