@@ -62,6 +62,7 @@ public class MonsterSpawner : MonoBehaviour
         public GameObject Prefab;
         public EnemyDataSO Data;
         public List<SpawnClearance> Clearances;
+        public EnemyElementType Element;
 
         public int MinDepth => Data != null && Data.Info != null ? Data.Info.MinDepth : 1;
         public int Cost => Data != null && Data.Info != null ? Data.Info.Cost : 1;
@@ -79,6 +80,25 @@ public class MonsterSpawner : MonoBehaviour
     private readonly List<SpawnableEntry> _spawnableEntries = new List<SpawnableEntry>();
     private readonly Dictionary<EnemyHealth, int> _activeMonsterCostMap = new Dictionary<EnemyHealth, int>();
     private int _currentActiveBudget = 0;
+
+    /// <summary>이번 층의 등장 원소 집합. null이면 필터 없음. 스폰 시작 시 1회 결정된다.</summary>
+    private HashSet<EnemyElementType> _floorElements;
+
+    /// <summary>캐시된 풀에서 이번 층 원소 조합을 뽑는다.</summary>
+    private void ResolveFloorElements(int depth)
+    {
+        var available = _spawnableEntries
+            .Where(e => e.Prefab != null)
+            .Select(e => e.Element)
+            .ToList();
+        _floorElements = StageElementComposition.Resolve(depth, available);
+    }
+
+    private static EnemyElementType ResolveElement(GameObject prefab)
+    {
+        Enemy enemy = prefab.GetComponent<Enemy>() ?? prefab.GetComponentInChildren<Enemy>();
+        return enemy != null ? enemy.ElementType : EnemyElementType.None;
+    }
 
     private void Awake()
     {
@@ -152,7 +172,8 @@ public class MonsterSpawner : MonoBehaviour
             {
                 Prefab = prefab,
                 Data = data,
-                Clearances = BuildSpawnClearances(prefab)
+                Clearances = BuildSpawnClearances(prefab),
+                Element = ResolveElement(prefab),
             });
             validCount++;
         }
@@ -163,6 +184,7 @@ public class MonsterSpawner : MonoBehaviour
     public void StartSpawning(int depth)
     {
         if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
+        ResolveFloorElements(depth);
         _spawnCoroutine = StartCoroutine(ContinuousSpawnRoutine(depth));
     }
 
@@ -250,6 +272,15 @@ public class MonsterSpawner : MonoBehaviour
                 var eligiblePool = _spawnableEntries
                     .Where(e => e.Prefab != null && e.MinDepth <= depth && e.Cost <= availableBudget)
                     .ToList();
+
+                // ★ 층 원소 필터. 걸러서 남는 게 없으면 기존 풀을 그대로 쓴다 ★
+                if (_floorElements != null)
+                {
+                    var elementPool = eligiblePool
+                        .Where(e => e.Element == EnemyElementType.None || _floorElements.Contains(e.Element))
+                        .ToList();
+                    if (elementPool.Count > 0) eligiblePool = elementPool;
+                }
 
                 // 조건에 맞는 몬스터가 없으면 강제 대체 풀을 사용하지 않고 이번 스폰 시도를 중단(대기)
                 if (eligiblePool.Count == 0) break;
