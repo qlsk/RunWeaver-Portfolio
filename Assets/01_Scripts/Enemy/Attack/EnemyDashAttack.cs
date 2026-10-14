@@ -119,12 +119,12 @@ public class EnemyDashAttack : MonoBehaviour
             (_health != null && _health.IsDead) ||
             (_statusEffectController != null && _statusEffectController.IsRooted))
             return false;
-        if (_targetDetector.Target == null || Time.time < _nextAttackTime)
+        Transform target = _targetDetector.Target;
+        if (target == null || Time.time < _nextAttackTime)
             return false;
 
-        // 증기처럼 추적이 느려지는 효과를 받도록 마지막으로 관측한 위치를 겨눈다.
         Vector2 start = _body.position;
-        Vector2 toTarget = _targetDetector.LastKnownTargetPosition - start;
+        Vector2 toTarget = (Vector2)target.position - start;
         float distance = toTarget.magnitude;
         if (distance > _attackRange || distance <= _arrivalDistance)
             return false;

@@ -32,7 +32,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         public EnemyHealth Health;
         public EnemyStatusEffectController Status;
         public SpriteRenderer Body;
-        public Collider2D Feet;
         public GameObject Mark;
         public Animator MarkAnimator;
         public float Phase;
@@ -135,7 +134,7 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         }
 
         _inside.Clear();
-        foreach (Collider2D collider in ReactionAreaShape.OverlapAll(transform.position, _radius))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position, _radius))
         {
             if (!collider.TryGetComponent(out EnemyHealth enemy) || enemy.IsDead || !enemy.isActiveAndEnabled)
             {
@@ -172,7 +171,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
             Health = enemy,
             Status = enemy.GetComponent<EnemyStatusEffectController>(),
             Body = FindBody(enemy),
-            Feet = FindFeet(enemy),
             Phase = Random.Range(0f, Mathf.PI * 2f)
         };
         _targets.Add(enemy, target);
@@ -229,20 +227,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
         return enemy.GetComponentInChildren<SpriteRenderer>();
     }
 
-    /// <summary>
-    /// 적 루트의 이동용 콜라이더(트리거가 아닌 것)가 발밑이다. 그림 여백과 상관없이 몹마다 발 위치가 정확하다.
-    /// </summary>
-    private static Collider2D FindFeet(EnemyHealth enemy)
-    {
-        foreach (Collider2D collider in enemy.GetComponents<Collider2D>())
-        {
-            if (!collider.isTrigger)
-                return collider;
-        }
-
-        return null;
-    }
-
     // ───────────────────────── 표시 ─────────────────────────
 
     private void Apply(Target target)
@@ -266,7 +250,7 @@ public class ReactionFxEnemyMarks : MonoBehaviour
                 PlaceMark(target, new Vector3(bounds.center.x, bounds.max.y + 0.24f, 0f), 6);
                 break;
             case MarkMode.Mud:
-                PlaceMark(target, GetFeetPosition(target, bounds), 1);
+                PlaceMark(target, new Vector3(bounds.center.x, bounds.min.y + 0.06f, 0f), 1);
                 if (target.MarkAnimator != null)
                 {
                     target.MarkAnimator.SetBool(s_rootedHash, target.Status != null && target.Status.IsRooted);
@@ -274,17 +258,6 @@ public class ReactionFxEnemyMarks : MonoBehaviour
 
                 break;
         }
-    }
-
-    private static Vector3 GetFeetPosition(Target target, Bounds bodyBounds)
-    {
-        if (target.Feet != null && target.Feet.enabled)
-        {
-            Bounds feet = target.Feet.bounds;
-            return new Vector3(feet.center.x, feet.center.y, 0f);
-        }
-
-        return new Vector3(bodyBounds.center.x, bodyBounds.min.y + 0.06f, 0f);
     }
 
     private void ApplyLift(Target target)

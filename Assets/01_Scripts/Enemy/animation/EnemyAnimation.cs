@@ -67,12 +67,10 @@ public class EnemyAnimation : MonoBehaviour
 
         if ((_tank != null && _tank.IsAttackActive) || (_dash != null && _dash.IsDashActive) ||
             (_rock != null && _rock.IsAttackActive)) return;
-        // 증기처럼 추적이 느려지는 효과를 받도록 마지막으로 관측한 위치를 바라본다.
         if (_sprite != null && _target != null && _target.Target != null)
-        {
-            float targetX = _target.LastKnownTargetPosition.x;
-            _sprite.flipX = _reverse ? transform.position.x < targetX : transform.position.x > targetX;
-        }
+            _sprite.flipX = _reverse
+                ? transform.position.x < _target.Target.position.x
+                : transform.position.x > _target.Target.position.x;
     }
 
     private void OnProjectileFired()

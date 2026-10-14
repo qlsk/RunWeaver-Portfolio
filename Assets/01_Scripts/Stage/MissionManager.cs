@@ -84,22 +84,6 @@ public class MissionManager : MonoBehaviour
     /// <summary>미션 진행 중인지 (시작 오브젝트 상호작용 후 완료/실패 전)</summary>
     public bool IsMissionRunning => _isMissionRunning;
 
-    /// <summary>이번 층의 미션 종류. 준비된 미션이 없으면 null (저장용)</summary>
-    public MissionType? CurrentMissionType => _currentMission != null ? _lastMissionType : null;
-
-    /// <summary>다음 층부터 꺼낼 미션 셔플 백 (마지막 원소부터 꺼낸다. 저장용)</summary>
-    public IReadOnlyList<MissionType> GetMissionBag() => _missionBag.ToArray();
-
-    /// <summary>이어하기 : 저장된 셔플 백을 되돌린다.</summary>
-    public void RestoreMissionBag(IEnumerable<MissionType> bag)
-    {
-        _missionBag.Clear();
-        if (bag != null)
-        {
-            _missionBag.AddRange(bag);
-        }
-    }
-
     private void Awake()
     {
         if (s_instance == null)

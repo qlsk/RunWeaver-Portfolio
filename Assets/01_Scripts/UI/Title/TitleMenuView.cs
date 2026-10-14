@@ -37,24 +37,6 @@ public class TitleMenuView : MonoBehaviour
 
     public bool IsLocked => _isLocked;
 
-    /// <summary>지금 선택된 항목 순서</summary>
-    public int SelectedIndex => _selectedIndex;
-
-    /// <summary>항목. 없으면 null</summary>
-    public RuneMenuItemView GetItem(int index)
-    {
-        return index >= 0 && index < _items.Length ? _items[index] : null;
-    }
-
-    /// <summary>항목을 바로 선택한다. 누를 수 없는 항목이면 무시한다. (이어할 판이 있으면 이어하기를 먼저 선택)</summary>
-    public void SelectItem(int index)
-    {
-        if (index >= 0 && index < _items.Length && _items[index] != null && !_items[index].IsDisabled)
-        {
-            Select(index, true);
-        }
-    }
-
     private void OnEnable()
     {
         foreach (RuneMenuItemView item in _items)

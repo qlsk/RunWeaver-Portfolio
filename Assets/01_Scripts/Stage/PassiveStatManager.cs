@@ -110,28 +110,6 @@ public class PassiveStatManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>쌓인 스택이 있는 스탯 종류 (저장용)</summary>
-    public IEnumerable<PassiveStatType> StackedTypes => _stacks.Keys;
-
-    /// <summary>스택당 증가량. 없으면 기본값 (저장용)</summary>
-    public float GetValuePerStack(PassiveStatType type)
-    {
-        return _valuePerStack.TryGetValue(type, out float value) ? value : DefaultValuePerStack;
-    }
-
-    /// <summary>이어하기 : 저장된 스택을 그대로 되돌린다. (최대 레벨 검사 없이)</summary>
-    public void RestoreStacks(PassiveStatType type, int stacks, float valuePerStack)
-    {
-        if (stacks <= 0)
-        {
-            return;
-        }
-
-        _stacks[type] = stacks;
-        _valuePerStack[type] = valuePerStack > 0f ? valuePerStack : DefaultValuePerStack;
-        OnStatChanged?.Invoke(type);
-    }
-
     public int GetStacks(PassiveStatType type)
     {
         return _stacks.TryGetValue(type, out int count) ? count : 0;

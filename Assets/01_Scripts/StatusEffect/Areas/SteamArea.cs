@@ -141,7 +141,7 @@ public class SteamArea : MonoBehaviour
 
     private HashSet<EnemyHealth> FindDamageableEnemies()
     {
-        Collider2D[] colliders = ReactionAreaShape.OverlapAll(transform.position, _radius);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _radius);
         HashSet<EnemyHealth> enemies = new();
 
         foreach (Collider2D collider in colliders)

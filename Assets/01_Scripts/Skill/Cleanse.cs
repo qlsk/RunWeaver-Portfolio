@@ -28,16 +28,6 @@ public class Cleanse : MonoBehaviour
     private float _lastCooldownDuration;
     private readonly List<ReactionElement> _removed = new();
 
-    [Header("효과음")]
-    [Tooltip("시전음에 겹치는 성공음 크기 (상태이상을 하나 이상 풀었을 때)")]
-    [SerializeField, Range(0f, 1f)] private float _successVolume = 1f;
-    [Tooltip("시전음에 겹치는 빈 정화음 크기 (풀 상태이상이 없을 때)")]
-    [SerializeField, Range(0f, 1f)] private float _emptyVolume = 0.4f;
-    [SerializeField, Range(0f, 1f)] private float _cooldownVolume = 0.8f;
-    [Tooltip("재사용 대기 중에 연타해도 거절음이 겹치지 않게 하는 최소 간격(초)")]
-    [SerializeField, Min(0f)] private float _cooldownSoundInterval = 0.25f;
-    private float _lastCooldownSoundTime = float.NegativeInfinity;
-
     /// <summary>HUD용: 다시 정화할 수 있을 때까지 남은 시간(초). 쓸 수 있으면 0</summary>
     public float CooldownRemaining => _cooldownTimer;
 
@@ -63,7 +53,6 @@ public class Cleanse : MonoBehaviour
     {
         if (_cooldownTimer > 0f)
         {
-            PlayCooldownSound();
             return;
         }
 
@@ -89,27 +78,6 @@ public class Cleanse : MonoBehaviour
         Used?.Invoke(_removed);
         Cleansed?.Invoke(cleared);
         Sfx.Play(Sfx.CleanseSpell);
-        if (cleared > 0)
-        {
-            Sfx.Play(Sfx.CleanseSuccess, _successVolume);
-        }
-        else
-        {
-            Sfx.Play(Sfx.CleanseEmpty, _emptyVolume);
-        }
-    }
-
-    /// <summary>재사용 대기 중에 눌렀을 때. 연타하면 일정 간격으로만 낸다.</summary>
-    private void PlayCooldownSound()
-    {
-        float now = Time.unscaledTime;
-        if (now - _lastCooldownSoundTime < _cooldownSoundInterval)
-        {
-            return;
-        }
-
-        _lastCooldownSoundTime = now;
-        Sfx.Play(Sfx.CleanseCooldown, _cooldownVolume);
     }
 
     /// <summary>보상 특성용: 다음 정화 1회의 대기시간을 비율만큼 감산한다.</summary>

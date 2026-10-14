@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 상점에서 산 룬 워드 완성품 보유 수.
 /// - 완성품 1개로 룬 문자 없이 1번 활성화할 수 있다. (Confirm할 때 1개 소모)
-/// - 씬이 바뀌어도 유지된다. 게임을 껐다 켜면 이어하기로 돌아올 때만 되살아난다. (RunSaveController가 층 시작 때 저장)
+/// - 씬이 바뀌어도 유지되고, 게임을 다시 켜면 비워진다. (저장 시스템이 생기면 그쪽으로 옮긴다)
 /// </summary>
 public static class OwnedRuneWords
 {
@@ -22,9 +22,6 @@ public static class OwnedRuneWords
 
         return s_counts.TryGetValue(effectId, out int count) ? count : 0;
     }
-
-    /// <summary>보유한 완성품과 개수 (저장용 복사본)</summary>
-    public static IReadOnlyDictionary<string, int> GetAll() => new Dictionary<string, int>(s_counts);
 
     public static void Add(string effectId, int amount = 1)
     {
