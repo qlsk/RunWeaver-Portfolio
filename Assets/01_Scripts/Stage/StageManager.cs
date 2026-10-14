@@ -137,7 +137,10 @@ public class StageManager : MonoBehaviour
     public bool IsPortalOpen => _isPortalOpen;
 
     public float AutostartRemaining { get; private set; }
-    public bool IsAutoStartCounting => _autoStartDelay > 0f && _startInteractable != null && _phase == StagePhase.Ready;
+    public bool IsAutoStartCounting => _autoStartDelay > 0f && !IsAutoStartSuspended && _startInteractable != null && _phase == StagePhase.Ready;
+
+    /// <summary>true면 준비 단계의 자동 시작 카운트다운이 흐르지 않는다. (튜토리얼) 직접 시작(F)은 막지 않는다.</summary>
+    public bool IsAutoStartSuspended { get; set; }
 
     /// <summary>
     /// 타이머에 보여줄 남은 시간(초).
@@ -491,7 +494,7 @@ public class StageManager : MonoBehaviour
         if (_autoStartDelay <= 0f)
             return;
 
-        if (_startInteractable == null)
+        if (_startInteractable == null || IsAutoStartSuspended)
             return;
 
         AutostartRemaining -= Time.deltaTime;

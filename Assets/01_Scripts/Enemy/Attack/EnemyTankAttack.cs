@@ -169,6 +169,7 @@ public class EnemyTankAttack : MonoBehaviour
 
     private void ExecuteAttack()
     {
+        if (GetComponent<BossPatternController>() != null) Sfx.Play(Sfx.BossTankAttack);
         _damagedPlayers.Clear();
         _damagedAltars.Clear();
 

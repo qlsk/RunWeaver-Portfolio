@@ -158,6 +158,7 @@ public class TitleMenuController : MonoBehaviour
         if (_bgm != null) _bgm.FadeOut();
 
         SaveSystem.DeleteRun();
+        TutorialProgressStore.ResetForNewGame();
         GameSession session = GameSession.Instance;
         if (session != null && session.IsReady && !session.Current.Holdings.IsOnExpedition)
         {

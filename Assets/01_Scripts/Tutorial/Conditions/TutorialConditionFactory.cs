@@ -26,6 +26,10 @@ public static class TutorialConditionFactory
                 return new RewardConfirmCondition();
             case TutorialConditionKind.PortalEnter:
                 return new PortalEnterCondition();
+            case TutorialConditionKind.RuneBookOpen:
+                return new RuneBookOpenCondition();
+            case TutorialConditionKind.RuneEffectEquip:
+                return new RuneEffectEquipCondition();
             default:
                 return null;
         }

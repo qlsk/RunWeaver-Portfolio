@@ -13,6 +13,7 @@ using UnityEngine.UI;
 public class MainElementOrbView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private const float SelectedGlowAlpha = 0.9f;
+    private const float LockedDimRatio = 0.7f;
 
     [SerializeField] private ReactionElement _element;
 
@@ -31,6 +32,9 @@ public class MainElementOrbView : MonoBehaviour, IPointerClickHandler, IPointerE
     private bool _isSelected;
     private bool _isHovered;
 
+    /// <summary>true면 구슬이 어둡게 보이고 선택할 수 없다.</summary>
+    public bool IsLocked { get; private set; }
+
     public event Action<MainElementOrbView> Clicked;
     public event Action<MainElementOrbView> PointerEntered;
     public event Action<MainElementOrbView> PointerExited;
@@ -43,15 +47,31 @@ public class MainElementOrbView : MonoBehaviour, IPointerClickHandler, IPointerE
     private void Awake()
     {
         Color color = ReactionElementStyle.GetColor(_element);
-        if (_fill != null)
-        {
-            _fill.color = color;
-        }
-
         if (_glow != null)
         {
             _glow.color = new Color(color.r, color.g, color.b, SelectedGlowAlpha);
         }
+
+        RefreshFillColor();
+    }
+
+    /// <summary>잠그면 구슬이 어두워지고 호버 테두리가 뜨지 않는다. (튜토리얼에서 선택을 막을 때)</summary>
+    public void SetLocked(bool isLocked)
+    {
+        IsLocked = isLocked;
+        RefreshFillColor();
+        RefreshHoverRing();
+    }
+
+    private void RefreshFillColor()
+    {
+        if (_fill == null)
+        {
+            return;
+        }
+
+        Color color = ReactionElementStyle.GetColor(_element);
+        _fill.color = IsLocked ? Color.Lerp(color, Color.black, LockedDimRatio) : color;
     }
 
     private void OnDisable()
@@ -105,7 +125,7 @@ public class MainElementOrbView : MonoBehaviour, IPointerClickHandler, IPointerE
     // 선택된 구슬은 선택 테두리가 대신하므로, 선택되지 않은 구슬에 마우스를 올렸을 때만 보인다.
     private void RefreshHoverRing()
     {
-        SetActive(_hoverRing, _isHovered && !_isSelected);
+        SetActive(_hoverRing, _isHovered && !_isSelected && !IsLocked);
     }
 
     private static void SetActive(GameObject target, bool isActive)

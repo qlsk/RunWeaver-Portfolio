@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -33,6 +34,9 @@ public class RuneBookV2Toggle : MonoBehaviour
     [SerializeField] private bool _closeOnConfirm = true;
     [Tooltip("확정 연출(장착 칸이 차례로 빛남)을 보여준 뒤 닫기까지 (실제 시간, 룬북이 열린 동안 게임이 멈춘다)")]
     [SerializeField, Min(0f)] private float _closeDelayAfterConfirm = 0.55f;
+
+    /// <summary>룬북이 열렸을 때 (보기 전용으로 열린 경우도 포함)</summary>
+    public event Action Opened;
 
     private int _lastToggleFrame = -1;
     private Coroutine _closeRoutine;
@@ -136,6 +140,8 @@ public class RuneBookV2Toggle : MonoBehaviour
         {
             _pauseController.Pause();
         }
+
+        Opened?.Invoke();
     }
 
     /// <summary>

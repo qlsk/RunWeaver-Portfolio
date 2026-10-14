@@ -9,6 +9,8 @@ public class TutorialStepSO : ScriptableObject
     [SerializeField, TextArea] private string _body;
     [SerializeField] private TutorialConditionKind _condition;
     [SerializeField] private float _conditionValue;
+    [Tooltip("조건이 가리키는 대상 id. 룬 효과 장착 조건이 장착을 확인할 룬 효과 id")]
+    [SerializeField] private string _conditionTargetId;
 
     [Header("카드 행동 행")]
     [SerializeField] private TutorialActionRowKind _actionRow;
@@ -28,6 +30,7 @@ public class TutorialStepSO : ScriptableObject
     public string Body => _body;
     public TutorialConditionKind Condition => _condition;
     public float ConditionValue => _conditionValue;
+    public string ConditionTargetId => _conditionTargetId;
     public TutorialActionRowKind ActionRow => _actionRow;
     public IReadOnlyList<string> KeyLabels => _keyLabels;
     public string ActionLabel => _actionLabel;

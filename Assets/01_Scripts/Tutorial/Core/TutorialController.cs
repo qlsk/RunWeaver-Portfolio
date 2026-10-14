@@ -21,6 +21,10 @@ public class TutorialController : MonoBehaviour
     [Header("룬석 지급")]
     [SerializeField] private string[] _grantedRuneWordIds;
 
+    [Header("주력 원소 제한")]
+    [Tooltip("튜토리얼 중 주력 원소 선택에서 막을 원소")]
+    [SerializeField] private ReactionElement[] _lockedPrimaryElements;
+
     [Header("임무 실패 없음")]
     [SerializeField][Range(0f, 1f)] private float _minHealthRatio = 0.2f;
     [SerializeField][Min(1f)] private float _timeoutExtendSeconds = 30f;
@@ -137,7 +141,8 @@ public class TutorialController : MonoBehaviour
 
         _stageManager.MissionCleared += HandleMissionCleared;
 
-        _rules = new TutorialRules(_grantedRuneWordIds, _minHealthRatio, _timeoutExtendSeconds, _recordTracker);
+        _rules = new TutorialRules(_grantedRuneWordIds, _minHealthRatio, _timeoutExtendSeconds, _recordTracker,
+            _lockedPrimaryElements);
         _rules.Apply();
 
         BeginStep(0);

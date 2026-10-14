@@ -10,6 +10,7 @@ public class RuneEffectLoadout
 {
     public const int PrimaryElementSlotIndex = 0;
     public const int ElementRuneEffectSlotIndex = 1;
+    public const int InitialSlotCount = 3;
 
     // 참조 필드
     private readonly RuneEffectDatabase _effectDatabase;
@@ -22,17 +23,17 @@ public class RuneEffectLoadout
 
     public int ActiveSlotCount { get; private set; }
 
-    /// <summary>보상 특성용: 슬롯 최대치. 기본 2칸에서 시작한다.</summary>
+    /// <summary>활성 슬롯의 최대치. 층 진행에 따라 시작 칸 수에서 이 값까지 개방된다.</summary>
     public const int MaxSlotCount = 5;
 
     /// <summary>
-    /// 기본 활성 슬롯 두 칸을 가진 빈 룬 효과 로드아웃을 생성한다.
+    /// 시작 칸 수만큼 활성 슬롯을 가진 빈 룬 효과 로드아웃을 생성한다.
     /// </summary>
     public RuneEffectLoadout(RuneEffectDatabase runeEffectDatabase)
     {
         _effectDatabase = runeEffectDatabase;
-        _equippedEffectIds = new List<string>(5);
-        ActiveSlotCount = 2;
+        _equippedEffectIds = new List<string>(MaxSlotCount);
+        ActiveSlotCount = InitialSlotCount;
     }
 
     /// <summary>
@@ -139,9 +140,7 @@ public class RuneEffectLoadout
         LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 
-    /// <summary>
-    /// 보상 특성용: 활성 슬롯을 1칸 늘린다. 최대 MaxSlotCount까지. 성공 시 true.
-    /// </summary>
+    /// <summary>활성 슬롯을 1칸 늘린다. 저장 복원이 칸 수를 되살릴 때 쓰며, 최대치면 false.</summary>
     public bool ExpandSlots()
     {
         if (ActiveSlotCount >= MaxSlotCount)
@@ -154,12 +153,10 @@ public class RuneEffectLoadout
         return true;
     }
 
-    /// <summary>
-    /// 보상 특성용: 활성 슬롯을 기본값(2칸)으로 되돌린다. 런 종료 시 호출.
-    /// </summary>
+    /// <summary>활성 슬롯을 시작 칸 수로 되돌린다. 런 종료와 저장 복원 시작 시 호출.</summary>
     public void ResetSlots()
     {
-        ActiveSlotCount = 2;
+        ActiveSlotCount = InitialSlotCount;
         LoadoutChanged?.Invoke(_equippedEffectIds);
     }
 
@@ -195,5 +192,19 @@ public class RuneEffectLoadout
     private static bool IsEndEffect(string effectId)
     {
         return effectId == RuneEffectIds.Return || effectId == RuneEffectIds.Orbit || effectId == RuneEffectIds.Fix;
+    }
+
+    /// <summary>활성 슬롯을 최대치로 제한한 targetCount칸까지 늘린다. 실제로 늘었으면 true, 이미 같거나 많으면 false.</summary>
+    public bool EnsureSlotCount(int targetCount)
+    {
+        if (targetCount > MaxSlotCount)
+            targetCount = MaxSlotCount;
+
+        if (targetCount <= ActiveSlotCount)
+            return false;
+
+        ActiveSlotCount = targetCount;
+        LoadoutChanged?.Invoke(_equippedEffectIds);
+        return true;
     }
 }

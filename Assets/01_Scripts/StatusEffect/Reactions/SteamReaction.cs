@@ -21,5 +21,6 @@ public class SteamReaction : MonoBehaviour
         SteamArea steamArea = Instantiate(_steamAreaPrefab, context.HitPosition, Quaternion.identity);
         steamArea.Initialize(steamTickDamage, _steamRadius, _steamTickInterval, _steamDuration,
             _trackingIntervalMultiplier);
+        Sfx.Play(Sfx.ReactSteam);
     }
 }

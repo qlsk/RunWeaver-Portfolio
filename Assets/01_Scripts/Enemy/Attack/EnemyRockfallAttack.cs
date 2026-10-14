@@ -167,6 +167,7 @@ public class EnemyRockfallAttack : MonoBehaviour
                 strike.HasHit = true;
                 DestroyVisual(strike.Warning);
                 State = EnemyAttackState.Attacking;
+                if (GetComponent<BossPatternController>() != null) Sfx.Play(Sfx.BossRackFall);
                 RockErupted?.Invoke();
                 if (State == EnemyAttackState.Idle) return;
                 ApplyDamage(strike.Center);
