@@ -12,6 +12,7 @@ public class DepthPanelPresenter : MonoBehaviour
     [SerializeField] private StageStatusSource _source;
     [SerializeField] private FadePanelView _panel;
     [SerializeField] private TMP_Text _depthText;
+    private StageManager _stageManager;
 
     [Tooltip("{0}: 스테이지 이름, {1}: 심도")]
     [SerializeField] private string _depthFormat = "{0} - {1}";
@@ -27,6 +28,13 @@ public class DepthPanelPresenter : MonoBehaviour
 
     private void OnEnable()
     {
+        _stageManager = FindAnyObjectByType<StageManager>();
+        if (_stageManager != null)
+        {
+            _stageManager.PhaseChanged += HandlePhaseChanged;
+            HandlePhaseChanged(_stageManager.Phase);
+        }
+
         if (_source == null)
         {
             Debug.LogWarning("[DepthPanelPresenter] 스테이지 상태 소스가 할당되지 않았습니다.", this);
@@ -38,6 +46,11 @@ public class DepthPanelPresenter : MonoBehaviour
 
     private void OnDisable()
     {
+        if (_stageManager != null)
+        {
+            _stageManager.PhaseChanged -= HandlePhaseChanged;
+        }
+
         if (_source != null)
         {
             _source.StageEntered -= HandleStageEntered;
@@ -46,6 +59,8 @@ public class DepthPanelPresenter : MonoBehaviour
 
     private void HandleStageEntered(int depth, string stageName)
     {
+        if (_stageManager != null && _stageManager.Phase != StagePhase.Ready) return;
+
         if (_depthText != null)
         {
             _depthText.text = string.Format(_depthFormat, stageName, depth);
@@ -54,6 +69,20 @@ public class DepthPanelPresenter : MonoBehaviour
         if (_panel != null)
         {
             _panel.Play();
+        }
+    }
+
+    private void HandlePhaseChanged(StagePhase phase)
+    {
+        if (_panel == null) return;
+
+        if (phase == StagePhase.InMission)
+        {
+            _panel.FadeOut();
+        }
+        else if (phase != StagePhase.Ready)
+        {
+            _panel.Hide();
         }
     }
 }
