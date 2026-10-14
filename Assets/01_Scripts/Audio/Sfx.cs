@@ -23,11 +23,15 @@ public static class Sfx
     public const string TraitSelect = "TraitSelect";
     public const string Dash = "Dash";
     public const string CleanseSpell = "CleanseSpell";
+    public const string CleanseSuccess = "CleanseSuccess";
+    public const string CleanseEmpty = "CleanseEmpty";
+    public const string CleanseCooldown = "CleanseCooldown";
     public const string MissionStart = "MissionStart";
     public const string ElementFire = "ElementFire";
     public const string ElementWater = "ElementWater";
     public const string ElementWind = "ElementWind";
     public const string ElementEarth = "ElementEarth";
+    public const string EndingStamp = "EndingStamp";
 
     private const int PoolSize = 8;
 
@@ -137,11 +141,15 @@ public static class Sfx
         Add(TraitSelect, library.TraitSelect);
         Add(Dash, library.Dash);
         Add(CleanseSpell, library.CleanseSpell);
+        Add(CleanseSuccess, library.CleanseSuccess);
+        Add(CleanseEmpty, library.CleanseEmpty);
+        Add(CleanseCooldown, library.CleanseCooldown);
         Add(MissionStart, library.MissionStart);
         Add(ElementFire, library.ElementFire);
         Add(ElementWater, library.ElementWater);
         Add(ElementWind, library.ElementWind);
         Add(ElementEarth, library.ElementEarth);
+        Add(EndingStamp, library.EndingStamp);
         return _clips.Count > 0;
     }
 
