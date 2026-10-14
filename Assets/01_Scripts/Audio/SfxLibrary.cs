@@ -23,10 +23,20 @@ public class SfxLibrary : ScriptableObject
     public AudioClip TraitSelect;
     public AudioClip Dash;
     public AudioClip CleanseSpell;
+    [Tooltip("정화로 상태이상을 하나 이상 풀었을 때 (시전음에 겹친다)")]
+    public AudioClip CleanseSuccess;
+    [Tooltip("풀 상태이상이 없을 때 (시전음에 겹친다)")]
+    public AudioClip CleanseEmpty;
+    [Tooltip("재사용 대기 중에 눌렀을 때")]
+    public AudioClip CleanseCooldown;
     public AudioClip MissionStart;
     public AudioClip ElementFire;
     public AudioClip ElementWater;
     public AudioClip ElementWind;
     public AudioClip ElementEarth;
-    public AudioClip StatueBreak;
+    [Tooltip("엔딩 보고서에 결과 도장이 찍힐 때")]
+    public AudioClip EndingStamp;
+    public AudioClip MenuMove;
+    public AudioClip MenuConfirm;
+    public AudioClip MenuCancel;
 }
