@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class BossHealthBar : MonoBehaviour
 {
     [SerializeField] private Vector2 _size = new(900f, 116f);
-    [SerializeField] private float _topMargin = 32f;
+    [Tooltip("1920x1080 기준. 높이 116인 체력바의 중심을 중앙 임무 안내 위치(y=-160)에 맞춘다.")]
+    [SerializeField] private float _topMargin = 102f;
     [SerializeField, Min(0.1f)] private float _animationFramesPerSecond = 8f;
 
     private EnemyHealth _health;

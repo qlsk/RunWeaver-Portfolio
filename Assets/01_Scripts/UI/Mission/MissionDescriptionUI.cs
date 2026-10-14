@@ -41,7 +41,7 @@ public class MissionDescriptionUI : MonoBehaviour
 
     private void HandlePhaseChanged(StagePhase phase)
     {
-        if (phase == StagePhase.InMission)
+        if (phase == StagePhase.InMission && _stageManager != null && !_stageManager.IsBossStage)
         {
             ClearMissionDescription(0);
             _showRoutine = StartCoroutine(ShowAfterDepthPanel());
@@ -78,6 +78,12 @@ public class MissionDescriptionUI : MonoBehaviour
 
     public void UpdateMissionDescription(int currentDepth)
     {
+        if (_stageManager != null && _stageManager.IsBossStage)
+        {
+            ClearMissionDescription(0);
+            return;
+        }
+
         if (_missionDescription == null || _stageManager == null || _hintPanel == null) return;
 
         _missionDescription.text = _stageManager.ObjectiveDescription;
