@@ -229,7 +229,6 @@ public class Portal : MonoBehaviour, IInteractable
         _isReady = false;
         _isEntering = true;
         SetColliderEnabled(false);
-        Sfx.Play(Sfx.PortalMove);
 
         if (!HasAnimation)
         {
