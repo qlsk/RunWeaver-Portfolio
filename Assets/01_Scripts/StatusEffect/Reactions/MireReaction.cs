@@ -17,5 +17,6 @@ public class MireReaction : MonoBehaviour
     {
         MireArea area = Instantiate(_mireAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_mireRadius, _mireDuration, _moveSpeedMultiplier, _rootExposureDuration);
+        Sfx.Play(Sfx.ReactMire);
     }
 }

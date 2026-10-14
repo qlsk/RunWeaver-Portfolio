@@ -28,6 +28,8 @@ public class BossPatternController : MonoBehaviour
     private MonoBehaviour _activeAttack;
     private float _nextPatternTime;
     private float _recoveryEndTime;
+    private Rigidbody2D _body;
+    private float _stepTimer;
 
     public int Phase { get; private set; } = 1;
     public MonoBehaviour ActiveAttack => _activeAttack;
@@ -43,6 +45,7 @@ public class BossPatternController : MonoBehaviour
         _health = GetComponent<EnemyHealth>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _statusEffects = GetComponentInParent<EnemyStatusEffectController>();
+        _body = GetComponent<Rigidbody2D>();
         SetExternalControl();
     }
 
@@ -86,6 +89,7 @@ public class BossPatternController : MonoBehaviour
             return;
         }
         if (_activeAttack != null) return;
+        UpdateFootsteps();
         if (IsRecovering)
         {
             if (Time.time < _recoveryEndTime) return;
@@ -101,6 +105,7 @@ public class BossPatternController : MonoBehaviour
         if (_shockwave != null && Phase >= _shockwaveMinimumPhase && _shockwave.TryStartAttack())
         {
             _activeAttack = _shockwave;
+            Sfx.Play(Sfx.BossTryShockwave);
             return;
         }
         // 쿨타임 때문에 근거리 공격 대신 낙석이 선택되지 않도록 거리를 먼저 판정
@@ -116,6 +121,7 @@ public class BossPatternController : MonoBehaviour
         if (_dash == null || Phase < _dashMinimumPhase || !_dash.TryStartAttack()) return false;
         _activeAttack = _dash;
         _nextFarAttackIsRockfall = true;
+        Sfx.Play(Sfx.BossTryDash);
         return true;
     }
 
@@ -129,6 +135,7 @@ public class BossPatternController : MonoBehaviour
     {
         if (_tank == null || Phase < _tankMinimumPhase || !_tank.TryStartAttack()) return false;
         _activeAttack = _tank;
+        Sfx.Play(Sfx.BossTryTank);
         return true;
     }
 
@@ -137,6 +144,7 @@ public class BossPatternController : MonoBehaviour
         if (_rockfall == null || Phase < _rockfallMinimumPhase || !_rockfall.TryStartAttack()) return false;
         _activeAttack = _rockfall;
         _nextFarAttackIsRockfall = false;
+        Sfx.Play(Sfx.BossTryRockfall);
         return true;
     }
 
@@ -166,6 +174,24 @@ public class BossPatternController : MonoBehaviour
         IsRecovering = true;
         _recoveryEndTime = Time.time + recovery;
         _motor.AcquirePositionLock(this);
+    }
+
+    /// <summary>보스 이동 발걸음. 패턴·회복 중이 아닐 때만 실제 속도에 맞춰 울린다.</summary>
+    private void UpdateFootsteps()
+    {
+        float speed = _body != null ? _body.linearVelocity.magnitude : 0f;
+        if (speed < 0.3f)
+        {
+            _stepTimer = 0f;
+            return;
+        }
+
+        _stepTimer -= Time.fixedDeltaTime;
+        if (_stepTimer <= 0f)
+        {
+            Sfx.Play(Sfx.BossFootstep);
+            _stepTimer = Mathf.Clamp(1.75f / speed, 0.5f, 2f);
+        }
     }
 
     private void CancelAll()

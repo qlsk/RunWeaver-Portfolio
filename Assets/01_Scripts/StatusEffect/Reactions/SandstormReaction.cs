@@ -19,5 +19,6 @@ public class SandstormReaction : MonoBehaviour
         SandstormArea area = Instantiate(_sandstormAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_sandstormRadius, _sandstormDuration, context.BulletDamage * _tickDamageMultiplier,
             _tickInterval, _pullSpeed, _defenseMultiplier);
+        Sfx.Play(Sfx.ReactSandstorm);
     }
 }

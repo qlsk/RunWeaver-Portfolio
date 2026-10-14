@@ -30,6 +30,7 @@ public class OverHeatReaction : MonoBehaviour
 
         EmberArea emberArea = Instantiate(_emberAreaPrefab, context.HitPosition, Quaternion.identity);
         emberArea.Initialize(emberTickDamage, _emberTickInterval, _emberDuration);
+        Sfx.Play(Sfx.ReactOverheat);
     }
 
     private void ApplyExplosionDamage(Vector2 hitPosition, float damage)
