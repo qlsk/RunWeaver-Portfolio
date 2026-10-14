@@ -8,6 +8,8 @@ using UnityEngine.UI;
 /// - 그림과 배치는 Resources/HudHints/HudMenuHints 프리팹, 움직임은 그 Animator의 클립이 한다.
 ///   이 컴포넌트는 "Dim"(옅게 보일지)과 "Notify"(알림이 켜졌는지) 값만 정해 넘긴다.
 /// - 초반 층에서는 또렷하고, _fadeFromDepth 층부터는 옅게 보인다.
+/// - 층 사이 상점이 열려 있는 동안(StagePhase.Shop)은 통째로 숨긴다. 상점에서는 Tab(룬북)이 막혀 있고
+///   Esc는 일시정지가 아니라 상점 나가기라 안내가 맞지 않고, 상점의 자원 표시와 자리가 겹친다.
 /// - 새로 장착할 수 있게 된 룬 워드가 생기면(룬 문자가 모이거나 완성품을 얻어서) 룬북 아이콘에 하늘색 점과 푸른빛이 켜진다.
 ///   룬북을 열면 꺼지고, 그 뒤 또 새로 장착 가능한 룬 워드가 생기면 다시 켜진다.
 /// - PulseRuneBook : 룬북 아이콘 뒤의 금빛(프리팹의 RuneBookPulse 이미지)이 한 번 부풀었다 사라진다. (룬석 보상 카드를 골랐을 때)
@@ -147,9 +149,21 @@ public class HudMenuHints : MonoBehaviour
             return;
         }
 
+        // 상점이 열려 있는 동안은 숨긴다. (숨긴 동안에는 애니메이터 값을 넘기지 않는다)
+        StageManager stage = StageManager.Instance;
+        bool isInShop = stage != null && stage.Phase == StagePhase.Shop;
+        if (_hints.activeSelf == isInShop)
+        {
+            _hints.SetActive(!isInShop);
+        }
+
+        if (isInShop)
+        {
+            return;
+        }
+
         RefreshRuneBookHintVisibility();
 
-        StageManager stage = StageManager.Instance;
         int depth = stage != null ? stage.CurrentDepth : 1;
         _animator.SetFloat(s_dimHash, depth >= _fadeFromDepth ? 1f : 0f);
 
