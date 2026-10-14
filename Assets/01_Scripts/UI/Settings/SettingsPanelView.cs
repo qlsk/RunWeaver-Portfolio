@@ -96,23 +96,32 @@ public class SettingsPanelView : MonoBehaviour
     /// <summary>저장하고 닫는다.</summary>
     public void Apply()
     {
+        // 창이 열려 있지 않으면 종료한다.
         if (!IsOpen)
         {
             return;
         }
 
+        // 현재 설정을 저장한다.
         GameSettings.Save();
+
+        // 확정음을 재생한다.
+        Sfx.Play(Sfx.MenuConfirm);
+
+        // 창을 닫는다.
         Close();
     }
 
     /// <summary>창을 열기 전 값으로 되돌리고 닫는다.</summary>
     public void Cancel()
     {
+        // 창이 열려 있지 않으면 종료한다.
         if (!IsOpen)
         {
             return;
         }
 
+        // 각 볼륨과 전체 화면 여부를 창을 열기 전 값으로 되돌린다.
         GameSettings.SetMasterVolume(_savedMaster);
         GameSettings.SetBgmVolume(_savedBgm);
         GameSettings.SetSfxVolume(_savedSfx);
@@ -121,6 +130,10 @@ public class SettingsPanelView : MonoBehaviour
             GameSettings.SetFullscreen(_savedFullscreen);
         }
 
+        // 취소음을 재생한다.
+        Sfx.Play(Sfx.MenuCancel);
+
+        // 창을 닫는다.
         Close();
     }
 

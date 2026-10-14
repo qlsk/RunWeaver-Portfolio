@@ -34,6 +34,7 @@ public class TitleMenuView : MonoBehaviour
 
     /// <summary>항목을 결정했을 때. 인자는 항목 순서</summary>
     public event Action<int> Confirmed;
+    public event Action Moved;
 
     public bool IsLocked => _isLocked;
 
@@ -192,7 +193,13 @@ public class TitleMenuView : MonoBehaviour
 
     private void Select(int index, bool snap)
     {
+        // 바뀌기 전의 선택 항목을 기억해 둔다.
+        int prevIndex = _selectedIndex;
+
+        // 새 선택 항목을 기록한다.
         _selectedIndex = index;
+
+        // 모든 항목의 선택 표시를 갱신한다.
         for (int i = 0; i < _items.Length; i++)
         {
             if (_items[i] == null)
@@ -200,12 +207,17 @@ public class TitleMenuView : MonoBehaviour
                 continue;
             }
 
+            // 즉시 전환이 지정되었으면 표시를 곧바로 맞춘다.
             _items[i].IsSelected = i == index;
             if (snap)
             {
                 _items[i].SnapSelection();
             }
         }
+
+        // 즉시 전환이 아니고, 선택 항목이 이전과 다르다면 이동 알림을 보낸다.
+        if (!snap && prevIndex != _selectedIndex)
+            Moved?.Invoke();
     }
 
     private void Confirm(int index)

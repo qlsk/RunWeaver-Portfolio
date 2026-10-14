@@ -41,6 +41,9 @@ public class TitleMenuController : MonoBehaviour
     [Header("설정 창 (SettingsUI 루트)")]
     [SerializeField] private GameObject _settingsPanel;
 
+    [Header("BGM")]
+    [SerializeField] private TitleBgm _bgm;
+
     private SettingsPanelView _settingsView;
     private bool _isStarting;
     private int _confirmOpenedFrame = -1;
@@ -53,12 +56,18 @@ public class TitleMenuController : MonoBehaviour
 
         if (_menu != null) _menu.Confirmed += HandleConfirmed;
         if (_settingsView != null) _settingsView.Closed += HandleSettingsClosed;
+
+        if (_menu != null)
+            _menu.Moved += HandleMoved;
     }
 
     private void OnDestroy()
     {
         if (_menu != null) _menu.Confirmed -= HandleConfirmed;
         if (_settingsView != null) _settingsView.Closed -= HandleSettingsClosed;
+
+        if (_menu != null)
+            _menu.Moved -= HandleMoved;
     }
 
     private void Start()
@@ -95,8 +104,18 @@ public class TitleMenuController : MonoBehaviour
         }
     }
 
+    private static void HandleMoved()
+    {
+        // 메뉴 이동음을 한 번 재생한다.
+        Sfx.Play(Sfx.MenuMove);
+    }
+
     private void HandleConfirmed(int index)
     {
+        // 확정음을 한 번 재생한다.
+        Sfx.Play(Sfx.MenuConfirm);
+
+        // 항목별 분기를 수행한다.
         switch (index)
         {
             case NewGameIndex:
@@ -126,12 +145,18 @@ public class TitleMenuController : MonoBehaviour
 
     private void StartNewGame()
     {
+        // 이미 시작 중이면 종료한다.
         if (_isStarting)
         {
             return;
         }
 
+        // 시작 중 상태로 전환한다.
         _isStarting = true;
+
+        // BGM 페이드아웃을 요청한다.
+        _bgm.FadeOut();
+
         SaveSystem.DeleteRun();
         GameSession session = GameSession.Instance;
         if (session != null && session.IsReady && !session.Current.Holdings.IsOnExpedition)
@@ -161,6 +186,10 @@ public class TitleMenuController : MonoBehaviour
         }
 
         _isStarting = true;
+
+        // BGM 페이드아웃을 요청한다.
+        _bgm.FadeOut();
+
         SaveSystem.RequestContinue();
 
         if (_sequence != null)

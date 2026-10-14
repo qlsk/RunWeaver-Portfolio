@@ -36,4 +36,7 @@ public class SfxLibrary : ScriptableObject
     public AudioClip ElementEarth;
     [Tooltip("엔딩 보고서에 결과 도장이 찍힐 때")]
     public AudioClip EndingStamp;
+    public AudioClip MenuMove;
+    public AudioClip MenuConfirm;
+    public AudioClip MenuCancel;
 }
