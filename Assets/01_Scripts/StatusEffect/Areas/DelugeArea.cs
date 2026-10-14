@@ -132,7 +132,7 @@ public class DelugeArea : MonoBehaviour
     /// 범위 내 살아 있는 적의 활성 상태 효과 컴포넌트를 중복 없이 조회한다.
     private HashSet<EnemyStatusEffectController> FindStatusEffects()
     {
-        Collider2D[] colliders = ReactionAreaShape.OverlapAll(transform.position, _radius);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _radius);
         HashSet<EnemyStatusEffectController> statusEffects = new();
         foreach (Collider2D collider in colliders)
         {

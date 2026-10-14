@@ -87,11 +87,11 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void Update()
     {
-        // 마우스 position 갱신
-        _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
         if (CanUseWeaponInput)
         {
+            // 게임 입력이 허용될 때만 마우스 position 갱신
+            _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
             // player move input 갱신
             float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
             float vertical = Input.GetAxisRaw("Vertical"); // 상 하

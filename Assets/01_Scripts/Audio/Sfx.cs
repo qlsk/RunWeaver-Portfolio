@@ -23,33 +23,87 @@ public static class Sfx
     public const string TraitSelect = "TraitSelect";
     public const string Dash = "Dash";
     public const string CleanseSpell = "CleanseSpell";
+    public const string CleanseSuccess = "CleanseSuccess";
+    public const string CleanseEmpty = "CleanseEmpty";
+    public const string CleanseCooldown = "CleanseCooldown";
     public const string MissionStart = "MissionStart";
     public const string ElementFire = "ElementFire";
     public const string ElementWater = "ElementWater";
     public const string ElementWind = "ElementWind";
     public const string ElementEarth = "ElementEarth";
+    public const string EndingStamp = "EndingStamp";
+    public const string MenuMove = "MenuMove";
+    public const string MenuConfirm = "MenuConfirm";
+    public const string MenuCancel = "MenuCancel";
+    public const string StatueBreak = "StatueBreak";
+    public const string ShopDrawer = "ShopDrawer";
+    public const string ShopDoorBell = "ShopDoorBell";
+    public const string ShopLeave = "ShopLeave";
+    public const string ShopSelect = "ShopSelect";
+    public const string ShopBuyCommon = "ShopBuyCommon";
+    public const string ShopBuyMagic = "ShopBuyMagic";
+    public const string ShopBuyPotion = "ShopBuyPotion";
+    public const string ShopDenied = "ShopDenied";
+    public const string ShopGold = "ShopGold";
+    public const string ShopSoldOut = "ShopSoldOut";
+    public const string ShopReroll = "ShopReroll";
+    public const string ShopFlip = "ShopFlip";
+    public const string ShopPoke = "ShopPoke";
+    public const string ShopAnnoyed = "ShopAnnoyed";
+    public const string ShopSecret = "ShopSecret";
 
     private const int PoolSize = 8;
 
-    private static GameObject _root;
-    private static SfxRunner _runner;
-    private static readonly List<AudioSource> _pool = new();
-    private static int _poolIndex;
-    private static readonly Dictionary<string, AudioSource> _loops = new();
-    private static readonly Dictionary<string, AudioClip> _clips = new();
-    private static bool _loaded;
-    private static bool _warned;
-    private static bool _subscribed;
+    private static GameObject s_root;
+    private static SfxRunner s_runner;
+    private static readonly List<AudioSource> s_pool = new();
+    private static int s_poolIndex;
+    private static readonly Dictionary<string, AudioSource> s_loops = new();
+    private static readonly Dictionary<string, AudioClip> s_clips = new();
+    private static readonly List<AudioClip> s_shopCardDeal = new();
+    private static readonly List<AudioClip> s_shopTalk = new();
+    private static bool s_loaded;
+    private static bool s_warned;
+    private static bool s_subscribed;
 
     public static void Play(string id, float volumeScale = 1f, float pitch = 1f)
     {
         if (!EnsureLibrary()) return;
-        if (!_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
+        if (!s_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
         EnsureRoot();
         for (int i = 0; i < PoolSize; i++)
         {
-            AudioSource source = _pool[_poolIndex];
-            _poolIndex = (_poolIndex + 1) % PoolSize;
+            AudioSource source = s_pool[s_poolIndex];
+            s_poolIndex = (s_poolIndex + 1) % PoolSize;
+            if (source == null) continue;
+            source.pitch = pitch;
+            source.PlayOneShot(clip, volumeScale);
+            return;
+        }
+    }
+
+    /// <summary>상점 칸 등장음. 5종 중 무작위.</summary>
+    public static void PlayShopCardDeal()
+    {
+        PlayFromList(s_shopCardDeal, 1f, Random.Range(0.97f, 1.03f));
+    }
+
+    /// <summary>상점 주인 말풍선 글자음. 2종 교대 + 음높이 jitter.</summary>
+    public static void PlayShopTalk()
+    {
+        PlayFromList(s_shopTalk, 0.6f, Random.Range(0.95f, 1.15f));
+    }
+
+    private static void PlayFromList(List<AudioClip> list, float volumeScale, float pitch)
+    {
+        if (!EnsureLibrary() || list.Count == 0) return;
+        AudioClip clip = list[Random.Range(0, list.Count)];
+        if (clip == null) return;
+        EnsureRoot();
+        for (int i = 0; i < PoolSize; i++)
+        {
+            AudioSource source = s_pool[s_poolIndex];
+            s_poolIndex = (s_poolIndex + 1) % PoolSize;
             if (source == null) continue;
             source.pitch = pitch;
             source.PlayOneShot(clip, volumeScale);
@@ -60,22 +114,22 @@ public static class Sfx
     public static void PlayLoop(string id)
     {
         if (!EnsureLibrary()) return;
-        if (_loops.ContainsKey(id)) return;
-        if (!_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
+        if (s_loops.ContainsKey(id)) return;
+        if (!s_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
         EnsureRoot();
-        AudioSource source = _root.AddComponent<AudioSource>();
+        AudioSource source = s_root.AddComponent<AudioSource>();
         source.playOnAwake = false;
         source.loop = true;
         source.clip = clip;
         ApplyVolume(source);
         source.Play();
-        _loops[id] = source;
+        s_loops[id] = source;
     }
 
     public static void StopLoop(string id)
     {
-        if (!_loops.TryGetValue(id, out AudioSource source)) return;
-        _loops.Remove(id);
+        if (!s_loops.TryGetValue(id, out AudioSource source)) return;
+        s_loops.Remove(id);
         if (source != null)
         {
             source.Stop();
@@ -87,9 +141,9 @@ public static class Sfx
     public static void PlayLoopFor(string id, float seconds)
     {
         PlayLoop(id);
-        if (_runner != null && _loops.TryGetValue(id, out AudioSource source) && source != null)
+        if (s_runner != null && s_loops.TryGetValue(id, out AudioSource source) && source != null)
         {
-            _runner.StartCoroutine(LoopLife(id, source, Mathf.Max(0.1f, seconds), source.volume));
+            s_runner.StartCoroutine(LoopLife(id, source, Mathf.Max(0.1f, seconds), source.volume));
         }
     }
 
@@ -99,7 +153,7 @@ public static class Sfx
         while (elapsed < seconds)
         {
             if (source == null) yield break;
-            if (!_loops.ContainsKey(id)) yield break;
+            if (!s_loops.ContainsKey(id)) yield break;
             elapsed += Time.deltaTime;
             source.pitch = 1f + 0.05f * Mathf.Sin(elapsed * 7.3f);
             source.volume = baseVolume * (1f + 0.12f * Mathf.Sin(elapsed * 5.1f + 1f));
@@ -110,14 +164,14 @@ public static class Sfx
 
     private static bool EnsureLibrary()
     {
-        if (_loaded) return _clips.Count > 0;
-        _loaded = true;
+        if (s_loaded) return s_clips.Count > 0;
+        s_loaded = true;
         SfxLibrary library = Resources.Load<SfxLibrary>("SfxLibrary");
         if (library == null)
         {
-            if (!_warned)
+            if (!s_warned)
             {
-                _warned = true;
+                s_warned = true;
                 Debug.LogWarning("[Sfx] SfxLibrary를 찾지 못했습니다. 무음으로 동작합니다.");
             }
             return false;
@@ -137,39 +191,73 @@ public static class Sfx
         Add(TraitSelect, library.TraitSelect);
         Add(Dash, library.Dash);
         Add(CleanseSpell, library.CleanseSpell);
+        Add(CleanseSuccess, library.CleanseSuccess);
+        Add(CleanseEmpty, library.CleanseEmpty);
+        Add(CleanseCooldown, library.CleanseCooldown);
         Add(MissionStart, library.MissionStart);
         Add(ElementFire, library.ElementFire);
         Add(ElementWater, library.ElementWater);
         Add(ElementWind, library.ElementWind);
         Add(ElementEarth, library.ElementEarth);
-        return _clips.Count > 0;
+        Add(EndingStamp, library.EndingStamp);
+        Add(StatueBreak, library.StatueBreak);
+        Add(MenuMove, library.MenuMove);
+        Add(MenuConfirm, library.MenuConfirm);
+        Add(MenuCancel, library.MenuCancel);
+        Add(ShopDrawer, library.ShopDrawer);
+        Add(ShopDoorBell, library.ShopDoorBell);
+        AddList(s_shopCardDeal, library.ShopCardDeal);
+        Add(ShopLeave, library.ShopLeave);
+        Add(ShopSelect, library.ShopSelect);
+        Add(ShopBuyCommon, library.ShopBuyCommon);
+        Add(ShopBuyMagic, library.ShopBuyMagic);
+        Add(ShopBuyPotion, library.ShopBuyPotion);
+        Add(ShopDenied, library.ShopDenied);
+        Add(ShopGold, library.ShopGold);
+        Add(ShopSoldOut, library.ShopSoldOut);
+        Add(ShopReroll, library.ShopReroll);
+        Add(ShopFlip, library.ShopFlip);
+        AddList(s_shopTalk, library.ShopTalk);
+        Add(ShopPoke, library.ShopPoke);
+        Add(ShopAnnoyed, library.ShopAnnoyed);
+        Add(ShopSecret, library.ShopSecret);
+        return s_clips.Count > 0;
     }
 
     private static void Add(string id, AudioClip clip)
     {
-        if (clip != null) _clips[id] = clip;
+        if (clip != null) s_clips[id] = clip;
+    }
+
+    private static void AddList(List<AudioClip> list, AudioClip[] clips)
+    {
+        if (clips == null) return;
+        foreach (AudioClip clip in clips)
+        {
+            if (clip != null) list.Add(clip);
+        }
     }
 
     private static void EnsureRoot()
     {
-        if (_root != null) return;
+        if (s_root != null) return;
         // Play 재진입 시 static 풀이 파괴된 소스를 들고 있을 수 있어서 전부 버린다.
-        _pool.Clear();
-        _loops.Clear();
-        _poolIndex = 0;
-        _root = new GameObject("Sfx");
-        Object.DontDestroyOnLoad(_root);
-        _runner = _root.AddComponent<SfxRunner>();
+        s_pool.Clear();
+        s_loops.Clear();
+        s_poolIndex = 0;
+        s_root = new GameObject("Sfx");
+        Object.DontDestroyOnLoad(s_root);
+        s_runner = s_root.AddComponent<SfxRunner>();
         for (int i = 0; i < PoolSize; i++)
         {
-            AudioSource source = _root.AddComponent<AudioSource>();
+            AudioSource source = s_root.AddComponent<AudioSource>();
             source.playOnAwake = false;
             ApplyVolume(source);
-            _pool.Add(source);
+            s_pool.Add(source);
         }
-        if (!_subscribed)
+        if (!s_subscribed)
         {
-            _subscribed = true;
+            s_subscribed = true;
             GameSettings.Changed += ApplyAllVolumes;
         }
     }
@@ -181,11 +269,9 @@ public static class Sfx
 
     private static void ApplyAllVolumes()
     {
-        foreach (AudioSource source in _pool) ApplyVolume(source);
-        foreach (AudioSource source in _loops.Values) ApplyVolume(source);
+        foreach (AudioSource source in s_pool) ApplyVolume(source);
+        foreach (AudioSource source in s_loops.Values) ApplyVolume(source);
     }
 }
 
-public sealed class SfxRunner : MonoBehaviour
-{
-}
+public sealed class SfxRunner : MonoBehaviour { }

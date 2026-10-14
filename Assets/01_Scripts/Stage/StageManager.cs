@@ -35,54 +35,56 @@ public class StageManager : MonoBehaviour
     [SerializeField] private PlayerInteraction _playerInteraction;
 
     [Header("스테이지 상태 정보")]
-    [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
+    [SerializeField, FormerlySerializedAs("currentDepth")]
+    private int _currentDepth = 1;
 
     [Header("런 구성")]
-    [Tooltip("미션 이름과 설명. 비워두면 Resources/MissionCatalog를 사용한다.")]
-    [SerializeField] private MissionCatalogSO _missionCatalog;
-    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
-    [SerializeField, Min(1)] private int _missionStageCount = 10;
+    [Tooltip("미션 이름과 설명. 비워두면 Resources/MissionCatalog를 사용한다.")] [SerializeField]
+    private MissionCatalogSO _missionCatalog;
+    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")] [SerializeField, Min(1)]
+    private int _missionStageCount = 10;
     [SerializeField, Min(0f)] private float _autoStartDelay = 10f;
-    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")]
-    [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
+    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")] [SerializeField, Min(1f)]
+    private float _missionTimeLimit = 120f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
-    [SerializeField] private Vector3 _startObjectPosition = Vector3.zero;
+    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")] [SerializeField]
+    private Vector3 _startObjectPosition = Vector3.zero;
 
     [Header("출발 준비")]
-    [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")]
-    [SerializeField] private bool _waitForPreparation = true;
+    [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")] [SerializeField]
+    private bool _waitForPreparation = true;
 
     [Header("정화")]
-    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")]
-    [SerializeField, Min(0f)] private float _purificationDuration = 10f;
+    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")] [SerializeField, Min(0f)]
+    private float _purificationDuration = 10f;
     [Tooltip("미션 클리어 시 퍼지는 정화 파동. 미션 오브젝트(붙어 있는 파동) 위치, 없으면 시작 오브젝트 위치에 이 프리팹을 만든다. 비워두면 정화 카운트다운을 쓴다.")]
-    [SerializeField] private PurificationWave _purificationWavePrefab;
+    [SerializeField]
+    private PurificationWave _purificationWavePrefab;
 
     [Header("포탈")]
-    [SerializeField, FormerlySerializedAs("portalPrefab")] private GameObject _portalPrefab;
-    [Tooltip("PortalSpawner에 전달할 기본 포탈 위치")]
-    [SerializeField, FormerlySerializedAs("portalSpawnPosition")] private Vector3 _portalSpawnPosition = Vector3.zero;
-    [Tooltip("미션 오브젝트(또는 시작 오브젝트 자리) 아래로 포탈을 띄우는 거리(유닛)")]
-    [SerializeField, Min(0f)] private float _portalOffsetBelow = 1.5f;
-    [Tooltip("이 연출이 끝난 뒤에 포탈을 만든다. 비워두면 씬에서 찾고, 없으면 바로 만든다.")]
-    [SerializeField] private MissionResultPresenter _missionResultPresenter;
+    [SerializeField, FormerlySerializedAs("portalPrefab")]
+    private GameObject _portalPrefab;
+    [Tooltip("PortalSpawner에 전달할 기본 포탈 위치")] [SerializeField, FormerlySerializedAs("portalSpawnPosition")]
+    private Vector3 _portalSpawnPosition = Vector3.zero;
+    [Tooltip("미션 오브젝트(또는 시작 오브젝트 자리) 아래로 포탈을 띄우는 거리(유닛)")] [SerializeField, Min(0f)]
+    private float _portalOffsetBelow = 1.5f;
+    [Tooltip("이 연출이 끝난 뒤에 포탈을 만든다. 비워두면 씬에서 찾고, 없으면 바로 만든다.")] [SerializeField]
+    private MissionResultPresenter _missionResultPresenter;
 
     [Header("상점")]
     [Tooltip("이 층수 단위를 넘어갈 때 상점을 연다 (5면 5→6 ...). 보스 스테이지로 갈 때도 연다.")]
-    [SerializeField, FormerlySerializedAs("shopFloorInterval"), Min(1)] private int _shopFloorInterval = 5;
-    [Tooltip("비워두면 씬에서 찾는다 (꺼진 오브젝트 포함)")]
-    [SerializeField, FormerlySerializedAs("shopPresenter")] private ShopPresenter _shopPresenter;
-    [Tooltip("비워두면 씬에서 찾는다")]
-    [SerializeField, FormerlySerializedAs("popupController")] private PopupController _popupController;
+    [SerializeField, FormerlySerializedAs("shopFloorInterval"), Min(1)]
+    private int _shopFloorInterval = 5;
+    [Tooltip("비워두면 씬에서 찾는다 (꺼진 오브젝트 포함)")] [SerializeField, FormerlySerializedAs("shopPresenter")]
+    private ShopPresenter _shopPresenter;
+    [Tooltip("비워두면 씬에서 찾는다")] [SerializeField, FormerlySerializedAs("popupController")]
+    private PopupController _popupController;
 
     [Header("보스 스테이지")]
-    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")]
-    [SerializeField] private GameObject _bossPrefab;
+    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")] [SerializeField]
+    private GameObject _bossPrefab;
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
-    [Tooltip("보스 등장 연출 (보스가 공중에서 내려찍으며 나온다). 비워 두면 연출 없이 바로 나온다")]
-    [SerializeField] private BossIntroSequence _bossIntroPrefab;
 
     // 스테이지 진행
     private StagePhase _phase = StagePhase.Ready;
@@ -178,20 +180,20 @@ public class StageManager : MonoBehaviour
     public string ObjectiveName => CurrentMissionText?.DisplayName ?? string.Empty;
 
     /// <summary>현재 목표 설명 (HUD 표시용). 제단 방어 중에는 제단 HP를 실시간으로 덧붙인다.</summary>
-    public string ObjectiveDescription
-    {
-        get
-        {
-            string baseText = CurrentMissionText?.Description ?? string.Empty;
-            if (_currentMission is AltarDefenseMission altar && altar.TargetAltar != null)
-            {
-                DefenseAltar target = altar.TargetAltar;
-                string hpText = $"제단 HP: {target.CurrentHp:F0}/{target.MaxHp:F0}";
-                return string.IsNullOrEmpty(baseText) ? hpText : $"{baseText} ({hpText})";
-            }
-            return baseText;
-        }
-    }
+    public string ObjectiveDescription => CurrentMissionText?.Description ?? string.Empty;
+    // {
+    //     get
+    //     {
+    //         string baseText = CurrentMissionText?.Description ?? string.Empty;
+    //         if (_currentMission is AltarDefenseMission altar && altar.TargetAltar != null)
+    //         {
+    //             DefenseAltar target = altar.TargetAltar;
+    //             string hpText = $"제단 HP: {target.CurrentHp:F0}/{target.MaxHp:F0}";
+    //             return string.IsNullOrEmpty(baseText) ? hpText : $"{baseText} ({hpText})";
+    //         }
+    //         return baseText;
+    //     }
+    // }
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
@@ -258,6 +260,7 @@ public class StageManager : MonoBehaviour
     private void Start()
     {
         RunFlow.BeginRun();
+        BgmDirector.PlayZone(BgmDirector.Combat);
 
         _missionManager = MissionManager.Instance;
         if (_missionManager != null)
@@ -308,6 +311,37 @@ public class StageManager : MonoBehaviour
         StartStage(_currentDepth);
     }
 
+    /// <summary>
+    /// 이어하기 : 출발 준비(시작 석상)를 건너뛰고 저장된 층의 준비 단계부터 시작한다. (StageStarted 발생)
+    /// RunSaveController가 플레이어 상태를 되돌린 뒤에 부른다. 미션은 MissionManager에 미리 지정해 둔다.
+    /// </summary>
+    public void BeginContinuedRun(int depth)
+    {
+        IsWaitingForPreparation = false;
+        _currentDepth = Mathf.Max(1, depth);
+        ClearActiveEnemies();
+        StartStage(_currentDepth);
+    }
+
+    /// <summary>
+    /// 이어하기 : 층 사이 상점에서 끈 판. 출발 준비를 건너뛰고 상점을 바로 연다.
+    /// 상점을 나가면 원래처럼 depth 층이 시작된다. (상점이 없으면 바로 시작)
+    /// 진열은 RunSaveController가 상점 데이터에 미리 넣어 둔다.
+    /// </summary>
+    public void BeginContinuedShop(int depth)
+    {
+        IsWaitingForPreparation = false;
+        _currentDepth = Mathf.Max(1, depth);
+        ClearActiveEnemies();
+        if (TryOpenShop())
+        {
+            SetPhase(StagePhase.Shop);
+            return;
+        }
+
+        StartNextStage();
+    }
+
     private void Update()
     {
         switch (_phase)
@@ -355,6 +389,7 @@ public class StageManager : MonoBehaviour
     {
         _isTransitioning = false;
         StopPortalRoutine();
+        BgmDirector.PlayZone(BgmDirector.Combat);
 
         // 정화 중에 포탈로 내려왔으면 이전 층의 파동은 더 기다리지 않는다.
         DetachWave();
@@ -437,7 +472,7 @@ public class StageManager : MonoBehaviour
 
         if (_isBossStage)
         {
-            BeginBossFight();
+            SpawnBoss();
             return;
         }
 
@@ -675,7 +710,8 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator FadeOutRangeRoutine(System.Collections.Generic.List<SpriteRenderer> renderers)
+    private System.Collections.IEnumerator FadeOutRangeRoutine(
+        System.Collections.Generic.List<SpriteRenderer> renderers)
     {
         const float FadeDuration = 0.4f;
         var baseAlphas = new float[renderers.Count];
@@ -930,6 +966,7 @@ public class StageManager : MonoBehaviour
         }
 
         _shopPresenter.OpenShop();
+        BgmDirector.PlayZone(BgmDirector.Shop);
         return true;
     }
 
@@ -985,23 +1022,7 @@ public class StageManager : MonoBehaviour
 
     // ───────────────────────── 보스전 ─────────────────────────
 
-    /// <summary>
-    /// 보스 등장 연출이 있으면 연출 중 내려찍는 순간에 보스를 만들고, 없으면 바로 만든다.
-    /// 연출이 끝날 때까지 보스는 공격하지 않는다. (BossIntroSequence가 묶어 둔다)
-    /// </summary>
-    private void BeginBossFight()
-    {
-        if (_bossIntroPrefab == null)
-        {
-            SpawnBoss();
-            return;
-        }
-
-        BossIntroSequence intro = Instantiate(_bossIntroPrefab);
-        intro.Play(_bossSpawnPosition, SpawnBoss);
-    }
-
-    private GameObject SpawnBoss()
+    private void SpawnBoss()
     {
         GameObject prefab = _bossPrefab;
         if (prefab == null)
@@ -1014,7 +1035,7 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError("[StageManager] 보스로 쓸 프리팹이 없어 보스 스테이지를 클리어 처리합니다.", this);
             DefeatBoss();
-            return null;
+            return;
         }
 
         GameObject boss = Instantiate(prefab, _bossSpawnPosition, Quaternion.identity);
@@ -1028,11 +1049,11 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError($"[StageManager] 보스 프리팹 '{prefab.name}'에 EnemyHealth가 없어 클리어 처리합니다.", this);
             DefeatBoss();
-            return null;
+            return;
         }
 
         Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
-        return boss;
+        BgmDirector.PlayZone(BgmDirector.Boss);
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)
@@ -1080,6 +1101,7 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] ===== 런 종료: {finalReason} =====");
 
         SetPhase(StagePhase.Ended);
+        BgmDirector.PlayZone(finalReason == RunEndReason.Cleared ? BgmDirector.ResultClear : BgmDirector.ResultFailure);
         UnregisterStartInteractable();
         PauseMonsterSpawner();
         DespawnPortal();

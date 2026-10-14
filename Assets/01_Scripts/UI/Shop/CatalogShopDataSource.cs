@@ -42,6 +42,11 @@ public class CatalogShopDataSource : ShopDataSource
     public override IReadOnlyList<ShopOfferData> Offers => _offers;
 
     private Wallet _boundWallet;
+    private List<ShopOfferSaveEntry> _pendingRestoreOffers;
+    private int _pendingRestoreRerollCount;
+
+    /// <summary>이번 상점에서 리롤한 횟수 (저장용)</summary>
+    public int RerollCount => _rerollCount;
     private ShopPresenter _testPresenter;
 
     /// <summary>ShopScene 단독 테스트 중인지. (원정 중이 아님)</summary>
@@ -127,9 +132,56 @@ public class CatalogShopDataSource : ShopDataSource
     public override void Open()
     {
         BindWallet();
-        _rerollCount = 0;
-        FillOffers();
+        if (_pendingRestoreOffers != null)
+        {
+            ApplyRestoredOffers();
+        }
+        else
+        {
+            _rerollCount = 0;
+            FillOffers();
+        }
+
         RaiseChanged();
+    }
+
+    /// <summary>지금 진열을 저장용으로 꺼낸다. 산 칸이나 빈 칸은 Id가 빈 문자열이다.</summary>
+    public List<ShopOfferSaveEntry> CaptureOffers()
+    {
+        var entries = new List<ShopOfferSaveEntry>(_offers.Count);
+        foreach (ShopOfferData offer in _offers)
+        {
+            entries.Add(offer != null
+                ? new ShopOfferSaveEntry { Id = offer.Id, Price = offer.Price }
+                : new ShopOfferSaveEntry { Id = string.Empty, Price = 0 });
+        }
+
+        return entries;
+    }
+
+    /// <summary>
+    /// 이어하기 : 다음에 열 때(Open) 새로 진열하지 않고 저장된 진열과 리롤 횟수로 연다. (한 번만 쓰인다)
+    /// </summary>
+    public void QueueRestore(List<ShopOfferSaveEntry> offers, int rerollCount)
+    {
+        _pendingRestoreOffers = offers != null ? new List<ShopOfferSaveEntry>(offers) : new List<ShopOfferSaveEntry>();
+        _pendingRestoreRerollCount = Mathf.Max(0, rerollCount);
+    }
+
+    private void ApplyRestoredOffers()
+    {
+        _offers.Clear();
+        foreach (ShopOfferSaveEntry entry in _pendingRestoreOffers)
+        {
+            ShopCatalogSO.Item item = entry != null ? FindItem(entry.Id) : null;
+            _offers.Add(item != null
+                ? new ShopOfferData(item.Id, item.DisplayName, item.Description, item.Icon, item.Type,
+                    Mathf.Max(1, entry.Price), item.HealRatio)
+                : null);
+        }
+
+        _rerollCount = _pendingRestoreRerollCount;
+        _pendingRestoreOffers = null;
     }
 
     public override bool TryBuy(int slotIndex)
