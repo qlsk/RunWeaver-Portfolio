@@ -32,6 +32,10 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private Transform _backgroundRoot;
 
     private Camera _camera;
+    private bool _hasFocusOverride;
+    private Vector3 _focusOverride;
+    private float _overrideSmoothSpeed;
+    private float _overrideSmoothUntil = -1f;
     private Vector3 _defaultCameraLocalPosition;
     private float _defaultOrthographicSize;
     private Renderer[] _backgroundRenderers;
@@ -84,13 +88,37 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        Vector3 desiredPosition = _target != null
-            ? ClampToBackground(_target.position + _offset + GetMouseLookAheadOffset())
-            : transform.position;
+        Vector3 desiredPosition;
+        if (_hasFocusOverride)
+            desiredPosition = ClampToBackground(new Vector3(_focusOverride.x, _focusOverride.y, _offset.z));
+        else
+            desiredPosition = _target != null
+                ? ClampToBackground(_target.position + _offset + GetMouseLookAheadOffset())
+                : transform.position;
+        // 연출이 카메라를 옮기는 동안(과 돌아오는 동안)은 연출이 정한 부드러움을 쓴다.
+        float smoothSpeed = _hasFocusOverride || Time.time < _overrideSmoothUntil ? _overrideSmoothSpeed : _smoothSpeed;
         // Lerp로 부드럽게 이동 (smoothSpeed * deltaTime을 사용하여 프레임레이트 독립)
-        Vector3 nextPosition = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
+        Vector3 nextPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
         // 시작 위치나 화면 비율이 바뀌어도 보간 중 배경 밖이 보이지 않도록 최종 위치도 제한한다.
         transform.position = ClampToBackground(nextPosition);
+    }
+
+    /// <summary>연출 동안 대상 대신 지정한 곳을 비춘다. (보스 등장 등)</summary>
+    public void SetFocusOverride(Vector3 worldPosition, float smoothSpeed)
+    {
+        _hasFocusOverride = true;
+        _focusOverride = worldPosition;
+        _overrideSmoothSpeed = Mathf.Max(0.01f, smoothSpeed);
+    }
+
+    /// <summary>다시 대상을 따라간다. returnDuration 동안은 연출의 부드러움으로 돌아온다.</summary>
+    public void ClearFocusOverride(float returnDuration)
+    {
+        if (!_hasFocusOverride)
+            return;
+
+        _hasFocusOverride = false;
+        _overrideSmoothUntil = Time.time + Mathf.Max(0f, returnDuration);
     }
 
     public void SnapToPosition(Vector3 targetPosition)
