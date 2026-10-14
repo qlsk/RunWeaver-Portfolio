@@ -36,12 +36,18 @@ public class TitleMenuController : MonoBehaviour
 
         if (_menu != null) _menu.Confirmed += HandleConfirmed;
         if (_settingsView != null) _settingsView.Closed += HandleSettingsClosed;
+
+        if (_menu != null)
+            _menu.Moved += HandleMoved;
     }
 
     private void OnDestroy()
     {
         if (_menu != null) _menu.Confirmed -= HandleConfirmed;
         if (_settingsView != null) _settingsView.Closed -= HandleSettingsClosed;
+
+        if (_menu != null)
+            _menu.Moved -= HandleMoved;
     }
 
     private void Update()
@@ -52,8 +58,18 @@ public class TitleMenuController : MonoBehaviour
         }
     }
 
+    private static void HandleMoved()
+    {
+        // 메뉴 이동음을 한 번 재생한다.
+        Sfx.Play(Sfx.MenuMove);
+    }
+
     private void HandleConfirmed(int index)
     {
+        // 확정음을 한 번 재생한다.
+        Sfx.Play(Sfx.MenuConfirm);
+
+        // 항목별 분기를 수행한다.
         switch (index)
         {
             case NewGameIndex:

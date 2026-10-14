@@ -28,4 +28,7 @@ public class SfxLibrary : ScriptableObject
     public AudioClip ElementWater;
     public AudioClip ElementWind;
     public AudioClip ElementEarth;
+    public AudioClip MenuMove;
+    public AudioClip MenuConfirm;
+    public AudioClip MenuCancel;
 }
