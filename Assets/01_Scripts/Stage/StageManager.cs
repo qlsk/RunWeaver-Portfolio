@@ -463,6 +463,7 @@ public class StageManager : MonoBehaviour
         UnregisterStartInteractable();
         SetPhase(StagePhase.InMission);
         Sfx.Play(Sfx.MissionStart);
+        BgmDirector.PlayZone(BgmDirector.Combat);
 
         if (_isBossStage)
         {
@@ -959,6 +960,7 @@ public class StageManager : MonoBehaviour
         }
 
         _shopPresenter.OpenShop();
+        BgmDirector.PlayZone(BgmDirector.Shop);
         return true;
     }
 
@@ -1045,6 +1047,7 @@ public class StageManager : MonoBehaviour
         }
 
         Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
+        BgmDirector.PlayZone(BgmDirector.Boss);
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)
@@ -1092,6 +1095,7 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] ===== 런 종료: {finalReason} =====");
 
         SetPhase(StagePhase.Ended);
+        BgmDirector.PlayZone(finalReason == RunEndReason.Cleared ? BgmDirector.ResultClear : BgmDirector.ResultFailure);
         UnregisterStartInteractable();
         PauseMonsterSpawner();
         DespawnPortal();

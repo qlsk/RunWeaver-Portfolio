@@ -55,6 +55,9 @@ public static class Bgm
 
     public static void Stop()
     {
+        if (s_audioSource == null)
+            return;
+
         s_audioSource.Stop();
         s_currentClip = null;
         s_playbackState = State.Stopped;
