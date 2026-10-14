@@ -529,6 +529,23 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         SetCollidersEnabled(true);
     }
 
+    /// <summary>
+    /// 상호작용 없이 출발 준비를 건너뛰고 붕괴 연출로 1층을 시작한다. (튜토리얼 건너뛰기)
+    /// 이미 무너지는 중이거나 1층이 시작됐으면 아무것도 하지 않는다.
+    /// </summary>
+    public void SkipPreparation()
+    {
+        if (_isCrumbling || _runBegun)
+        {
+            return;
+        }
+
+        _isChoosingElement = false;
+        _isWaitingRuneConfirm = false;
+        _isCrumbling = true;
+        _crumbleCoroutine = StartCoroutine(CrumbleRoutine());
+    }
+
     // ───────────────────────── 1층 시작 ─────────────────────────
 
     private void BeginRun()

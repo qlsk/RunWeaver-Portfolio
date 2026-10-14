@@ -52,6 +52,9 @@ public class Bullet : MonoBehaviour
     private GameObject _projectileVisual;
     public event Action<BulletEndReason> Ended;
 
+    /// <summary>원소 반응이 실행될 때 (튜토리얼 기록 카드용). 서로 다른 원소의 순서는 실행 순서 그대로 전달한다.</summary>
+    public static event Action<ReactionElement, ReactionElement> ReactionExecuted;
+
     // Attack data
     private PlayerAttackData _attackData;
 
@@ -270,6 +273,8 @@ public class Bullet : MonoBehaviour
     /// 원소 조합에 해당하는 반응을 실행하며 서로 다른 원소의 순서는 구분하지 않는다.
     private void ExecuteReaction(ReactionElement primary, ReactionElement secondary, ReactionContext context)
     {
+        ReactionExecuted?.Invoke(primary, secondary);
+
         switch (primary, secondary)
         {
             case (ReactionElement.Fire, ReactionElement.Fire):

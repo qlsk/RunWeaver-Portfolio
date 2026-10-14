@@ -23,6 +23,9 @@ public class HudMenuHints : MonoBehaviour
     private static readonly int s_dimHash = Animator.StringToHash("Dim");
     private static readonly int s_notifyHash = Animator.StringToHash("Notify");
 
+    // 룬북을 잠그는 동안 숨길 힌트 (프리팹의 자식 이름). 애니메이터는 색과 크기만 바꾸므로 끄고 켜는 것과 겹치지 않는다.
+    private static readonly string[] s_runeBookHintNames = { "KeyTab", "RuneBook", "Glow", "Dot", PulseName };
+
     [SerializeField] private int _fadeFromDepth = 3;
 
     [Header("룬북 강조 (PulseRuneBook)")]
@@ -39,6 +42,8 @@ public class HudMenuHints : MonoBehaviour
     private readonly Dictionary<char, int> _cost = new();
     private float _nextCheck;
     private bool _primed;
+    private GameObject[] _runeBookHintObjects;
+    private bool _isRuneBookHintHidden;
     private Image _pulse;
     private Coroutine _pulseRoutine;
 
@@ -72,6 +77,18 @@ public class HudMenuHints : MonoBehaviour
         _hints = Instantiate(prefab);
         _hints.name = prefab.name;
         _animator = _hints.GetComponent<Animator>();
+
+        var runeBookHints = new List<GameObject>();
+        foreach (string hintName in s_runeBookHintNames)
+        {
+            Transform hint = _hints.transform.Find(hintName);
+            if (hint != null)
+            {
+                runeBookHints.Add(hint.gameObject);
+            }
+        }
+
+        _runeBookHintObjects = runeBookHints.ToArray();
 
         Transform pulse = _hints.transform.Find(PulseName);
         _pulse = pulse != null ? pulse.GetComponent<Image>() : null;
@@ -130,6 +147,8 @@ public class HudMenuHints : MonoBehaviour
             return;
         }
 
+        RefreshRuneBookHintVisibility();
+
         StageManager stage = StageManager.Instance;
         int depth = stage != null ? stage.CurrentDepth : 1;
         _animator.SetFloat(s_dimHash, depth >= _fadeFromDepth ? 1f : 0f);
@@ -157,6 +176,25 @@ public class HudMenuHints : MonoBehaviour
         }
 
         _animator.SetBool(s_notifyHash, notify);
+    }
+
+    /// <summary>룬북이 잠겨 있으면 [룬북][TAB] 힌트를 숨긴다. 잠금이 바뀐 프레임에만 켜고 끈다.</summary>
+    private void RefreshRuneBookHintVisibility()
+    {
+        bool isLocked = _toggle != null && _toggle.IsLocked;
+        if (isLocked == _isRuneBookHintHidden || _runeBookHintObjects == null)
+        {
+            return;
+        }
+
+        _isRuneBookHintHidden = isLocked;
+        foreach (GameObject hint in _runeBookHintObjects)
+        {
+            if (hint != null)
+            {
+                hint.SetActive(!isLocked);
+            }
+        }
     }
 
     /// <summary>지금 새로 장착할 수 있는 룬 워드 (룬 문자가 충분하거나 완성품이 있고, 아직 장착하지 않았거나 겹쳐 넣을 수 있음)</summary>

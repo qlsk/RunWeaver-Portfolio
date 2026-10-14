@@ -66,6 +66,7 @@ public class MissionManager : MonoBehaviour
     private MissionBase _currentMission;
     private GameObject _spawnedMissionObject;
     private MissionType? _lastMissionType;
+    private MissionType? _nextMissionOverride;
     private readonly List<MissionType> _missionBag = new List<MissionType>();
     private bool _isMissionRunning;
 
@@ -159,6 +160,13 @@ public class MissionManager : MonoBehaviour
     /// </summary>
     private MissionType PickMissionType()
     {
+        if (_nextMissionOverride.HasValue)
+        {
+            MissionType overridden = _nextMissionOverride.Value;
+            _nextMissionOverride = null;
+            return overridden;
+        }
+
         if (_useForcedMissionType)
         {
             return _forcedMissionType;
@@ -381,4 +389,16 @@ public class MissionManager : MonoBehaviour
     }
 
     public MissionBase GetCurrentMission() => _currentMission;
+
+    /// <summary>다음 미션 추첨 한 번을 지정한 종류로 고정한다. (튜토리얼) 추첨에 쓰이면 저절로 해제된다.</summary>
+    public void SetNextMissionOverride(MissionType type)
+    {
+        _nextMissionOverride = type;
+    }
+
+    /// <summary>아직 쓰이지 않은 미션 고정을 해제한다.</summary>
+    public void ClearNextMissionOverride()
+    {
+        _nextMissionOverride = null;
+    }
 }
