@@ -54,8 +54,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
     [SerializeField, Min(10f)] private float _maxTextWidth = 360f;
     [Tooltip("1초에 찍히는 글자 수")]
     [SerializeField, Min(1f)] private float _charsPerSecond = 26f;
-    [Tooltip("글자가 이만큼 찍힐 때마다 말소리를 낸다")]
-    [SerializeField, Min(1)] private int _talkSoundEveryChars = 3;
     [Tooltip("다 찍힌 뒤 유지 시간 = 기본 + 글자 수 x 글자당 시간")]
     [SerializeField, Min(0f)] private float _holdBase = 1.6f;
     [SerializeField, Min(0f)] private float _holdPerChar = 0.06f;
@@ -259,10 +257,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
     private Vector2 _bodyBasePosition;
     private Vector3 _bodyBaseScale = Vector3.one;
 
-    private int _nextTalkSoundChar;
-    private ShopSfx _sfx;
-    private bool _hasSearchedSfx;
-
     private int _pokeCount;
     private float _lastPokeTime = float.NegativeInfinity;
     private bool _isHovered;
@@ -335,7 +329,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
             // 끝까지 누른 손님에게 한마디 하고 처음으로 돌아간다.
             _pokeCount = 0;
             _squintTime = 0f;
-            GetSfx()?.PlaySecret();
             PlayMotion(BodyMotion.Lean);
             Say(_secretLines, PriorityHigh);
             return;
@@ -344,7 +337,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         if (_pokeCount >= _annoyedPokeCount)
         {
             _squintTime = _squintDuration;
-            GetSfx()?.PlayAnnoyed();
             PlayMotion(BodyMotion.Tremble);
             Say(_annoyedLines, PriorityNormal);
             return;
@@ -353,7 +345,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         // 깜짝 놀라 한 번 깜빡인다.
         _blinkTime = 0f;
         _blinkAgain = false;
-        GetSfx()?.PlayPoke();
         PlayMotion(BodyMotion.Squash);
         Say(_pokeLines, PriorityNormal);
     }
@@ -613,7 +604,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         _currentPriority = priority;
         _bubbleText.text = line;
         _bubbleText.maxVisibleCharacters = 0;
-        _nextTalkSoundChar = 1;
 
         // 다 찍혔을 때의 크기로 말풍선을 미리 맞춰 둔다. (찍히는 동안 크기가 변하지 않게)
         Vector2 preferred = _bubbleText.GetPreferredValues(line, _maxTextWidth, 0f);
@@ -657,12 +647,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
 
                 int visible = Mathf.FloorToInt(Mathf.Max(0f, _stateTime - _popDuration * 0.4f) * _charsPerSecond);
                 _bubbleText.maxVisibleCharacters = Mathf.Min(visible, _charCount);
-                if (visible >= _nextTalkSoundChar && _nextTalkSoundChar <= _charCount)
-                {
-                    GetSfx()?.PlayTalk();
-                    _nextTalkSoundChar = visible + _talkSoundEveryChars;
-                }
-
                 if (visible >= _charCount && pop >= 1f)
                 {
                     _bubbleText.maxVisibleCharacters = _charCount;
@@ -697,18 +681,6 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
 
         _bubble.localScale = new Vector3(scale, scale, 1f);
         _bubbleGroup.alpha = alpha;
-    }
-
-    private ShopSfx GetSfx()
-    {
-        if (!_hasSearchedSfx)
-        {
-            _hasSearchedSfx = true;
-            _sfx = GetComponentInParent<ShopSfx>(true);
-        }
-
-        // 파괴된 오브젝트도 진짜 null로 돌려줘서 ?.로 불러도 안전하게 한다.
-        return _sfx != null ? _sfx : null;
     }
 
     private void HideImmediate()

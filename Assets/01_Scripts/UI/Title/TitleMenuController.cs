@@ -155,7 +155,7 @@ public class TitleMenuController : MonoBehaviour
         _isStarting = true;
 
         // BGM 페이드아웃을 요청한다.
-        _bgm.FadeOut();
+        if (_bgm != null) _bgm.FadeOut();
 
         SaveSystem.DeleteRun();
         GameSession session = GameSession.Instance;
@@ -188,7 +188,7 @@ public class TitleMenuController : MonoBehaviour
         _isStarting = true;
 
         // BGM 페이드아웃을 요청한다.
-        _bgm.FadeOut();
+        if (_bgm != null) _bgm.FadeOut();
 
         SaveSystem.RequestContinue();
 

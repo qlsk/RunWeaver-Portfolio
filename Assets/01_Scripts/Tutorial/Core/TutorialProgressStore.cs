@@ -1,41 +1,50 @@
-/// <summary>
-/// 튜토리얼 완료 여부와 본 기록 id를 저장 파일(SaveSystem.Tutorial)에 저장한다.
-/// 예전에 PlayerPrefs에 저장한 값은 SaveSystem이 처음 읽을 때 옮겨 온다.
-/// </summary>
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>튜토리얼 완료 여부와 본 기록 id를 PlayerPrefs에 저장한다.</summary>
 public static class TutorialProgressStore
 {
-    public static bool IsCompleted => SaveSystem.Tutorial.Completed;
+    private const string CompletedKey = "Tutorial.Completed";
+    private const string SeenRecordsKey = "Tutorial.SeenRecords";
+    private const char RecordSeparator = '|';
+
+    public static bool IsCompleted => PlayerPrefs.GetInt(CompletedKey) == 1;
 
     public static void MarkCompleted()
     {
-        if (SaveSystem.Tutorial.Completed)
-            return;
-
-        SaveSystem.Tutorial.Completed = true;
-        SaveSystem.Commit();
+        PlayerPrefs.SetInt(CompletedKey, 1);
+        PlayerPrefs.Save();
     }
 
     public static bool IsRecordSeen(string recordId)
     {
-        return SaveSystem.Tutorial.SeenRecords.Contains(recordId);
+        return ReadSeenRecords().Contains(recordId);
     }
 
     /// <summary>본 기록 수. 협회 지침서의 "기록 N/전체"에 쓴다.</summary>
-    public static int SeenRecordCount => SaveSystem.Tutorial.SeenRecords.Count;
+    public static int SeenRecordCount => ReadSeenRecords().Count;
 
     public static void MarkRecordSeen(string recordId)
     {
-        if (string.IsNullOrEmpty(recordId) || SaveSystem.Tutorial.SeenRecords.Contains(recordId))
+        HashSet<string> seen = ReadSeenRecords();
+        if (!seen.Add(recordId))
             return;
 
-        SaveSystem.Tutorial.SeenRecords.Add(recordId);
-        SaveSystem.Commit();
+        PlayerPrefs.SetString(SeenRecordsKey, string.Join(RecordSeparator, seen));
+        PlayerPrefs.Save();
     }
 
     public static void ResetForDebug()
     {
-        SaveSystem.Tutorial.Completed = false;
-        SaveSystem.Tutorial.SeenRecords.Clear();
-        SaveSystem.Commit();
+        PlayerPrefs.DeleteKey(CompletedKey);
+        PlayerPrefs.DeleteKey(SeenRecordsKey);
+        PlayerPrefs.Save();
+    }
+
+    private static HashSet<string> ReadSeenRecords()
+    {
+        string stored = PlayerPrefs.GetString(SeenRecordsKey, string.Empty);
+        return new HashSet<string>(stored.Split(new[] { RecordSeparator }, StringSplitOptions.RemoveEmptyEntries));
     }
 }

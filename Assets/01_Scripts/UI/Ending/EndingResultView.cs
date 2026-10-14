@@ -11,7 +11,6 @@ using UnityEngine.UI;
 /// - 오른쪽 : 결과 제목과 한 줄 설명, 메뉴(다음 개체 투입 / 타이틀로 돌아가기)
 /// 열릴 때 보고서가 아래에서 올라오고, 잠시 뒤 도장이 쾅 찍힌다. (실제 시간)
 /// 도장이 닿는 순간 종이가 살짝 떨리고, 도장 가장자리에서 먼지가 옅게 피어올라 흩어진다.
-/// 도장 소리는 Ending_Appear 클립의 애니메이션 이벤트가 PlayStampSound를 불러서 낸다.
 /// 등장(Appear)과 나가기(Leave) 연출은 애니메이션 클립(EndingResult 컨트롤러)이 맡는다. 먼지는 Report/StampDust 아래 이미지들이다.
 /// 버튼은 이벤트만 발생시키고, 실제 씬 이동은 EndingResultPresenter가 담당한다.
 ///
@@ -272,15 +271,6 @@ public class EndingResultView : MonoBehaviour
                 slot.Hide();
             }
         }
-    }
-
-    /// <summary>
-    /// Ending_Appear 클립의 애니메이션 이벤트에서 부른다. 도장이 종이에 닿는 순간(0.98초)에 맞춰
-    /// 소리 파일 앞부분의 여유(약 0.1초)만큼 일찍 부른다.
-    /// </summary>
-    public void PlayStampSound()
-    {
-        Sfx.Play(Sfx.EndingStamp);
     }
 
     private void PlayState(int stateHash)

@@ -3,7 +3,7 @@ using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-/// 용암 범위에 주기적으로 피해를 적용하고, 범위 안의 적은 이동하지 못하게 속박한다. (그 지역의 이동을 막는다)
+/// 용암 범위에 주기적으로 피해를 적용하고 범위 내 적의 이동 속도를 낮춘다.
 public class MoltenArea : MonoBehaviour
 {
     [FoldoutGroup("Settings"), SerializeField] private float _rangeCheckInterval = 0.1f;
@@ -103,10 +103,7 @@ public class MoltenArea : MonoBehaviour
             currentStatusEffects.Add(statusEffects);
 
             if (!_affectedStatusEffects.Contains(statusEffects))
-            {
                 statusEffects.AddMoveSpeedModifier(_sourceId, _moveSpeedMultiplier);
-                statusEffects.AddRootModifier(_sourceId);
-            }
         }
 
         IEnumerable<EnemyStatusEffectController> exitedStatusEffects = _affectedStatusEffects.Where(statusEffects =>
@@ -114,7 +111,6 @@ public class MoltenArea : MonoBehaviour
         foreach (EnemyStatusEffectController statusEffects in exitedStatusEffects)
         {
             statusEffects.RemoveMoveSpeedModifier(_sourceId);
-            statusEffects.RemoveRootModifier(_sourceId);
         }
 
         _affectedStatusEffects.Clear();
@@ -137,7 +133,6 @@ public class MoltenArea : MonoBehaviour
                      statusEffects != null))
         {
             statusEffects.RemoveMoveSpeedModifier(_sourceId);
-            statusEffects.RemoveRootModifier(_sourceId);
         }
 
         _affectedStatusEffects.Clear();
@@ -145,7 +140,7 @@ public class MoltenArea : MonoBehaviour
 
     private HashSet<EnemyHealth> FindDamageableEnemies()
     {
-        Collider2D[] colliders = ReactionAreaShape.OverlapAll(transform.position, _radius);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _radius);
         HashSet<EnemyHealth> enemies = new();
 
         foreach (Collider2D collider in colliders)

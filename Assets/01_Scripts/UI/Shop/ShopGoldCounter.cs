@@ -17,8 +17,6 @@ public class ShopGoldCounter : MonoBehaviour
 
     [Header("숫자")]
     [SerializeField, Min(0.01f)] private float _countDuration = 0.45f;
-    [Tooltip("골드가 줄어드는 동안 똑딱이는 소리 간격")]
-    [SerializeField, Min(0.02f)] private float _tickInterval = 0.09f;
     [SerializeField] private float _changePunch = 0.12f;
 
     [Header("바뀐 양")]
@@ -54,9 +52,6 @@ public class ShopGoldCounter : MonoBehaviour
     private float _displayed;
     private float _countTime = float.NaN;
     private float _deniedTime = float.NaN;
-    private float _tickTimer;
-    private ShopSfx _sfx;
-    private bool _hasSearchedSfx;
 
     private void Awake()
     {
@@ -102,8 +97,6 @@ public class ShopGoldCounter : MonoBehaviour
         _from = _displayed;
         _target = amount;
         _countTime = 0f;
-        // 구매 소리와 겹치지 않게 한 박자 뒤부터 똑딱인다.
-        _tickTimer = _tickInterval;
     }
 
     /// <summary>골드가 부족할 때</summary>
@@ -124,7 +117,6 @@ public class ShopGoldCounter : MonoBehaviour
             _countTime += deltaTime;
             float t = _countTime / _countDuration;
             _displayed = Mathf.Lerp(_from, _target, ShopEase.OutCubic(t));
-            UpdateTick(deltaTime);
             if (t >= 1f)
             {
                 _countTime = float.NaN;
@@ -143,33 +135,6 @@ public class ShopGoldCounter : MonoBehaviour
 
         UpdatePopups(deltaTime);
         ApplyVisual();
-    }
-
-    /// <summary>골드가 줄어드는 동안 일정한 간격으로 똑딱인다.</summary>
-    private void UpdateTick(float deltaTime)
-    {
-        if (_target >= _from)
-        {
-            return;
-        }
-
-        _tickTimer -= deltaTime;
-        if (_tickTimer > 0f)
-        {
-            return;
-        }
-
-        _tickTimer += _tickInterval;
-        if (!_hasSearchedSfx)
-        {
-            _hasSearchedSfx = true;
-            _sfx = GetComponentInParent<ShopSfx>(true);
-        }
-
-        if (_sfx != null)
-        {
-            _sfx.PlayGoldTick();
-        }
     }
 
     private void ApplyVisual()

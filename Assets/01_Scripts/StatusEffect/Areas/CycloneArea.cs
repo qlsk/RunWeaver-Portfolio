@@ -172,7 +172,7 @@ public class CycloneArea : MonoBehaviour
     /// 현재 범위 내 살아 있는 활성 상태의 적을 콜라이더 중복 없이 조회한다.
     private HashSet<EnemyHealth> FindDamageableEnemies()
     {
-        Collider2D[] colliders = ReactionAreaShape.OverlapAll(transform.position, _radius);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _radius);
         HashSet<EnemyHealth> enemies = new();
         foreach (Collider2D collider in colliders)
         {

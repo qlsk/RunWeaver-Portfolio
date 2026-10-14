@@ -35,6 +35,7 @@ public static class Sfx
     public const string MenuMove = "MenuMove";
     public const string MenuConfirm = "MenuConfirm";
     public const string MenuCancel = "MenuCancel";
+    public const string StatueBreak = "StatueBreak";
 
     private const int PoolSize = 8;
 
@@ -153,6 +154,7 @@ public static class Sfx
         Add(ElementWind, library.ElementWind);
         Add(ElementEarth, library.ElementEarth);
         Add(EndingStamp, library.EndingStamp);
+        Add(StatueBreak, library.StatueBreak);
         Add(MenuMove, library.MenuMove);
         Add(MenuConfirm, library.MenuConfirm);
         Add(MenuCancel, library.MenuCancel);
