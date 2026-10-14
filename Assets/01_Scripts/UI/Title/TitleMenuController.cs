@@ -24,6 +24,9 @@ public class TitleMenuController : MonoBehaviour
     [Header("설정 창 (SettingsUI 루트)")]
     [SerializeField] private GameObject _settingsPanel;
 
+    [Header("BGM")]
+    [SerializeField] private TitleBgm _bgm;
+
     private SettingsPanelView _settingsView;
     private bool _isStarting;
 
@@ -70,12 +73,18 @@ public class TitleMenuController : MonoBehaviour
 
     private void StartNewGame()
     {
+        // 이미 시작 중이면 종료한다.
         if (_isStarting)
         {
             return;
         }
 
+        // 시작 중 상태로 전환한다.
         _isStarting = true;
+
+        // BGM 페이드아웃을 요청한다.
+        _bgm.FadeOut();
+
         GameSession session = GameSession.Instance;
         if (session != null && session.IsReady && !session.Current.Holdings.IsOnExpedition)
         {
