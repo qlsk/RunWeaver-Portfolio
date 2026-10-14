@@ -92,6 +92,9 @@ public class TraitManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>보유한 특성 ID (저장용)</summary>
+    public IReadOnlyCollection<string> AcquiredIds => _acquiredIds;
+
     public bool Has(string id)
     {
         return !string.IsNullOrWhiteSpace(id) && _acquiredIds.Contains(id);

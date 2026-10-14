@@ -104,7 +104,6 @@ public class PortalArrival : MonoBehaviour
         var arrival = new GameObject("PortalArrival").AddComponent<PortalArrival>();
         arrival._hider = hider;
         arrival._delay = delay;
-        Sfx.Play(Sfx.PortalMove);
     }
 
     private static PortalRiftFrames Frames

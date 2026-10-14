@@ -39,4 +39,5 @@ public class SfxLibrary : ScriptableObject
     public AudioClip MenuMove;
     public AudioClip MenuConfirm;
     public AudioClip MenuCancel;
+    public AudioClip StatueBreak;
 }

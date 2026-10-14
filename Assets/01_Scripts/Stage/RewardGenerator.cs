@@ -206,6 +206,25 @@ public class RewardGenerator : MonoBehaviour
         return pool;
     }
 
+    /// <summary>이어하기 : ID로 특성 데이터를 찾는다. 없으면 null</summary>
+    public TraitData FindTrait(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return null;
+        }
+
+        foreach (TraitData data in GetEffectiveTraitPool())
+        {
+            if (data != null && data.Id == id)
+            {
+                return data;
+            }
+        }
+
+        return null;
+    }
+
     private List<TraitData> GetEffectiveTraitPool()
     {
         List<TraitData> pool = new();

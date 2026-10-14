@@ -46,6 +46,15 @@ public class GameRunResultSource : RunResultSource
         }
     }
 
+    /// <summary>이번 판의 진행 시간(초). 저장용</summary>
+    public float ElapsedSeconds => (_endTime >= 0f ? _endTime : Time.time) - _startTime;
+
+    /// <summary>이어하기 : 저장된 진행 시간부터 이어서 센다.</summary>
+    public void RestoreElapsed(float seconds)
+    {
+        _startTime = Time.time - Mathf.Max(0f, seconds);
+    }
+
     public override RunResultData GetResult()
     {
         float endTime = _endTime >= 0f ? _endTime : Time.time;
