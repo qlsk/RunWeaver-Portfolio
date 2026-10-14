@@ -32,9 +32,6 @@ public class RewardGenerator : MonoBehaviour
     [Tooltip("보유한 특성은 추첨에서 제외된다.")]
     [SerializeField] private TraitData[] _traitPool;
 
-    [Header("룬 슬롯 확장")]
-    [SerializeField] private Sprite _slotExpansionIcon;
-
     [Header("테스트용")]
     [Tooltip("켜면 3개 중 1개가 항상 룬석. 기본값off, 출시는 끄고 나갈 것.")]
     [SerializeField] private bool _alwaysIncludeRuneStone;
@@ -103,15 +100,6 @@ public class RewardGenerator : MonoBehaviour
             {
                 candidates.Add(RewardOption.ForTrait(trait));
             }
-        }
-
-        // 슬롯 확장: 5칸 미만일 때만 후보. 기본 2칸이라 최대 3번 선택된다.
-        RuneEffectLoadout loadout = PlayerRuneManager.Instance != null
-            ? PlayerRuneManager.Instance.RuneEffectLoadout
-            : null;
-        if (loadout != null && loadout.ActiveSlotCount < RuneEffectLoadout.MaxSlotCount)
-        {
-            candidates.Add(RewardOption.ForSlotExpansion(loadout.ActiveSlotCount, RuneEffectLoadout.MaxSlotCount, _slotExpansionIcon));
         }
 
         Shuffle(candidates);
