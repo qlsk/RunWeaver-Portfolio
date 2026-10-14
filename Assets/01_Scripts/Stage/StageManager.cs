@@ -256,6 +256,7 @@ public class StageManager : MonoBehaviour
     private void Start()
     {
         RunFlow.BeginRun();
+        BgmDirector.PlayZone(BgmDirector.Combat);
 
         _missionManager = MissionManager.Instance;
         if (_missionManager != null)
@@ -384,6 +385,7 @@ public class StageManager : MonoBehaviour
     {
         _isTransitioning = false;
         StopPortalRoutine();
+        BgmDirector.PlayZone(BgmDirector.Combat);
 
         // 정화 중에 포탈로 내려왔으면 이전 층의 파동은 더 기다리지 않는다.
         DetachWave();
@@ -463,7 +465,6 @@ public class StageManager : MonoBehaviour
         UnregisterStartInteractable();
         SetPhase(StagePhase.InMission);
         Sfx.Play(Sfx.MissionStart);
-        BgmDirector.PlayZone(BgmDirector.Combat);
 
         if (_isBossStage)
         {
