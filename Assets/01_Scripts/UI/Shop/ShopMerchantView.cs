@@ -238,6 +238,7 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
     private float _stateTime;
     private float _holdTime;
     private int _charCount;
+    private int _lastTalkStep;
     private int _currentPriority;
 
     private string _queuedLine;
@@ -329,6 +330,7 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
             // 끝까지 누른 손님에게 한마디 하고 처음으로 돌아간다.
             _pokeCount = 0;
             _squintTime = 0f;
+            Sfx.Play(Sfx.ShopSecret);
             PlayMotion(BodyMotion.Lean);
             Say(_secretLines, PriorityHigh);
             return;
@@ -337,6 +339,7 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         if (_pokeCount >= _annoyedPokeCount)
         {
             _squintTime = _squintDuration;
+            Sfx.Play(Sfx.ShopAnnoyed);
             PlayMotion(BodyMotion.Tremble);
             Say(_annoyedLines, PriorityNormal);
             return;
@@ -345,6 +348,7 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         // 깜짝 놀라 한 번 깜빡인다.
         _blinkTime = 0f;
         _blinkAgain = false;
+        Sfx.Play(Sfx.ShopPoke);
         PlayMotion(BodyMotion.Squash);
         Say(_pokeLines, PriorityNormal);
     }
@@ -604,6 +608,7 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
         _currentPriority = priority;
         _bubbleText.text = line;
         _bubbleText.maxVisibleCharacters = 0;
+        _lastTalkStep = 0;
 
         // 다 찍혔을 때의 크기로 말풍선을 미리 맞춰 둔다. (찍히는 동안 크기가 변하지 않게)
         Vector2 preferred = _bubbleText.GetPreferredValues(line, _maxTextWidth, 0f);
@@ -647,6 +652,11 @@ public class ShopMerchantView : MonoBehaviour, IPointerClickHandler, IPointerEnt
 
                 int visible = Mathf.FloorToInt(Mathf.Max(0f, _stateTime - _popDuration * 0.4f) * _charsPerSecond);
                 _bubbleText.maxVisibleCharacters = Mathf.Min(visible, _charCount);
+                if (visible / 3 != _lastTalkStep)
+                {
+                    _lastTalkStep = visible / 3;
+                    Sfx.PlayShopTalk();
+                }
                 if (visible >= _charCount && pop >= 1f)
                 {
                     _bubbleText.maxVisibleCharacters = _charCount;
