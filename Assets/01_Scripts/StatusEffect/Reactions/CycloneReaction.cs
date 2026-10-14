@@ -20,5 +20,6 @@ public class CycloneReaction : MonoBehaviour
         CycloneArea area = Instantiate(_cycloneAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_cycloneRadius, _cycloneDuration, context.BulletDamage * _tickDamageMultiplier,
             _tickInterval, _pullSpeed, _knockbackSpeed, _knockbackDuration, context.BulletDirection);
+        Sfx.Play(Sfx.ReactCyclone);
     }
 }

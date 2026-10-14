@@ -21,6 +21,7 @@ public class PetrifyReaction : MonoBehaviour
             PetrifyArea area = Instantiate(_petrifyAreaPrefab, context.HitPosition, Quaternion.identity);
             area.Initialize(_petrifyRadius, _petrifyDuration);
         }
+        Sfx.Play(Sfx.ReactPetrify);
 
         HashSet<EnemyHealth> enemies = new();
         foreach (Collider2D collider in Physics2D.OverlapCircleAll(context.HitPosition, _petrifyRadius))
