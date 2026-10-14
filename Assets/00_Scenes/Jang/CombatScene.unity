@@ -1238,7 +1238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7997101506716382822, guid: 72b1eb58b1b485a479e39a76e76d8c15, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1675,6 +1675,10 @@ PrefabInstance:
     - target: {fileID: 8121630921212012013, guid: 332b1e08a05192d468e5b4ee071406f3, type: 3}
       propertyPath: m_Name
       value: WindDefaultEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 8121630921212012013, guid: 332b1e08a05192d468e5b4ee071406f3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2301,6 +2305,10 @@ PrefabInstance:
     - target: {fileID: 2644439620610260465, guid: d85ee4142d499d044a24fa18f1b148bd, type: 3}
       propertyPath: m_Name
       value: WindDashEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 2644439620610260465, guid: d85ee4142d499d044a24fa18f1b148bd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3110212136527878748, guid: d85ee4142d499d044a24fa18f1b148bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3275,7 +3283,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7997101506716382822, guid: bfa0ce6ccd16e804da3c5118fde2140e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3296,7 +3304,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2644439620610260465, guid: 23c205a72bc30bf4c9b982a7d6a89628, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3110212136527878748, guid: 23c205a72bc30bf4c9b982a7d6a89628, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3458,7 +3466,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8121630921212012013, guid: ba2864196c5e9bb49bf03e19a458d277, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3523,7 +3531,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3047915922552554939, guid: bebaa136c8d1f95428910385001b3bc4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
