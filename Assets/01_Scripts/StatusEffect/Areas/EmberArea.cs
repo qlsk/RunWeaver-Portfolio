@@ -77,7 +77,7 @@ public class EmberArea : MonoBehaviour
             }
 
             float placementRadius = Mathf.Max(0f, _radius - effectRadius);
-            Vector2 offset = UnityEngine.Random.insideUnitCircle * placementRadius;
+            Vector2 offset = ReactionAreaShape.RandomOffset(placementRadius);
             effect.transform.position = transform.position + new Vector3(offset.x, offset.y, 0f);
             effect.Play(0, 0, UnityEngine.Random.value);
             _emberEffects.Add(effect);
@@ -106,7 +106,7 @@ public class EmberArea : MonoBehaviour
 
     private void ApplyTickDamage()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _radius);
+        Collider2D[] colliders = ReactionAreaShape.OverlapAll(transform.position, _radius);
         HashSet<EnemyHealth> enemies = new();
         foreach (Collider2D collider in colliders)
         {

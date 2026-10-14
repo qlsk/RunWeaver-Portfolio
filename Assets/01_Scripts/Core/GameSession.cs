@@ -38,6 +38,8 @@ public class GameSession : Singleton<GameSession>
         Current = progression;
         CurrentRuneLoadout = loadout;
         IsReady = true;
+        // 룬북 공개 상태는 판과 상관없이 저장 파일에 남는다.
+        SaveSystem.BindRuneBook(book);
         SafeEventNotifier.Notify(ProgressReplaced, progression);
     }
 
@@ -129,4 +131,4 @@ public class GameSession : Singleton<GameSession>
         if (!Current.Holdings.IsOnExpedition)
             throw new InvalidOperationException("No expedition in progress.");
     }
-}
+}
