@@ -7,10 +7,12 @@ public class TutorialRules
     private readonly float _minHealthRatio;
     private readonly float _timeoutExtendSeconds;
     private readonly TutorialRecordTracker _recordTracker;
+    private readonly IReadOnlyCollection<ReactionElement> _lockedPrimaryElements;
 
     private RuneBookV2Toggle _runeBookToggle;
     private MissionManager _missionManager;
     private RuneBookV2Presenter _runeBookPresenter;
+    private MainElementSelectView _primaryElementSelectView;
     private PlayerHealth _playerHealth;
     private StageManager _stageManager;
     private bool _runeStonesGranted;
@@ -19,8 +21,10 @@ public class TutorialRules
         IReadOnlyList<string> grantedRuneWordIds,
         float minHealthRatio,
         float timeoutExtendSeconds,
-        TutorialRecordTracker recordTracker)
+        TutorialRecordTracker recordTracker,
+        IReadOnlyCollection<ReactionElement> lockedPrimaryElements)
     {
+        _lockedPrimaryElements = lockedPrimaryElements;
         _recordTracker = recordTracker;
         _grantedRuneWordIds = grantedRuneWordIds;
         _minHealthRatio = minHealthRatio;
@@ -30,6 +34,7 @@ public class TutorialRules
     public void Apply()
     {
         LockRuneBook();
+        LockPrimaryElements();
         FixFirstMission();
         ApplyNoFailure();
     }
@@ -47,6 +52,7 @@ public class TutorialRules
     public void Release()
     {
         ReleaseRuneBookLock();
+        ReleasePrimaryElementLock();
         ReleaseMissionFix();
         ReleaseNoFailure();
         ReleaseRuneWordRestriction();
@@ -64,6 +70,20 @@ public class TutorialRules
             _runeBookToggle.IsLocked = false;
 
         _runeBookToggle = null;
+    }
+
+    private void LockPrimaryElements()
+    {
+        _primaryElementSelectView = Object.FindAnyObjectByType<MainElementSelectView>(FindObjectsInactive.Include);
+        _primaryElementSelectView.SetLockedElements(_lockedPrimaryElements);
+    }
+
+    private void ReleasePrimaryElementLock()
+    {
+        if (_primaryElementSelectView != null)
+            _primaryElementSelectView.SetLockedElements(null);
+
+        _primaryElementSelectView = null;
     }
 
     private void FixFirstMission()
