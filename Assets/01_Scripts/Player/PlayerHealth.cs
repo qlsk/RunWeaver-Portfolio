@@ -140,6 +140,13 @@ public class PlayerHealth : MonoBehaviour
         _hitInvincibility = false;
     }
 
+    /// <summary>이어하기 : 저장된 체력으로 바로 맞춘다. (0 이하면 1로)</summary>
+    public void RestoreHealth(float health)
+    {
+        if (_isDead) return;
+        _currentHealth = Mathf.Clamp(health, 1f, _maxHealth);
+    }
+
     // 체력 회복
     public void Heal(float healAmount)
     {

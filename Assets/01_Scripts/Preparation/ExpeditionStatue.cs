@@ -307,6 +307,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     {
         _isCrumbling = true;
         SetCollidersEnabled(false);
+        Sfx.Play(Sfx.StatueBreak);
 
         // 1. 점점 세게 흔들리며 빛난다.
         Transform statue = _statueRenderer != null ? _statueRenderer.transform : transform;

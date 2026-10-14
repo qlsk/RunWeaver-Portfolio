@@ -310,6 +310,37 @@ public class StageManager : MonoBehaviour
         StartStage(_currentDepth);
     }
 
+    /// <summary>
+    /// 이어하기 : 출발 준비(시작 석상)를 건너뛰고 저장된 층의 준비 단계부터 시작한다. (StageStarted 발생)
+    /// RunSaveController가 플레이어 상태를 되돌린 뒤에 부른다. 미션은 MissionManager에 미리 지정해 둔다.
+    /// </summary>
+    public void BeginContinuedRun(int depth)
+    {
+        IsWaitingForPreparation = false;
+        _currentDepth = Mathf.Max(1, depth);
+        ClearActiveEnemies();
+        StartStage(_currentDepth);
+    }
+
+    /// <summary>
+    /// 이어하기 : 층 사이 상점에서 끈 판. 출발 준비를 건너뛰고 상점을 바로 연다.
+    /// 상점을 나가면 원래처럼 depth 층이 시작된다. (상점이 없으면 바로 시작)
+    /// 진열은 RunSaveController가 상점 데이터에 미리 넣어 둔다.
+    /// </summary>
+    public void BeginContinuedShop(int depth)
+    {
+        IsWaitingForPreparation = false;
+        _currentDepth = Mathf.Max(1, depth);
+        ClearActiveEnemies();
+        if (TryOpenShop())
+        {
+            SetPhase(StagePhase.Shop);
+            return;
+        }
+
+        StartNextStage();
+    }
+
     private void Update()
     {
         switch (_phase)
