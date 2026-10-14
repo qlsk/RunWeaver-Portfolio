@@ -9,6 +9,7 @@ using UnityEngine;
 public static class Sfx
 {
     public const string RunePickedUp = "RunePickedUp";
+    public const string Footsteps = "Footsteps";
     public const string EnemyDeath = "EnemyDeath";
     public const string EnemyHit = "EnemyHit";
     public const string PlayerHit = "PlayerHit";
@@ -22,14 +23,15 @@ public static class Sfx
     public const string TraitSelect = "TraitSelect";
     public const string Dash = "Dash";
     public const string CleanseSpell = "CleanseSpell";
+    public const string CleanseSuccess = "CleanseSuccess";
+    public const string CleanseEmpty = "CleanseEmpty";
+    public const string CleanseCooldown = "CleanseCooldown";
     public const string MissionStart = "MissionStart";
     public const string ElementFire = "ElementFire";
     public const string ElementWater = "ElementWater";
     public const string ElementWind = "ElementWind";
     public const string ElementEarth = "ElementEarth";
-    public const string StatueBreak = "StatueBreak";
-    public const string UiClick = "UiClick";
-    public const string UiHover = "UiHover";
+    public const string EndingStamp = "EndingStamp";
 
     private const int PoolSize = 8;
 
@@ -39,7 +41,6 @@ public static class Sfx
     private static int _poolIndex;
     private static readonly Dictionary<string, AudioSource> _loops = new();
     private static readonly Dictionary<string, AudioClip> _clips = new();
-    private static readonly List<AudioClip> _footstepVariants = new();
     private static bool _loaded;
     private static bool _warned;
     private static bool _subscribed;
@@ -55,24 +56,6 @@ public static class Sfx
             _poolIndex = (_poolIndex + 1) % PoolSize;
             if (source == null) continue;
             source.pitch = pitch;
-            source.PlayOneShot(clip, volumeScale);
-            return;
-        }
-    }
-
-    /// <summary>발걸음 1회. 변주 샘플 중 무작위 + 피치 변주로 반복감을 줄인다.</summary>
-    public static void PlayFootstep(float volumeScale = 0.45f)
-    {
-        if (!EnsureLibrary() || _footstepVariants.Count == 0) return;
-        AudioClip clip = _footstepVariants[Random.Range(0, _footstepVariants.Count)];
-        if (clip == null) return;
-        EnsureRoot();
-        for (int i = 0; i < PoolSize; i++)
-        {
-            AudioSource source = _pool[_poolIndex];
-            _poolIndex = (_poolIndex + 1) % PoolSize;
-            if (source == null) continue;
-            source.pitch = Random.Range(0.78f, 0.88f);
             source.PlayOneShot(clip, volumeScale);
             return;
         }
@@ -144,13 +127,7 @@ public static class Sfx
             return false;
         }
         Add(RunePickedUp, library.RunePickedUp);
-        if (library.FootstepVariants != null)
-        {
-            foreach (AudioClip clip in library.FootstepVariants)
-            {
-                if (clip != null) _footstepVariants.Add(clip);
-            }
-        }
+        Add(Footsteps, library.Footsteps);
         Add(EnemyDeath, library.EnemyDeath);
         Add(EnemyHit, library.EnemyHit);
         Add(PlayerHit, library.PlayerHit);
@@ -164,14 +141,15 @@ public static class Sfx
         Add(TraitSelect, library.TraitSelect);
         Add(Dash, library.Dash);
         Add(CleanseSpell, library.CleanseSpell);
+        Add(CleanseSuccess, library.CleanseSuccess);
+        Add(CleanseEmpty, library.CleanseEmpty);
+        Add(CleanseCooldown, library.CleanseCooldown);
         Add(MissionStart, library.MissionStart);
         Add(ElementFire, library.ElementFire);
         Add(ElementWater, library.ElementWater);
         Add(ElementWind, library.ElementWind);
         Add(ElementEarth, library.ElementEarth);
-        Add(StatueBreak, library.StatueBreak);
-        Add(UiClick, library.UiClick);
-        Add(UiHover, library.UiHover);
+        Add(EndingStamp, library.EndingStamp);
         return _clips.Count > 0;
     }
 

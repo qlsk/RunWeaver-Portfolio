@@ -33,16 +33,17 @@ public class EnemyRangeAttack : MonoBehaviour
             (_statusEffectController != null && _statusEffectController.IsStaggered))
             return;
 
-        Transform target = _targetDetector.Target;
-        if (target == null)
+        if (_targetDetector.Target == null)
             return;
 
-        Vector2 targetOffset = target.position - transform.position;
+        // 증기처럼 추적이 느려지는 효과를 받도록 마지막으로 관측한 위치를 겨눈다.
+        Vector2 targetPosition = _targetDetector.LastKnownTargetPosition;
+        Vector2 targetOffset = targetPosition - (Vector2)transform.position;
         if (targetOffset.sqrMagnitude > _attackRange * _attackRange)
             return;
 
         Vector3 firePosition = _firePoint != null ? _firePoint.position : transform.position;
-        Vector2 direction = (Vector2)(target.position - firePosition);
+        Vector2 direction = targetPosition - (Vector2)firePosition;
         if (direction.sqrMagnitude <= Mathf.Epsilon)
             return;
 

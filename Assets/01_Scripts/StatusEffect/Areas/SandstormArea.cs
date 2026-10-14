@@ -159,7 +159,7 @@ public class SandstormArea : MonoBehaviour
     private HashSet<EnemyHealth> FindDamageableEnemies()
     {
         HashSet<EnemyHealth> enemies = new();
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position, _radius))
+        foreach (Collider2D collider in ReactionAreaShape.OverlapAll(transform.position, _radius))
         {
             if (!collider.TryGetComponent(out EnemyHealth enemy))
                 continue;

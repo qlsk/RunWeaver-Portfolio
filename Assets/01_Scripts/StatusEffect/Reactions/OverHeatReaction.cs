@@ -34,7 +34,7 @@ public class OverHeatReaction : MonoBehaviour
 
     private void ApplyExplosionDamage(Vector2 hitPosition, float damage)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(hitPosition, _explosionRadius);
+        Collider2D[] colliders = ReactionAreaShape.OverlapAll(hitPosition, _explosionRadius);
         HashSet<EnemyHealth> enemies = new();
         foreach (Collider2D collider in colliders)
         {

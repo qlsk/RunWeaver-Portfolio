@@ -18,6 +18,13 @@ public class EnemyDeathTracker : MonoBehaviour
 
     public float TotalDamage => _totalDamage;
 
+    /// <summary>이어하기 : 저장된 처치 수와 피해량부터 이어서 센다.</summary>
+    public void Restore(int killCount, float totalDamage)
+    {
+        _killCount = Mathf.Max(0, killCount);
+        _totalDamage = Mathf.Max(0f, totalDamage);
+    }
+
     private void OnEnable()
     {
         EnemyHealth.OnDeath += HandleEnemyDeath;

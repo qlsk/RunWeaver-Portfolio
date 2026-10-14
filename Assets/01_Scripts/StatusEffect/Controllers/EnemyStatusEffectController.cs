@@ -38,6 +38,10 @@ public class EnemyStatusEffectController : MonoBehaviour
 
     [FoldoutGroup("Death VFX"), SerializeField, Min(0.1f)] private float _detachedVfxLifetime = 1.2f;
 
+    // 경직 연출 클립(Effect_Stagger)의 정규화 시간: 16프레임에서 가시가 모두 올라와 있고, 24프레임부터 내려간다.
+    private const float StaggerVfxHoldTime = 16f / 32f;
+    private const float StaggerVfxRetractTime = 24f / 32f;
+
     // Burn state
     private float _burnDamage;
     private float _activeBurnInterval;
@@ -69,6 +73,7 @@ public class EnemyStatusEffectController : MonoBehaviour
     private GameObject _staggerVfxInstance;
     private SpriteRenderer[] _staggerVfxRenderers;
     private Animator _staggerVfxAnimator;
+    private bool _isStaggerVfxRetracting;
 
     // Knockback state
     private float _knockbackRemaining;
@@ -166,7 +171,8 @@ public class EnemyStatusEffectController : MonoBehaviour
         if (_slowRemaining <= 0f)
             StopSlowVisual();
         _staggerRemaining = Mathf.Max(_staggerRemaining - deltaTime, 0f);
-        if (_staggerRemaining <= 0f)
+        // 석화 중이거나 석화가 풀려 가시가 내려가는 중에는 경직 연출을 유지한다.
+        if (_staggerRemaining <= 0f && !_hasPetrify && !_isStaggerVfxRetracting)
             StopStaggerVisual();
         _knockbackRemaining = Mathf.Max(_knockbackRemaining - deltaTime, 0f);
         if (_knockbackRemaining <= 0f)
@@ -175,8 +181,18 @@ public class EnemyStatusEffectController : MonoBehaviour
         {
             _petrifyRemaining = Mathf.Max(_petrifyRemaining - deltaTime, 0f);
             if (_petrifyRemaining <= 0f)
+            {
                 ClearPetrify();
+                RetractStaggerVisual();
+            }
+            else
+            {
+                HoldStaggerVisualWhilePetrified();
+            }
         }
+
+        if (_isStaggerVfxRetracting && IsStaggerVfxFinished())
+            StopStaggerVisual();
     }
 
     /// 비활성화 시 단일 원소 연출과 석화가 등록한 보정을 정리한다.
@@ -217,6 +233,9 @@ public class EnemyStatusEffectController : MonoBehaviour
                 break;
             case ReactionElement.Earth:
                 _staggerRemaining = _staggerDuration;
+                // 석화 중에는 올라와 있는 가시를 다시 처음부터 재생하지 않는다.
+                if (_hasPetrify)
+                    break;
                 if (_staggerRemaining > 0f)
                     PlayStaggerVisual();
                 else
@@ -300,6 +319,7 @@ public class EnemyStatusEffectController : MonoBehaviour
     /// 석화 시간을 갱신하고 재적용 시 강한 이동 제한과 방어력 감소를 유지한다.
     public void ApplyPetrify(float duration, float moveSpeedMultiplier, bool root, float defenseMultiplier)
     {
+        bool wasPetrified = _hasPetrify;
         if (!_hasPetrify)
         {
             _petrifySourceId = GetInstanceID();
@@ -320,6 +340,9 @@ public class EnemyStatusEffectController : MonoBehaviour
         if (_petrifyRoots)
             AddRootModifier(_petrifySourceId);
         _enemyHealth.AddDefenseModifier(_petrifySourceId, _petrifyDefenseMultiplier);
+        // 새로 석화되면 가시가 올라오는 연출을 처음부터 재생한다. 이미 석화 중이면 올라와 있는 가시를 그대로 둔다.
+        if (!wasPetrified)
+            PlayStaggerVisual();
     }
 
     /// 지정한 방향과 속도로 일정 시간 넉백을 적용한다.
@@ -478,13 +501,55 @@ public class EnemyStatusEffectController : MonoBehaviour
         UpdateStaggerSorting();
         if (!_staggerVfxInstance.activeSelf)
             _staggerVfxInstance.SetActive(true);
+        _isStaggerVfxRetracting = false;
         if (_staggerVfxAnimator != null)
+        {
+            _staggerVfxAnimator.speed = 1f;
             _staggerVfxAnimator.Play(0, 0, 0f);
+        }
+    }
+
+    /// 석화 중에는 가시가 모두 올라온 프레임에서 경직 연출을 멈춰 둔다.
+    private void HoldStaggerVisualWhilePetrified()
+    {
+        if (!IsStaggerVfxPlaying() || _staggerVfxAnimator.speed == 0f)
+            return;
+
+        if (_staggerVfxAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime < StaggerVfxHoldTime)
+            return;
+
+        _staggerVfxAnimator.Play(0, 0, StaggerVfxHoldTime);
+        _staggerVfxAnimator.speed = 0f;
+    }
+
+    /// 석화가 풀리면 멈춰 둔 가시가 내려가는 구간을 재생하고, 끝나면 숨긴다.
+    private void RetractStaggerVisual()
+    {
+        if (!IsStaggerVfxPlaying())
+            return;
+
+        _staggerVfxAnimator.speed = 1f;
+        float normalizedTime = _staggerVfxAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+        _staggerVfxAnimator.Play(0, 0, Mathf.Max(normalizedTime, StaggerVfxRetractTime));
+        _isStaggerVfxRetracting = true;
+    }
+
+    private bool IsStaggerVfxPlaying()
+    {
+        return _staggerVfxAnimator != null && _staggerVfxAnimator.isActiveAndEnabled;
+    }
+
+    private bool IsStaggerVfxFinished()
+    {
+        return !IsStaggerVfxPlaying() || _staggerVfxAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
     }
 
     /// 경직 종료 또는 몬스터 비활성화 시 경직 애니메이션을 숨긴다.
     private void StopStaggerVisual()
     {
+        _isStaggerVfxRetracting = false;
+        if (_staggerVfxAnimator != null)
+            _staggerVfxAnimator.speed = 1f;
         if (_staggerVfxInstance != null)
             _staggerVfxInstance.SetActive(false);
     }
