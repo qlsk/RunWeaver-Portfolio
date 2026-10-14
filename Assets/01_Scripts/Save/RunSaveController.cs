@@ -373,13 +373,19 @@ public class RunSaveController : MonoBehaviour
         }
     }
 
-    /// <summary>이어하기에서는 출발 준비를 하지 않으므로 시작 석상을 치운다.</summary>
+    /// <summary>이어하기에서는 출발 준비를 하지 않으므로 시작 석상과 안내를 치운다.</summary>
     private static void RemovePreparationStatue()
     {
+        foreach (ExpeditionStatueHint hint in FindObjectsByType<ExpeditionStatueHint>(
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            hint.gameObject.SetActive(false);
+        }
+
         ExpeditionStatue statue = FindAnyObjectByType<ExpeditionStatue>();
         if (statue != null)
         {
-            Destroy(statue.gameObject);
+            statue.RemoveForContinuation();
         }
     }
 
