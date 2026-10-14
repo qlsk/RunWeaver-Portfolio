@@ -440,7 +440,6 @@ GameObject:
   - component: {fileID: 1312008304262661485}
   - component: {fileID: 6079699421318323724}
   - component: {fileID: 5177407804968089164}
-  - component: {fileID: 2303074499051254785}
   - component: {fileID: 8512530557978811054}
   - component: {fileID: 4752673225059697373}
   - component: {fileID: 8311987531432083761}
@@ -454,6 +453,8 @@ GameObject:
   - component: {fileID: 7452658974309964559}
   - component: {fileID: 7452658974309964560}
   - component: {fileID: 7452658974309964561}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 8
   m_Name: Boss
   m_TagString: Enemy
@@ -544,6 +545,7 @@ MonoBehaviour:
   _enemyData: {fileID: 11400000, guid: 35e417f9d17439a4a8cf29991b3bb0f9, type: 2}
   _currentHealth: 10
   _damageFeedbacks: {fileID: 950100003}
+  _useBossHealthBar: 1
 --- !u!114 &5177407804968089164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -560,21 +562,6 @@ MonoBehaviour:
   _maxQuantity: 1
   runePrefab: {fileID: 7604851959272145055, guid: af0ce2a398dee2b40a34d0a87efd6eff, type: 3}
   _amountOfGold: 10
---- !u!114 &2303074499051254785
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3047915922552554939}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40a3f75baa6a8444886fd4b0e772b956, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  _enemyData: {fileID: 11400000, guid: 35e417f9d17439a4a8cf29991b3bb0f9, type: 2}
-  _currentHealth: 10
-  _damageFeedbacks: {fileID: 0}
 --- !u!114 &8512530557978811054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -688,7 +675,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7233f2c81a9443628f30509f697a630b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
-  _enemyHealth: {fileID: 2303074499051254785}
+  _enemyHealth: {fileID: 6079699421318323724}
   _burnDuration: 3
   _burnInterval: 1
   _burnDamageMultiplier: 0.2
@@ -960,3 +947,29 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.8336763, y: 3.2018669}
   m_EdgeRadius: 0
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3047915922552554939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: -1.2909935
