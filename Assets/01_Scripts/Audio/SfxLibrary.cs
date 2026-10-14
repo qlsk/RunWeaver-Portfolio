@@ -39,4 +39,23 @@ public class SfxLibrary : ScriptableObject
     public AudioClip MenuMove;
     public AudioClip MenuConfirm;
     public AudioClip MenuCancel;
+    public AudioClip StatueBreak;
+    [Header("상점")]
+    public AudioClip ShopDoorBell;
+    public AudioClip ShopDrawer;
+    public AudioClip[] ShopCardDeal;
+    public AudioClip ShopLeave;
+    public AudioClip ShopSelect;
+    public AudioClip ShopBuyCommon;
+    public AudioClip ShopBuyMagic;
+    public AudioClip ShopBuyPotion;
+    public AudioClip ShopDenied;
+    public AudioClip ShopGold;
+    public AudioClip ShopSoldOut;
+    public AudioClip ShopReroll;
+    public AudioClip ShopFlip;
+    public AudioClip[] ShopTalk;
+    public AudioClip ShopPoke;
+    public AudioClip ShopAnnoyed;
+    public AudioClip ShopSecret;
 }

@@ -47,13 +47,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReactionFxEnemyMarks
   _mode: 3
-  _referenceRadius: 0.79
-  _markPrefab: {fileID: 1981760085103739413, guid: 667f5999b0374e20b7dad8397707f2db, type: 3}
-  _emberPrefab: {fileID: 0}
+  _referenceRadius: 0.9
+  _markSprite: {fileID: 625827842, guid: 8b077084e7b54afba7b94317272a1308, type: 3}
+  _impactSprite: {fileID: 0}
   _refreshInterval: 0.1
   _liftHeight: 0.45
   _liftSpeed: 2
   _emberLaunchHeight: 0.9
+  _emberFlightTime: 0.35
+  _emberArcHeight: 0.8
 --- !u!1 &7136139063467880628
 GameObject:
   m_ObjectHideFlags: 0

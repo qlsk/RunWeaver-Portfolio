@@ -122,8 +122,7 @@ public class PlayerMove : MonoBehaviour
             if (_stepTimer <= 0f)
             {
                 _stepTimer = StepInterval;
-                // 같은 발소리가 기계적으로 반복되지 않게 크기와 높이를 조금씩 바꾼다.
-                Sfx.Play(Sfx.Footsteps, Random.Range(0.85f, 1f), Random.Range(0.92f, 1.08f));
+                Sfx.Play(Sfx.Footsteps);
             }
         }
         else

@@ -31,6 +31,8 @@ public class FadePanelView : MonoBehaviour
     private Coroutine _playRoutine;
     private Vector3 _originalScale = Vector3.one;
     private bool _isInitialized;
+    private bool _isFadingOut;
+    private float _currentScale = 1f;
 
     /// <summary>
     /// 유지 시간이 끝났을 때 발생한다. (페이드 아웃이 있으면 페이드 아웃이 끝난 뒤)
@@ -38,6 +40,20 @@ public class FadePanelView : MonoBehaviour
     public event Action Finished;
 
     public bool IsPlaying => _playRoutine != null;
+
+    public void ConfigureLike(FadePanelView source, float totalDuration)
+    {
+        if (source != null)
+        {
+            _startAlpha = source._startAlpha;
+            _maxAlpha = source._maxAlpha;
+            _startScale = source._startScale;
+            _fadeInDuration = source._fadeInDuration;
+            _fadeOutDuration = source._fadeOutDuration;
+        }
+
+        _holdDuration = Mathf.Max(0f, totalDuration - _fadeInDuration - _fadeOutDuration);
+    }
 
     /// <summary>페이드 인으로 진해지는 최대 알파를 정한다. (다음 재생부터 적용)</summary>
     public void SetMaxAlpha(float maxAlpha)
@@ -55,7 +71,33 @@ public class FadePanelView : MonoBehaviour
         }
 
         gameObject.SetActive(true);
+        _isFadingOut = false;
         _playRoutine = StartCoroutine(PlayRoutine());
+    }
+
+    public void FadeOut()
+    {
+        if (!gameObject.activeInHierarchy || _isFadingOut) return;
+
+        Initialize();
+        if (_fadeOutDuration <= NoFadeOut)
+        {
+            Hide();
+            return;
+        }
+
+        if (_playRoutine != null) StopCoroutine(_playRoutine);
+        _playRoutine = StartCoroutine(FadeOutRoutine());
+    }
+
+    private IEnumerator FadeOutRoutine()
+    {
+        _isFadingOut = true;
+        yield return Animate(_fadeOutDuration, _canvasGroup.alpha, 0f, _currentScale, 1f);
+        _playRoutine = null;
+        _isFadingOut = false;
+        gameObject.SetActive(false);
+        Finished?.Invoke();
     }
 
     public void Hide()
@@ -68,6 +110,8 @@ public class FadePanelView : MonoBehaviour
             _playRoutine = null;
         }
 
+        _isFadingOut = false;
+        _currentScale = 1f;
         transform.localScale = _originalScale;
         gameObject.SetActive(false);
     }
@@ -105,7 +149,9 @@ public class FadePanelView : MonoBehaviour
 
         if (_fadeOutDuration > NoFadeOut)
         {
+            _isFadingOut = true;
             yield return Animate(_fadeOutDuration, _maxAlpha, 0f, 1f, 1f);
+            _isFadingOut = false;
             gameObject.SetActive(false);
         }
 
@@ -137,6 +183,7 @@ public class FadePanelView : MonoBehaviour
 
     private void Apply(float alpha, float scale)
     {
+        _currentScale = scale;
         _canvasGroup.alpha = alpha;
         transform.localScale = _originalScale * scale;
     }

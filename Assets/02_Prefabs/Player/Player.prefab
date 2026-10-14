@@ -58,6 +58,8 @@ GameObject:
   - component: {fileID: 4534917502527689588}
   - component: {fileID: 8483855564624597261}
   - component: {fileID: 900800003}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -1236,3 +1238,29 @@ MonoBehaviour:
         RemapColorZero: 0
         RemapColorOne: 1
         TargetColor: {r: 0.85, g: 0.02, b: 0.02, a: 1}
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4117483220137768412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: -0.62

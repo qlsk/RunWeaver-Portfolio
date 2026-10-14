@@ -526,6 +526,8 @@ GameObject:
   - component: {fileID: 8582171479461955155}
   - component: {fileID: 353966042020948176}
   - component: {fileID: 5180820240436623710}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 8
   m_Name: WaterRangeEnemy
   m_TagString: Enemy
@@ -803,3 +805,29 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: -0.20487833}
   m_Radius: 0.29512167
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7997101506716382822}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7997101506716382822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: -0.20487833
