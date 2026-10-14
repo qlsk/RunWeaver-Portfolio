@@ -22,6 +22,6 @@ public class FirestormReaction : MonoBehaviour
         FirestormArea area = Instantiate(_firestormAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_firestormRadius, _firestormDuration, _burnApplyInterval,
             context.BulletDamage * _burnDamageMultiplier, _burnTickInterval, _burnDuration, _pullSpeed);
-        Sfx.PlayLoopFor(Sfx.TornadoLoop, _firestormDuration);
+        Sfx.Play(Sfx.TornadoLoop);
     }
 }

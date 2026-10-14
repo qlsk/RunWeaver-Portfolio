@@ -21,5 +21,6 @@ public class MoltenReaction : MonoBehaviour
         MoltenArea moltenArea = Instantiate(_moltenAreaPrefab, context.HitPosition, Quaternion.identity);
         moltenArea.Initialize(moltenTickDamage, _moltenRadius, _moltenTickInterval, _moltenDuration,
             _moveSpeedMultiplier);
+        Sfx.Play(Sfx.ReactMolt);
     }
 }
