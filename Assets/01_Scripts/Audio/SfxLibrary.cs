@@ -77,4 +77,7 @@ public class SfxLibrary : ScriptableObject
     public AudioClip ShopPoke;
     public AudioClip ShopAnnoyed;
     public AudioClip ShopSecret;
+    [Header("공용 UI")]
+    public AudioClip UiClick;
+    public AudioClip UiHover;
 }

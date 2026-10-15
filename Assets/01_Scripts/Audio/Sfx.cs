@@ -36,6 +36,8 @@ public static class Sfx
     public const string MenuConfirm = "MenuConfirm";
     public const string MenuCancel = "MenuCancel";
     public const string StatueBreak = "StatueBreak";
+    public const string UiClick = "UiClick";
+    public const string UiHover = "UiHover";
     public const string BossTryShockwave = "BossTryShockwave";
     public const string BossTryTank = "BossTryTank";
     public const string BossTryRockfall = "BossTryRockfall";
@@ -218,6 +220,8 @@ public static class Sfx
         Add(ElementEarth, library.ElementEarth);
         Add(EndingStamp, library.EndingStamp);
         Add(StatueBreak, library.StatueBreak);
+        Add(UiClick, library.UiClick);
+        Add(UiHover, library.UiHover);
         Add(BossTryShockwave, library.BossTryShockwave);
         Add(BossTryTank, library.BossTryTank);
         Add(BossTryRockfall, library.BossTryRockfall);
