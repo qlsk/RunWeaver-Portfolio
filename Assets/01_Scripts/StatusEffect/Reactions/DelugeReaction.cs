@@ -17,5 +17,6 @@ public class DelugeReaction : MonoBehaviour
     {
         DelugeArea area = Instantiate(_delugeAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_delugeRadius, _delugeDuration, _moveSpeedMultiplier, _pushSpeed, context.BulletDirection);
+        Sfx.Play(Sfx.ReactDeluge);
     }
 }

@@ -143,6 +143,12 @@ public class RunSaveController : MonoBehaviour
         }
     }
 
+    /// <summary>지금 상태를 체크포인트로 저장한다. 튜토리얼이 장착을 바꾼 뒤 부른다. (저장 조건은 층 시작 저장과 같다)</summary>
+    public void SaveCheckpointNow()
+    {
+        TrySave();
+    }
+
     private void TrySave()
     {
         if (_isRestoring || RunFlow.HasEnded || !TutorialProgressStore.IsCompleted || !IsSessionReady())

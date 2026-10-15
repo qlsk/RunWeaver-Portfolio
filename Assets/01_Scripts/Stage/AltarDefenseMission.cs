@@ -6,7 +6,7 @@ public class AltarDefenseMission : MissionBase
     public override MissionType Type => MissionType.AltarDefense;
 
     [Header("제단 방어 미션 설정")]
-    [SerializeField, FormerlySerializedAs("defenseDuration")] private float _defenseDuration = 15f; // 목표 제단 생존 시간 (15초)
+    [SerializeField, FormerlySerializedAs("defenseDuration")] private float _defenseDuration = 40f; // 목표 제단 생존 시간 (15초)
     private float _currentTimer = 0f;
     private int _lastLoggedSecond = -1;
     private DefenseAltar _targetAltar;

@@ -85,6 +85,8 @@ public class StageManager : MonoBehaviour
     [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")] [SerializeField]
     private GameObject _bossPrefab;
     [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
+    [Tooltip("보스 등장 연출 (보스가 공중에서 내려찍으며 나온다). 비워 두면 연출 없이 바로 나온다")] [SerializeField]
+    private BossIntroSequence _bossIntroPrefab;
 
     // 스테이지 진행
     private StagePhase _phase = StagePhase.Ready;
@@ -137,7 +139,10 @@ public class StageManager : MonoBehaviour
     public bool IsPortalOpen => _isPortalOpen;
 
     public float AutostartRemaining { get; private set; }
-    public bool IsAutoStartCounting => _autoStartDelay > 0f && _startInteractable != null && _phase == StagePhase.Ready;
+    public bool IsAutoStartCounting => _autoStartDelay > 0f && !IsAutoStartSuspended && _startInteractable != null && _phase == StagePhase.Ready;
+
+    /// <summary>true면 준비 단계의 자동 시작 카운트다운이 흐르지 않는다. (튜토리얼) 직접 시작(F)은 막지 않는다.</summary>
+    public bool IsAutoStartSuspended { get; set; }
 
     /// <summary>
     /// 타이머에 보여줄 남은 시간(초).
@@ -472,7 +477,7 @@ public class StageManager : MonoBehaviour
 
         if (_isBossStage)
         {
-            SpawnBoss();
+            BeginBossFight();
             return;
         }
 
@@ -491,7 +496,7 @@ public class StageManager : MonoBehaviour
         if (_autoStartDelay <= 0f)
             return;
 
-        if (_startInteractable == null)
+        if (_startInteractable == null || IsAutoStartSuspended)
             return;
 
         AutostartRemaining -= Time.deltaTime;
@@ -1022,7 +1027,23 @@ public class StageManager : MonoBehaviour
 
     // ───────────────────────── 보스전 ─────────────────────────
 
-    private void SpawnBoss()
+    /// <summary>
+    /// 보스 등장 연출이 있으면 연출 중 내려찍는 순간에 보스를 만들고, 없으면 바로 만든다.
+    /// 연출이 끝날 때까지 보스는 공격하지 않는다. (BossIntroSequence가 묶어 둔다)
+    /// </summary>
+    private void BeginBossFight()
+    {
+        if (_bossIntroPrefab == null)
+        {
+            SpawnBoss();
+            return;
+        }
+
+        BossIntroSequence intro = Instantiate(_bossIntroPrefab);
+        intro.Play(_bossSpawnPosition, SpawnBoss);
+    }
+
+    private GameObject SpawnBoss()
     {
         GameObject prefab = _bossPrefab;
         if (prefab == null)
@@ -1035,7 +1056,7 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError("[StageManager] 보스로 쓸 프리팹이 없어 보스 스테이지를 클리어 처리합니다.", this);
             DefeatBoss();
-            return;
+            return null;
         }
 
         GameObject boss = Instantiate(prefab, _bossSpawnPosition, Quaternion.identity);
@@ -1049,11 +1070,12 @@ public class StageManager : MonoBehaviour
         {
             Debug.LogError($"[StageManager] 보스 프리팹 '{prefab.name}'에 EnemyHealth가 없어 클리어 처리합니다.", this);
             DefeatBoss();
-            return;
+            return null;
         }
 
         Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
         BgmDirector.PlayZone(BgmDirector.Boss);
+        return boss;
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)

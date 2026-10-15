@@ -10,8 +10,9 @@ using Random = UnityEngine.Random;
 /// 흐름 : 상호작용(F) → 주력 원소 선택 → 룬북이 열려 보조 룬 워드 선택 → Confirm
 ///        → 석상이 흔들리다 무너진다 → 1층 미션 오브젝트가 서서히 나타난다 → 미션 시작 오브젝트로 시작
 /// - 원소 선택을 취소하면 석상은 그대로 있고, 다시 상호작용할 수 있다.
-/// - 원소를 고른 뒤 열리는 룬북은 닫기 키(Tab, Esc)로 닫을 수 없고 Confirm해야만 닫힌다.
+/// - 원소를 고른 뒤 열리는 룬북은 Tab으로 닫을 수 없고 Confirm해야만 닫힌다.
 ///   (원소만 장착된 채 룬북을 빠져나가 미션이 시작되지 않는 상태를 막는다)
+///   Esc를 누르면 룬북을 닫고 주력 원소 선택으로 돌아간다. (원소를 다시 고를 수 있다)
 /// - 씬이 열리면 원정(지갑, 시작 골드)을 시작한다. (플레이어 시작 위치는 PlayerStartPositioner가 정한다)
 ///   플레이어는 석상 앞 공중에 열린 균열에서 튀어나온다. (PortalArrival)
 /// - 1층은 StageManager가 기다리고 있다가(_waitForPreparation) 석상이 무너진 뒤 BeginPreparedRun으로 시작한다.
@@ -130,6 +131,9 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     public event Action Interacted;
 
     public string InteractionName => _interactionName;
+
+    /// <summary>출발 준비가 끝났는지 (석상이 무너지는 중이거나 1층이 시작됨)</summary>
+    public bool IsPreparationOver => _isCrumbling || _runBegun;
     public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
 
     // 도메인 리로드 등으로 사라져도 다시 만들 수 있게 필요할 때 만든다.
@@ -173,6 +177,8 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         {
             return;
         }
+
+        UpdateRuneBookBack();
 
         CircleGlow glow = Glow;
         if (glow.IsAvailable)
@@ -279,6 +285,49 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
             _runeBookToggle.IsCloseLocked = true;
             _runeBookToggle.Open();
         }
+    }
+
+    /// <summary>보조 룬 워드를 고르는 룬북에서 Esc를 누르면 주력 원소 선택으로 돌아간다.</summary>
+    private void UpdateRuneBookBack()
+    {
+        if (!_isWaitingRuneConfirm || _runeBookToggle == null || !_runeBookToggle.IsOpen || _runeBookToggle.IsClosing
+            || _runeBookToggle.WasToggledThisFrame || PauseController.IsGamePaused)
+        {
+            return;
+        }
+
+        // 확정 확인 창이 열려 있거나 방금 닫힌 프레임에는 Esc를 확인 창이 쓴다.
+        if (RuneBookConfirmDialog.IsOpen || RuneBookConfirmDialog.ClosedFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            _isWaitingRuneConfirm = false;
+            _runeBookToggle.IsCloseLocked = false;
+            _runeBookToggle.Close();
+            StartCoroutine(ReopenElementSelectAfterRuneBook());
+        }
+    }
+
+    /// <summary>룬북 닫기 연출이 끝나면 주력 원소 선택 창을 다시 연다. (룬북이 열린 동안 게임이 멈추므로 실제 시간)</summary>
+    private IEnumerator ReopenElementSelectAfterRuneBook()
+    {
+        while (_runeBookToggle != null && _runeBookToggle.IsOpen)
+        {
+            yield return null;
+        }
+
+        // 닫은 Esc가 원소 선택 창의 취소로 이어지지 않게 한 프레임 쉰다.
+        yield return null;
+        if (_isCrumbling || _runBegun || _popupController == null || _elementSelectView == null || _popupController.IsOpen)
+        {
+            yield break;
+        }
+
+        _isChoosingElement = true;
+        _popupController.OpenPopup(_elementSelectView.gameObject);
     }
 
     private void HandleElementCancelled()

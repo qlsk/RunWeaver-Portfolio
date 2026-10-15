@@ -24,6 +24,15 @@ public class PlayerInteraction : MonoBehaviour
     private void OnDisable()
     {
         _playerInputHandler.InteractionRequested -= OnInteractionRequested;
+
+        // 꺼진 동안(포탈로 층을 옮기는 중 등)에는 대상을 비운다.
+        // 비우지 않으면 들어간 포탈이 파괴된 뒤에도 그 안내(F 들어가기)가 다음 층에 남는다.
+        // 다시 켜지면 Update가 그때 가장 가까운 대상(없으면 임무 시작)을 새로 잡는다.
+        if (_currentInteractable != null)
+        {
+            _currentInteractable = null;
+            CurrentInteractableChanged?.Invoke(null);
+        }
     }
 
     private void Update()

@@ -486,24 +486,6 @@ public class RewardController : MonoBehaviour, IMissionRewardProvider
                 Debug.LogWarning("[RewardController] TraitManager/데이터가 없어 특성을 지급하지 못했습니다.", this);
             }
         }
-        else if (option.Type == RewardType.SlotExpansion)
-        {
-            RuneEffectLoadout loadout = PlayerRuneManager.Instance != null
-                ? PlayerRuneManager.Instance.RuneEffectLoadout
-                : null;
-            if (loadout != null)
-            {
-                // 선택 확정 이후에만 반영된다. 가득 찼으면 미적용.
-                if (loadout.ExpandSlots())
-                {
-                    Debug.Log($"[RewardController] 룬 슬롯 확장: {loadout.ActiveSlotCount}칸", this);
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[RewardController] RuneEffectLoadout이 없어 슬롯을 확장하지 못했습니다.", this);
-            }
-        }
         else
         {
             if (_passives != null && option.Passive != null)

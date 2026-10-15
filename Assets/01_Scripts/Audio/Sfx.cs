@@ -36,6 +36,25 @@ public static class Sfx
     public const string MenuConfirm = "MenuConfirm";
     public const string MenuCancel = "MenuCancel";
     public const string StatueBreak = "StatueBreak";
+    public const string UiClick = "UiClick";
+    public const string UiHover = "UiHover";
+    public const string BossTryShockwave = "BossTryShockwave";
+    public const string BossTryTank = "BossTryTank";
+    public const string BossTryRockfall = "BossTryRockfall";
+    public const string BossTryDash = "BossTryDash";
+    public const string BossTankAttack = "BossTankAttack";
+    public const string BossRackFall = "BossRackFall";
+    public const string BossShockwave = "BossShockwave";
+    public const string BossFootstep = "BossFootstep";
+    public const string ReactOverheat = "ReactOverheat";
+    public const string ReactSteam = "ReactSteam";
+    public const string ReactMolt = "ReactMolt";
+    public const string ReactDeluge = "ReactDeluge";
+    public const string ReactMire = "ReactMire";
+    public const string ReactTempest = "ReactTempest";
+    public const string ReactPetrify = "ReactPetrify";
+    public const string ReactCyclone = "ReactCyclone";
+    public const string ReactSandstorm = "ReactSandstorm";
     public const string ShopDrawer = "ShopDrawer";
     public const string ShopDoorBell = "ShopDoorBell";
     public const string ShopLeave = "ShopLeave";
@@ -66,10 +85,21 @@ public static class Sfx
     private static bool s_warned;
     private static bool s_subscribed;
 
+    // 클립 원본 음량 차이 보정(기준 약 -20 LUFS). 호출부가 따로 볼륨을 넘기는 id(EnemyDeath, EnemyHit, UiClick, UiHover)는 넣지 않는다.
+    private static readonly Dictionary<string, float> s_clipGains = new()
+    {
+        { ElementEarth, 0.22f }, { ElementFire, 0.24f }, { ElementWind, 0.43f }, { ElementWater, 0.62f },
+        { BossTryDash, 0.24f }, { BossTryRockfall, 0.28f }, { BossTryTank, 0.30f }, { BossTryShockwave, 0.37f },
+        { BossFootstep, 0.40f }, { BossShockwave, 0.57f }, { BossRackFall, 0.74f },
+        { TornadoLoop, 0.29f }, { MissionStart, 0.42f }, { ShieldInit, 0.42f },
+        { RewardShow, 0.43f }, { StatueBreak, 0.48f },
+    };
+
     public static void Play(string id, float volumeScale = 1f, float pitch = 1f)
     {
         if (!EnsureLibrary()) return;
         if (!s_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
+        if (s_clipGains.TryGetValue(id, out float gain)) volumeScale *= gain;
         EnsureRoot();
         for (int i = 0; i < PoolSize; i++)
         {
@@ -201,6 +231,25 @@ public static class Sfx
         Add(ElementEarth, library.ElementEarth);
         Add(EndingStamp, library.EndingStamp);
         Add(StatueBreak, library.StatueBreak);
+        Add(UiClick, library.UiClick);
+        Add(UiHover, library.UiHover);
+        Add(BossTryShockwave, library.BossTryShockwave);
+        Add(BossTryTank, library.BossTryTank);
+        Add(BossTryRockfall, library.BossTryRockfall);
+        Add(BossTryDash, library.BossTryDash);
+        Add(BossTankAttack, library.BossTankAttack);
+        Add(BossRackFall, library.BossRackFall);
+        Add(BossShockwave, library.BossShockwave);
+        Add(BossFootstep, library.BossFootstep);
+        Add(ReactOverheat, library.ReactOverheat);
+        Add(ReactSteam, library.ReactSteam);
+        Add(ReactMolt, library.ReactMolt);
+        Add(ReactDeluge, library.ReactDeluge);
+        Add(ReactMire, library.ReactMire);
+        Add(ReactTempest, library.ReactTempest);
+        Add(ReactPetrify, library.ReactPetrify);
+        Add(ReactCyclone, library.ReactCyclone);
+        Add(ReactSandstorm, library.ReactSandstorm);
         Add(MenuMove, library.MenuMove);
         Add(MenuConfirm, library.MenuConfirm);
         Add(MenuCancel, library.MenuCancel);

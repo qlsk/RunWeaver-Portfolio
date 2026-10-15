@@ -10,7 +10,7 @@ public class CaptureZoneMission : MissionBase
 
     [Header("점령 설정")]
     [Tooltip("점령 완료(100%)에 필요한 구역 내 총 체류 시간 (초)")]
-    [SerializeField, FormerlySerializedAs("targetCaptureTime")] private float _targetCaptureTime = 10f;
+    [SerializeField, FormerlySerializedAs("targetCaptureTime")] private float _targetCaptureTime = 40f;
 
     [Tooltip("구역 밖으로 벗어났을 때 점령 게이지가 서서히 감소할지 여부")]
     [SerializeField, FormerlySerializedAs("decayWhenOutside")] private bool _decayWhenOutside = false;

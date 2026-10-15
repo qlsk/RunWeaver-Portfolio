@@ -103,12 +103,14 @@ public class EnemyDashAttack : MonoBehaviour
                     _rangeIndicator.enabled = false;
                     State = EnemyAttackState.Attacking;
                     _stateEndTime = Time.time + _maxDashDuration;
+                    _bossStepTimer = 0f;
                     MoveDash();
                 }
 
                 break;
             case EnemyAttackState.Attacking:
                 MoveDash();
+                TickBossSteps();
                 break;
         }
     }
@@ -275,6 +277,27 @@ public class EnemyDashAttack : MonoBehaviour
         if (health == _health)
         {
             CancelDash();
+        }
+    }
+
+    /// <summary>보스만 이동 루프음을 낸다. 일반몹 Dash와 공유하므로 컨트롤러 동거로 판정.</summary>
+    private bool IsBossDash()
+    {
+        return GetComponent<BossPatternController>() != null;
+    }
+
+    private float _bossStepTimer;
+    private const float BossStepInterval = 0.22f;
+
+    /// <summary>보스 돌진 중 발걸음을 빠르게 반복한다.</summary>
+    private void TickBossSteps()
+    {
+        if (!IsBossDash()) return;
+        _bossStepTimer -= Time.fixedDeltaTime;
+        if (_bossStepTimer <= 0f)
+        {
+            _bossStepTimer = BossStepInterval;
+            Sfx.Play(Sfx.BossFootstep);
         }
     }
 

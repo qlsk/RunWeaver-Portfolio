@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -168,6 +169,25 @@ public class MainElementSelectView : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        // 열기 클립은 구슬 크기를 다루지 않지만, Animator가 기본값 쓰기로 확정 클립이 바꾼 구슬 크기를 처음 값으로 덮어쓴다.
+        // (룬북에서 Esc로 돌아올 때 고른 구슬이 작아졌다가 연출이 끝나면 다시 커지던 문제)
+        // 열리는 동안에도 고른 구슬은 커진 채로 보이도록 Animator가 움직인 뒤 크기를 다시 맞춘다.
+        if (_phase != Phase.Opening || _orbs == null)
+        {
+            return;
+        }
+
+        foreach (MainElementOrbView orb in _orbs)
+        {
+            if (orb != null)
+            {
+                orb.ApplySelectionScale();
+            }
+        }
+    }
+
     private void Update()
     {
         if (_phase == Phase.Opening)
@@ -256,7 +276,8 @@ public class MainElementSelectView : MonoBehaviour
             }
         }
 
-        if (best < 0)
+        // 잠긴 구슬이 가리킨 방향이면 다른 구슬로 옮기지 않고 현재 선택을 유지한다.
+        if (best < 0 || _orbs[best].IsLocked)
         {
             return;
         }
@@ -311,6 +332,55 @@ public class MainElementSelectView : MonoBehaviour
         }
     }
 
+    /// <summary>선택할 수 없게 막을 원소. null 또는 빈 목록이면 모두 연다. (튜토리얼)</summary>
+    public void SetLockedElements(IReadOnlyCollection<ReactionElement> lockedElements)
+    {
+        if (_orbs == null)
+        {
+            return;
+        }
+
+        foreach (MainElementOrbView orb in _orbs)
+        {
+            if (orb != null)
+            {
+                orb.SetLocked(IsLockedElement(lockedElements, orb.Element));
+            }
+        }
+
+        if (_orbs[_selectedIndex] != null && _orbs[_selectedIndex].IsLocked)
+        {
+            for (int i = 0; i < _orbs.Length; i++)
+            {
+                if (_orbs[i] != null && !_orbs[i].IsLocked)
+                {
+                    _selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        Refresh();
+    }
+
+    private static bool IsLockedElement(IReadOnlyCollection<ReactionElement> lockedElements, ReactionElement element)
+    {
+        if (lockedElements == null)
+        {
+            return false;
+        }
+
+        foreach (ReactionElement locked in lockedElements)
+        {
+            if (locked == element)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void Select(int index)
     {
         if (_orbs == null || _orbs.Length == 0)
@@ -318,7 +388,13 @@ public class MainElementSelectView : MonoBehaviour
             return;
         }
 
-        _selectedIndex = (index % _orbs.Length + _orbs.Length) % _orbs.Length;
+        int targetIndex = (index % _orbs.Length + _orbs.Length) % _orbs.Length;
+        if (_orbs[targetIndex] != null && _orbs[targetIndex].IsLocked)
+        {
+            return;
+        }
+
+        _selectedIndex = targetIndex;
         Refresh();
         if (_phase == Phase.Idle && _orbs[_selectedIndex] != null)
         {

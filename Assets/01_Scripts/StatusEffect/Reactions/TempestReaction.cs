@@ -19,5 +19,6 @@ public class TempestReaction : MonoBehaviour
         TempestArea area = Instantiate(_tempestAreaPrefab, context.HitPosition, Quaternion.identity);
         area.Initialize(_tempestRadius, _tempestDuration, context.BulletDamage * _tickDamageMultiplier,
             _tickInterval, _pullSpeed);
+        Sfx.Play(Sfx.ReactTempest);
     }
 }

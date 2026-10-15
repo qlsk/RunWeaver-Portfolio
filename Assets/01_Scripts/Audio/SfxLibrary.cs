@@ -40,6 +40,25 @@ public class SfxLibrary : ScriptableObject
     public AudioClip MenuConfirm;
     public AudioClip MenuCancel;
     public AudioClip StatueBreak;
+    [Header("보스")]
+    public AudioClip BossTryShockwave;
+    public AudioClip BossTryTank;
+    public AudioClip BossTryRockfall;
+    public AudioClip BossTryDash;
+    public AudioClip BossTankAttack;
+    public AudioClip BossRackFall;
+    public AudioClip BossShockwave;
+    public AudioClip BossFootstep;
+    [Header("원소반응")]
+    public AudioClip ReactOverheat;
+    public AudioClip ReactSteam;
+    public AudioClip ReactMolt;
+    public AudioClip ReactDeluge;
+    public AudioClip ReactMire;
+    public AudioClip ReactTempest;
+    public AudioClip ReactPetrify;
+    public AudioClip ReactCyclone;
+    public AudioClip ReactSandstorm;
     [Header("상점")]
     public AudioClip ShopDoorBell;
     public AudioClip ShopDrawer;
@@ -58,4 +77,7 @@ public class SfxLibrary : ScriptableObject
     public AudioClip ShopPoke;
     public AudioClip ShopAnnoyed;
     public AudioClip ShopSecret;
+    [Header("공용 UI")]
+    public AudioClip UiClick;
+    public AudioClip UiHover;
 }

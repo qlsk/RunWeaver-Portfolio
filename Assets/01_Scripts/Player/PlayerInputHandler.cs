@@ -38,7 +38,29 @@ public class PlayerInputHandler : MonoBehaviour
     public bool IsReloadPressed => CanUseWeaponInput && Input.GetKeyDown(_playerReloadKeyCode);
 
     private bool CanUseWeaponInput => !_isPopupOpened && Time.frameCount != _popupClosedFrame
-        && !PauseController.IsGamePaused && !RunFlow.HasEnded;
+        && !PauseController.IsGamePaused && !RunFlow.HasEnded && s_cutsceneLockCount == 0;
+
+    // 연출(보스 등장 등) 동안 이동·사격·스킬 입력을 막는다. 잠근 쪽이 반드시 풀어야 한다.
+    private static int s_cutsceneLockCount;
+
+    public static bool IsCutsceneLocked => s_cutsceneLockCount > 0;
+
+    public static void LockForCutscene()
+    {
+        s_cutsceneLockCount++;
+    }
+
+    public static void UnlockForCutscene()
+    {
+        s_cutsceneLockCount = Mathf.Max(0, s_cutsceneLockCount - 1);
+    }
+
+    // 도메인 리로드를 끈 에디터에서도 플레이를 새로 시작하면 잠금을 지운다.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetCutsceneLock()
+    {
+        s_cutsceneLockCount = 0;
+    }
 
     // player move input (위 아래 왼쪽 오른쪽)
     private Vector2 _moveDirection;

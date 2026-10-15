@@ -9,5 +9,7 @@ public enum TutorialConditionKind
     EnemyKill,
     Dash,
     RewardConfirm,
-    PortalEnter
+    PortalEnter,
+    RuneBookOpen,
+    RuneEffectEquip
 }

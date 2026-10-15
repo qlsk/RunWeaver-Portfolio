@@ -59,6 +59,7 @@ public class EnemyShockwaveAttack : MonoBehaviour
         if (State == EnemyAttackState.Preparing)
         {
             if (Time.time < _readyTime) return;
+            if (GetComponent<BossPatternController>() != null) Sfx.Play(Sfx.BossShockwave);
             State = EnemyAttackState.Attacking;
         }
         float previous = _radius;
