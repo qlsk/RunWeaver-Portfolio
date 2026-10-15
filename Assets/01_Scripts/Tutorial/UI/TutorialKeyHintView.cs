@@ -18,6 +18,17 @@ public class TutorialKeyHintView : MonoBehaviour
             labelText.text = step.OverlayText;
     }
 
+    private void Update()
+    {
+        // 일시정지 메뉴나 룬북이 열려 있으면 그 위에 겹치지 않게 숨긴다.
+        if (_current == null)
+            return;
+
+        bool isVisible = !TutorialOverlayBlocker.IsBlocked;
+        if (_current.activeSelf != isVisible)
+            _current.SetActive(isVisible);
+    }
+
     public void Hide()
     {
         if (_current == null)

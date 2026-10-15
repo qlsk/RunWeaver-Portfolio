@@ -130,12 +130,12 @@ public class GuidebookPresenter : MonoBehaviour
         return true;
     }
 
-    /// <summary>위·아래 방향키로 이전·다음 항목으로 옮긴다. 목록 끝에서는 멈춘다.</summary>
+    /// <summary>위·아래 방향키(또는 W·S)로 이전·다음 항목으로 옮긴다. 목록 끝에서는 멈춘다.</summary>
     private void HandleArrowKeys()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             MoveSelection(-1);
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             MoveSelection(1);
     }
 

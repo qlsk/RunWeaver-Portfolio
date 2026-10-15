@@ -19,20 +19,40 @@ public class TutorialWorldMarkerView : MonoBehaviour
 
     public void Show(TutorialStepSO step)
     {
-        Hide();
+        Show(step.OverlayPrefab, step.MarkerTarget, step.OverlayText);
+    }
 
-        _targetKind = step.MarkerTarget;
-        _current = Instantiate(step.OverlayPrefab, _root);
+    /// <summary>prefab 표식을 target 위에 띄우고 글자를 text로 바꾼다.</summary>
+    public void Show(GameObject prefab, TutorialMarkerTarget target, string text)
+    {
+        Hide();
+        if (prefab == null)
+            return;
+
+        _targetKind = target;
+        _current = Instantiate(prefab, _root);
         _currentRect = _current.transform as RectTransform;
 
-        Transform label = _current.transform.Find(LabelName);
+        // Label은 Pill 아래에 있으므로 자식 전체에서 찾는다. (바로 아래만 찾으면 프리팹의 기본 글자가 그대로 남는다)
+        Transform label = FindDeep(_current.transform, LabelName);
         if (label != null && label.TryGetComponent(out TMP_Text labelText))
-            labelText.text = step.OverlayText;
+            labelText.text = text;
 
-        Transform edgeArrow = _current.transform.Find(EdgeArrowName);
+        Transform edgeArrow = FindDeep(_current.transform, EdgeArrowName);
         _edgeArrow = edgeArrow != null ? edgeArrow.gameObject : null;
 
         _current.SetActive(false);
+    }
+
+    private static Transform FindDeep(Transform parent, string name)
+    {
+        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
+        {
+            if (child != parent && child.name == name)
+                return child;
+        }
+
+        return null;
     }
 
     public void Hide()
@@ -58,7 +78,8 @@ public class TutorialWorldMarkerView : MonoBehaviour
             _target = ResolveTarget();
 
         Camera worldCamera = Camera.main;
-        if (_target == null || worldCamera == null)
+        // 일시정지 메뉴나 룬북이 열려 있으면 그 위에 겹치지 않게 숨긴다.
+        if (_target == null || worldCamera == null || TutorialOverlayBlocker.IsBlocked)
         {
             _current.SetActive(false);
             return;
