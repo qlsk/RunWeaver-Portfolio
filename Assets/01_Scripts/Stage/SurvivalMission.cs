@@ -6,7 +6,7 @@ public class SurvivalMission : MissionBase
     public override MissionType Type => MissionType.Survival;
 
     [Header("생존 미션 설정")]
-    [SerializeField, FormerlySerializedAs("survivalDuration")] private float _survivalDuration = 10f; // 목표 생존 시간 (초)
+    [SerializeField, FormerlySerializedAs("survivalDuration")] private float _survivalDuration = 60f; // 목표 생존 시간 (초)
 
     private float _currentTimer;
     private int _lastLoggedSecond = -1;
