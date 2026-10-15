@@ -4,38 +4,11 @@ using UnityEngine.Serialization;
 
 /// <summary>
 /// 스테이지 진행(심도, 미션 시작, 정화, 포탈 이동, 런 종료)을 관리한다.
-///
-/// 한 층의 흐름 (StagePhase)
-/// - Ready : 미션을 뽑고 시작 오브젝트를 놓는다. 적이 나오지 않고 타이머가 멈춰 있다.
-/// - InMission : 시작 오브젝트에 F로 상호작용하면 미션과 몬스터 스폰이 시작되고 미션 타이머가 줄어든다.
-///   제한 시간이 0이 되면 미션 실패(런 종료). 생존 미션은 생존 시간이 끝나면 완료된다.
-/// - Purification : 미션을 클리어하면 스폰과 미션 타이머가 멈추고 정화 파동(PurificationWave)이 퍼진다.
-///   파동은 미션 오브젝트 중심(거점·제단·영혼 수집) 또는 시작 오브젝트 위치(적 처치·생존)에서 시작하고,
-///   닿은 적은 사망 연출과 함께 사라진다. (드롭 없음) 파동이 끝까지 퍼지면 Cleared로 넘어간다.
-///   파동 프리팹이 없으면 예전처럼 정화 카운트다운(_purificationDuration)이 끝날 때 남은 적을 없앤다.
-///   포탈은 미션 성공 연출(MissionResultPresenter)이 끝난 뒤에 나온다. (연출이 없으면 바로)
-///   미션 오브젝트는 삭제하지 않고 오브젝트에 붙어 있는 범위 표시만 숨긴다. 포탈은 미션 오브젝트 아래에 나온다.
-///   (범위 표시 : 영혼 수집 구역의 자식 원(Circle), 거점 점령 구역의 마법진. 제단은 범위 표시가 없다)
-///   (범위 표시만 있는 거점 점령은 오브젝트 중앙, 오브젝트가 없는 미션은 시작 오브젝트가 있던 자리 아래)
-///   포탈은 클리어 즉시 맵 중앙에 생기며 정화 중에도 쓸 수 있다. 남은 적은 계속 공격하고 처치하면 평소처럼 드롭한다.
-/// - Cleared : 정화가 끝나면 남은 적이 모두 사라진다. (드롭 없음) 포탈 사용을 기다린다.
-/// - 포탈을 쓰면 한 층 내려간다. 상점 층 단위(5층)를 넘거나 보스 스테이지로 갈 때는 상점을 먼저 연다.
-///   상점이 없으면 ScreenFader로 검은 화면 → 다음 층 준비 → 페이드 아웃 순서로 넘어간다. (상점은 나갈 때 자체 검은 화면을 쓴다)
-///
-/// 런 구성
-/// - 미션 스테이지 _missionStageCount(10)개를 끝내면 다음 층은 보스 스테이지다.
-///   보스 스테이지는 시작 오브젝트에 F를 누르면 보스가 나오고, 보스를 잡으면 런 클리어다.
-///
-/// 런 종료 (RunEnded)
-/// - 체력 0 : Died / 미션 제한 시간 초과·제단 파괴 : MissionFailed / 탐사 포기 : Abandoned / 보스 처치 : Cleared
-/// - 실패로 끝나면 플레이어를 사망 처리해 조작을 멈춘다. 종료 사유는 RunFlow에 기록된다.
-///
-/// - 전투 씬마다 새로 만들어진다. (DontDestroyOnLoad를 쓰지 않으므로 마을을 다녀오면 심도 1부터 다시 시작한다)
+/// 전투 씬마다 생성되며, 미션 층을 모두 끝내면 보스전으로 넘어간다.
 /// </summary>
 public class StageManager : MonoBehaviour
 {
-    public const float NoTimeLimit = -1f;
-
+    private const float NoTimeLimit = -1f;
     private const float StartObjectRadius = 1.5f;
 
     private static StageManager s_instance;
@@ -44,17 +17,18 @@ public class StageManager : MonoBehaviour
     {
         get
         {
-            if (s_instance == null)
-            {
-                s_instance = FindAnyObjectByType<StageManager>();
-                if (s_instance == null)
-                {
-                    GameObject go = new GameObject("StageManager");
-                    s_instance = go.AddComponent<StageManager>();
-                    Debug.Log("[StageManager] 씬에 StageManager가 없어 자동으로 생성하였습니다.");
-                }
-            }
-            return s_instance;
+            if (s_instance != null)
+                return s_instance;
+
+            s_instance = FindAnyObjectByType<StageManager>();
+
+            if (s_instance != null)
+                return s_instance;
+
+            var go = new GameObject("StageManager");
+            return !go.TryGetComponent(out s_instance)
+                ? throw new InvalidOperationException("go did not have a StageManager component.")
+                : s_instance;
         }
     }
 
@@ -62,32 +36,35 @@ public class StageManager : MonoBehaviour
     [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
     [Header("런 구성")]
-    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")][SerializeField, Min(1)] private int _missionStageCount = 10;
-    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")][SerializeField, Min(1f)]
-    private float _missionTimeLimit = 120f;
-    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")][SerializeField, Min(0f)] private float _purificationDuration = 10f;
+    [Tooltip("미션 이름과 설명. 비워두면 Resources/MissionCatalog를 사용한다.")]
+    [SerializeField] private MissionCatalogSO _missionCatalog;
+    [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
+    [SerializeField, Min(1)] private int _missionStageCount = 10;
+    [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")]
+    [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")][SerializeField] private MissionStartObject _startObjectPrefab;
-    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")][SerializeField]
-    private Vector3 _startObjectPosition = new(0f, 2f, 0f);
-    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")][SerializeField]
-    private int _startObjectLayer = 6;
+    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")]
+    [SerializeField] private MissionStartObject _startObjectPrefab;
+    [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
+    [SerializeField] private Vector3 _startObjectPosition = new(0f, 2f, 0f);
+    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")]
+    [SerializeField] private int _startObjectLayer = 6;
 
-    [Header("보스 스테이지")]
-    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")][SerializeField] private GameObject _bossPrefab;
-    [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
+    [Header("출발 준비")]
+    [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")]
+    [SerializeField] private bool _waitForPreparation = true;
 
-    [Header("포탈 프리팹 및 스폰 위치")]
-    [SerializeField, FormerlySerializedAs("portalPrefab")] private GameObject _portalPrefab;
-    [Tooltip("포탈이 놓이는 위치 (맵 중앙)")]
-    [SerializeField, FormerlySerializedAs("portalSpawnPosition")] private Vector3 _portalSpawnPosition = Vector3.zero;
-
-    [Header("정화 파동")]
+    [Header("정화")]
+    [Tooltip("미션 클리어 후 남은 적이 사라지기까지의 정화 대기 시간(초)")]
+    [SerializeField, Min(0f)] private float _purificationDuration = 10f;
     [Tooltip("미션 클리어 시 퍼지는 정화 파동. 미션 오브젝트(붙어 있는 파동) 위치, 없으면 시작 오브젝트 위치에 이 프리팹을 만든다. 비워두면 정화 카운트다운을 쓴다.")]
     [SerializeField] private PurificationWave _purificationWavePrefab;
 
-    [Header("포탈 등장")]
+    [Header("포탈")]
+    [SerializeField, FormerlySerializedAs("portalPrefab")] private GameObject _portalPrefab;
+    [Tooltip("PortalSpawner에 전달할 기본 포탈 위치")]
+    [SerializeField, FormerlySerializedAs("portalSpawnPosition")] private Vector3 _portalSpawnPosition = Vector3.zero;
     [Tooltip("미션 오브젝트(또는 시작 오브젝트 자리) 아래로 포탈을 띄우는 거리(유닛)")]
     [SerializeField, Min(0f)] private float _portalOffsetBelow = 1.5f;
     [Tooltip("이 연출이 끝난 뒤에 포탈을 만든다. 비워두면 씬에서 찾고, 없으면 바로 만든다.")]
@@ -101,26 +78,45 @@ public class StageManager : MonoBehaviour
     [Tooltip("비워두면 씬에서 찾는다")]
     [SerializeField, FormerlySerializedAs("popupController")] private PopupController _popupController;
 
-    private PortalSpawner _portalSpawner;
-    private MissionManager _missionManager;
-    private PlayerHealth _playerHealth;
-    private MissionBase _currentMission;
-    private MissionStartObject _startObject;
-    private EnemyHealth _bossHealth;
-    private IMissionRewardProvider _missionRewardProvider;
+    [Header("보스 스테이지")]
+    [Tooltip("비워두면 MonsterSpawner에 등록된 첫 번째 적을 보스 대신 쓴다")]
+    [SerializeField] private GameObject _bossPrefab;
+    [SerializeField] private Vector3 _bossSpawnPosition = new(0f, 6f, 0f);
+
+    // 스테이지 진행
     private StagePhase _phase = StagePhase.Ready;
     private float _timeLimit;
     private float _remainingTime;
-    private bool _isBossStage;
-    private bool _isBossDefeated;
     private bool _isTransitioning;
-    private bool _isWaitingShop;
+
+    // 미션과 시작 오브젝트
+    private MissionManager _missionManager;
+    private MissionBase _currentMission;
+    private MissionStartObject _startObject;
+    private IMissionRewardProvider _missionRewardProvider;
+
+    // 정화 연출
     private Vector3 _waveOrigin;
     private PurificationWave _activeWave;
+    private readonly System.Collections.Generic.List<SpriteRenderer> _rangeRenderers = new();
+
+    // 포탈 등장
+    private PortalSpawner _portalSpawner;
     private Coroutine _portalRoutine;
     private bool _isPortalOpen;
     private Vector3 _portalPosition;
-    private readonly System.Collections.Generic.List<SpriteRenderer> _rangeRenderers = new();
+
+    // 상점 대기
+    private bool _isWaitingShop;
+
+    // 보스전과 플레이어 사망
+    private bool _isBossStage;
+    private bool _isBossDefeated;
+    private EnemyHealth _bossHealth;
+    private PlayerHealth _playerHealth;
+
+    private GameObject CurrentMissionObject => _missionManager != null ? _missionManager.CurrentMissionObject : null;
+    private bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
 
     public int CurrentDepth => _currentDepth;
     public int MissionStageCount => _missionStageCount;
@@ -139,8 +135,29 @@ public class StageManager : MonoBehaviour
     /// </summary>
     public float RemainingTime => _remainingTime;
 
-    /// <summary>현재 목표 이름 (HUD 표시용, 영문)</summary>
-    public string ObjectiveName => _isBossStage ? "Defeat the Boss" : GetMissionName(_currentMission);
+    private MissionCatalogSO.MissionText CurrentMissionText
+    {
+        get
+        {
+            if (_missionCatalog == null)
+            {
+                return null;
+            }
+
+            if (_isBossStage)
+            {
+                return _missionCatalog.BossMission;
+            }
+
+            return _currentMission != null ? _missionCatalog.Get(_currentMission.Type) : null;
+        }
+    }
+
+    /// <summary>현재 목표 이름 (HUD 표시용)</summary>
+    public string ObjectiveName => CurrentMissionText?.DisplayName ?? string.Empty;
+
+    /// <summary>현재 목표 설명 (HUD 표시용)</summary>
+    public string ObjectiveDescription => CurrentMissionText?.Description ?? string.Empty;
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
@@ -173,6 +190,8 @@ public class StageManager : MonoBehaviour
     /// <summary>런이 끝났을 때 (종료 사유)</summary>
     public event Action<RunEndReason> RunEnded;
 
+    // ───────────────────────── 생명주기 ─────────────────────────
+
     private void Awake()
     {
         if (s_instance == null)
@@ -183,6 +202,11 @@ public class StageManager : MonoBehaviour
         {
             Destroy(gameObject);
             return;
+        }
+
+        if (_missionCatalog == null)
+        {
+            _missionCatalog = Resources.Load<MissionCatalogSO>("MissionCatalog");
         }
 
         _portalSpawner = GetComponent<PortalSpawner>();
@@ -218,7 +242,46 @@ public class StageManager : MonoBehaviour
 
         // 시작 오브젝트를 누르기 전에는 적이 없어야 하므로 씬에 미리 놓인 적을 정리한다.
         ClearActiveEnemies();
+
+        // 시작 석상에서 원소와 룬을 고르기 전에는 1층 미션을 준비하지 않는다.
+        if (_waitForPreparation)
+        {
+            IsWaitingForPreparation = true;
+            return;
+        }
+
         StartStage(_currentDepth);
+    }
+
+    /// <summary>출발 준비(시작 석상)를 기다리는 중인지</summary>
+    public bool IsWaitingForPreparation { get; private set; }
+
+    /// <summary>
+    /// 출발 준비가 끝났을 때 시작 석상이 부른다. 1층 미션을 준비하고 시작 오브젝트를 만든다. (StageStarted 발생)
+    /// 기다리는 중이 아니면 아무것도 하지 않는다.
+    /// </summary>
+    public void BeginPreparedRun()
+    {
+        if (!IsWaitingForPreparation)
+        {
+            return;
+        }
+
+        IsWaitingForPreparation = false;
+        StartStage(_currentDepth);
+    }
+
+    private void Update()
+    {
+        switch (_phase)
+        {
+            case StagePhase.InMission:
+                UpdateMissionTimer();
+                break;
+            case StagePhase.Purification:
+                UpdatePurification();
+                break;
+        }
     }
 
     private void OnDestroy()
@@ -246,45 +309,15 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        switch (_phase)
-        {
-            case StagePhase.InMission:
-                UpdateMissionTimer();
-                break;
-            case StagePhase.Purification:
-                UpdatePurification();
-                break;
-        }
-    }
-
-    /// <summary>
-    /// 미션 클리어 보상을 등록한다. (예: 업그레이드 3택1) 등록하지 않으면 클리어 후 바로 포탈이 나온다.
-    /// </summary>
-    public void SetMissionRewardProvider(IMissionRewardProvider provider)
-    {
-        _missionRewardProvider = provider;
-    }
-
-    // ───────────────────────── 층 시작 ─────────────────────────
+    // ───────────────────────── 층 준비와 시작 ─────────────────────────
 
     private void StartStage(int depth)
     {
         _isTransitioning = false;
-
-        if (_portalRoutine != null)
-        {
-            StopCoroutine(_portalRoutine);
-            _portalRoutine = null;
-        }
+        StopPortalRoutine();
 
         // 정화 중에 포탈로 내려왔으면 이전 층의 파동은 더 기다리지 않는다.
-        if (_activeWave != null)
-        {
-            _activeWave.Finished -= HandleWaveFinished;
-            _activeWave = null;
-        }
+        DetachWave();
         _isBossStage = depth > _missionStageCount;
         _isBossDefeated = false;
         _bossHealth = null;
@@ -309,7 +342,7 @@ public class StageManager : MonoBehaviour
             if (_missionManager != null)
             {
                 _currentMission = _missionManager.PrepareRandomMission(depth);
-                GameObject missionObject = _missionManager.CurrentMissionObject;
+                GameObject missionObject = CurrentMissionObject;
                 if (missionObject != null)
                 {
                     startPosition = missionObject.transform.position;
@@ -378,7 +411,7 @@ public class StageManager : MonoBehaviour
         RestartMonsterSpawner();
     }
 
-    // ───────────────────────── 미션 진행 ─────────────────────────
+    // ───────────────────────── 미션 진행과 보상 ─────────────────────────
 
     private void UpdateMissionTimer()
     {
@@ -395,6 +428,14 @@ public class StageManager : MonoBehaviour
             Debug.Log("[StageManager] 미션 제한 시간 초과 → 미션 실패");
             EndRun(RunEndReason.MissionFailed);
         }
+    }
+
+    /// <summary>
+    /// 미션 클리어 보상을 등록한다. (예: 업그레이드 3택1) 등록하지 않으면 클리어 후 바로 포탈이 나온다.
+    /// </summary>
+    public void SetMissionRewardProvider(IMissionRewardProvider provider)
+    {
+        _missionRewardProvider = provider;
     }
 
     /// <summary>
@@ -438,54 +479,18 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    /// <summary>미션 성공 연출이 끝날 때까지 기다렸다가 포탈을 만든다.</summary>
-    private void SpawnPortalAfterPresentation()
-    {
-        if (_portalRoutine != null)
-        {
-            StopCoroutine(_portalRoutine);
-        }
-
-        _portalRoutine = StartCoroutine(SpawnPortalAfterPresentationRoutine());
-    }
-
-    private System.Collections.IEnumerator SpawnPortalAfterPresentationRoutine()
-    {
-        if (_missionResultPresenter == null)
-        {
-            _missionResultPresenter = FindAnyObjectByType<MissionResultPresenter>();
-        }
-
-        // 성공 연출은 미션 완료 이벤트로 시작되므로 한 프레임 기다려 시작 여부를 확인한다.
-        yield return null;
-
-        while (_missionResultPresenter != null && _missionResultPresenter.IsShowingSuccess)
-        {
-            yield return null;
-        }
-
-        _portalRoutine = null;
-        SpawnNextPortal();
-    }
-
-    private void HandleMissionFailed(MissionBase mission)
-    {
-        // 생존 미션은 플레이어가 죽어도 미션 실패를 보내므로 사망을 우선한다.
-        bool isPlayerDead = _playerHealth != null && _playerHealth.IsDead;
-        EndRun(isPlayerDead ? RunEndReason.Died : RunEndReason.MissionFailed);
-    }
+    // ───────────────────────── 정화와 범위 표시 ─────────────────────────
 
     /// <summary>
-    /// 정화 파동을 새로 만든다. 위치는 미션 오브젝트에 붙은 파동(없으면 미션 오브젝트, 시작 오브젝트) 위치다.
-    /// 미션 오브젝트에 붙은 파동은 위치만 쓰고 꺼 둔다. (제단 방어처럼 클리어 순간 미션 오브젝트를 먼저 삭제하는
-    /// 미션에서는 붙은 파동이 오브젝트와 함께 사라지므로, 항상 따로 만든 파동을 쓴다) 닿은 적을 정화하도록 켠다.
+    /// 미션 오브젝트 또는 시작 위치에 독립된 정화 파동을 만든다.
+    /// 붙어 있는 파동은 원본을 끄고, 프리팹이 없을 때 복제해 사용한다.
     /// </summary>
     private PurificationWave PrepareWave()
     {
         PurificationWave wave = null;
         Vector3 origin = _waveOrigin;
 
-        GameObject missionObject = _missionManager != null ? _missionManager.CurrentMissionObject : null;
+        GameObject missionObject = CurrentMissionObject;
         PurificationWave attachedWave = missionObject != null
             ? missionObject.GetComponentInChildren<PurificationWave>(true)
             : null;
@@ -533,17 +538,28 @@ public class StageManager : MonoBehaviour
     /// <summary>파동이 끝까지 퍼지면 화면 밖에 남은 적을 지우고 정화를 끝낸다.</summary>
     private void HandleWaveFinished()
     {
+        DetachWave();
+        CompletePurification();
+    }
+
+    /// <summary>정화 파동의 완료 이벤트 구독과 참조를 해제한다.</summary>
+    private void DetachWave()
+    {
         if (_activeWave != null)
         {
             _activeWave.Finished -= HandleWaveFinished;
             _activeWave = null;
         }
+    }
 
+    private void CompletePurification()
+    {
         if (_phase != StagePhase.Purification)
         {
             return;
         }
 
+        // Destroy는 사망 이벤트를 보내지 않으므로 드롭 없이 정리한다.
         ClearActiveEnemies();
         SetPhase(StagePhase.Cleared);
     }
@@ -562,69 +578,10 @@ public class StageManager : MonoBehaviour
             return;
         }
 
-        // 정화 파동 : 남은 적을 드롭 없이 없앤다. (Destroy는 사망 이벤트를 보내지 않는다)
-        ClearActiveEnemies();
-        SetPhase(StagePhase.Cleared);
+        CompletePurification();
     }
 
-    // ───────────────────────── 보스 ─────────────────────────
-
-    private void SpawnBoss()
-    {
-        GameObject prefab = _bossPrefab;
-        if (prefab == null)
-        {
-            MonsterSpawner spawner = FindSpawner();
-            prefab = spawner != null ? spawner.GetFallbackEnemyPrefab() : null;
-        }
-
-        if (prefab == null)
-        {
-            Debug.LogError("[StageManager] 보스로 쓸 프리팹이 없어 보스 스테이지를 클리어 처리합니다.", this);
-            DefeatBoss();
-            return;
-        }
-
-        GameObject boss = Instantiate(prefab, _bossSpawnPosition, Quaternion.identity);
-        _bossHealth = boss.GetComponent<EnemyHealth>();
-        if (_bossHealth == null)
-        {
-            _bossHealth = boss.GetComponentInChildren<EnemyHealth>();
-        }
-
-        if (_bossHealth == null)
-        {
-            Debug.LogError($"[StageManager] 보스 프리팹 '{prefab.name}'에 EnemyHealth가 없어 클리어 처리합니다.", this);
-            DefeatBoss();
-            return;
-        }
-
-        Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
-    }
-
-    private void HandleEnemyDied(EnemyHealth enemy)
-    {
-        if (_isBossStage && _phase == StagePhase.InMission && enemy != null && enemy == _bossHealth)
-        {
-            DefeatBoss();
-        }
-    }
-
-    private void DefeatBoss()
-    {
-        _isBossDefeated = true;
-        Debug.Log("[StageManager] ★ 보스 처치! 런 클리어 ★");
-        EndRun(RunEndReason.Cleared);
-    }
-
-    // ───────────────────────── 포탈 ─────────────────────────
-
-    /// <summary>
-    /// 미션 오브젝트에 이미 붙어 있는 범위 표시 렌더러를 모은다.
-    /// - 영혼 수집 구역 : 본체(영혼 그림)를 뺀 자식 렌더러 (범위 원 Circle)
-    /// - 거점 점령 구역 : 본체의 마법진 (구역 그림 자체가 범위다)
-    /// 정화 파동의 렌더러는 넣지 않는다.
-    /// </summary>
+    /// <summary>영혼 수집 구역의 자식 또는 거점 점령 구역 본체의 범위 표시를 모은다. 정화 파동은 제외한다.</summary>
     private void CollectRangeRenderers(GameObject missionObject)
     {
         _rangeRenderers.Clear();
@@ -653,7 +610,7 @@ public class StageManager : MonoBehaviour
     /// <summary>미션 오브젝트의 범위 표시를 서서히 숨긴다. (오브젝트 자체는 남긴다)</summary>
     private void HideMissionRange()
     {
-        GameObject missionObject = _missionManager != null ? _missionManager.CurrentMissionObject : null;
+        GameObject missionObject = CurrentMissionObject;
         CollectRangeRenderers(missionObject);
         if (_rangeRenderers.Count > 0)
         {
@@ -699,13 +656,58 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    // ───────────────────────── 포탈 등장과 사용 ─────────────────────────
+
+    /// <summary>미션 성공 연출이 끝날 때까지 기다렸다가 포탈을 만든다.</summary>
+    private void SpawnPortalAfterPresentation()
+    {
+        StopPortalRoutine();
+        _portalRoutine = StartCoroutine(SpawnPortalAfterPresentationRoutine());
+    }
+
+    private void StopPortalRoutine()
+    {
+        if (_portalRoutine != null)
+        {
+            StopCoroutine(_portalRoutine);
+            _portalRoutine = null;
+        }
+    }
+
+    private System.Collections.IEnumerator SpawnPortalAfterPresentationRoutine()
+    {
+        if (_missionResultPresenter == null)
+        {
+            _missionResultPresenter = FindAnyObjectByType<MissionResultPresenter>();
+        }
+
+        // 성공 연출은 미션 완료 이벤트로 시작되므로 한 프레임 기다려 시작 여부를 확인한다.
+        yield return null;
+
+        while (_missionResultPresenter != null && _missionResultPresenter.IsShowingSuccess)
+        {
+            yield return null;
+        }
+
+        _portalRoutine = null;
+        SpawnNextPortal();
+    }
+
     /// <summary>
     /// 포탈 위치 : 미션 오브젝트 그림(범위 표시와 정화 파동 제외)의 아래쪽.
     /// 그림이 범위 표시뿐이면 오브젝트 중앙, 미션 오브젝트가 없으면 시작 오브젝트가 있던 자리 아래.
     /// </summary>
     private Vector3 GetPortalPosition()
     {
-        GameObject missionObject = _missionManager != null ? _missionManager.CurrentMissionObject : null;
+        GameObject missionObject = CurrentMissionObject;
+
+        // 영혼 미션: 삼각형 중심(컨테이너 위치)에 고정. bounds 계산을 타지 않는다.
+        if (missionObject != null && missionObject.name == "SoulHarvestZones")
+        {
+            Vector3 center = missionObject.transform.position;
+            return new Vector3(center.x, center.y, 0f);
+        }
+
         if (missionObject == null)
         {
             return new Vector3(_waveOrigin.x, _waveOrigin.y - _portalOffsetBelow, 0f);
@@ -745,7 +747,7 @@ public class StageManager : MonoBehaviour
     private void SpawnNextPortal()
     {
         // 보상 선택 중에 런이 끝났으면 포탈을 만들지 않는다.
-        if (_phase != StagePhase.Purification && _phase != StagePhase.Cleared)
+        if (!CanUsePortal)
         {
             return;
         }
@@ -755,6 +757,15 @@ public class StageManager : MonoBehaviour
             string label = _currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
             _portalSpawner.SpawnPortal(label, _portalPosition);
             _isPortalOpen = true;
+        }
+    }
+
+    public void DespawnPortal()
+    {
+        _isPortalOpen = false;
+        if (_portalSpawner != null)
+        {
+            _portalSpawner.DespawnPortals();
         }
     }
 
@@ -768,11 +779,27 @@ public class StageManager : MonoBehaviour
             return;
         }
 
-        if (_phase != StagePhase.Purification && _phase != StagePhase.Cleared)
+        if (!CanUsePortal)
         {
             return;
         }
 
+        Descend();
+    }
+
+    // ───────────────────────── 층 이동과 상점 ─────────────────────────
+
+    /// <summary>
+    /// [기존 테스트 UI 호환] 지금 층을 끝내고 한 층 내려간다.
+    /// </summary>
+    public void ProceedToNextStage()
+    {
+        if (_isTransitioning || _phase == StagePhase.Ended || _phase == StagePhase.Shop)
+        {
+            return;
+        }
+
+        PauseMonsterSpawner();
         Descend();
     }
 
@@ -795,31 +822,6 @@ public class StageManager : MonoBehaviour
         }
 
         TransitionToNextStage();
-    }
-
-    /// <summary>
-    /// 화면을 검게 덮은 동안 다음 층을 준비하고 걷어낸다.
-    /// 플레이어가 순간이동하고 카메라가 맵을 가로지르는 모습이 보이지 않게 한다.
-    /// </summary>
-    private void TransitionToNextStage()
-    {
-        ScreenFader fader = ScreenFader.Instance;
-        if (fader == null)
-        {
-            StartNextStage();
-            return;
-        }
-
-        fader.FadeThroughBlack(() =>
-        {
-            // 검은 화면 도중에 런이 끝났으면 다음 층을 시작하지 않는다.
-            if (this == null || _phase == StagePhase.Ended)
-            {
-                return;
-            }
-
-            StartNextStage();
-        });
     }
 
     /// <summary>
@@ -891,6 +893,31 @@ public class StageManager : MonoBehaviour
         StartNextStage();
     }
 
+    /// <summary>
+    /// 화면을 검게 덮은 동안 다음 층을 준비하고 걷어낸다.
+    /// 플레이어가 순간이동하고 카메라가 맵을 가로지르는 모습이 보이지 않게 한다.
+    /// </summary>
+    private void TransitionToNextStage()
+    {
+        ScreenFader fader = ScreenFader.Instance;
+        if (fader == null)
+        {
+            StartNextStage();
+            return;
+        }
+
+        fader.FadeThroughBlack(() =>
+        {
+            // 검은 화면 도중에 런이 끝났으면 다음 층을 시작하지 않는다.
+            if (this == null || _phase == StagePhase.Ended)
+            {
+                return;
+            }
+
+            StartNextStage();
+        });
+    }
+
     private void StartNextStage()
     {
         ClearActiveEnemies();
@@ -898,27 +925,54 @@ public class StageManager : MonoBehaviour
         StartStage(_currentDepth);
     }
 
-    public void DespawnPortal()
-    {
-        _isPortalOpen = false;
-        if (_portalSpawner != null)
-        {
-            _portalSpawner.DespawnPortals();
-        }
-    }
+    // ───────────────────────── 보스전 ─────────────────────────
 
-    /// <summary>
-    /// [기존 테스트 UI 호환] 지금 층을 끝내고 한 층 내려간다.
-    /// </summary>
-    public void ProceedToNextStage()
+    private void SpawnBoss()
     {
-        if (_isTransitioning || _phase == StagePhase.Ended || _phase == StagePhase.Shop)
+        GameObject prefab = _bossPrefab;
+        if (prefab == null)
         {
+            MonsterSpawner spawner = MonsterSpawner.Instance;
+            prefab = spawner != null ? spawner.GetFallbackEnemyPrefab() : null;
+        }
+
+        if (prefab == null)
+        {
+            Debug.LogError("[StageManager] 보스로 쓸 프리팹이 없어 보스 스테이지를 클리어 처리합니다.", this);
+            DefeatBoss();
             return;
         }
 
-        PauseMonsterSpawner();
-        Descend();
+        GameObject boss = Instantiate(prefab, _bossSpawnPosition, Quaternion.identity);
+        _bossHealth = boss.GetComponent<EnemyHealth>();
+        if (_bossHealth == null)
+        {
+            _bossHealth = boss.GetComponentInChildren<EnemyHealth>();
+        }
+
+        if (_bossHealth == null)
+        {
+            Debug.LogError($"[StageManager] 보스 프리팹 '{prefab.name}'에 EnemyHealth가 없어 클리어 처리합니다.", this);
+            DefeatBoss();
+            return;
+        }
+
+        Debug.Log($"[StageManager] 보스 등장: {prefab.name}");
+    }
+
+    private void HandleEnemyDied(EnemyHealth enemy)
+    {
+        if (_isBossStage && _phase == StagePhase.InMission && enemy != null && enemy == _bossHealth)
+        {
+            DefeatBoss();
+        }
+    }
+
+    private void DefeatBoss()
+    {
+        _isBossDefeated = true;
+        Debug.Log("[StageManager] ★ 보스 처치! 런 클리어 ★");
+        EndRun(RunEndReason.Cleared);
     }
 
     // ───────────────────────── 런 종료 ─────────────────────────
@@ -926,6 +980,13 @@ public class StageManager : MonoBehaviour
     private void HandlePlayerDied()
     {
         EndRun(RunEndReason.Died);
+    }
+
+    private void HandleMissionFailed(MissionBase mission)
+    {
+        // 생존 미션은 플레이어가 죽어도 미션 실패를 보내므로 사망을 우선한다.
+        bool isPlayerDead = _playerHealth != null && _playerHealth.IsDead;
+        EndRun(isPlayerDead ? RunEndReason.Died : RunEndReason.MissionFailed);
     }
 
     /// <summary>
@@ -975,28 +1036,9 @@ public class StageManager : MonoBehaviour
         SafeEventNotifier.Notify(PhaseChanged, phase);
     }
 
-    private static string GetMissionName(MissionBase mission)
-    {
-        return mission switch
-        {
-            EnemyKillMission => "Defeat Enemies",
-            SoulCollectMission => "Kill in the Zone",
-            AltarDefenseMission => "Defend the Altar",
-            SurvivalMission => "Survive",
-            CaptureZoneMission => "Capture the Zone",
-            null => string.Empty,
-            _ => "Mission"
-        };
-    }
-
-    private static MonsterSpawner FindSpawner()
-    {
-        return MonsterSpawner.Instance != null ? MonsterSpawner.Instance : FindAnyObjectByType<MonsterSpawner>();
-    }
-
     private void RestartMonsterSpawner()
     {
-        MonsterSpawner spawner = FindSpawner();
+        MonsterSpawner spawner = MonsterSpawner.Instance;
         if (spawner != null)
         {
             spawner.RestartSpawner(_currentDepth);
@@ -1006,7 +1048,7 @@ public class StageManager : MonoBehaviour
     /// <summary>스폰만 멈춘다. 이미 나온 적은 그대로 둔다.</summary>
     private void PauseMonsterSpawner()
     {
-        MonsterSpawner spawner = FindSpawner();
+        MonsterSpawner spawner = MonsterSpawner.Instance;
         if (spawner != null)
         {
             spawner.PauseSpawning();

@@ -25,37 +25,37 @@ public class ScreenFader : MonoBehaviour
     [Tooltip("검은 화면이 걷히기까지의 시간(초)")]
     [SerializeField, Min(0f)] private float _fadeOutDuration = 0.4f;
 
-    private static ScreenFader _instance;
+    private static ScreenFader s_instance;
 
     private Coroutine _routine;
 
     /// <summary>전환 연출이 진행 중인지 (이때는 일시정지를 열지 않는다)</summary>
-    public static bool IsFading => _instance != null && _instance._routine != null;
+    public static bool IsFading => s_instance != null && s_instance._routine != null;
 
     public static ScreenFader Instance
     {
         get
         {
-            if (_instance == null)
+            if (s_instance == null)
             {
-                _instance = FindAnyObjectByType<ScreenFader>(FindObjectsInactive.Include);
-                if (_instance == null)
+                s_instance = FindAnyObjectByType<ScreenFader>(FindObjectsInactive.Include);
+                if (s_instance == null)
                 {
-                    _instance = new GameObject("ScreenFader").AddComponent<ScreenFader>();
+                    s_instance = new GameObject("ScreenFader").AddComponent<ScreenFader>();
                 }
             }
 
-            return _instance;
+            return s_instance;
         }
     }
 
     private void Awake()
     {
-        if (_instance == null)
+        if (s_instance == null)
         {
-            _instance = this;
+            s_instance = this;
         }
-        else if (_instance != this)
+        else if (s_instance != this)
         {
             Destroy(gameObject);
             return;
@@ -67,9 +67,9 @@ public class ScreenFader : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_instance == this)
+        if (s_instance == this)
         {
-            _instance = null;
+            s_instance = null;
         }
     }
 

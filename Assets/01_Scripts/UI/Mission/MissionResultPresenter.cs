@@ -6,7 +6,7 @@ using UnityEngine;
 /// 미션 성공 / 런 종료 시 결과 패널을 보여준다.
 /// - 미션 성공 : 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃). 층마다 새 미션이 시작되면 다시 보여줄 수 있다.
 ///   부제(_successSubText)에 미션 클리어 소요 시간을 보여준다. (시작 오브젝트를 누른 순간부터, 일시정지 시간 제외)
-/// - 보스 처치(런 클리어) : 성공 패널을 "Run Clear" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다. (부제는 숨긴다)
+/// - 보스 처치(런 클리어) : 성공 패널을 "탐사 완료" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다. (부제는 숨긴다)
 /// - 실패(사망, 미션 실패, 탐사 포기) : 실패 패널 연출 (천천히 페이드 인 → 3초) 후 결과 화면을 켠다.
 ///   실패 패널의 글자는 종료 사유에 따라 바뀐다. (You Die / Mission Failed / Run Abandoned)
 ///   실패 패널은 _failedPanelMaxAlpha(80%)까지만 진해진다.
@@ -33,11 +33,11 @@ public class MissionResultPresenter : MonoBehaviour
     [SerializeField] private TMP_Text _successSubText;
 
     [Header("문구")]
-    [SerializeField] private string _missionCompleteText = "Mission Complete";
-    [SerializeField] private string _runClearText = "Run Clear";
-    [SerializeField] private string _youDieText = "You Die";
-    [SerializeField] private string _missionFailedText = "Mission Failed";
-    [SerializeField] private string _runAbandonedText = "Run Abandoned";
+    [SerializeField] private string _missionCompleteText = "임무 완료";
+    [SerializeField] private string _runClearText = "탐사 완료";
+    [SerializeField] private string _youDieText = "사망";
+    [SerializeField] private string _missionFailedText = "임무 실패";
+    [SerializeField] private string _runAbandonedText = "탐사 포기";
     [Tooltip("클리어 소요 시간이 1분 미만일 때. {0} 초")]
     [SerializeField] private string _clearTimeSecondsFormat = "{0}초";
     [Tooltip("클리어 소요 시간이 1분 이상일 때. {0} 분, {1} 초")]
@@ -152,7 +152,7 @@ public class MissionResultPresenter : MonoBehaviour
         SubscribeMission(null);
     }
 
-    /// <summary>미션 성공 연출 ("Mission Complete")</summary>
+    /// <summary>미션 성공 연출 ("임무 완료")</summary>
     public void ShowSuccess()
     {
         if (_hasShownSuccess || _hasShownFailure || _successPanel == null)
@@ -193,7 +193,7 @@ public class MissionResultPresenter : MonoBehaviour
         _failedPanel.Play();
     }
 
-    /// <summary>보스 처치 : "Run Clear" 연출 후 결과 화면</summary>
+    /// <summary>보스 처치 : "탐사 완료" 연출 후 결과 화면</summary>
     public void ShowClear()
     {
         if (_hasShownFailure || _isShowingClear)

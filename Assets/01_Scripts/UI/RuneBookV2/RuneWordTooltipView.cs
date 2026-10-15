@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 새 룬북(RuneBookV2)에서 룬 워드에 마우스를 올리면 뜨는 팝업.
-/// 아이콘, 이름, "카테고리 · 겹치기 가능 여부", 설명, 룬 워드(룬 문자 이미지)와 모자란 룬 문자를 보여준다.
+/// 아이콘, 이름, "카테고리 / 겹치기 가능 여부", 설명, 룬 워드(룬 문자 이미지)와 모자란 룬 문자를 보여준다.
 /// - Listed: 설명만 ??? 로 숨긴다.
 /// - 완성품을 가지고 있으면 모자란 룬 문자 줄 대신 "Owned x1 - No rune stones needed"를 보여준다.
 /// 크기와 위치는 RuneBookTooltipLayout이 맞춘다.
@@ -46,12 +46,16 @@ public class RuneWordTooltipView : MonoBehaviour
 
     [Header("문구")]
     [SerializeField] private string _unknownText = "???";
-    [SerializeField] private string _stackableText = "Stackable";
-    [SerializeField] private string _notStackableText = "Not stackable";
-    [SerializeField] private string _ownedFormat = "Owned x{0} - No rune stones needed";
+    [SerializeField] private string _stackableText = "중첩 가능";
+    [SerializeField] private string _notStackableText = "중첩 불가";
+    [SerializeField] private string _ownedFormat = "보유 x{0} - 룬석 필요 없음";
 
     [Header("색")]
     [SerializeField] private Color _iconBoxColor = new(0.894f, 0.804f, 0.678f, 1f);
+    [SerializeField] private Color _iconColor = new(0.227f, 0.141f, 0.094f, 1f);
+    [SerializeField] private Color _onElementIconColor = new(0.98f, 0.94f, 0.88f, 1f);
+    [Tooltip("{0} 카테고리, {1} 중첩 가능 여부")]
+    [SerializeField] private string _categoryFormat = "{0}  /  {1}";
 
     public readonly struct RuneStoneView
     {
@@ -89,12 +93,12 @@ public class RuneWordTooltipView : MonoBehaviour
         {
             _icon.sprite = entry.Icon;
             _icon.enabled = entry.Icon != null;
-            _icon.color = Color.white;
+            _icon.color = elementColor.HasValue && isDetailed ? _onElementIconColor : _iconColor;
         }
 
-        SetText(_nameText, entry.EnglishName);
-        string category = entry.Category.ToString().ToUpperInvariant();
-        SetText(_categoryText, $"{category}  ·  {(canOverlap ? _stackableText : _notStackableText)}");
+        SetText(_nameText, entry.DisplayName);
+        string category = GetCategoryName(entry.Category);
+        SetText(_categoryText, string.Format(_categoryFormat, category, canOverlap ? _stackableText : _notStackableText));
         SetText(_descriptionText, isDetailed ? entry.Description : _unknownText);
 
         if (_runeWordGroup != null)
@@ -208,5 +212,18 @@ public class RuneWordTooltipView : MonoBehaviour
         {
             text.text = value;
         }
+    }
+
+    private static string GetCategoryName(RuneEffectCategory category)
+    {
+        return category switch
+        {
+            RuneEffectCategory.Element => "원소",
+            RuneEffectCategory.Enhancement => "강화",
+            RuneEffectCategory.Behaviour => "동작",
+            RuneEffectCategory.Control => "제어",
+            RuneEffectCategory.Special => "특수",
+            _ => category.ToString()
+        };
     }
 }

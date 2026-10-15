@@ -9,48 +9,48 @@ public class StaticElementReactionDataSource : ElementReactionDataSource
     private static readonly Dictionary<ReactionElement, ElementReactionData> s_baseEffects = new()
     {
         {
-            ReactionElement.Fire, new ElementReactionData("elemental_fire", "Fire", ReactionElement.Fire, null,
-                "Sets enemies on fire, dealing damage over time.", "Burn: damage over time")
+            ReactionElement.Fire, new ElementReactionData("elemental_fire", "불", ReactionElement.Fire, null,
+                "적에게 화상을 입혀 지속 피해를 줍니다.", "화상: 지속 피해")
         },
         {
-            ReactionElement.Water, new ElementReactionData("elemental_water", "Water", ReactionElement.Water, null,
-                "Reduces the movement speed of enemies.", "Slow: reduces move speed")
+            ReactionElement.Water, new ElementReactionData("elemental_water", "물", ReactionElement.Water, null,
+                "적의 이동 속도를 감소시킵니다.", "감속: 이동 속도 감소")
         },
         {
-            ReactionElement.Earth, new ElementReactionData("elemental_earth", "Earth", ReactionElement.Earth, null,
-                "Staggers enemies, interrupting their current action and stopping them briefly. Can cancel attack wind-ups.",
-                "Stagger: interrupts actions")
+            ReactionElement.Earth, new ElementReactionData("elemental_earth", "흙", ReactionElement.Earth, null,
+                "적의 현재 행동을 끊고 잠시 멈추게 합니다. 공격 준비 동작도 끊을 수 있습니다.",
+                "경직: 행동 중단")
         },
         {
-            ReactionElement.Wind, new ElementReactionData("elemental_wind", "Wind", ReactionElement.Wind, null,
-                "Pushes enemies hit in the direction the bullet is travelling.", "Knockback: pushes enemies away")
+            ReactionElement.Wind, new ElementReactionData("elemental_wind", "바람", ReactionElement.Wind, null,
+                "맞은 적을 탄환이 날아가는 방향으로 밀쳐냅니다.", "넉백: 적을 밀쳐냄")
         }
     };
 
     private static readonly List<ElementReactionData> s_reactions = new()
     {
-        new("reaction_fire_fire", "Overheat", ReactionElement.Fire, ReactionElement.Fire,
-            "Explodes at the point of impact and leaves embers that keep damaging enemies over time.", string.Empty),
-        new("reaction_water_water", "Deluge", ReactionElement.Water, ReactionElement.Water,
-            "Floods a wide area that slows enemies and pushes them back. The same debuff does not stack.", string.Empty),
-        new("reaction_earth_earth", "Petrify", ReactionElement.Earth, ReactionElement.Earth,
-            "Heavily slows or binds enemies and weakens their defense.", string.Empty),
-        new("reaction_wind_wind", "Cyclone", ReactionElement.Wind, ReactionElement.Wind,
-            "Creates a whirlwind that pulls nearby enemies in and damages them over time. Knocks them back when it ends.",
+        new("reaction_fire_fire", "과열", ReactionElement.Fire, ReactionElement.Fire,
+            "적중 지점에서 폭발하고 잔불을 남겨 지속 피해를 줍니다.", string.Empty),
+        new("reaction_water_water", "범람", ReactionElement.Water, ReactionElement.Water,
+            "넓은 범위를 물로 덮어 적을 둔화시키고 밀어냅니다. 같은 디버프는 중첩되지 않습니다.", string.Empty),
+        new("reaction_earth_earth", "석화", ReactionElement.Earth, ReactionElement.Earth,
+            "적을 강하게 둔화시키거나 속박하고 방어를 약화시킵니다.", string.Empty),
+        new("reaction_wind_wind", "회오리", ReactionElement.Wind, ReactionElement.Wind,
+            "회오리를 만들어 주변 적을 끌어당기고 지속 피해를 줍니다. 끝날 때 적을 밀쳐냅니다.",
             string.Empty),
-        new("reaction_fire_water", "Steam", ReactionElement.Fire, ReactionElement.Water,
-            "Creates a cloud of steam that damages enemies over time and makes them update your position less often.",
+        new("reaction_fire_water", "증기", ReactionElement.Fire, ReactionElement.Water,
+            "증기 구름을 만들어 지속 피해를 주고, 적이 플레이어 위치를 덜 자주 추적하게 합니다.",
             string.Empty),
-        new("reaction_fire_earth", "Molten", ReactionElement.Fire, ReactionElement.Earth,
-            "Creates a field of lava that damages enemies over time and blocks movement through the area.", string.Empty),
-        new("reaction_fire_wind", "Firestorm", ReactionElement.Fire, ReactionElement.Wind,
-            "Widens the area of the flames and spreads burning to nearby enemies.", string.Empty),
-        new("reaction_water_earth", "Mire", ReactionElement.Water, ReactionElement.Earth,
-            "Creates a mud zone that greatly slows enemies. Enemies that stay in it too long become bound.", string.Empty),
-        new("reaction_water_wind", "Tempest", ReactionElement.Water, ReactionElement.Wind,
-            "Creates a whirlpool that repeatedly damages enemies and controls where they move.", string.Empty),
-        new("reaction_earth_wind", "Sandstorm", ReactionElement.Earth, ReactionElement.Wind,
-            "Creates a sandstorm that damages enemies over time and lowers their defense.", string.Empty)
+        new("reaction_fire_earth", "용융", ReactionElement.Fire, ReactionElement.Earth,
+            "용암 지대를 만들어 지속 피해를 주고 그 지역의 이동을 막습니다.", string.Empty),
+        new("reaction_fire_wind", "화염폭풍", ReactionElement.Fire, ReactionElement.Wind,
+            "화염의 범위를 넓히고 주변 적에게 화상을 퍼뜨립니다.", string.Empty),
+        new("reaction_water_earth", "진흙", ReactionElement.Water, ReactionElement.Earth,
+            "진흙 지대를 만들어 적을 크게 둔화시킵니다. 오래 머문 적은 속박됩니다.", string.Empty),
+        new("reaction_water_wind", "폭풍우", ReactionElement.Water, ReactionElement.Wind,
+            "소용돌이를 만들어 반복해서 피해를 주고 적의 움직임을 제어합니다.", string.Empty),
+        new("reaction_earth_wind", "모래폭풍", ReactionElement.Earth, ReactionElement.Wind,
+            "모래폭풍을 일으켜 지속 피해를 주고 적의 방어력을 낮춥니다.", string.Empty)
     };
 
     public override ElementReactionData GetBaseEffect(ReactionElement element)

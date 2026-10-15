@@ -1,9 +1,14 @@
 using System;
 using System.Collections;
+using MoreMountains.Feedbacks;
+using MoreMountains.Tools;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
+    [Header("피격 피드백")]
+    [SerializeField] private MMF_Player _damageFeedbacks;
+
     [Header("최대 체력")]
     [SerializeField] private float _maxHealth = 100f;
     public float MaxHealth => _maxHealth;
@@ -53,6 +58,8 @@ public class PlayerHealth : MonoBehaviour
     private void Start()
     {
         _shield = GetComponent<Shield>();
+        if (_damageFeedbacks != null)
+            _ = MMTimeManager.Instance;
     }
 
     private void Awake()
@@ -79,6 +86,10 @@ public class PlayerHealth : MonoBehaviour
     private void ApplyDamage(float damage)
     {
         float finalDamage = Mathf.Max(0f, damage) * DamageTakenMultiplier;
+        if (finalDamage <= 0f)
+            return;
+
+        _damageFeedbacks?.PlayFeedbacks(transform.position);
         Damaged?.Invoke(finalDamage);
         if (_currentHealth - finalDamage <= 0f)
         {

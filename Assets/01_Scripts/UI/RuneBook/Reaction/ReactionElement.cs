@@ -29,6 +29,13 @@ public static class ReactionElementStyle
 
     public static string GetName(ReactionElement element)
     {
-        return element.ToString();
+        return element switch
+        {
+            ReactionElement.Fire => "불",
+            ReactionElement.Water => "물",
+            ReactionElement.Earth => "흙",
+            ReactionElement.Wind => "바람",
+            _ => element.ToString()
+        };
     }
 }

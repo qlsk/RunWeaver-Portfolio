@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [DefaultExecutionOrder(-100)]
-[RequireComponent(typeof(Rigidbody2D), typeof(EnemyTargetDetector))]
+[RequireComponent(typeof(EnemyMotor), typeof(EnemyTargetDetector))]
 public class EnemyDashAttack : MonoBehaviour
 {
     [SerializeField] private EnemyTargetDetector _targetDetector;
@@ -27,14 +27,14 @@ public class EnemyDashAttack : MonoBehaviour
     private EnemyHealth _health;
     private EnemyStatusEffectController _statusEffectController;
     private Vector2 _targetPosition;
-    private RigidbodyConstraints2D _savedConstraints;
-    private bool _positionFrozen;
+    private EnemyMotor _motor;
     private float _stateEndTime;
     private float _nextAttackTime;
     private SpriteRenderer _rangeIndicator;
 
     private void Awake()
     {
+        _motor = GetComponent<EnemyMotor>();
         _body = GetComponent<Rigidbody2D>();
         _health = GetComponent<EnemyHealth>();
         _statusEffectController = GetComponent<EnemyStatusEffectController>();
@@ -81,7 +81,7 @@ public class EnemyDashAttack : MonoBehaviour
             case EnemyAttackState.Preparing:
                 if (Time.time >= _stateEndTime)
                 {
-                    RestoreConstraints();
+                    _motor?.ReleasePositionLock(this);
                     _rangeIndicator.enabled = false;
                     State = EnemyAttackState.Attacking;
                     _stateEndTime = Time.time + _maxDashDuration;
@@ -109,10 +109,7 @@ public class EnemyDashAttack : MonoBehaviour
 
         _targetPosition = start + toTarget.normalized * _dashDistance;
         State = EnemyAttackState.Preparing;
-        _body.linearVelocity = Vector2.zero;
-        _savedConstraints = _body.constraints;
-        _positionFrozen = true;
-        _body.constraints |= RigidbodyConstraints2D.FreezePosition;
+        _motor.AcquirePositionLock(this);
         _stateEndTime = Time.time + _prepareDuration;
 
         ShowRangeIndicator(start);
@@ -162,7 +159,7 @@ public class EnemyDashAttack : MonoBehaviour
         }
 
         float speed = Mathf.Min(_dashSpeed, distance / Time.fixedDeltaTime);
-        _body.linearVelocity = offset.normalized * speed;
+        _motor.SetOverrideVelocity(this, offset.normalized * speed);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -189,26 +186,17 @@ public class EnemyDashAttack : MonoBehaviour
     {
         if (State != EnemyAttackState.Idle)
         {
-            _body.linearVelocity = Vector2.zero;
+            _motor?.ClearOverride(this);
             _nextAttackTime = Time.time + _cooldown;
         }
 
-        RestoreConstraints();
+        _motor?.ReleasePositionLock(this);
         if (_rangeIndicator != null)
         {
             _rangeIndicator.enabled = false;
         }
 
         State = EnemyAttackState.Idle;
-    }
-
-    private void RestoreConstraints()
-    {
-        if (!_positionFrozen || _body == null)
-            return;
-
-        _body.constraints = _savedConstraints;
-        _positionFrozen = false;
     }
 
     private void HandleDeath(EnemyHealth health)

@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public abstract class MissionBase : MonoBehaviour
 {
+    public abstract MissionType Type { get; }
+
     public event Action OnMissionCompleted;
     public event Action OnMissionFailed;
     public event Action<float, string> OnMissionProgressUpdated;

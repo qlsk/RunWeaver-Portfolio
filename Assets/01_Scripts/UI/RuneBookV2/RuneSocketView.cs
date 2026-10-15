@@ -54,6 +54,10 @@ public class RuneSocketView : MonoBehaviour, IPointerClickHandler
     [SerializeField, Range(0f, 1f)] private float _pendingFillAlpha = 0.6f;
     [SerializeField, Range(0f, 1f)] private float _pendingIconAlpha = 0.8f;
 
+    [Header("아이콘 색")]
+    [SerializeField] private Color _runeIconColor = new(0.227f, 0.141f, 0.094f, 1f);
+    [SerializeField] private Color _elementIconColor = new(0.98f, 0.94f, 0.88f, 1f);
+
     [Header("글자 색")]
     [SerializeField] private Color _mainLabelColor = new(0.839f, 0.698f, 0.384f, 1f);
     [SerializeField] private Color _pendingLabelColor = new(0.941f, 0.745f, 0.431f, 1f);
@@ -117,7 +121,9 @@ public class RuneSocketView : MonoBehaviour, IPointerClickHandler
         {
             _icon.gameObject.SetActive(hasRune && icon != null);
             _icon.sprite = icon;
-            _icon.color = new Color(1f, 1f, 1f, state == State.Pending ? _pendingIconAlpha : 1f);
+            Color iconColor = elementColor.HasValue ? _elementIconColor : _runeIconColor;
+            iconColor.a = state == State.Pending ? _pendingIconAlpha : 1f;
+            _icon.color = iconColor;
         }
 
         if (_emptyMark != null)
