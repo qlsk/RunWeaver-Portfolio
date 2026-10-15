@@ -81,6 +81,7 @@ public class PauseController : MonoBehaviour
     private float _previousTimeScale = 1f;
     private int _openedFrame = -1;
     private bool _wasBlockedLastFrame;
+    private GameObject _menuReturnSelection;
 
     /// <summary>일시정지 화면이 열려 있는지 (카운트다운 포함)</summary>
     public static bool IsGamePaused { get; private set; }
@@ -335,10 +336,37 @@ public class PauseController : MonoBehaviour
         if (_abandonButton != null) _abandonButton.gameObject.SetActive(_isExpedition);
         if (_subtitleText != null) _subtitleText.text = GetSubtitle();
 
-        if (EventSystem.current != null && _resumeButton != null)
+        // 확인 창에서 돌아오면 그 창을 연 버튼을 다시 고른다.
+        GameObject selection = _menuReturnSelection != null && _menuReturnSelection.activeInHierarchy
+            ? _menuReturnSelection
+            : _resumeButton != null ? _resumeButton.gameObject : null;
+        _menuReturnSelection = null;
+        if (EventSystem.current != null && selection != null)
         {
-            EventSystem.current.SetSelectedGameObject(_resumeButton.gameObject);
+            EventSystem.current.SetSelectedGameObject(selection);
         }
+    }
+
+    /// <summary>
+    /// 메뉴에 더해진 항목(튜토리얼 건너뛰기 등)이 일시정지 메뉴와 같은 확인 창을 띄운다.
+    /// 확인 창이 떠 있는 동안 메뉴는 숨고 입력을 받지 않는다. 확인하든 취소하든 메뉴로 돌아온다.
+    /// </summary>
+    public void ShowMenuConfirm(string title, string body, string confirmLabel, Action onConfirm, GameObject returnSelection)
+    {
+        if (_state != State.Menu)
+        {
+            return;
+        }
+
+        _menuReturnSelection = returnSelection;
+        ShowConfirm(title, body, confirmLabel, () =>
+        {
+            onConfirm?.Invoke();
+            if (_state == State.Confirm)
+            {
+                ShowMenu();
+            }
+        });
     }
 
     private void OpenSettings()
@@ -368,6 +396,7 @@ public class PauseController : MonoBehaviour
             return;
         }
 
+        _menuReturnSelection = _abandonButton != null ? _abandonButton.gameObject : null;
         ShowConfirm("탐사를 포기할까요?",
             "포기하면 이 개체는 <color=#96281E>소실된 것으로</color> 처리됩니다.\n장착한 룬과 골드를 잃게 됩니다.",
             "포기",
@@ -381,10 +410,37 @@ public class PauseController : MonoBehaviour
             return;
         }
 
-        string body = _isExpedition
-            ? "현재 탐사는 <color=#96281E>저장되지 않습니다</color>.\n게임을 종료할까요?"
-            : "게임을 종료할까요?";
-        ShowConfirm("게임 종료", body, "종료", QuitGame);
+        _menuReturnSelection = _quitButton != null ? _quitButton.gameObject : null;
+        ShowConfirm(GetQuitTitle(), GetQuitBody(), "종료", QuitGame);
+    }
+
+    /// <summary>
+    /// 탐사는 층에 들어올 때(상점에서는 살 때마다) 저장되어 타이틀의 이어하기로 그 시점부터 다시 할 수 있다. (RunSaveController)
+    /// 튜토리얼 중이거나 아직 저장된 판이 없으면(첫 층 출발 전) 저장되지 않는다고 알린다.
+    /// </summary>
+    private string GetQuitTitle()
+    {
+        return _isExpedition && SaveSystem.HasRun && TutorialProgressStore.IsCompleted ? "게임을 종료할까요?" : "게임 종료";
+    }
+
+    private string GetQuitBody()
+    {
+        if (!_isExpedition)
+        {
+            return "게임을 종료할까요?";
+        }
+
+        if (!TutorialProgressStore.IsCompleted)
+        {
+            return "튜토리얼 진행 상황은 <color=#96281E>저장되지 않습니다</color>.\n게임을 종료할까요?";
+        }
+
+        if (!SaveSystem.HasRun)
+        {
+            return "현재 탐사는 <color=#96281E>저장되지 않습니다</color>.\n게임을 종료할까요?";
+        }
+
+        return "진행 상황은 <color=#2F5E8C>자동 저장</color>되어 있습니다.\n타이틀의 이어하기로 이어서 탐사할 수 있어요.";
     }
 
     private void ShowConfirm(string title, string body, string confirmLabel, System.Action onConfirm)

@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 /// - 0 새 게임 : 새 게임을 시작하고, 시작 연출(TitleSequence)이 끝나면 로딩 화면(LoadingScene)을 거쳐 전투 씬으로 간다.
 /// - 1 이어하기 : 진행 중인 판이 저장되어 있을 때만 누를 수 있다. 저장된 층부터 이어서 한다. (SaveSystem, RunSaveController)
 ///   이어할 판이 있으면 처음부터 이어하기가 선택되어 있고, 옆에 저장된 층을 보여준다.
-///   이어할 판이 있을 때 새 게임을 고르면 확인 창(ConfirmDialogView)을 띄운다. 확인하면 저장된 판을 지우고 시작한다.
-///   확인 창에서는 방향키로 고르고 F / Enter로 결정, Esc는 취소와 같다.
+///   이어할 판이 있을 때 새 게임을 고르면 확인 창(TitleConfirmDialog)을 띄운다. 확인하면 저장된 판을 지우고 시작한다.
+///   확인 창에서는 방향키(WASD)로 고르고 F / Space / Enter로 결정, Esc는 취소와 같다. (창이 직접 입력을 받는다)
 /// - 2 설정 : 설정 창(SettingsUI)을 연다. 창이 열린 동안 메뉴는 잠기고, Esc는 취소와 같다.
 /// - 3 게임 종료 : 게임을 끝낸다.
 /// </summary>
@@ -32,10 +32,10 @@ public class TitleMenuController : MonoBehaviour
     [SerializeField] private string _continueSubTextFormat = "{0}층";
 
     [Header("새 게임 확인 창 (이어할 판이 있을 때)")]
-    [SerializeField] private ConfirmDialogView _newGameConfirm;
+    [SerializeField] private TitleConfirmDialog _newGameConfirm;
     [SerializeField] private string _newGameConfirmTitle = "새 게임을 시작할까요?";
     [Tooltip("{0} 저장된 층")]
-    [SerializeField] private string _newGameConfirmBody = "진행 중인 탐사 기록({0}층)이 지워집니다.";
+    [SerializeField] private string _newGameConfirmBody = "진행 중인 탐사 기록(<color=#96C3FF>{0}층</color>)이 지워집니다.";
     [SerializeField] private string _newGameConfirmLabel = "새 게임";
 
     [Header("설정 창 (SettingsUI 루트)")]
@@ -46,7 +46,6 @@ public class TitleMenuController : MonoBehaviour
 
     private SettingsPanelView _settingsView;
     private bool _isStarting;
-    private int _confirmOpenedFrame = -1;
 
     private bool IsConfirmOpen => _newGameConfirm != null && _newGameConfirm.IsOpen;
 
@@ -82,19 +81,9 @@ public class TitleMenuController : MonoBehaviour
 
     private void Update()
     {
-        // 확인 창 : Esc는 취소, F는 선택한 버튼 결정. (Enter, Space, 방향키는 EventSystem이 처리한다)
-        // 창을 연 프레임에는 받지 않는다. (메뉴를 고른 키가 창의 버튼까지 누르지 않게)
-        if (IsConfirmOpen && Time.frameCount != _confirmOpenedFrame)
+        // 확인 창이 열려 있으면 창이 입력을 받는다.
+        if (IsConfirmOpen)
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                _newGameConfirm.Cancel();
-            }
-            else if (Input.GetKeyDown(KeyCode.F))
-            {
-                SubmitSelected();
-            }
-
             return;
         }
 
@@ -232,7 +221,6 @@ public class TitleMenuController : MonoBehaviour
             yield break;
         }
 
-        _confirmOpenedFrame = Time.frameCount;
         _newGameConfirm.Show(_newGameConfirmTitle, string.Format(_newGameConfirmBody, run.Depth), _newGameConfirmLabel,
             StartNewGame, HandleNewGameCancelled);
     }
@@ -249,19 +237,6 @@ public class TitleMenuController : MonoBehaviour
         {
             EventSystem.current.SetSelectedGameObject(null);
         }
-    }
-
-    /// <summary>F 키로 확인 창에서 선택한 버튼을 누른다.</summary>
-    private static void SubmitSelected()
-    {
-        EventSystem eventSystem = EventSystem.current;
-        GameObject selected = eventSystem != null ? eventSystem.currentSelectedGameObject : null;
-        if (selected == null)
-        {
-            return;
-        }
-
-        ExecuteEvents.Execute(selected, new BaseEventData(eventSystem), ExecuteEvents.submitHandler);
     }
 
     private void LoadNextScene()

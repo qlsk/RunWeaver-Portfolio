@@ -169,6 +169,25 @@ public class MainElementSelectView : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        // 열기 클립은 구슬 크기를 다루지 않지만, Animator가 기본값 쓰기로 확정 클립이 바꾼 구슬 크기를 처음 값으로 덮어쓴다.
+        // (룬북에서 Esc로 돌아올 때 고른 구슬이 작아졌다가 연출이 끝나면 다시 커지던 문제)
+        // 열리는 동안에도 고른 구슬은 커진 채로 보이도록 Animator가 움직인 뒤 크기를 다시 맞춘다.
+        if (_phase != Phase.Opening || _orbs == null)
+        {
+            return;
+        }
+
+        foreach (MainElementOrbView orb in _orbs)
+        {
+            if (orb != null)
+            {
+                orb.ApplySelectionScale();
+            }
+        }
+    }
+
     private void Update()
     {
         if (_phase == Phase.Opening)

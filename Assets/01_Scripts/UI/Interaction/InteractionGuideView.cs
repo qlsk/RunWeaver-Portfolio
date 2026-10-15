@@ -60,7 +60,8 @@ public class InteractionGuideView : MonoBehaviour
 
     private void Refresh()
     {
-        if (_nearestInteractable == null)
+        // 이미 파괴된 대상(들어간 포탈 등)도 없는 것으로 본다.
+        if (_nearestInteractable == null || (_nearestInteractable is UnityEngine.Object target && target == null))
         {
             Hide();
             return;

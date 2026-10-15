@@ -102,12 +102,18 @@ public class MainElementOrbView : MonoBehaviour, IPointerClickHandler, IPointerE
     public void SetSelected(bool isSelected)
     {
         _isSelected = isSelected;
-        transform.localScale = Vector3.one * (isSelected ? _selectedScale : 1f);
+        ApplySelectionScale();
         SetActive(_glow != null ? _glow.gameObject : null, isSelected);
         SetActive(_selectedRing, isSelected);
         SetActive(_normalRing, !isSelected);
         SetActive(_label != null ? _label.gameObject : null, !isSelected);
         RefreshHoverRing();
+    }
+
+    /// <summary>선택 상태에 맞는 크기로 되돌린다. (열기 연출이 구슬 크기를 기본값으로 덮어쓰지 않게 매 프레임 다시 맞출 때 쓴다)</summary>
+    public void ApplySelectionScale()
+    {
+        transform.localScale = Vector3.one * (_isSelected ? _selectedScale : 1f);
     }
 
     /// <summary>마우스를 올린 표시. 선택 상태는 바꾸지 않는다.</summary>
