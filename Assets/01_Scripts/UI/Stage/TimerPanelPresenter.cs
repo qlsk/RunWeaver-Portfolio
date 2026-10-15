@@ -5,6 +5,8 @@ using UnityEngine;
 /// <summary>
 /// 스테이지 남은 제한 시간을 MM:SS로 표시한다. (기획서 8-3)
 /// 10초 이하: 빨간색 / 5초 이하: 1초마다 글자가 커졌다 돌아오는 강조 / 제한 시간 없음: 별도 문구
+/// 타이머 아래에는 현재 목표 이름(Survive)과 달성도(42%)를 한 줄씩 표시한다. (미션 두루마리 대체)
+/// 목표 텍스트를 지정하지 않으면 타이머 텍스트 모양을 따라 타이머 아래에 만든다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TimerPanelPresenter : MonoBehaviour
@@ -24,6 +26,16 @@ public class TimerPanelPresenter : MonoBehaviour
     [Header("제한 시간 없음")]
     [SerializeField] private string _noTimeLimitText = "--:--";
 
+    [Header("목표 (타이머 아래)")]
+    [Tooltip("비워두면 타이머 텍스트 아래에 자동으로 만든다")]
+    [SerializeField] private TMP_Text _objectiveNameText;
+    [Tooltip("비워두면 타이머 텍스트 아래에 자동으로 만든다")]
+    [SerializeField] private TMP_Text _objectiveProgressText;
+    [Tooltip("자동으로 만들 때 타이머 글자 크기 대비 비율")]
+    [SerializeField, Range(0.2f, 1f)] private float _objectiveFontScale = 0.55f;
+    [Tooltip("자동으로 만들 때 줄 간격 (타이머 높이 대비 비율)")]
+    [SerializeField, Range(0.2f, 2f)] private float _objectiveLineSpacing = 0.75f;
+
     private Color _normalColor = Color.white;
     private Vector3 _normalScale = Vector3.one;
     private int _shownSeconds = int.MinValue;
@@ -39,6 +51,18 @@ public class TimerPanelPresenter : MonoBehaviour
 
         _normalColor = _timerText.color;
         _normalScale = _timerText.transform.localScale;
+
+        if (_objectiveNameText == null)
+        {
+            _objectiveNameText = CreateObjectiveText("ObjectiveNameText", 1);
+        }
+
+        if (_objectiveProgressText == null)
+        {
+            _objectiveProgressText = CreateObjectiveText("ObjectiveProgressText", 2);
+        }
+
+        SetObjective(string.Empty, string.Empty);
     }
 
     private void OnEnable()
@@ -50,6 +74,7 @@ public class TimerPanelPresenter : MonoBehaviour
         }
 
         _source.RemainingTimeChanged += HandleRemainingTimeChanged;
+        _source.ObjectiveChanged += SetObjective;
     }
 
     private void OnDisable()
@@ -57,6 +82,7 @@ public class TimerPanelPresenter : MonoBehaviour
         if (_source != null)
         {
             _source.RemainingTimeChanged -= HandleRemainingTimeChanged;
+            _source.ObjectiveChanged -= SetObjective;
         }
 
         StopEmphasis();
@@ -90,6 +116,50 @@ public class TimerPanelPresenter : MonoBehaviour
         {
             PlayEmphasis();
         }
+    }
+
+    private void SetObjective(string objectiveName, string progressText)
+    {
+        if (_objectiveNameText != null)
+        {
+            _objectiveNameText.text = objectiveName;
+        }
+
+        if (_objectiveProgressText != null)
+        {
+            _objectiveProgressText.text = progressText;
+        }
+    }
+
+    /// <summary>타이머 텍스트의 글꼴, 색, 정렬을 따라 타이머 아래 line번째 줄에 텍스트를 만든다.</summary>
+    private TMP_Text CreateObjectiveText(string objectName, int line)
+    {
+        RectTransform timerRect = _timerText.rectTransform;
+        GameObject textObject = new(objectName, typeof(RectTransform));
+        textObject.layer = _timerText.gameObject.layer;
+
+        RectTransform rect = (RectTransform)textObject.transform;
+        rect.SetParent(timerRect.parent, false);
+        rect.anchorMin = timerRect.anchorMin;
+        rect.anchorMax = timerRect.anchorMax;
+        rect.pivot = timerRect.pivot;
+        rect.sizeDelta = new Vector2(timerRect.sizeDelta.x, timerRect.sizeDelta.y * _objectiveLineSpacing);
+
+        float lineHeight = Mathf.Max(1f, timerRect.rect.height) * _objectiveLineSpacing;
+        rect.anchoredPosition = timerRect.anchoredPosition - new Vector2(0f, lineHeight * line);
+
+        TMP_Text text = _timerText is TextMeshProUGUI
+            ? (TMP_Text)textObject.AddComponent<TextMeshProUGUI>()
+            : textObject.AddComponent<TextMeshPro>();
+        text.font = _timerText.font;
+        text.fontSharedMaterial = _timerText.fontSharedMaterial;
+        text.fontSize = _timerText.fontSize * _objectiveFontScale;
+        text.enableAutoSizing = false;
+        text.color = _normalColor;
+        text.alignment = _timerText.alignment;
+        text.raycastTarget = false;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        return text;
     }
 
     private void ShowNoTimeLimit()

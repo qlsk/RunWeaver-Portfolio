@@ -1,14 +1,17 @@
+using System;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 미션 성공/실패 시 결과 패널을 보여준다.
-/// 성공: 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃)
-/// 실패: 실패 패널 연출 (천천히 페이드 인 → 3초) 후 EndingUI 표시
-/// 스테이지 제한 시간이 끝나도(StageStatusSource.TimeExpired) 실패 연출을 보여준다.
-/// (현재는 연출만 연결. 실제 미션 실패 처리는 팀원 구현 후 연결 예정)
+/// 미션 성공 / 런 종료 시 결과 패널을 보여준다.
+/// - 미션 성공 : 성공 패널 연출 (페이드 인 → 3초 → 페이드 아웃). 층마다 새 미션이 시작되면 다시 보여줄 수 있다.
+/// - 보스 처치(런 클리어) : 성공 패널을 "Run Clear" 문구로 보여준 뒤 결과 화면(EndingUI)을 켠다.
+/// - 실패(사망, 미션 실패, 탐사 포기) : 실패 패널 연출 (천천히 페이드 인 → 3초) 후 결과 화면을 켠다.
+///   실패 패널의 글자는 종료 사유에 따라 바뀐다. (You Die / Mission Failed / Run Abandoned)
+///   실패 패널은 _failedPanelMaxAlpha(80%)까지만 진해진다.
+/// - 미션 성공 연출 중이거나 정화 대기 중에 죽어도 실패 연출을 보여준다. (성공 패널을 숨긴다)
 ///
-/// 층마다 새 미션이 시작되므로(MissionManager.OnMissionInitialized) 그때마다 새 미션의 성공/실패 이벤트로 구독을 옮긴다.
-/// 새 미션이 시작되면 성공 연출을 다시 보여줄 수 있다. (실패는 결과창으로 넘어가므로 한 번만)
+/// 런 종료는 StageManager.RunEnded로 받는다. PlayerDeathResultTrigger가 사망 시 ShowFailure를 불러도 된다.
 /// </summary>
 [DisallowMultipleComponent]
 public class MissionResultPresenter : MonoBehaviour
@@ -19,13 +22,33 @@ public class MissionResultPresenter : MonoBehaviour
     [Tooltip("실패 연출이 끝나면 켤 결과 화면. 꺼진 상태로 씬에 배치한다.")]
     [SerializeField] private GameObject _endingUI;
 
-    [Tooltip("제한 시간이 끝나면(TimeExpired) 실패 연출을 보여준다. 비워두면 시간 초과를 처리하지 않는다.")]
+    [Tooltip("사용하지 않는다. (제한 시간 초과는 StageManager가 미션 실패로 처리한다) 기존 씬 참조 호환용")]
     [SerializeField] private StageStatusSource _stageSource;
 
+    [Header("패널 글자 (비워두면 패널 안의 TMP 텍스트를 찾는다)")]
+    [SerializeField] private TMP_Text _successText;
+    [SerializeField] private TMP_Text _failedText;
+
+    [Header("문구")]
+    [SerializeField] private string _missionCompleteText = "Mission Complete";
+    [SerializeField] private string _runClearText = "Run Clear";
+    [SerializeField] private string _youDieText = "You Die";
+    [SerializeField] private string _missionFailedText = "Mission Failed";
+    [SerializeField] private string _runAbandonedText = "Run Abandoned";
+
+    [Header("실패 패널")]
+    [Tooltip("실패 패널이 페이드 인으로 진해지는 최대 알파")]
+    [SerializeField, Range(0f, 1f)] private float _failedPanelMaxAlpha = 0.8f;
+
     private MissionManager _missionManager;
+    private StageManager _stageManager;
     private MissionBase _subscribedMission;
-    private bool _hasShownResult;
+    private bool _hasShownSuccess;
     private bool _hasShownFailure;
+    private bool _isShowingClear;
+
+    /// <summary>성공 패널 연출(페이드 아웃 포함)이 끝났을 때</summary>
+    public event Action SuccessFinished;
 
     private void Awake()
     {
@@ -33,6 +56,21 @@ public class MissionResultPresenter : MonoBehaviour
         if (_endingUI != null)
         {
             _endingUI.SetActive(false);
+        }
+
+        if (_successText == null && _successPanel != null)
+        {
+            _successText = _successPanel.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (_failedText == null && _failedPanel != null)
+        {
+            _failedText = _failedPanel.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (_failedPanel != null)
+        {
+            _failedPanel.SetMaxAlpha(_failedPanelMaxAlpha);
         }
     }
 
@@ -45,7 +83,7 @@ public class MissionResultPresenter : MonoBehaviour
 
         if (_endingUI == null)
         {
-            Debug.LogWarning("[MissionResultPresenter] EndingUI가 할당되지 않아 실패 후 결과 화면을 띄우지 않습니다.", this);
+            Debug.LogWarning("[MissionResultPresenter] EndingUI가 할당되지 않아 결과 화면을 띄우지 않습니다.", this);
         }
 
         if (_failedPanel != null)
@@ -53,12 +91,18 @@ public class MissionResultPresenter : MonoBehaviour
             _failedPanel.Finished += HandleFailedPanelFinished;
         }
 
-        if (_stageSource != null)
+        if (_successPanel != null)
         {
-            _stageSource.TimeExpired += ShowFailure;
+            _successPanel.Finished += HandleSuccessPanelFinished;
         }
 
-        _missionManager = MissionManager.Instance;
+        _stageManager = FindAnyObjectByType<StageManager>();
+        if (_stageManager != null)
+        {
+            _stageManager.RunEnded += HandleRunEnded;
+        }
+
+        _missionManager = FindAnyObjectByType<MissionManager>();
         if (_missionManager == null)
         {
             return;
@@ -66,7 +110,7 @@ public class MissionResultPresenter : MonoBehaviour
 
         _missionManager.OnMissionInitialized += HandleMissionInitialized;
 
-        // MissionManager.Start가 먼저 실행되어 이미 미션이 있으면 바로 연결한다.
+        // MissionManager가 먼저 미션을 정했으면 바로 연결한다.
         SubscribeMission(_missionManager.GetCurrentMission());
     }
 
@@ -77,9 +121,14 @@ public class MissionResultPresenter : MonoBehaviour
             _failedPanel.Finished -= HandleFailedPanelFinished;
         }
 
-        if (_stageSource != null)
+        if (_successPanel != null)
         {
-            _stageSource.TimeExpired -= ShowFailure;
+            _successPanel.Finished -= HandleSuccessPanelFinished;
+        }
+
+        if (_stageManager != null)
+        {
+            _stageManager.RunEnded -= HandleRunEnded;
         }
 
         if (_missionManager != null)
@@ -90,27 +139,64 @@ public class MissionResultPresenter : MonoBehaviour
         SubscribeMission(null);
     }
 
+    /// <summary>미션 성공 연출 ("Mission Complete")</summary>
     public void ShowSuccess()
     {
-        if (_hasShownResult || _successPanel == null)
+        if (_hasShownSuccess || _hasShownFailure || _successPanel == null)
         {
             return;
         }
 
-        _hasShownResult = true;
+        _hasShownSuccess = true;
+        SetText(_successText, _missionCompleteText);
         _successPanel.Play();
     }
 
+    /// <summary>
+    /// 실패 연출. 종료 사유는 RunFlow에 기록된 값을 쓰고, 없으면 사망으로 본다.
+    /// </summary>
     public void ShowFailure()
     {
-        if (_hasShownResult || _failedPanel == null)
+        ShowFailure(RunFlow.EndReason ?? RunEndReason.Died);
+    }
+
+    public void ShowFailure(RunEndReason reason)
+    {
+        if (_hasShownFailure || _isShowingClear || _failedPanel == null)
         {
             return;
         }
 
-        _hasShownResult = true;
         _hasShownFailure = true;
+
+        // 성공 연출 중에 죽어도 실패 연출을 보여준다.
+        if (_successPanel != null && _successPanel.gameObject.activeSelf)
+        {
+            _successPanel.Hide();
+        }
+
+        SetText(_failedText, GetFailureText(reason));
         _failedPanel.Play();
+    }
+
+    /// <summary>보스 처치 : "Run Clear" 연출 후 결과 화면</summary>
+    public void ShowClear()
+    {
+        if (_hasShownFailure || _isShowingClear)
+        {
+            return;
+        }
+
+        _isShowingClear = true;
+
+        if (_successPanel == null)
+        {
+            ShowEnding();
+            return;
+        }
+
+        SetText(_successText, _runClearText);
+        _successPanel.Play();
     }
 
     /// <summary>
@@ -118,8 +204,9 @@ public class MissionResultPresenter : MonoBehaviour
     /// </summary>
     public void ResetForTest()
     {
-        _hasShownResult = false;
+        _hasShownSuccess = false;
         _hasShownFailure = false;
+        _isShowingClear = false;
 
         if (_successPanel != null)
         {
@@ -137,15 +224,24 @@ public class MissionResultPresenter : MonoBehaviour
         }
     }
 
+    private void HandleRunEnded(RunEndReason reason)
+    {
+        if (reason == RunEndReason.Cleared)
+        {
+            ShowClear();
+        }
+        else
+        {
+            ShowFailure(reason);
+        }
+    }
+
     private void HandleMissionInitialized(MissionBase mission)
     {
         SubscribeMission(mission);
 
-        // 새 미션이 시작되면 성공 연출을 다시 보여줄 수 있게 한다. 실패 후에는 결과창으로 넘어가므로 그대로 둔다.
-        if (!_hasShownFailure)
-        {
-            _hasShownResult = false;
-        }
+        // 새 미션이 정해지면 성공 연출을 다시 보여줄 수 있게 한다.
+        _hasShownSuccess = false;
     }
 
     private void SubscribeMission(MissionBase mission)
@@ -158,7 +254,6 @@ public class MissionResultPresenter : MonoBehaviour
         if (_subscribedMission != null)
         {
             _subscribedMission.OnMissionCompleted -= ShowSuccess;
-            _subscribedMission.OnMissionFailed -= ShowFailure;
         }
 
         _subscribedMission = mission;
@@ -166,15 +261,48 @@ public class MissionResultPresenter : MonoBehaviour
         if (_subscribedMission != null)
         {
             _subscribedMission.OnMissionCompleted += ShowSuccess;
-            _subscribedMission.OnMissionFailed += ShowFailure;
         }
+    }
+
+    private string GetFailureText(RunEndReason reason)
+    {
+        return reason switch
+        {
+            RunEndReason.MissionFailed => _missionFailedText,
+            RunEndReason.Abandoned => _runAbandonedText,
+            _ => _youDieText
+        };
+    }
+
+    private void HandleSuccessPanelFinished()
+    {
+        if (_isShowingClear)
+        {
+            ShowEnding();
+            return;
+        }
+
+        SafeEventNotifier.Notify(SuccessFinished);
     }
 
     private void HandleFailedPanelFinished()
     {
+        ShowEnding();
+    }
+
+    private void ShowEnding()
+    {
         if (_endingUI != null)
         {
             _endingUI.SetActive(true);
+        }
+    }
+
+    private static void SetText(TMP_Text text, string value)
+    {
+        if (text != null)
+        {
+            text.text = value;
         }
     }
 }

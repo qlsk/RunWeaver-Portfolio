@@ -17,9 +17,10 @@ GameObject:
   - component: {fileID: 3689827544831260602}
   - component: {fileID: 4159379189657736575}
   - component: {fileID: 8730155746740385116}
+  - component: {fileID: 9020738491113294831}
   m_Layer: 0
   m_Name: DefaultEnemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,6 +127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovemont
   _enemyData: {fileID: 11400000, guid: 7a69d66de2c99684ab32ef7c65b206ac, type: 2}
   _targetDetector: {fileID: 1264031319096169204}
+  _enemyMove: 1
 --- !u!114 &1264031319096169204
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240,3 +242,25 @@ MonoBehaviour:
   _minQuantity: 0
   _maxQuantity: 3
   runePrefab: {fileID: 7604851959272145055, guid: af0ce2a398dee2b40a34d0a87efd6eff, type: 3}
+  _amountOfGold: 10
+--- !u!114 &9020738491113294831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736172002666791356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7233f2c81a9443628f30509f697a630b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffectController
+  _enemyHealth: {fileID: 1329488125469041431}
+  _burnDuration: 3
+  _burnInterval: 1
+  _burnDamageMultiplier: 0.2
+  _slowDuration: 3
+  _slowMoveSpeedMultiplier: 0.5
+  _staggerDuration: 0.5
+  _knockbackDuration: 0.2
+  _knockbackSpeed: 5

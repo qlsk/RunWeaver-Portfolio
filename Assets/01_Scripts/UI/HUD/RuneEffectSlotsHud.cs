@@ -3,14 +3,12 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// HUD의 활성 룬 효과 슬롯. 룬북과 같은 데이터 소스를 읽어 장착된 룬을 표시한다.
+/// HUD의 활성 룬 효과 슬롯. 현재 룬 효과 로드아웃을 읽어 장착된 룬을 표시한다.
 /// 장착된 칸: 아이콘 표시 / 빈 칸: 아이콘 숨김 / 아직 열리지 않은 칸: 배경을 어둡게 표시
 /// </summary>
 [DisallowMultipleComponent]
 public class RuneEffectSlotsHud : MonoBehaviour
 {
-    [SerializeField] private RuneBookDataSource _dataSource;
-
     [Header("슬롯 (왼쪽부터 순서대로)")]
     [SerializeField] private Image[] _slotBackgrounds;
     [SerializeField] private Image[] _slotIcons;
@@ -21,7 +19,9 @@ public class RuneEffectSlotsHud : MonoBehaviour
     [SerializeField] private Color _iconColor = Color.white;
 
     private Sprite[] _defaultIcons;
-    private RuneBookDataSource _subscribedDataSource;
+    private PlayerRuneManager _manager;
+    private RuneEffectLoadout _loadout;
+    private RuneEffectDatabase _database;
 
     private void Awake()
     {
@@ -31,62 +31,76 @@ public class RuneEffectSlotsHud : MonoBehaviour
         {
             _defaultIcons[i] = _slotIcons[i] != null ? _slotIcons[i].sprite : null;
         }
-
-        if (_dataSource == null)
-        {
-            Debug.LogWarning("[RuneEffectSlotsHud] 룬 데이터 소스가 할당되지 않아 룬 슬롯을 갱신하지 않습니다.", this);
-        }
     }
 
     private void OnEnable()
     {
-        if (_dataSource != null)
-        {
-            _dataSource.Changed += Refresh;
-            _subscribedDataSource = _dataSource;
-        }
-
-        Refresh();
+        BindManager();
     }
 
     private void OnDisable()
     {
-        if (_subscribedDataSource != null)
+        if (_manager != null)
         {
-            _subscribedDataSource.Changed -= Refresh;
-            _subscribedDataSource = null;
+            _manager.LoadoutReplaced -= BindLoadout;
         }
+        _manager = null;
+        if (_loadout != null)
+            _loadout.LoadoutChanged -= Refresh;
+        _loadout = null;
     }
 
-    private void Start()
+    private void Update()
     {
-        // 데이터 소스가 Awake에서 데이터를 준비하므로 첫 화면을 한 번 더 갱신한다.
-        Refresh();
+        if (_manager != PlayerRuneManager.Instance || _database != RuneEffectDatabase.Instance)
+            BindManager();
     }
 
-    private void Refresh()
+    private void BindManager()
     {
-        if (_dataSource == null || _slotBackgrounds == null)
-        {
-            return;
-        }
+        if (_manager != null)
+            _manager.LoadoutReplaced -= BindLoadout;
 
-        IReadOnlyList<RuneBookEntryData> entries = _dataSource.GetEntries();
+        _manager = PlayerRuneManager.Instance;
+        _database = RuneEffectDatabase.Instance;
+        if (_manager != null)
+            _manager.LoadoutReplaced += BindLoadout;
 
-        for (int i = 0; i < _slotBackgrounds.Length; i++)
+        BindLoadout();
+    }
+
+    private void BindLoadout()
+    {
+        if (_loadout != null)
+            _loadout.LoadoutChanged -= Refresh;
+
+        _loadout = _manager != null ? _manager.RuneEffectLoadout : null;
+        if (_loadout != null)
+            _loadout.LoadoutChanged += Refresh;
+
+        Refresh(_loadout?.EquippedEffectIds);
+    }
+
+    private void Refresh(IReadOnlyList<string> equippedEffectIds)
+    {
+        int slotCount = Mathf.Max(_slotBackgrounds?.Length ?? 0, _slotIcons?.Length ?? 0);
+        for (int i = 0; i < slotCount; i++)
         {
-            bool isOpen = i < _dataSource.ActiveSlotCount;
-            if (_slotBackgrounds[i] != null)
+            bool isOpen = _loadout != null && i < _loadout.ActiveSlotCount;
+            if (_slotBackgrounds != null && i < _slotBackgrounds.Length && _slotBackgrounds[i] != null)
             {
                 _slotBackgrounds[i].color = isOpen ? _openBackgroundColor : _lockedBackgroundColor;
             }
 
-            RuneBookEntryData equippedEntry = isOpen ? FindEntry(entries, _dataSource.GetEquippedEntryId(i)) : null;
-            ShowIcon(i, equippedEntry);
+            RuneEffectDefinition effect = null;
+            string effectId = isOpen ? _loadout.GetEquippedEffectId(i) : null;
+            if (!string.IsNullOrEmpty(effectId) && _database != null)
+                _database.TryGetById(effectId, out effect);
+            ShowIcon(i, effect);
         }
     }
 
-    private void ShowIcon(int index, RuneBookEntryData entry)
+    private void ShowIcon(int index, RuneEffectDefinition entry)
     {
         if (_slotIcons == null || index >= _slotIcons.Length || _slotIcons[index] == null)
         {
@@ -102,23 +116,5 @@ public class RuneEffectSlotsHud : MonoBehaviour
 
         icon.sprite = entry.Icon != null ? entry.Icon : _defaultIcons[index];
         icon.color = _iconColor;
-    }
-
-    private static RuneBookEntryData FindEntry(IReadOnlyList<RuneBookEntryData> entries, string entryId)
-    {
-        if (entries == null || string.IsNullOrEmpty(entryId))
-        {
-            return null;
-        }
-
-        foreach (RuneBookEntryData entry in entries)
-        {
-            if (entry.Id == entryId)
-            {
-                return entry;
-            }
-        }
-
-        return null;
     }
 }

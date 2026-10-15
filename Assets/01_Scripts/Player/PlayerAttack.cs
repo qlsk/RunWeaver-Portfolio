@@ -1,124 +1,263 @@
+using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 [DefaultExecutionOrder(300)]
 public class PlayerAttack : MonoBehaviour
 {
-    /*
-     * TODO: Object Pooling
-     */
-    [Header("마탄 쿨타임")]
-    [SerializeField] private float _bulletFireRate = 1f;
-    // 마탄 쿨타이머(탄 하나 하나의 쿨 타임)
-    private float _bulletFireCoolTimer;
-    public float BulletFireCoolTimer => _bulletFireCoolTimer;
+    [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
+    [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
 
-    [Header("탄창 크기")]
-    [SerializeField] private int _magazineSize = 10;
-    public int MagazineSize => _magazineSize;
-    // 현재 탄 수
-    private int _currentAmmo;
-    public int CurrentAmmo => _currentAmmo;
+    [FoldoutGroup("Bullet Settings")] [SerializeField] private float _bulletFireRate = 1f;
+    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [FoldoutGroup("Bullet Settings")] [SerializeField] private ElementType _mainElement;
 
-    [Header("재장전 시간")]
-    [SerializeField] private float _reloadTime = 2f;
-    public float ReloadTime => _reloadTime;
-    // 재장전 여부
-    private bool _isReloading;
-    public bool IsReloading => _isReloading;
+    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _spreadAngle = 15f;
+    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _multipleInterval = 0.1f;
 
-    // 재장전 진행도
-    private float _reloadTimer;
-    public float ReloadTimer => _reloadTimer;
+    [FoldoutGroup("Magazine and Reload")] [SerializeField] private int _magazineSize = 10;
+    [FoldoutGroup("Magazine and Reload")] [SerializeField] private float _reloadTime = 2f;
 
-    [Header("마탄 프리팹")]
-    [SerializeField] private Bullet _bulletPrefab;
-    [Header("총구 위치")]
-    [SerializeField] private GameObject _firePosition;
-    [Header("기본 탄환 능력치")]
-    [SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [SerializeField, Min(0f)] private float _bulletRange = 10f;
-
+    // References
     private PlayerInputHandler _playerInputHandler;
+    private PlayerStatusEffectController _statusEffects;
+    private Camera _camera;
+    private RuneEffectDatabase _runeEffectDatabase;
+    private PlayerRuneManager _playerRuneManager;
+    private RuneEffectLoadout _runeEffectLoadout;
 
-    public void Start()
+    // Loadout
+    private RuneEffectConfiguration _runeEffectConfiguration;
+
+    // State Flags
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] private bool _isInitialized;
+
+    // Ammo and reload
+    private int _currentAmmo;
+    private bool _isReloading;
+    private float _reloadTimer;
+
+    // Attack timing
+    private float _bulletFireCoolTimer;
+
+    // Burst state
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] private int _remainingBurstShots;
+    private float _multipleTimer;
+    private PlayerAttackData _attackData;
+
+    public int MagazineSize => _magazineSize;
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public int CurrentAmmo => _currentAmmo;
+
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public bool IsReloading => _isReloading;
+    public float ReloadTime => _reloadTime;
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public float ReloadTimer => _reloadTimer;
+
+    [ShowInInspector, ReadOnly, FoldoutGroup("Runtime State")] public float BulletFireCoolTimer => _bulletFireCoolTimer;
+    public ElementType MainElement => _mainElement;
+
+    private void OnEnable()
     {
-        _playerInputHandler = GetComponent<PlayerInputHandler>();
-        _currentAmmo = _magazineSize;
-        _bulletFireCoolTimer = _bulletFireRate;
+        if (!_isInitialized)
+            return;
+
+        _playerRuneManager.LoadoutReplaced += OnLoadoutReplaced;
+        OnLoadoutReplaced();
     }
 
+    /// <summary>공격에 필요한 참조를 확인하고 첫 발사를 준비한다.</summary>
+    private void Start()
+    {
+        _playerInputHandler = GetComponent<PlayerInputHandler>();
+        _statusEffects = GetComponent<PlayerStatusEffectController>();
+        _camera = Camera.main;
+
+        if (_playerInputHandler == null || _camera == null || _bulletPrefab == null || _firePosition == null)
+            throw new MissingReferenceException(
+                "PlayerAttack requires input, a main camera, a bullet prefab and a fire position.");
+
+        _currentAmmo = _magazineSize;
+        _bulletFireCoolTimer = _bulletFireRate;
+
+        InitializeAsync().Forget();
+    }
+
+    /// <summary>발사 대기 시간을 갱신하고 공격 입력이 유지되면 발사한다.</summary>
     private void Update()
     {
-        _bulletFireCoolTimer += Time.deltaTime;
+        if (!_isInitialized)
+            return;
+
+        float intervalMultiplier = _statusEffects != null ? _statusEffects.AttackIntervalMultiplier : 1f;
+        _bulletFireCoolTimer += Time.deltaTime / intervalMultiplier;
+
+        if (_remainingBurstShots > 0)
+        {
+            UpdateBurst();
+            return;
+        }
 
         if (_isReloading)
         {
-            _reloadTimer += Time.deltaTime;
-            if (_reloadTimer < _reloadTime) return;
+            UpdateReload();
 
-            _currentAmmo = _magazineSize;
-            _isReloading = false;
+            if (_isReloading)
+                return;
         }
 
         if (_playerInputHandler.IsReloadPressed || _currentAmmo == 0)
-        {
             Reload();
-        }
 
-        if (_isReloading) return;
+        if (_isReloading)
+            return;
 
-        // 마우스 왼쪽 버튼을 누르고 있고 마탄 쿨타임이 다 지났다면
-        if (_playerInputHandler.IsAttackHeld && _bulletFireCoolTimer >= _bulletFireRate)
-        {
+        if (_playerInputHandler.IsAttackHeld)
             Fire();
+    }
+
+    private void OnDisable()
+    {
+        _remainingBurstShots = 0;
+
+        if (_playerRuneManager == null)
+            return;
+
+        _playerRuneManager.LoadoutReplaced -= OnLoadoutReplaced;
+
+        if (_runeEffectLoadout != null)
+            _runeEffectLoadout.LoadoutChanged -= OnLoadoutChanged;
+
+        _runeEffectLoadout = null;
+    }
+
+    private async UniTask InitializeAsync()
+    {
+        await UniTask.WaitUntil(() => RuneEffectDatabase.Instance != null && RuneEffectDatabase.Instance.DatabaseReady,
+            cancellationToken: this.GetCancellationTokenOnDestroy());
+
+        await UniTask.WaitUntil(
+            () => PlayerRuneManager.Instance != null && PlayerRuneManager.Instance.IsInitialized,
+            cancellationToken: this.GetCancellationTokenOnDestroy());
+
+        _runeEffectDatabase = RuneEffectDatabase.Instance;
+        _playerRuneManager = PlayerRuneManager.Instance;
+        _isInitialized = true;
+
+        if (isActiveAndEnabled)
+        {
+            _playerRuneManager.LoadoutReplaced += OnLoadoutReplaced;
+            OnLoadoutReplaced();
         }
     }
 
-    public void Fire()
+    private void OnLoadoutReplaced()
     {
-        if (_isReloading || _currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate) return;
+        if (_runeEffectLoadout != null)
+            _runeEffectLoadout.LoadoutChanged -= OnLoadoutChanged;
 
-        // 마우스 Screen 좌표 -> World 좌표
-        Vector2 targetPosition = _playerInputHandler.MousePosition;
+        _runeEffectLoadout = _playerRuneManager.RuneEffectLoadout;
+        _runeEffectLoadout.LoadoutChanged += OnLoadoutChanged;
 
-        // 총구 -> 마우스 방향
-        Vector2 targetDirection = (targetPosition - (Vector2)transform.position).normalized;
+        OnLoadoutChanged(_runeEffectLoadout.EquippedEffectIds);
+    }
 
-        float bulletRoationZ = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg;
-        // 총알 생성
-        Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position,
-            Quaternion.Euler(0, 0, bulletRoationZ));
+    private void OnLoadoutChanged(IReadOnlyList<string> activatedRuneEffectIds)
+    {
+        List<RuneEffectDefinition> effects = new(activatedRuneEffectIds.Count);
 
-        // 이 발사의 기본 능력치. Power/Speed/Range 보정은 Initialize 전에 반영한다.
-        var stats = new BulletStats
+        foreach (string id in activatedRuneEffectIds)
         {
-            Damage = _bulletDamage,
-            Speed = _bulletSpeed,
-            Range = _bulletRange
-        };
-        // 현재는 아래 생성자에서 룬을 직접 지정한다. 장착 룬 자동 해석은 아직 연결되지 않았다.
-        // 장착 시스템 연결 시 해당 시스템이 만든 Config로 교체한다.
-        var effects = new BulletEffectConfig(
-            endEffect: BulletEndEffect.Orbit,
-            pierce: true,
-            seek: true,
-            reverse: true
-        );
-        // 플레이어 Transform은 Return/Orbit의 기준이다. 효과 이벤트 구독은 Initialize 이후에 한다.
-        bullet.Initialize(stats, effects, transform, targetDirection);
-        bullet.PlayCastEffect(_firePosition.transform);
+            if (!_runeEffectDatabase.TryGetById(id, out RuneEffectDefinition effect))
+                throw new InvalidOperationException($"Unknown rune effect ID: {id}");
+
+            effects.Add(effect);
+        }
+
+        _runeEffectConfiguration = new RuneEffectConfiguration(effects);
+    }
+
+    /// <summary>발사 간격에 맞춰 마우스 방향으로 주력 원소를 가진 탄환을 발사한다.</summary>
+    private void Fire()
+    {
+        if (_currentAmmo <= 0 || _bulletFireCoolTimer < _bulletFireRate)
+            return;
+
+        Vector2 targetPosition = _playerInputHandler.MousePosition;
+        Vector2 direction = (targetPosition - (Vector2)_firePosition.transform.position).normalized;
+
+        if (direction == Vector2.zero)
+            return;
+
+        float damage = _bulletDamage * _runeEffectConfiguration.SpreadDamageMultiplier *
+                       _runeEffectConfiguration.MultipleDamageMultiplier;
+        _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration,
+            transform);
 
         _currentAmmo--;
-        // 발사 간격을 마지막 발사 시점부터 측정
         _bulletFireCoolTimer = 0f;
+
+        SpawnBullets(_attackData);
+
+        _remainingBurstShots = _attackData.Configuration.ShotsPerAttack - 1;
+        _multipleTimer = _multipleInterval;
+    }
+
+    private void UpdateBurst()
+    {
+        float intervalMultiplier = _statusEffects != null ? _statusEffects.AttackIntervalMultiplier : 1f;
+        _multipleTimer -= Time.deltaTime / intervalMultiplier;
+        if (_multipleTimer > 0f)
+            return;
+
+        SpawnBullets(_attackData);
+        _remainingBurstShots--;
+        _multipleTimer = _multipleInterval;
+    }
+
+    private void SpawnBullets(PlayerAttackData attackData)
+    {
+        for (var i = 0; i < attackData.Configuration.BulletsPerShot; i++)
+        {
+            float angle = attackData.Configuration.IsSpread ? (i - 1) * _spreadAngle : 0f;
+            Vector2 bulletDirection = Quaternion.Euler(0f, 0f, angle) * attackData.Direction;
+            float rotationZ = Mathf.Atan2(bulletDirection.y, bulletDirection.x) * Mathf.Rad2Deg;
+
+            Quaternion bulletRotation = Quaternion.Euler(0f, 0f, rotationZ);
+            Bullet bullet = Instantiate(_bulletPrefab, _firePosition.transform.position, bulletRotation);
+
+            PlayerAttackData bulletData = attackData.WithDirection(bulletDirection);
+            bullet.Initialize(bulletData);
+            bullet.PlayCastEffect(_firePosition.transform);
+        }
     }
 
     public void Reload()
     {
-        if (_isReloading || _currentAmmo >= _magazineSize) return;
+        if (_remainingBurstShots > 0 || _isReloading || _currentAmmo >= _magazineSize) return;
 
         _isReloading = true;
         _reloadTimer = 0f;
+    }
+
+    private void UpdateReload()
+    {
+        _reloadTimer += Time.deltaTime;
+        if (_reloadTimer < _reloadTime)
+            return;
+
+        _currentAmmo = _magazineSize;
+        _isReloading = false;
+    }
+
+    /// <summary>앞으로 발사할 탄환의 주력 원소를 변경한다.</summary>
+    public void SetMainElement(ElementType element)
+    {
+        if (!Enum.IsDefined(typeof(ElementType), element))
+            throw new ArgumentOutOfRangeException(nameof(element));
+
+        _mainElement = element;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 원정 중 지갑(GameSession → PlayerProgression → PlayerHoldings → ExpeditionWallet)의 골드를 HUD에 표시한다.
 /// 진행 데이터 교체(ProgressReplaced), 원정 시작/종료(ExpeditionChanged), 잔액 변경(BalanceChanged)을 따라간다.
-/// GameSession이 없거나 원정 중이 아니면 0을 표시한다.
+/// 원정 중이 아니면(마을) 원정 시작 골드(RunFlow.StartingGold)를, GameSession이 없으면 0을 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class GoldHudBinder : MonoBehaviour
@@ -76,7 +76,7 @@ public class GoldHudBinder : MonoBehaviour
         }
         else
         {
-            ShowAmount(0);
+            ShowAmount(_holdings != null ? RunFlow.StartingGold : 0);
         }
     }
 

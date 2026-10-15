@@ -33,6 +33,8 @@ public class FakeRuneBookDataSource : RuneBookDataSource
 
     [Header("아이콘 (비워두면 프리팹의 기본 이미지 사용)")]
     [SerializeField] private RuneStoneIconCatalog _runeStoneIconCatalog;
+    [SerializeField] private RuneEffectIconCatalog _runeEffectIconCatalog;
+    [Tooltip("카탈로그에 없는 룬 효과에 쓸 기본 아이콘")]
     [SerializeField] private Sprite _runeEffectIcon;
 
     [Header("테스트 키")]
@@ -174,10 +176,8 @@ public class FakeRuneBookDataSource : RuneBookDataSource
                 Description = description,
                 Category = category,
                 CanOverlap = canOverlap,
-                // 기획서 14-2: Element와 Enhancement는 처음부터 목록에 공개된다.
-                RevealLevel = category is RuneEffectCategory.Element or RuneEffectCategory.Enhancement
-                    ? RuneWordRevealLevel.Listed
-                    : RuneWordRevealLevel.Hidden
+                // 모든 룬 워드는 처음부터 목록에 공개된다. (Hidden 폐기)
+                RevealLevel = RuneWordRevealLevel.Listed
             });
         }
 
@@ -212,7 +212,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         foreach (FakeEntry entry in _entries)
         {
             entries.Add(new RuneBookEntryData(entry.Id, entry.RuneWord, entry.EnglishName, entry.Description,
-                entry.Category, entry.RevealLevel, _runeEffectIcon));
+                entry.Category, entry.RevealLevel, FindRuneEffectIcon(entry.Id)));
         }
 
         return entries;
@@ -249,7 +249,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         }
 
         FakeEntry entry = FindEntry(entryId);
-        if (entry == null || entry.RevealLevel == RuneWordRevealLevel.Hidden)
+        if (entry == null)
         {
             return false;
         }
@@ -367,14 +367,7 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         RuneEffectCategory category = s_categoryRevealOrder[_nextCategoryIndex];
         _nextCategoryIndex++;
 
-        foreach (FakeEntry entry in _entries)
-        {
-            if (entry.Category == category && entry.RevealLevel == RuneWordRevealLevel.Hidden)
-            {
-                entry.RevealLevel = RuneWordRevealLevel.Listed;
-            }
-        }
-
+        // 모든 룬 워드가 처음부터 공개되므로 바꿀 것이 없다. (Hidden 폐기) 테스트 키 호환용으로 남겨 둔다.
         Debug.Log($"[FakeRuneBookDataSource] {category} 카테고리 공개");
         NotifyChanged();
     }
@@ -514,6 +507,25 @@ public class FakeRuneBookDataSource : RuneBookDataSource
         foreach (char runeCharacter in runeWord)
         {
             _runeStoneQuantities[runeCharacter]--;
+        }
+    }
+
+    private Sprite FindRuneEffectIcon(string id)
+    {
+        if (_runeEffectIconCatalog == null)
+        {
+            return _runeEffectIcon;
+        }
+
+        try
+        {
+            Sprite icon = _runeEffectIconCatalog.GetIcon(id).Icon;
+            return icon != null ? icon : _runeEffectIcon;
+        }
+        catch (ArgumentException)
+        {
+            Debug.LogWarning($"[FakeRuneBookDataSource] 룬 효과 아이콘을 찾지 못했습니다: {id}");
+            return _runeEffectIcon;
         }
     }
 

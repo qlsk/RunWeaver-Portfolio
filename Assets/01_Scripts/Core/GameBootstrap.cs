@@ -4,27 +4,27 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-// ReSharper disable All
-
+/// <summary> 기존 DB 초기화 후 장착 생성 의존성을 준비·전달하고 세션을 초기화한다. </summary>
 public class GameBootstrap : MonoBehaviour
 {
     [Header("Definitions")]
     [SerializeField] private GoldDefinitionSO _gold;
     [SerializeField] private List<ResourceDefinitionSO> _resources;
 
-    [Header("References")]
-    [SerializeField] private GameSession _session;
+    [Header("Databases")]
     [SerializeField] private RuneStoneDatabase _runeStoneDatabase;
     [SerializeField] private RuneEffectDatabase _runeEffectDatabase;
     [SerializeField] private SkillDatabase _skillDatabase;
     [SerializeField] private ResearchDatabase _researchDatabase;
 
-    private BootstrapState _state;
-    private BootstrapStage _currentStage;
-    private BootstrapStage _failedStage;
+    [Header("Session References")]
+    [SerializeField] private GameSession _session;
+    [SerializeField] private PlayerRuneManager _playerRuneManager;
 
-    public BootstrapState State => _state;
-    public BootstrapStage FailedStage => _failedStage;
+    private BootstrapStage _currentStage;
+
+    public BootstrapState State { get; private set; }
+    public BootstrapStage FailedStage { get; private set; }
 
     private void Start()
     {
@@ -33,21 +33,23 @@ public class GameBootstrap : MonoBehaviour
 
     public async UniTask InitializeAsync()
     {
-        if (_state == BootstrapState.Initializing)
+        if (State == BootstrapState.Initializing)
         {
             throw new InvalidOperationException($"{nameof(GameBootstrap)} is already initializing.");
         }
 
         try
         {
-            _state = BootstrapState.Initializing;
+            State = BootstrapState.Initializing;
             _currentStage = BootstrapStage.ReferenceValidation;
-            _failedStage = BootstrapStage.None;
+            FailedStage = BootstrapStage.None;
             ValidateReferences();
 
-            if (_session.IsReady)
+            // 두 번째 씬부터는 이 씬의 GameSession이 중복으로 파괴되므로, 이미 살아 있는 세션(Instance)으로 확인한다.
+            GameSession activeSession = GameSession.Instance != null ? GameSession.Instance : _session;
+            if (activeSession.IsReady)
             {
-                _state = BootstrapState.Ready;
+                State = BootstrapState.Ready;
                 return;
             }
 
@@ -67,16 +69,24 @@ public class GameBootstrap : MonoBehaviour
             GameDefinitionSet definitionSet =
                 new(_skillDatabase.SkillNodes, _researchDatabase.ResearchNodes, _gold, _resources);
 
-            _currentStage = BootstrapStage.GameSession;
-            _session.Initialize(definitionSet);
+            _currentStage = BootstrapStage.RuneBookPreparation;
+            RuneBook runeBook = new(_runeEffectDatabase);
+            runeBook.Initialize();
 
-            _state = BootstrapState.Ready;
+            _currentStage = BootstrapStage.GameSession;
+            _session.Initialize(_runeEffectDatabase,
+                _playerRuneManager,
+                runeBook,
+                definitionSet.Researches,
+                definitionSet);
+
+            State = BootstrapState.Ready;
         }
         catch (Exception exception)
         {
-            _failedStage = _currentStage;
-            _state = BootstrapState.Failed;
-            Debug.LogError($"Bootstrap failed on {_failedStage}: {exception.Message}, {exception.StackTrace}");
+            FailedStage = _currentStage;
+            State = BootstrapState.Failed;
+            Debug.LogError($"Bootstrap failed on {FailedStage}: {exception.Message}, {exception.StackTrace}");
             ResetDatabases();
             throw;
         }
@@ -124,4 +134,4 @@ public class GameBootstrap : MonoBehaviour
             }
         }
     }
-}
+}

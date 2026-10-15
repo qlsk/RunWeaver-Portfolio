@@ -108,10 +108,6 @@ public class RuneLoadout : IDisposable
         {
             return false;
         }
-        if (!_runeBook.IsRevealed(effectId))
-        {
-            return false;
-        }
         if (_equippedEffectIds[slotIndex] == effectId)
         {
             return false;
@@ -197,6 +193,14 @@ public class RuneLoadout : IDisposable
     private void OnResearchNodeActivated(string nodeId)
     {
         RefreshActiveSlotCount();
+    }
+
+    public void ClearAll()
+    {
+        if (string.IsNullOrWhiteSpace(_equippedEffectIds[0]))
+            return;
+        Array.Clear(_equippedEffectIds, 0, _equippedEffectIds.Length);
+        SafeEventNotifier.Notify(LoadoutChanged);
     }
 
     public void Dispose()

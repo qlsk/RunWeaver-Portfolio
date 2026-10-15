@@ -1,8 +1,12 @@
 using UnityEngine;
 using System;
+using UnityEngine.InputSystem;
 
 public class PlayerInputHandler : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PopupController _popupController;
+
     // key binding
     [Header("룬 도감 오픈 키")]
     [SerializeField] private KeyCode _playerOpenRuneBookKeyCode = KeyCode.Tab;
@@ -20,6 +24,8 @@ public class PlayerInputHandler : MonoBehaviour
     public event Action Skill1Pressed;
     public event Action Skill2Pressed;
     public event Action OpenRuneBookPressed;
+    public event Action InteractionRequested;
+    public event Action UICloseRequested;
 
     // 마우스 position
     private Vector2 _mousePosition;
@@ -39,46 +45,72 @@ public class PlayerInputHandler : MonoBehaviour
     private Vector2 _lastDirection = new Vector2(1f, 0f);
     public Vector2 LastDirection => _lastDirection;
 
+    private bool _isPopupOpened;
+
+    private void OnEnable()
+    {
+        _popupController.PopupOpenStateChanged += OnPopupOpenStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        _popupController.PopupOpenStateChanged -= OnPopupOpenStateChanged;
+    }
+
     private void Update()
     {
         // 마우스 position 갱신
         _mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        // player move input 갱신
-        float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
-        float vertical = Input.GetAxisRaw("Vertical"); // 상 하
-        _moveDirection = new Vector2(horizontal, vertical).normalized;
-        if (_moveDirection != Vector2.zero)
+        if (!_isPopupOpened)
         {
-            _lastDirection = _moveDirection;
-        }
+            // player move input 갱신
+            float horizontal = Input.GetAxisRaw("Horizontal"); // 좌 우
+            float vertical = Input.GetAxisRaw("Vertical"); // 상 하
+            _moveDirection = new Vector2(horizontal, vertical).normalized;
+            if (_moveDirection != Vector2.zero)
+                _lastDirection = _moveDirection;
 
-        // Dash key 입력 시
-        if (Input.GetKeyDown(_playerDashKeyCode))
-        {
-            // Dash 사용
-            DashPressed?.Invoke();
-        }
+            // Dash key 입력 시
+            if (Input.GetKeyDown(_playerDashKeyCode))
+            {
+                DashPressed?.Invoke();
+            }
 
-        // skill 1 key 입력 시
-        if (Input.GetKeyDown(_playerSkill1KeyCode))
-        {
-            // 스킬 1 사용
-            Skill1Pressed?.Invoke();
-        }
+            // skill 1 key 입력 시
+            if (Input.GetKeyDown(_playerSkill1KeyCode))
+            {
+                Skill1Pressed?.Invoke();
+            }
 
-        // skill 2 key 입력 시
-        if (Input.GetKeyDown(_playerSkill2KeyCode))
-        {
-            // 스킬 2 사용
-            Skill2Pressed?.Invoke();
-        }
+            // skill 2 key 입력 시
+            if (Input.GetKeyDown(_playerSkill2KeyCode))
+            {
+                Skill2Pressed?.Invoke();
+            }
 
-        // open rune book key 입력 시
-        if (Input.GetKeyDown(_playerOpenRuneBookKeyCode))
-        {
-            // 룬 도감 오픈
-            OpenRuneBookPressed?.Invoke();
+            // open rune book key 입력 시
+            if (Input.GetKeyDown(_playerOpenRuneBookKeyCode))
+            {
+                OpenRuneBookPressed?.Invoke();
+            }
+
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                InteractionRequested?.Invoke();
+            }
         }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                UICloseRequested?.Invoke();
+            }
+        }
+    }
+
+    private void OnPopupOpenStateChanged(bool isOpened)
+    {
+        _isPopupOpened = isOpened;
     }
 }

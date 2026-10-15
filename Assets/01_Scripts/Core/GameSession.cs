@@ -1,75 +1,78 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 public class GameSession : Singleton<GameSession>
 {
+    // References
+    private RuneEffectDatabase _runeEffectDatabase;
+    private PlayerRuneManager _playerRuneManager;
+    private RuneBook _runeBook;
+    private IReadOnlyList<ResearchNodeDefinition> _researchDefinitions;
+
     private GameDefinitionSet _definitions;
-    private PlayerProgression _current;
-    private bool _isReady;
     private bool _isSettlingProgression;
 
-    public PlayerProgression Current => _current;
-    public bool IsReady => _isReady;
+    public PlayerProgression Current { get; private set; }
+    public RuneLoadout CurrentRuneLoadout { get; private set; }
+    /// <summary>룬 워드 공개 상태 (도감)</summary>
+    public RuneBook RuneBook => _runeBook;
+    public bool IsReady { get; private set; }
     public event Action<PlayerProgression> ProgressReplaced;
 
-    public void Initialize(GameDefinitionSet definitions)
+    public void Initialize(RuneEffectDatabase database, PlayerRuneManager playerRuneManager,
+        RuneBook book, IReadOnlyList<ResearchNodeDefinition> researchDefinitions, GameDefinitionSet definitions)
     {
-        if (_isReady)
-        {
+        if (IsReady)
             throw new InvalidOperationException("GameSession already initialized");
-        }
-        if (definitions == null)
-        {
-            throw new ArgumentNullException(nameof(definitions));
-        }
-
         PlayerProgression progression = new(definitions);
+        // 룬 문자 인벤토리는 PlayerRuneManager가 만든다. RuneLoadout보다 먼저 초기화한다.
+        playerRuneManager.Initialize(database);
+        // TODO: PlayerRuneManager 완성 시 RuneLoadout 제거
+        RuneLoadout loadout = new(database, playerRuneManager.RuneStoneInventory, book, progression.ResearchTree,
+            researchDefinitions);
+        _runeEffectDatabase = database;
+        _playerRuneManager = playerRuneManager;
+        _runeBook = book;
+        _researchDefinitions = new List<ResearchNodeDefinition>(researchDefinitions);
         _definitions = definitions;
-        _current = progression;
-        _isReady = true;
+        Current = progression;
+        CurrentRuneLoadout = loadout;
+        IsReady = true;
         SafeEventNotifier.Notify(ProgressReplaced, progression);
     }
 
     public void StartNewGame()
     {
-        if (!_isReady)
-        {
+        if (!IsReady)
             throw new InvalidOperationException("GameSession is not ready");
-        }
         if (_isSettlingProgression)
-        {
             throw new InvalidOperationException("Cannot start a new game during settlement.");
-        }
-        if (_current.Holdings.IsOnExpedition)
-        {
+        if (Current.Holdings.IsOnExpedition)
             throw new InvalidOperationException("End the expedition before starting a new game.");
-        }
 
         PlayerProgression progression = new(_definitions);
-        _current = progression;
+        _playerRuneManager.ResetForNewGame();
+        RuneLoadout loadout = new(_runeEffectDatabase, _playerRuneManager.RuneStoneInventory, _runeBook,
+            progression.ResearchTree, _researchDefinitions);
+
+        Current = progression;
+        CurrentRuneLoadout = loadout;
+
         SafeEventNotifier.Notify(ProgressReplaced, progression);
     }
 
     public void StartExpedition()
     {
-        if (!_isReady)
-        {
+        if (!IsReady)
             throw new InvalidOperationException("GameSession is not ready");
-        }
         if (_isSettlingProgression)
-        {
             throw new InvalidOperationException("Cannot start an expedition during settlement.");
-        }
-        if (_current.Holdings.IsOnExpedition)
-        {
+        if (Current.Holdings.IsOnExpedition)
             throw new InvalidOperationException("Expedition already in progress.");
-        }
 
         Wallet wallet = new(_definitions.Gold);
         ResourceInventory resourceInventory = new(_definitions.Resources);
-        _current.Holdings.AttachExpeditionData(wallet, resourceInventory);
+        Current.Holdings.AttachExpeditionData(wallet, resourceInventory);
     }
 
     public void CompleteReturn()
@@ -79,9 +82,9 @@ public class GameSession : Singleton<GameSession>
         try
         {
             _isSettlingProgression = true;
-            IReadOnlyDictionary<string, int> expeditionResources = _current.Holdings.ExpeditionResources.GetSnapshot();
-            _current.Holdings.StoredResources.AddResources(expeditionResources);
-            _current.Holdings.DetachExpeditionData();
+            IReadOnlyDictionary<string, int> expeditionResources = Current.Holdings.ExpeditionResources.GetSnapshot();
+            Current.Holdings.StoredResources.AddResources(expeditionResources);
+            Current.Holdings.DetachExpeditionData();
         }
         finally
         {
@@ -98,21 +101,17 @@ public class GameSession : Singleton<GameSession>
             _isSettlingProgression = true;
             IReadOnlyDictionary<string, int> resourcesForRecoveryCopy =
                 new Dictionary<string, int>(resourcesForRecovery);
-            IReadOnlyDictionary<string, int> expeditionResources = _current.Holdings.ExpeditionResources.GetSnapshot();
+            IReadOnlyDictionary<string, int> expeditionResources = Current.Holdings.ExpeditionResources.GetSnapshot();
             foreach ((string resourceId, int recoveryAmount) in resourcesForRecoveryCopy)
             {
                 if (!expeditionResources.TryGetValue(resourceId, out int amount))
-                {
                     throw new KeyNotFoundException($"Unknown resource ID: {resourceId}");
-                }
 
                 if (recoveryAmount < 0 || recoveryAmount > amount)
-                {
                     throw new ArgumentOutOfRangeException(nameof(resourcesForRecoveryCopy));
-                }
             }
 
-            _current.Holdings.DetachExpeditionData();
+            Current.Holdings.DetachExpeditionData();
             return resourcesForRecoveryCopy;
         }
         finally
@@ -123,17 +122,11 @@ public class GameSession : Singleton<GameSession>
 
     private void EnsureCanSettle()
     {
-        if (!_isReady)
-        {
+        if (!IsReady)
             throw new InvalidOperationException("GameSession is not ready.");
-        }
         if (_isSettlingProgression)
-        {
             throw new InvalidOperationException("Settlement in progress.");
-        }
-        if (!_current.Holdings.IsOnExpedition)
-        {
+        if (!Current.Holdings.IsOnExpedition)
             throw new InvalidOperationException("No expedition in progress.");
-        }
     }
-}
+}

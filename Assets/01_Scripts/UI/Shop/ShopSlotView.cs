@@ -62,6 +62,13 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler
 
     public void Show(ShopOfferData offer, bool canAfford)
     {
+        Show(offer, canAfford, true);
+    }
+
+    /// <param name="canAfford">골드가 충분한지. (가격 색)</param>
+    /// <param name="isAvailable">골드와 상관없이 살 수 있는 품목인지. (예: 체력이 가득 찬 상태의 포션은 false)</param>
+    public void Show(ShopOfferData offer, bool canAfford, bool isAvailable)
+    {
         Initialize();
         if (offer == null)
         {
@@ -88,12 +95,12 @@ public class ShopSlotView : MonoBehaviour, IPointerClickHandler
         if (_buyButton != null)
         {
             _buyButton.gameObject.SetActive(true);
-            _buyButton.interactable = canAfford;
+            _buyButton.interactable = canAfford && isAvailable;
         }
 
         if (_buyText != null)
         {
-            _buyText.color = canAfford ? _normalBuyColor : _insufficientColor;
+            _buyText.color = canAfford && isAvailable ? _normalBuyColor : _insufficientColor;
         }
     }
 

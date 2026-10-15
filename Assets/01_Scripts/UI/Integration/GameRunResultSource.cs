@@ -1,25 +1,21 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 실제 게임 데이터로 결과창(EndingUI) 값을 만든다.
-/// - 생존 시간: 이 컴포넌트가 시작된 뒤 플레이어가 죽을 때까지 (결과창을 연 시점까지)
+/// - 생존 시간: 이 컴포넌트가 시작된 뒤 런이 끝날 때까지 (끝나지 않았으면 결과창을 연 시점까지)
 /// - 최고 심도: GameStageStatusSource가 기록한 값
 /// - 처치 수, 총 피해량: EnemyDeathTracker
-/// - 종료 사유: 플레이어가 죽었으면 Died, 시간 초과를 받았으면 TimeOver
-/// - 연구 자원: 원정 자원(ExpeditionResources)
+/// - 종료 사유: RunFlow에 기록된 값 (사망 / 미션 실패 / 탐사 포기 / 클리어). 없으면 사망
 /// </summary>
 public class GameRunResultSource : RunResultSource
 {
-    private static readonly string[] s_researchResourceIds = { "prima_materia", "azoth", "mercury", "aether_crystal" };
-
     [SerializeField] private PlayerHealth _playerHealth;
     [SerializeField] private GameStageStatusSource _stageSource;
     [SerializeField] private EnemyDeathTracker _deathTracker;
 
+    private StageManager _stageManager;
     private float _startTime;
     private float _endTime = -1f;
-    private bool _isTimeOver;
 
     private void Start()
     {
@@ -27,12 +23,13 @@ public class GameRunResultSource : RunResultSource
 
         if (_playerHealth != null)
         {
-            _playerHealth.Died += HandlePlayerDied;
+            _playerHealth.Died += StopClock;
         }
 
-        if (_stageSource != null)
+        _stageManager = FindAnyObjectByType<StageManager>();
+        if (_stageManager != null)
         {
-            _stageSource.TimeExpired += HandleTimeExpired;
+            _stageManager.RunEnded += HandleRunEnded;
         }
     }
 
@@ -40,12 +37,12 @@ public class GameRunResultSource : RunResultSource
     {
         if (_playerHealth != null)
         {
-            _playerHealth.Died -= HandlePlayerDied;
+            _playerHealth.Died -= StopClock;
         }
 
-        if (_stageSource != null)
+        if (_stageManager != null)
         {
-            _stageSource.TimeExpired -= HandleTimeExpired;
+            _stageManager.RunEnded -= HandleRunEnded;
         }
     }
 
@@ -55,21 +52,13 @@ public class GameRunResultSource : RunResultSource
         int maxDepth = _stageSource != null ? Mathf.Max(1, _stageSource.MaxDepth) : 1;
         int killCount = _deathTracker != null ? _deathTracker.KillCount : 0;
         int totalDamage = _deathTracker != null ? Mathf.RoundToInt(_deathTracker.TotalDamage) : 0;
+        RunEndReason endReason = RunFlow.EndReason ?? RunEndReason.Died;
 
-        bool isDead = _playerHealth != null && _playerHealth.IsDead;
-        RunEndReason endReason = _isTimeOver && !isDead ? RunEndReason.TimeOver : RunEndReason.Died;
-
-        return new RunResultData(endTime - _startTime, maxDepth, totalDamage, killCount, endReason, GetResearchResources());
+        return new RunResultData(endTime - _startTime, maxDepth, totalDamage, killCount, endReason);
     }
 
-    private void HandlePlayerDied()
+    private void HandleRunEnded(RunEndReason reason)
     {
-        StopClock();
-    }
-
-    private void HandleTimeExpired()
-    {
-        _isTimeOver = true;
         StopClock();
     }
 
@@ -79,23 +68,5 @@ public class GameRunResultSource : RunResultSource
         {
             _endTime = Time.time;
         }
-    }
-
-    private static IReadOnlyList<ResourceAmountData> GetResearchResources()
-    {
-        List<ResourceAmountData> resources = new(s_researchResourceIds.Length);
-        ResourceInventory inventory = GameSession.Instance != null && GameSession.Instance.IsReady
-            ? GameSession.Instance.Current?.Holdings?.ExpeditionResources
-            : null;
-
-        IReadOnlyDictionary<string, int> snapshot = inventory?.GetSnapshot();
-        foreach (string resourceId in s_researchResourceIds)
-        {
-            int amount = 0;
-            snapshot?.TryGetValue(resourceId, out amount);
-            resources.Add(new ResourceAmountData(resourceId, null, amount));
-        }
-
-        return resources;
     }
 }
