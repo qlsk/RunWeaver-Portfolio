@@ -8,12 +8,14 @@ public class EnemyMovementController : MonoBehaviour
 {
     private EnemyMotor _motor;
     private EnemyNavigation _navigation;
+    private BossPatternController _boss;
     private MonoBehaviour[] _behaviors;
     private bool _warnedMultipleBehaviors;
 
     private void Awake()
     {
         _motor = GetComponent<EnemyMotor>();
+        _boss = GetComponent<BossPatternController>();
         if (!TryGetComponent(out _navigation))
         {
             _navigation = gameObject.AddComponent<EnemyNavigation>();
@@ -33,7 +35,10 @@ public class EnemyMovementController : MonoBehaviour
         if (behavior != null)
         {
             MovementGoal goal = behavior.CalculateGoal();
-            velocity = _navigation.CalculateVelocity(goal, behavior.MoveSpeed);
+            float moveSpeed = behavior.MoveSpeed;
+            if (_boss != null && _boss.isActiveAndEnabled)
+                moveSpeed = _boss.Phase >= 3 ? 3f : _boss.Phase == 2 ? moveSpeed * 2f : moveSpeed;
+            velocity = _navigation.CalculateVelocity(goal, moveSpeed);
         }
 
         if (behavior == null)

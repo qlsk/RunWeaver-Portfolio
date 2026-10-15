@@ -122,7 +122,9 @@ public class EnemyTankAttack : MonoBehaviour
         }
     }
 
-    public bool TryStartAttack()
+    public bool TryStartAttack() => TryStartAttack(1f);
+
+    public bool TryStartAttack(float radiusMultiplier)
     {
         if (!isActiveAndEnabled || State != EnemyAttackState.Idle || _indicator == null ||
             (_health != null && _health.IsDead) ||
@@ -138,7 +140,7 @@ public class EnemyTankAttack : MonoBehaviour
 
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
-        _pendingRadius = _attackRadius;
+        _pendingRadius = _attackRadius * Mathf.Max(0.01f, radiusMultiplier);
         _pendingHeightRatio = Mathf.Clamp(_rangeHeightRatio, 0.1f, 1f);
         _chargeStartTime = Time.time;
         _attackTime = _chargeStartTime + _warningDuration;
