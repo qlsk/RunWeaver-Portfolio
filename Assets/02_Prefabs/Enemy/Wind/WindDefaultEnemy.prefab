@@ -567,6 +567,7 @@ MonoBehaviour:
   _enemyData: {fileID: 11400000, guid: 9fdd714592faa7143a19633b7d68188b, type: 2}
   _currentHealth: 0
   _damageFeedbacks: {fileID: 950100003}
+  _useBossHealthBar: 0
 --- !u!114 &950900001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -622,7 +623,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d708640c57833e8489343a0c7a9cbe41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyContactAttack
-  _damage: 20
+  _damage: 10
   _attackCooldown: 0.5
   _altarAttackCooldown: 1.5
 --- !u!50 &8589632753857092902
@@ -827,6 +828,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YSort
   _sortingOffsetY: -0.36349005

@@ -6,8 +6,7 @@ public class EnemyDrop : MonoBehaviour
 {
     private EnemyHealth _enemyHealth;
 
-    [SerializeField] private int _minQuantity = 0;
-    [SerializeField] private int _maxQuantity = 1;
+    private const float RuneDropChance = 0.3f;
     [SerializeField] private RunePickup runePrefab;
     [SerializeField] private int _amountOfGold = 10;
 
@@ -34,6 +33,7 @@ public class EnemyDrop : MonoBehaviour
     public void RuneDrop()
     {
         if (runePrefab == null) return;
+        if (UnityEngine.Random.value >= RuneDropChance) return;
 
         var database = RuneStoneDatabase.Instance;
         if (database == null) return;
@@ -54,14 +54,10 @@ public class EnemyDrop : MonoBehaviour
 
         char runeCharacter = picked.RuneCharacter;
 
-        // int Random.Range는 최댓값을 포함하지 않으므로 +1 해서 _maxQuantity까지 나오게 한다.
-        int quantity = UnityEngine.Random.Range(_minQuantity, _maxQuantity + 1);
-        if (quantity == 0) return;
-
         Sprite runeIcon = picked.Icon;
 
         RunePickup pickup = Instantiate(runePrefab, transform.position, Quaternion.identity);
-        pickup.Initialize(runeCharacter, quantity, runeIcon);
+        pickup.Initialize(runeCharacter, 1, runeIcon);
     }
 
     public void GoldDrop()
