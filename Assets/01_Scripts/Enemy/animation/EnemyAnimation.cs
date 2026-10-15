@@ -21,7 +21,6 @@ public class EnemyAnimation : MonoBehaviour
     private EnemyRockfallAttack _rock;
     private EnemyRangeAttack _range;
     private EnemyTargetDetector _target;
-    private BossPatternController _boss;
     private EnemyHealth _health;
     private Rigidbody2D _body;
     private string _playedState;
@@ -39,7 +38,6 @@ public class EnemyAnimation : MonoBehaviour
         _range = GetComponent<EnemyRangeAttack>();
         if (_range != null) _range.ProjectileFired += OnProjectileFired;
         _target = GetComponent<EnemyTargetDetector>();
-        _boss = GetComponent<BossPatternController>();
         _health = GetComponent<EnemyHealth>();
         _body = GetComponent<Rigidbody2D>();
         if (!_useTankAnimations || _animator == null) return;
@@ -66,7 +64,7 @@ public class EnemyAnimation : MonoBehaviour
         }
 
         if ((_tank != null && _tank.IsAttackActive) || (_dash != null && _dash.IsDashActive) ||
-            (_rock != null && _rock.IsAttackActive)) return;
+            (_rock != null && _rock.IsCasting)) return;
         if (_sprite != null && _target != null && _target.Target != null)
             _sprite.flipX = _reverse
                 ? transform.position.x < _target.Target.position.x
@@ -84,7 +82,7 @@ public class EnemyAnimation : MonoBehaviour
     {
         if (_animator == null) return;
         bool tank = _tank != null && _tank.IsAttackActive;
-        bool rock = _rock != null && _rock.IsAttackActive;
+        bool rock = _rock != null && _rock.IsCasting;
         string state = "TankIdle";
         float speed = 1f;
         if ((tank && _tank.State == EnemyAttackState.Preparing) || (rock && _rock.State == EnemyAttackState.Preparing))
@@ -101,7 +99,7 @@ public class EnemyAnimation : MonoBehaviour
             state = _clipFinished ? "TankIdle" : "TankAttack";
         else if (_dash != null && _dash.IsDashActive)
             state = _dash.State == EnemyAttackState.Preparing ? "TankIdle" : "TankDash";
-        else if ((_boss == null || !_boss.IsRecovering) && _body != null && _body.linearVelocity.sqrMagnitude > 0.001f)
+        else if (_body != null && _body.linearVelocity.sqrMagnitude > 0.001f)
             state = "TankEnemyWalk";
 
         if (_health != null && _health.IsDead) state = "TankIdle";
@@ -124,7 +122,7 @@ public class EnemyAnimation : MonoBehaviour
         if (!isActiveAndEnabled || _playedState != "TankAttack" || _impactSent ||
             (_health != null && _health.IsDead)) return;
         bool tank = _tank != null && _tank.IsAttackActive && _tank.State == EnemyAttackState.Attacking;
-        bool rock = _rock != null && _rock.IsAttackActive && _rock.State == EnemyAttackState.Attacking;
+        bool rock = _rock != null && _rock.IsCasting && _rock.State == EnemyAttackState.Attacking;
         if (!tank && !rock) return;
         _impactSent = true;
         Shake(_impactShakeAmplitude, _impactShakeDuration);

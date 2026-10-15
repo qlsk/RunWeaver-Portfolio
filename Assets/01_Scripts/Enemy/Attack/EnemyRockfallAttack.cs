@@ -23,6 +23,7 @@ public class EnemyRockfallAttack : MonoBehaviour
     [SerializeField, Min(0f)] private float _holdDuration = 0.4f;
     [SerializeField, Min(0.01f)] private float _sinkDuration = 0.25f;
     [SerializeField, Min(0.01f)] private float _rockHeight = 2f;
+    [SerializeField, Min(0.01f)] private float _automaticSpawnDistance = 2f;
     [SerializeField] private string _sortingLayer = "Default";
     [SerializeField] private int _sortingOrder = 10;
 
@@ -30,6 +31,8 @@ public class EnemyRockfallAttack : MonoBehaviour
     {
         public Vector2 Center;
         public float ImpactTime;
+        public float WarningStartTime;
+        public float Radius;
         public SpriteRenderer Warning;
         public SpriteRenderer Rock;
         public RockEruptionVisual Visual;
@@ -52,11 +55,14 @@ public class EnemyRockfallAttack : MonoBehaviour
     private EllipseAttackArea _attackArea;
     public EnemyAttackState State { get; private set; }
     public bool IsAttackActive => isActiveAndEnabled && State != EnemyAttackState.Idle;
+    public bool IsCasting => IsAttackActive && !_automatic && (!AnimationDriven || !_released);
     public event System.Action<EnemyAttackEndReason> AttackEnded;
     public event System.Action RockErupted;
     public bool AnimationDriven { get; set; }
     public float WarningDuration => Mathf.Max(0.01f, _warningDuration);
     private bool _released;
+    private bool _automatic;
+    private bool _automaticPairs;
     private float _castEndTime;
 
     public void AnimationImpact()
@@ -64,6 +70,7 @@ public class EnemyRockfallAttack : MonoBehaviour
         if (!AnimationDriven || !IsAttackActive || State != EnemyAttackState.Attacking || _released) return;
         _released = true;
         _nextMarkTime = Time.time;
+        _motor.ReleasePositionLock(this);
     }
 
     private void Awake()
@@ -88,26 +95,55 @@ public class EnemyRockfallAttack : MonoBehaviour
         _externallyControlled = value;
     }
 
-    public bool TryStartAttack()
+    public bool TryStartAttack() => TryStartAttack(0, 1f);
+
+    public bool TryStartAttack(int additionalRockCount, float markIntervalMultiplier)
+        => TryStartAttack(additionalRockCount, markIntervalMultiplier, false);
+
+    public bool TryStartAutomaticAttack(int phase)
+    {
+        if (!TryStartAttack(0, 0.5f, true)) return false;
+        _automaticPairs = phase >= 3;
+        _remainingMarks = _automaticPairs ? 5 : 6;
+        return true;
+    }
+
+    private void QueueAutomaticPair()
+    {
+        Vector2 origin = _targetDetector.Target.position;
+        float impactTime = Time.time + _pendingWarning;
+        for (int i = 0; i < 2; i++)
+        {
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+            Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            Vector2 center = origin + direction * Mathf.Max(0.01f, _automaticSpawnDistance);
+            QueueStrike(center, impactTime, 1f, Time.time);
+            QueueStrike(center, impactTime + 1f, 1.5f, impactTime);
+        }
+    }
+
+    private bool TryStartAttack(int additionalRockCount, float markIntervalMultiplier, bool automatic)
     {
         if (!isActiveAndEnabled || State != EnemyAttackState.Idle || _rangeImage == null ||
-            _targetDetector == null || _targetDetector.Target == null || Time.time < _nextAttackTime ||
+            _targetDetector == null || _targetDetector.Target == null || (!automatic && Time.time < _nextAttackTime) ||
             (_health != null && _health.IsDead) || (_statusEffects != null && _statusEffects.IsStaggered))
             return false;
-        if (((Vector2)(_targetDetector.Target.position - transform.position)).sqrMagnitude > _attackRange * _attackRange)
+        if (!automatic && ((Vector2)(_targetDetector.Target.position - transform.position)).sqrMagnitude > _attackRange * _attackRange)
             return false;
 
-        _remainingMarks = Mathf.Max(1, _rockCount);
+        _remainingMarks = Mathf.Max(1, _rockCount + Mathf.Max(0, additionalRockCount));
         _pendingRadius = Mathf.Max(0.01f, _attackRadius);
         _pendingHeightRatio = Mathf.Clamp(_rangeHeightRatio, 0.1f, 1f);
         _pendingDamage = Mathf.Max(0f, _damage);
         _pendingWarning = Mathf.Max(0.01f, _warningDuration);
-        _pendingInterval = Mathf.Max(0.01f, _markInterval);
+        _pendingInterval = Mathf.Max(0.01f, _markInterval * Mathf.Max(0.01f, markIntervalMultiplier));
         _nextMarkTime = Time.time;
         State = EnemyAttackState.Preparing;
-        _released = !AnimationDriven;
+        _automatic = automatic;
+        _automaticPairs = false;
+        _released = automatic || !AnimationDriven;
         _castEndTime = Time.time + _pendingWarning;
-        _motor.AcquirePositionLock(this);
+        if (!automatic) _motor.AcquirePositionLock(this);
         return true;
     }
 
@@ -134,21 +170,13 @@ public class EnemyRockfallAttack : MonoBehaviour
         // 표식마다 현재 위치를 새로 기록하지만 이미 표시한 중심은 바꾸지 않는다.
         if (_remainingMarks > 0 && Time.time >= _nextMarkTime)
         {
-            Vector2 center = _targetDetector.Target.position;
-            var strike = new Strike { Center = center, ImpactTime = Time.time + _pendingWarning };
-            strike.Warning = CreateVisual("RockfallWarning", _rangeImage, center, _rangeColor, _sortingOrder);
-            Vector3 warningScale = strike.Warning.transform.localScale;
-            warningScale.y *= _pendingHeightRatio;
-            strike.Warning.transform.localScale = warningScale;
-            PositionVisual(strike.Warning, center);
-            if (_rockSprite != null)
+            if (_automaticPairs)
+                QueueAutomaticPair();
+            else
             {
-                strike.Rock = CreateVisual("EmergingRock", _rockSprite, center, _rockColor, _sortingOrder + 1);
-                strike.Visual = new GameObject("RockEruption").AddComponent<RockEruptionVisual>();
-                strike.Visual.Initialize(strike.Rock, new Vector3(center.x, center.y, transform.position.z), _rockHeight);
-                strike.Visual.gameObject.SetActive(false);
+                Vector2 center = _targetDetector.Target.position;
+                QueueStrike(center, Time.time + _pendingWarning, 1f, Time.time);
             }
-            _pending.Add(strike);
             _remainingMarks--;
             _nextMarkTime = Time.time + _pendingInterval;
         }
@@ -159,6 +187,7 @@ public class EnemyRockfallAttack : MonoBehaviour
             float remaining = strike.ImpactTime - Time.time;
             if (remaining > 0f)
             {
+                if (strike.Warning != null) strike.Warning.enabled = Time.time >= strike.WarningStartTime;
                 i++;
                 continue;
             }
@@ -170,7 +199,7 @@ public class EnemyRockfallAttack : MonoBehaviour
                 if (GetComponent<BossPatternController>() != null) Sfx.Play(Sfx.BossRackFall);
                 RockErupted?.Invoke();
                 if (State == EnemyAttackState.Idle) return;
-                ApplyDamage(strike.Center);
+                ApplyDamage(strike.Center, strike.Radius);
                 if (State == EnemyAttackState.Idle) return;
             }
             float elapsed = -remaining;
@@ -194,7 +223,32 @@ public class EnemyRockfallAttack : MonoBehaviour
             EndAttack(EnemyAttackEndReason.Completed);
     }
 
-    private SpriteRenderer CreateVisual(string name, Sprite sprite, Vector2 center, Color color, int order)
+    private void QueueStrike(Vector2 center, float impactTime, float sizeMultiplier, float warningStartTime)
+    {
+        var strike = new Strike
+        {
+            Center = center,
+            ImpactTime = impactTime,
+            WarningStartTime = warningStartTime,
+            Radius = _pendingRadius * sizeMultiplier
+        };
+        strike.Warning = CreateVisual("RockfallWarning", _rangeImage, center, _rangeColor, _sortingOrder, strike.Radius);
+        Vector3 warningScale = strike.Warning.transform.localScale;
+        warningScale.y *= _pendingHeightRatio;
+        strike.Warning.transform.localScale = warningScale;
+        PositionVisual(strike.Warning, center);
+        strike.Warning.enabled = Time.time >= warningStartTime;
+        if (_rockSprite != null)
+        {
+            strike.Rock = CreateVisual("EmergingRock", _rockSprite, center, _rockColor, _sortingOrder + 1, strike.Radius);
+            strike.Visual = new GameObject("RockEruption").AddComponent<RockEruptionVisual>();
+            strike.Visual.Initialize(strike.Rock, new Vector3(center.x, center.y, transform.position.z), _rockHeight * sizeMultiplier);
+            strike.Visual.gameObject.SetActive(false);
+        }
+        _pending.Add(strike);
+    }
+
+    private SpriteRenderer CreateVisual(string name, Sprite sprite, Vector2 center, Color color, int order, float radius)
     {
         var renderer = new GameObject(name).AddComponent<SpriteRenderer>();
         renderer.sprite = sprite;
@@ -202,7 +256,7 @@ public class EnemyRockfallAttack : MonoBehaviour
         renderer.sortingLayerName = _sortingLayer;
         renderer.sortingOrder = order;
         Vector3 size = sprite.bounds.size;
-        renderer.transform.localScale = new Vector3(2f * _pendingRadius / Mathf.Max(0.01f, size.x), 2f * _pendingRadius / Mathf.Max(0.01f, size.y), 1f);
+        renderer.transform.localScale = new Vector3(2f * radius / Mathf.Max(0.01f, size.x), 2f * radius / Mathf.Max(0.01f, size.y), 1f);
         PositionVisual(renderer, center);
         return renderer;
     }
@@ -213,15 +267,15 @@ public class EnemyRockfallAttack : MonoBehaviour
                                       - renderer.transform.TransformVector(renderer.sprite.bounds.center);
     }
 
-    private void ApplyDamage(Vector2 center)
+    private void ApplyDamage(Vector2 center, float radius)
     {
         _hits.Clear();
         _damagedPlayers.Clear();
         _damagedAltars.Clear();
         if (_pendingHeightRatio >= 1f)
-            Physics2D.OverlapCircle(center, _pendingRadius, new ContactFilter2D { useTriggers = true }, _hits);
+            Physics2D.OverlapCircle(center, radius, new ContactFilter2D { useTriggers = true }, _hits);
         else
-            _attackArea.Overlap(center, _pendingRadius, _pendingHeightRatio, _hits);
+            _attackArea.Overlap(center, radius, _pendingHeightRatio, _hits);
         foreach (Collider2D hit in _hits)
         {
             if (hit == null) continue;
@@ -284,7 +338,7 @@ public class EnemyRockfallAttack : MonoBehaviour
             EllipseAttackArea.DrawGizmo(transform.position, _attackRadius, _rangeHeightRatio);
         else
             foreach (Strike strike in _pending)
-                EllipseAttackArea.DrawGizmo(strike.Center, _pendingRadius, _pendingHeightRatio);
+                EllipseAttackArea.DrawGizmo(strike.Center, strike.Radius, _pendingHeightRatio);
     }
     private void HandleDeath(EnemyHealth health) { if (health == _health) CancelAttack(); }
     private void OnDisable()
