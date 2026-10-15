@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 4699563427710929462, guid: 20ad11de3ba3402419075d82f15a6945, type: 3}
+  m_Sprite: {fileID: -8944129318025595401, guid: e63fdd2249625b4468978ad3d3d0d7e4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -492,7 +492,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.0059165955, y: -0.038457572}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -502,7 +502,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.6805048, y: 1.2544128}
   m_EdgeRadius: 0
 --- !u!1 &7997101506716382822
 GameObject:
@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 6312000072480831012}
   - component: {fileID: 8582171479461955155}
   - component: {fileID: 353966042020948176}
-  - component: {fileID: 3210710140975192304}
+  - component: {fileID: 1272049551829067129}
   m_Layer: 8
   m_Name: RangeEnemy
   m_TagString: Enemy
@@ -561,6 +561,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53b093f7dc01a140a89dc9cc2f99988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  _useTankAnimations: 0
+  _impactShakeAmplitude: 0.3
+  _impactShakeDuration: 0.15
+  _rockShakeAmplitude: 0.15
+  _rockShakeDuration: 0.15
+  _dashShakeAmplitude: 0.12
+  _dashShakeInterval: 0.16
+  _dashShakeDuration: 0.08
+  _reverse: 0
 --- !u!114 &876899013478963591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -605,6 +614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetDetector
   _baseTrackingInterval: 0.1
+  _playerAggroDuration: 5
 --- !u!50 &3272416623154226051
 Rigidbody2D:
   serializedVersion: 5
@@ -684,7 +694,7 @@ MonoBehaviour:
   _burnVfxOffset: {x: 0, y: -0.3, z: 0}
   _slowDuration: 3
   _slowMoveSpeedMultiplier: 0.5
-  _slowVfxPrefab: {fileID: 857701135076163181, guid: e3752d0fbf774c8cbef85dd09d7c5a3a, type: 3}
+  _slowVfxPrefab: {fileID: 3282494113180683151, guid: 054eb0d4451440faa9d233b633b402f2, type: 3}
   _slowVfxTarget: {fileID: 1772316485788941319}
   _slowVfxScale: 0.7
   _slowVfxOffset: {x: 0, y: -0.3, z: 0}
@@ -695,11 +705,12 @@ MonoBehaviour:
   _staggerVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackDuration: 0.2
   _knockbackSpeed: 5
-  _knockbackVfxPrefab: {fileID: 857701135076163181, guid: 69eab95aa9684bd9aedf245ec1c5619f, type: 3}
+  _knockbackVfxPrefab: {fileID: 2064584436310274632, guid: 63d68c1641024f5cb253481ec10e4d42, type: 3}
   _knockbackVfxTarget: {fileID: 1772316485788941319}
   _knockbackVfxScale: 0.7
   _knockbackVfxOffset: {x: 0, y: -0.3, z: 0}
   _knockbackVfxRotationOffset: 90
+  _detachedVfxLifetime: 1.2
 --- !u!114 &6312000072480831012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -727,6 +738,7 @@ MonoBehaviour:
   _grid: {fileID: 9127768411809009162, guid: 0f6076bd935562e46a9ac0da55cc87b4, type: 3}
   _agentRadius: 0.3
   _repathInterval: 0.4
+  _ignoreObstacles: 0
 --- !u!114 &353966042020948176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -739,8 +751,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb126a1ad04bd0429033f84d6a60cb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovementController
---- !u!58 &3210710140975192304
-CircleCollider2D:
+--- !u!61 &1272049551829067129
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -773,5 +785,15 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Offset: {x: 0.032541275, y: -0.28991222}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.44975853, y: 0.36101007}
+  m_EdgeRadius: 0

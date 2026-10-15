@@ -6,6 +6,8 @@ public class ReactionAreaVisuals : MonoBehaviour
 {
     [FoldoutGroup("References"), SerializeField] private GameObject _effectPrefab;
     [FoldoutGroup("Visual Settings"), SerializeField, Min(0.01f)] private float _referenceRadius = 4f;
+    [Tooltip("끄면 이펙트 프리팹의 정렬 값을 그대로 쓴다. (적과 Y 정렬로 앞뒤를 섞고 싶을 때)")]
+    [FoldoutGroup("Visual Settings"), SerializeField] private bool _overrideSorting = true;
 
     private GameObject _effect;
 
@@ -26,6 +28,9 @@ public class ReactionAreaVisuals : MonoBehaviour
             _effectPrefab.transform.rotation, transform);
         float scale = radius / Mathf.Max(0.01f, _referenceRadius);
         _effect.transform.localScale *= scale;
+        if (!_overrideSorting)
+            return;
+
         // Field(-20) 위, 일반 오브젝트(-1 이상) 아래에 고정한다.
         foreach (SpriteRenderer renderer in _effect.GetComponentsInChildren<SpriteRenderer>())
         {

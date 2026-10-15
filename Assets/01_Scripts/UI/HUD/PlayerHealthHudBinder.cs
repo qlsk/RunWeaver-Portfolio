@@ -31,6 +31,18 @@ public class PlayerHealthHudBinder : MonoBehaviour
         {
             Debug.LogError("[PlayerHealthHudBinder] HealthBarView가 할당되지 않았습니다.", this);
         }
+
+        // 체력 위험 연출 (화면 가장자리 붉은 기운 + 혈관, 체력바 밝아짐)
+        if (_playerHealth != null)
+        {
+            LowHealthOverlay overlay = GetComponent<LowHealthOverlay>();
+            if (overlay == null)
+            {
+                overlay = gameObject.AddComponent<LowHealthOverlay>();
+            }
+
+            overlay.Initialize(_playerHealth, _view);
+        }
     }
 
     private void LateUpdate()

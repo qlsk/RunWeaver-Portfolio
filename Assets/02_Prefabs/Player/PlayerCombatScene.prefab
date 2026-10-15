@@ -464,7 +464,6 @@ GameObject:
   - component: {fileID: 8632906734022220514}
   - component: {fileID: 469444044121680997}
   - component: {fileID: 8463615780488062515}
-  - component: {fileID: 6277004397005914175}
   - component: {fileID: 3085005107725748379}
   - component: {fileID: 1981721773277717195}
   - component: {fileID: 1666685767125819964}
@@ -832,6 +831,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c628b8032c8d14ba9f6d3fec1f1839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimation
+  _referenceMoveSpeed: 5
+  _runAnimSpeedAtMaxSpeed: 1.35
+  _minRunAnimSpeed: 0.5
+  _maxRunAnimSpeed: 2
+  _movingThreshold: 0.1
+  _backpedalHorizontalRatio: 0.3
 --- !u!114 &469444044121680997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -849,23 +854,6 @@ MonoBehaviour:
   _offsetScale: 0.64
   _originOffset: 0
 --- !u!114 &8463615780488062515
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7566649832509364097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 817f2b21486e54f47823765f51b9fb8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
-  _playerInputHandler: {fileID: 3754110856340387365}
-  _interactionRange: 2
-  _interactableLayer:
-    serializedVersion: 2
-    m_Bits: 64
---- !u!114 &6277004397005914175
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

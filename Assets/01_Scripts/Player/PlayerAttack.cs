@@ -50,6 +50,9 @@ public class PlayerAttack : MonoBehaviour
     private bool _isReloading;
     private float _reloadTimer;
 
+    // 총구에 붙어 재생 중인 발사 연출 (재장전 시작 시 남은 연기를 지운다)
+    private readonly List<ParticleSystem> _activeCastEffects = new();
+
     /// <summary>보상 특성용: 탄환 발사 통지 (연발 중 추가탄 제외, 1회 공격당 1회).</summary>
     public event Action Fired;
 
@@ -216,6 +219,10 @@ public class PlayerAttack : MonoBehaviour
         if (_currentAmmo <= 0 || _bulletFireCoolTimer < fireInterval)
             return;
 
+        // 주력 원소를 고르기 전(시작 석상 전)에는 쏘지 않는다. 탄도 줄지 않는다.
+        if (_runeEffectConfiguration == null || !_runeEffectConfiguration.PrimaryElement.HasValue)
+            return;
+
         Vector2 targetPosition = _playerInputHandler.MousePosition;
         Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
 
@@ -267,8 +274,15 @@ public class PlayerAttack : MonoBehaviour
 
         // 산탄 수와 관계없이 한 발사당 한 번 재생한다. 연발은 각 발사마다 이 메서드를 호출한다.
         if (visualEffects != null)
-            BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
+        {
+            ParticleSystem castEffect = BulletCastEffect.Play(_firePosition.transform, visualEffects.CastPrefab,
                 visualEffects.CastScale, visualEffects.CastLifetime);
+            if (castEffect != null)
+            {
+                _activeCastEffects.RemoveAll(effect => effect == null);
+                _activeCastEffects.Add(castEffect);
+            }
+        }
         _shootFeedbacks?.PlayFeedbacks(_firePosition.transform.position);
     }
 
@@ -296,6 +310,22 @@ public class PlayerAttack : MonoBehaviour
 
         _isReloading = true;
         _reloadTimer = 0f;
+        ClearCastEffects();
+    }
+
+    /// 지연 재생되는 연기(흙 등)가 탄이 없는데도 총구에서 피어오르지 않도록 발사 연출의 방출을 멈춘다.
+    /// 이미 나온 입자는 자연스럽게 사라지고, 아직 시작 전(지연 중)인 연기는 나오지 않는다. 제거는 기존 수명에 맡긴다.
+    private void ClearCastEffects()
+    {
+        foreach (ParticleSystem effect in _activeCastEffects)
+        {
+            if (effect == null)
+                continue;
+
+            effect.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+
+        _activeCastEffects.Clear();
     }
 
     /// <summary>

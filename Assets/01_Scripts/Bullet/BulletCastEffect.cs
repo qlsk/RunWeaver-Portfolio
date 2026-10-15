@@ -2,10 +2,10 @@ using UnityEngine;
 
 public static class BulletCastEffect
 {
-    /// 발사 위치에 시각 효과를 재생하고 설정된 시간이 지나면 제거한다.
-    public static void Play(Transform muzzle, ParticleSystem prefab, float scale, float lifetime)
+    /// 발사 위치에 시각 효과를 재생하고 설정된 시간이 지나면 제거한다. 생성한 효과를 반환한다. (없으면 null)
+    public static ParticleSystem Play(Transform muzzle, ParticleSystem prefab, float scale, float lifetime)
     {
-        if (prefab == null || muzzle == null) return;
+        if (prefab == null || muzzle == null) return null;
 
         ParticleSystem effect = UnityEngine.Object.Instantiate(prefab, muzzle, false);
         effect.transform.localPosition = Vector3.zero;
@@ -25,6 +25,7 @@ public static class BulletCastEffect
         effect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         effect.Play(true);
         UnityEngine.Object.Destroy(effect.gameObject, lifetime);
+        return effect;
     }
 
     /// 월드 적중 위치에서 효과를 재생하고 완료 후 제거한다.

@@ -9,7 +9,6 @@ using UnityEngine.Serialization;
 public class StageManager : MonoBehaviour
 {
     private const float NoTimeLimit = -1f;
-    private const float StartObjectRadius = 1.5f;
 
     private static StageManager s_instance;
 
@@ -32,6 +31,9 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    [Header("References")]
+    [SerializeField] private PlayerInteraction _playerInteraction;
+
     [Header("스테이지 상태 정보")]
     [SerializeField, FormerlySerializedAs("currentDepth")] private int _currentDepth = 1;
 
@@ -40,16 +42,13 @@ public class StageManager : MonoBehaviour
     [SerializeField] private MissionCatalogSO _missionCatalog;
     [Tooltip("미션 스테이지 수. 이 수만큼 미션을 끝내면 다음 층이 보스 스테이지다.")]
     [SerializeField, Min(1)] private int _missionStageCount = 10;
+    [SerializeField, Min(0f)] private float _autoStartDelay = 10f;
     [Tooltip("미션 제한 시간(초). 생존 미션은 미션의 생존 시간을 제한 시간으로 쓴다.")]
     [SerializeField, Min(1f)] private float _missionTimeLimit = 120f;
 
     [Header("시작 오브젝트")]
-    [Tooltip("비워두면 코드로 임시 시작 오브젝트(원형 + F - Start)를 만든다")]
-    [SerializeField] private MissionStartObject _startObjectPrefab;
     [Tooltip("미션 오브젝트가 없는 미션(적 처치, 생존)과 보스 스테이지의 시작 오브젝트 위치")]
-    [SerializeField] private Vector3 _startObjectPosition = new(0f, 2f, 0f);
-    [Tooltip("임시 시작 오브젝트를 놓을 레이어. PlayerInteraction의 Interactable Layer와 같아야 한다.")]
-    [SerializeField] private int _startObjectLayer = 6;
+    [SerializeField] private Vector3 _startObjectPosition = Vector3.zero;
 
     [Header("출발 준비")]
     [Tooltip("켜면 씬을 열어도 1층을 바로 시작하지 않고, 시작 석상(ExpeditionStatue)이 BeginPreparedRun을 부를 때까지 기다린다.")]
@@ -92,7 +91,6 @@ public class StageManager : MonoBehaviour
     // 미션과 시작 오브젝트
     private MissionManager _missionManager;
     private MissionBase _currentMission;
-    private MissionStartObject _startObject;
     private IMissionRewardProvider _missionRewardProvider;
 
     // 정화 연출
@@ -115,18 +113,27 @@ public class StageManager : MonoBehaviour
     private EnemyHealth _bossHealth;
     private PlayerHealth _playerHealth;
 
+    private MissionStartInteractable _startInteractable;
+
     private GameObject CurrentMissionObject => _missionManager != null ? _missionManager.CurrentMissionObject : null;
-    private bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
+    /// <summary>포탈을 쓸 수 있는 단계인지 (포탈이 들어가기 연출 전에 확인한다)</summary>
+    public bool CanUsePortal => _phase is StagePhase.Purification or StagePhase.Cleared;
 
     public int CurrentDepth => _currentDepth;
     public int MissionStageCount => _missionStageCount;
     public int BossDepth => _missionStageCount + 1;
     public StagePhase Phase => _phase;
     public bool IsBossStage => _isBossStage;
+
+    /// <summary>이번 층의 보스. 보스 층이 아니거나 아직 나오지 않았으면 null (보스 처치 연출이 처치된 보스를 찾을 때 쓴다)</summary>
+    public EnemyHealth BossHealth => _bossHealth;
     public MissionBase CurrentMission => _currentMission;
 
     /// <summary>다음 층으로 가는 포탈이 나와 있는지</summary>
     public bool IsPortalOpen => _isPortalOpen;
+
+    public float AutostartRemaining { get; private set; }
+    public bool IsAutoStartCounting => _autoStartDelay > 0f && _startInteractable != null && _phase == StagePhase.Ready;
 
     /// <summary>
     /// 타이머에 보여줄 남은 시간(초).
@@ -156,8 +163,21 @@ public class StageManager : MonoBehaviour
     /// <summary>현재 목표 이름 (HUD 표시용)</summary>
     public string ObjectiveName => CurrentMissionText?.DisplayName ?? string.Empty;
 
-    /// <summary>현재 목표 설명 (HUD 표시용)</summary>
-    public string ObjectiveDescription => CurrentMissionText?.Description ?? string.Empty;
+    /// <summary>현재 목표 설명 (HUD 표시용). 제단 방어 중에는 제단 HP를 실시간으로 덧붙인다.</summary>
+    public string ObjectiveDescription
+    {
+        get
+        {
+            string baseText = CurrentMissionText?.Description ?? string.Empty;
+            if (_currentMission is AltarDefenseMission altar && altar.TargetAltar != null)
+            {
+                DefenseAltar target = altar.TargetAltar;
+                string hpText = $"제단 HP: {target.CurrentHp:F0}/{target.MaxHp:F0}";
+                return string.IsNullOrEmpty(baseText) ? hpText : $"{baseText} ({hpText})";
+            }
+            return baseText;
+        }
+    }
 
     /// <summary>현재 목표 달성도 (0 ~ 1)</summary>
     public float ObjectiveProgress
@@ -216,6 +236,9 @@ public class StageManager : MonoBehaviour
         }
 
         _portalSpawner.Configure(_portalPrefab, _portalSpawnPosition);
+
+        if (_playerInteraction == null)
+            _playerInteraction = FindAnyObjectByType<PlayerInteraction>();
     }
 
     private void Start()
@@ -275,6 +298,9 @@ public class StageManager : MonoBehaviour
     {
         switch (_phase)
         {
+            case StagePhase.Ready:
+                UpdateAutoStart();
+                break;
             case StagePhase.InMission:
                 UpdateMissionTimer();
                 break;
@@ -322,7 +348,7 @@ public class StageManager : MonoBehaviour
         _isBossDefeated = false;
         _bossHealth = null;
         _currentMission = null;
-        DestroyStartObject();
+        UnregisterStartInteractable();
 
         Vector3 startPosition = _startObjectPosition;
         bool isOnMissionObject = false;
@@ -346,7 +372,6 @@ public class StageManager : MonoBehaviour
                 if (missionObject != null)
                 {
                     startPosition = missionObject.transform.position;
-                    isOnMissionObject = true;
                 }
             }
             else
@@ -359,42 +384,40 @@ public class StageManager : MonoBehaviour
 
         _remainingTime = _timeLimit;
         _waveOrigin = startPosition;
-        SpawnStartObject(startPosition, !isOnMissionObject);
+        RegisterStartInteractable();
+        AutostartRemaining = _autoStartDelay;
         SetPhase(StagePhase.Ready);
         SafeEventNotifier.Notify(StageStarted, depth);
     }
 
-    private void SpawnStartObject(Vector3 position, bool showMarker)
+    private void RegisterStartInteractable()
     {
-        _startObject = _startObjectPrefab != null
-            ? Instantiate(_startObjectPrefab, position, Quaternion.identity)
-            : MissionStartObject.Create(position, _startObjectLayer, StartObjectRadius);
+        _startInteractable = new MissionStartInteractable(this, "임무 시작");
 
-        _startObject.SetMarkerVisible(showMarker);
-        _startObject.Activated += HandleStartActivated;
+        if (_playerInteraction != null)
+            _playerInteraction.SetFallbackInteractable(_startInteractable);
     }
 
-    private void DestroyStartObject()
+    private void UnregisterStartInteractable()
     {
-        if (_startObject == null)
-        {
+        if (_startInteractable == null)
             return;
-        }
 
-        _startObject.Activated -= HandleStartActivated;
-        Destroy(_startObject.gameObject);
-        _startObject = null;
+        if (_playerInteraction != null)
+            _playerInteraction.ClearFallbackInteractable(_startInteractable);
+
+        _startInteractable = null;
     }
 
     /// <summary>시작 오브젝트에 F로 상호작용하면 미션(보스 스테이지는 보스전)을 시작한다.</summary>
-    private void HandleStartActivated()
+    public void HandleStartActivated()
     {
         if (_phase != StagePhase.Ready)
         {
             return;
         }
 
-        DestroyStartObject();
+        UnregisterStartInteractable();
         SetPhase(StagePhase.InMission);
 
         if (_isBossStage)
@@ -412,6 +435,20 @@ public class StageManager : MonoBehaviour
     }
 
     // ───────────────────────── 미션 진행과 보상 ─────────────────────────
+
+    private void UpdateAutoStart()
+    {
+        if (_autoStartDelay <= 0f)
+            return;
+
+        if (_startInteractable == null)
+            return;
+
+        AutostartRemaining -= Time.deltaTime;
+
+        if (AutostartRemaining <= 0f)
+            HandleStartActivated();
+    }
 
     private void UpdateMissionTimer()
     {
@@ -754,8 +791,9 @@ public class StageManager : MonoBehaviour
 
         if (_portalSpawner != null)
         {
-            string label = _currentDepth + 1 >= BossDepth ? "Face the Boss" : "Descend";
-            _portalSpawner.SpawnPortal(label, _portalPosition);
+            bool isBossFloor = _currentDepth + 1 >= BossDepth;
+            string label = isBossFloor ? "Face the Boss" : "Descend";
+            _portalSpawner.SpawnPortal(label, _portalPosition, isBossFloor);
             _isPortalOpen = true;
         }
     }
@@ -1005,7 +1043,7 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] ===== 런 종료: {finalReason} =====");
 
         SetPhase(StagePhase.Ended);
-        DestroyStartObject();
+        UnregisterStartInteractable();
         PauseMonsterSpawner();
         DespawnPortal();
 
@@ -1015,12 +1053,34 @@ public class StageManager : MonoBehaviour
             _missionManager.StopCurrentMission();
         }
 
-        if (finalReason != RunEndReason.Cleared && _playerHealth != null && !_playerHealth.IsDead)
+        if (finalReason == RunEndReason.Cleared)
+        {
+            StopPlayerAfterClear();
+        }
+        else if (_playerHealth != null && !_playerHealth.IsDead)
         {
             _playerHealth.Kill();
         }
 
         SafeEventNotifier.Notify(RunEnded, finalReason);
+    }
+
+    private void StopPlayerAfterClear()
+    {
+        if (_playerHealth == null) return;
+
+        if (_playerHealth.TryGetComponent(out Dash dash))
+            dash.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out PlayerMove movement))
+            movement.enabled = false;
+
+        if (_playerHealth.TryGetComponent(out Rigidbody2D body))
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.constraints |= RigidbodyConstraints2D.FreezePosition;
+        }
     }
 
     // ───────────────────────── 내부 처리 ─────────────────────────
@@ -1082,12 +1142,19 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    /// <summary>카메라가 맵을 가로질러 따라가지 않도록 플레이어 위치로 바로 옮긴다. (z는 유지)</summary>
+    /// <summary>카메라 추적 Rig를 플레이어 위치로 바로 옮긴다.</summary>
     private static void SnapCameraToPlayer(Vector3 playerPosition)
     {
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
+            return;
+        }
+
+        CameraFollow cameraFollow = mainCamera.GetComponentInParent<CameraFollow>();
+        if (cameraFollow != null)
+        {
+            cameraFollow.SnapToPosition(playerPosition);
             return;
         }
 

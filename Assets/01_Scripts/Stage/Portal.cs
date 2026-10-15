@@ -1,22 +1,26 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// 미션 클리어 후 등장하는 포탈. 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
+/// 미션 클리어 후 등장하는 포탈(공중의 균열). 사용하면 한 층 내려간다. (귀환, 여러 층 하강 포탈은 폐기)
 /// PortalSpawner가 Setup으로 문구를 정한 뒤 PlayFadeIn으로 등장시킨다.
-/// FadeIn이 끝나야 Collider가 켜져서 F 상호작용(IInteractable)이 가능해진다.
-/// 포탈 위에는 문구(Label)를 항상 띄우고,
-/// 플레이어가 이 포탈을 상호작용 대상으로 잡으면 아래에 F 안내 텍스트(Prompt)를 띄운다.
-/// 플레이어가 상호작용 대상으로 잡으면 크기와 밝기가 천천히 맥동한다.
+/// - 등장 : 빛 점 → 금이 퍼짐 → 찢어지며 열림 (Animator의 Open 상태). 끝나야 Collider가 켜져 F 상호작용이 가능하다.
+/// - 대기 : Animator의 Idle 상태가 반복된다. F 안내는 InteractionGuideView가 InteractionGuidePoint 위치에 띄운다.
+/// - 들어가기 : 플레이어(그림 복사본)가 균열로 빨려 들어간 뒤 균열이 닫히고(Animator의 Close 상태) 한 층 내려간다.
+/// - 균열 그림은 Visual의 Animator(컨트롤러 : Open → Idle → Close)가 바꾼다. 보스 포탈은 _bossController로 바꿔 끼운다.
+///   빨려 드는 동안 진짜 플레이어는 숨기고 조작을 막는다. 다음 층 화면이 걷히기 시작하면 되돌린다. (PortalPlayerHider)
+/// - 위쪽 문구(Label)는 쓰지 않는다. (Setup은 호환용으로 남긴다)
+/// 플레이어가 상호작용 대상으로 잡으면 밝기가 천천히 맥동한다.
 ///
 /// 프리팹 구성 (Label과 InteractionGuidePoint는 에디터에서 위치/크기를 바로 조정한다)
 /// Portal (이 스크립트, Collider)
 ///  ├ Visual                : SpriteRenderer. FadeIn / 맥동 크기 변화는 이 오브젝트에만 적용한다.
 ///  ├ Label                 : TextMeshPro (월드 텍스트). 내용과 색은 종류에 따라 코드에서 바꾼다.
-///  └ Prompt                : TextMeshPro. "F - Enter" 안내. 가까이 갔을 때만 보인다.
+///  └ InteractionGuidePoint : 빈 Transform. InteractionGuideView가 F 안내를 띄울 위치.
 /// </summary>
 [DisallowMultipleComponent]
 public class Portal : MonoBehaviour, IInteractable
@@ -33,15 +37,28 @@ public class Portal : MonoBehaviour, IInteractable
     [SerializeField] private SpriteRenderer _sprite;
     [SerializeField] private Collider2D _collider;
     [SerializeField] private TextMeshPro _label;
-    [Tooltip("가까이 갔을 때만 보이는 F 안내 텍스트")][SerializeField] private TextMeshPro _prompt;
+    [Tooltip("InteractionGuideView가 F 안내를 띄울 위치")][SerializeField] private Transform _interactionGuidePoint;
 
     [Header("Colors (포탈 / 텍스트)")]
     [SerializeField] private Color _descendColor = Color.white;
     [SerializeField] private Color _descendLabelColor = new(1f, 0.95f, 0.85f, 1f);
 
-    [Header("Fade In")]
+    [Header("Fade In (프레임이 없을 때만)")]
     [SerializeField, Min(0f)] private float _fadeInDuration = 0.8f;
     [SerializeField, Min(0.01f)] private float _fadeInStartScale = 0.8f;
+
+    [Header("균열 애니메이션")]
+    [Tooltip("Visual의 Animator. 비워두면 Visual에서 찾는다. 컨트롤러가 없으면 페이드 인으로 등장한다")]
+    [SerializeField] private Animator _animator;
+    [Tooltip("보스 층으로 내려가는 포탈에 쓸 컨트롤러 (PortalGateBoss). 비워두면 기본 컨트롤러를 쓴다")]
+    [SerializeField] private RuntimeAnimatorController _bossController;
+
+    [Header("들어가기")]
+    [Tooltip("플레이어가 균열 가운데로 빨려 드는 시간")]
+    [SerializeField, Min(0.05f)] private float _pullDuration = 0.9f;
+    [Tooltip("균열 가운데 (포탈 기준, 바닥에서의 높이)")]
+    [SerializeField] private Vector2 _riftCenterOffset = new(0f, 2.1f);
+    [SerializeField] private Color _pullTint = new(0.75f, 0.92f, 1f, 1f);
 
     [Header("가까이 갔을 때 맥동")]
     [SerializeField, Min(0f)] private float _pulseScale = 0.05f;
@@ -66,11 +83,12 @@ public class Portal : MonoBehaviour, IInteractable
     private float _pulseWeight;
 
     private string _labelText = DefaultLabelText;
+    private bool _isEntering;
 
     public bool IsReady => _isReady;
 
     public string InteractionName => InteractionText;
-    public Transform InteractionGuidePoint => _prompt != null ? _prompt.transform : transform;
+    public Transform InteractionGuidePoint => _interactionGuidePoint != null ? _interactionGuidePoint : transform;
 
     private void Awake()
     {
@@ -79,6 +97,8 @@ public class Portal : MonoBehaviour, IInteractable
 
     private void Start()
     {
+        ApplySorting();
+
         // 플레이어가 이 포탈을 가장 가까운 상호작용 대상으로 잡았을 때만 F 안내를 띄운다.
         _playerInteraction = FindAnyObjectByType<PlayerInteraction>();
         if (_playerInteraction != null)
@@ -90,14 +110,20 @@ public class Portal : MonoBehaviour, IInteractable
     private void HandleCurrentInteractableChanged(IInteractable interactable)
     {
         _isFocused = ReferenceEquals(interactable, this);
-        RefreshPrompt();
     }
 
-    private void RefreshPrompt()
+    private bool HasAnimation => _animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null;
+
+    /// <summary>
+    /// 씬의 YSort(10000 - 바닥 y * 100)와 같은 기준으로 균열의 정렬 순서를 정한다.
+    /// 포탈은 움직이지 않으므로 한 번만 정한다.
+    /// </summary>
+    private void ApplySorting()
     {
-        if (_prompt != null)
+        int order = PortalArrival.RiftSortingOrder(transform.position.y);
+        if (_sprite != null)
         {
-            _prompt.enabled = _isFocused && _isReady;
+            _sprite.sortingOrder = order;
         }
     }
 
@@ -120,6 +146,11 @@ public class Portal : MonoBehaviour, IInteractable
             _visual = _sprite.transform;
         }
 
+        if (_animator == null)
+        {
+            _animator = _visual != null ? _visual.GetComponent<Animator>() : GetComponentInChildren<Animator>();
+        }
+
         if (_collider == null)
         {
             _collider = GetComponent<Collider2D>();
@@ -130,12 +161,16 @@ public class Portal : MonoBehaviour, IInteractable
             _label = GetComponentInChildren<TextMeshPro>();
         }
 
+        // 위쪽 문구는 쓰지 않는다.
+        if (_label != null)
+        {
+            _label.gameObject.SetActive(false);
+        }
+
         if (_visual != null)
         {
             _baseScale = _visual.localScale;
         }
-
-        RefreshPrompt();
 
         ApplyType();
     }
@@ -143,10 +178,16 @@ public class Portal : MonoBehaviour, IInteractable
     /// <summary>
     /// 포탈 위에 띄울 문구를 정한다. (예: Descend, Face the Boss)
     /// </summary>
-    public void Setup(string label)
+    /// <param name="isBoss">보스 층으로 내려가는 포탈이면 true. 보스 컨트롤러가 있으면 보스 균열 그림으로 바꾼다.</param>
+    public void Setup(string label, bool isBoss = false)
     {
         Initialize();
         _labelText = string.IsNullOrEmpty(label) ? DefaultLabelText : label;
+        if (isBoss && _bossController != null && _animator != null)
+        {
+            _animator.runtimeAnimatorController = _bossController;
+        }
+
         ApplyType();
     }
 
@@ -162,32 +203,154 @@ public class Portal : MonoBehaviour, IInteractable
             StopCoroutine(_fadeRoutine);
         }
 
-        _fadeRoutine = StartCoroutine(FadeInRoutine());
+        ApplySorting();
+        _fadeRoutine = StartCoroutine(HasAnimation ? OpenRoutine() : FadeInRoutine());
     }
 
     public void Interact()
     {
-        if (!_isReady)
+        if (!_isReady || _isEntering)
         {
             return;
         }
 
-        if (StageManager.Instance == null)
+        StageManager stageManager = StageManager.Instance;
+        if (stageManager == null)
         {
             Debug.LogWarning("[Portal] StageManager가 없어 포탈을 사용할 수 없습니다.", this);
             return;
         }
 
+        if (!stageManager.CanUsePortal)
+        {
+            return;
+        }
+
         // 연타로 두 번 들어가지 않도록 바로 막는다.
         _isReady = false;
-        RefreshPrompt();
-        StageManager.Instance.UsePortal(this);
+        _isEntering = true;
+        SetColliderEnabled(false);
+
+        if (!HasAnimation)
+        {
+            stageManager.UsePortal(this);
+            return;
+        }
+
+        if (PortalArrival.UseFadeStyle)
+        {
+            EnterWithFade(stageManager);
+            return;
+        }
+
+        StartCoroutine(EnterRoutine());
+    }
+
+    // ───────────────────────── 균열 애니메이션 ─────────────────────────
+
+    private IEnumerator OpenRoutine()
+    {
+        _isReady = false;
+        SetColliderEnabled(false);
+        _alpha = 1f;
+        _scaleFactor = 1f;
+        ApplyVisual(0f);
+
+        // Open이 끝나면 Animator가 자동으로 Idle(반복)로 넘어간다.
+        yield return PortalRiftAnimation.PlayOpen(_animator);
+
+        _fadeRoutine = null;
+        _isReady = true;
+        SetColliderEnabled(true);
+    }
+
+    /// <summary>플레이어가 빨려 들어간 뒤 균열이 닫히고 한 층 내려간다.</summary>
+    /// <summary>
+    /// 페이드 방식 : 플레이어는 그 자리에 둔 채 조작만 막고 바로 층을 옮긴다. (화면은 StageManager가 검게 덮는다)
+    /// 포탈은 층 이동과 함께 정리되므로, 같은 모양의 균열을 남겨 화면이 다 덮일 때까지 일렁이게 한다.
+    /// 다음 층에서는 PortalPlayerHider가 화면이 걷힐 때 도착 연출(열린 균열 앞에 선 플레이어)을 시작한다.
+    /// </summary>
+    private void EnterWithFade(StageManager stageManager)
+    {
+        PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"), true, true);
+        PortalArrival.LingerExitRift(_sprite, _animator);
+        if (_sprite != null)
+        {
+            _sprite.enabled = false;
+        }
+
+        stageManager.UsePortal(this);
+    }
+
+    private IEnumerator EnterRoutine()
+    {
+        Vector3 center = transform.position + (Vector3)_riftCenterOffset;
+        PortalPlayerHider hider = PortalPlayerHider.Hide(GameObject.FindGameObjectWithTag("Player"));
+        List<SpriteRenderer> ghosts = hider != null
+            ? hider.CreateGhosts(_sprite != null ? _sprite.sortingOrder + 1 : int.MinValue)
+            : new List<SpriteRenderer>();
+        Vector3[] starts = new Vector3[ghosts.Count];
+        Vector3[] scales = new Vector3[ghosts.Count];
+        Color[] colors = new Color[ghosts.Count];
+        for (int i = 0; i < ghosts.Count; i++)
+        {
+            starts[i] = ghosts[i].transform.position;
+            scales[i] = ghosts[i].transform.localScale;
+            colors[i] = ghosts[i].color;
+        }
+
+        // 1. 플레이어가 푸른빛으로 물들며 작아져 균열 가운데로 빨려 든다.
+        float elapsed = 0f;
+        while (elapsed < _pullDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / _pullDuration);
+            float eased = t * t * (3f - 2f * t);
+            for (int i = 0; i < ghosts.Count; i++)
+            {
+                if (ghosts[i] == null)
+                {
+                    continue;
+                }
+
+                Transform ghost = ghosts[i].transform;
+                ghost.position = Vector3.Lerp(starts[i], center, eased);
+                ghost.localScale = new Vector3(scales[i].x * Mathf.Lerp(1f, 0.15f, eased),
+                    scales[i].y * Mathf.Lerp(1f, 0.4f, eased), scales[i].z);
+                Color color = Color.Lerp(colors[i], _pullTint, Mathf.Clamp01(eased * 1.3f));
+                color.a = colors[i].a * (1f - Mathf.Clamp01((t - 0.8f) / 0.2f));
+                ghosts[i].color = color;
+            }
+
+            yield return null;
+        }
+
+        foreach (SpriteRenderer ghost in ghosts)
+        {
+            if (ghost != null)
+            {
+                Destroy(ghost.gameObject);
+            }
+        }
+
+        // 2. 균열이 하얗게 봉합되며 닫힌다.
+        yield return PortalRiftAnimation.PlayClose(_animator);
+        if (_sprite != null)
+        {
+            _sprite.enabled = false;
+        }
+
+        // 3. 한 층 내려간다. (포탈은 StageManager가 정리한다)
+        StageManager stageManager = StageManager.Instance;
+        if (stageManager != null)
+        {
+            stageManager.UsePortal(this);
+        }
     }
 
     private IEnumerator FadeInRoutine()
     {
         _isReady = false;
-        RefreshPrompt();
         SetColliderEnabled(false);
 
         float elapsed = 0f;
@@ -209,12 +372,11 @@ public class Portal : MonoBehaviour, IInteractable
         _fadeRoutine = null;
         _isReady = true;
         SetColliderEnabled(true);
-        RefreshPrompt();
     }
 
     private void Update()
     {
-        if (_fadeRoutine != null)
+        if (_fadeRoutine != null || _isEntering)
         {
             return;
         }

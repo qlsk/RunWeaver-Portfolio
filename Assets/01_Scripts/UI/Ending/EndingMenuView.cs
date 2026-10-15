@@ -118,6 +118,11 @@ public class EndingMenuView : MonoBehaviour
         }
 
         _isLocked = true;
+        if (index >= 0 && index < _items.Length && _items[index] != null)
+        {
+            _items[index].PlayConfirmFlash();
+        }
+
         Confirmed?.Invoke(index);
     }
 

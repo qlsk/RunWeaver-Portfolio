@@ -8,6 +8,8 @@ public class MoltenArea : MonoBehaviour
 {
     [FoldoutGroup("Settings"), SerializeField] private float _rangeCheckInterval = 0.1f;
 
+    [FoldoutGroup("References"), SerializeField] private ReactionAreaVisuals _areaVisuals;
+
     private float _tickDamage;
     private float _radius;
     private float _tickInterval;
@@ -34,6 +36,8 @@ public class MoltenArea : MonoBehaviour
         _tickTimer = 0f;
         _rangeCheckTimer = 0f;
         _isInitialized = true;
+        if (_areaVisuals != null)
+            _areaVisuals.Initialize(_radius);
 
         if (isActiveAndEnabled)
             RefreshSlowModifiers();

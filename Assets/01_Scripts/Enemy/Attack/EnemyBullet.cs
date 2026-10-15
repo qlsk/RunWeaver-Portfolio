@@ -4,12 +4,18 @@ public class EnemyBullet : MonoBehaviour
 {
     private Vector2 _direction;
     private bool _initialized;
+    private bool _hasHit;
     [SerializeField] private float _damage = 5f;
     [SerializeField, Min(0f)] private float _speed = 2f;
 
     public void Initialize(Vector2 direction)
     {
         _direction = direction.normalized;
+        if (_direction.sqrMagnitude > 0f)
+        {
+            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
         _initialized = true;
     }
 
@@ -33,10 +39,19 @@ public class EnemyBullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!collision.TryGetComponent(out PlayerHitbox hitbox) || hitbox.Health == null)
-            return;
-
-        hitbox.Health.TakeDamage(_damage);
+        if (_hasHit) return;
+        if (collision.TryGetComponent(out PlayerHitbox hitbox) && hitbox.Health != null && !hitbox.Health.IsDead)
+        {
+            _hasHit = true;
+            hitbox.Health.TakeDamage(_damage);
+        }
+        else
+        {
+            DefenseAltar altar = collision.GetComponentInParent<DefenseAltar>();
+            if (altar == null || !altar.isActiveAndEnabled || altar.IsDestroyed) return;
+            _hasHit = true;
+            altar.TakeDamage(_damage);
+        }
         Destroy(gameObject);
     }
 }

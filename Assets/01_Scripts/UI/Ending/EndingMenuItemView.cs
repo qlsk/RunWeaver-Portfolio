@@ -39,8 +39,15 @@ public class EndingMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerC
     [SerializeField] private float _breathSpeed = 3.2f;
     [SerializeField, Min(0f)] private float _sharpness = 14f;
 
+    [Header("실행 반짝임")]
+    [Tooltip("실행했을 때 글자와 빛이 한 번 밝아졌다 돌아오는 시간 (초)")]
+    [SerializeField, Min(0.01f)] private float _flashDuration = 0.35f;
+    [SerializeField] private Color _flashTextColor = new(1f, 0.96f, 0.86f, 1f);
+    [SerializeField] private float _flashScale = 0.06f;
+
     private bool _isSelected;
     private float _selection;
+    private float _flash;
     private Graphic _leftGraphic;
     private Graphic _rightGraphic;
     private Vector3 _textBaseScale = Vector3.one;
@@ -80,6 +87,12 @@ public class EndingMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerC
         }
     }
 
+    /// <summary>실행했을 때 한 번 반짝인다.</summary>
+    public void PlayConfirmFlash()
+    {
+        _flash = 1f;
+    }
+
     /// <summary>연출 없이 바로 선택 상태를 맞춘다.</summary>
     public void SnapSelection()
     {
@@ -91,16 +104,18 @@ public class EndingMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerC
     private void Update()
     {
         _selection = Mathf.Lerp(_selection, _isSelected ? 1f : 0f, ShopEase.Damp(_sharpness, Time.unscaledDeltaTime));
+        _flash = Mathf.MoveTowards(_flash, 0f, Time.unscaledDeltaTime / _flashDuration);
         Apply();
     }
 
     private void Apply()
     {
         float t = _selection;
+        float flash = _flash * _flash;
         if (_text != null)
         {
-            _text.color = Color.Lerp(_normalTextColor, _selectedTextColor, t);
-            _text.rectTransform.localScale = _textBaseScale * Mathf.Lerp(1f, _selectedScale, t);
+            _text.color = Color.Lerp(Color.Lerp(_normalTextColor, _selectedTextColor, t), _flashTextColor, flash);
+            _text.rectTransform.localScale = _textBaseScale * (Mathf.Lerp(1f, _selectedScale, t) + _flashScale * flash);
         }
 
         float halfWidth = GetTextHalfWidth() * Mathf.Lerp(1f, _selectedScale, t);
@@ -115,7 +130,7 @@ public class EndingMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerC
         if (_glow != null)
         {
             Color color = _glow.color;
-            color.a = _glowAlpha * t;
+            color.a = Mathf.Max(_glowAlpha * t, flash);
             _glow.color = color;
         }
 

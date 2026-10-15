@@ -17,6 +17,30 @@ public class EndingStatRowView : MonoBehaviour
     private Color _normalValueColor = Color.black;
     private bool _isInitialized;
 
+    private string _defaultLabel = string.Empty;
+
+    /// <summary>프리팹에 적힌 처음 이름. 처음 읽을 때 초기화해서, 다른 값보다 먼저 읽어도 비지 않는다.</summary>
+    public string DefaultLabel
+    {
+        get
+        {
+            Initialize();
+            return _defaultLabel;
+        }
+    }
+
+    /// <summary>이름을 바꾼다. (임무 실패 때 "오염도"처럼 줄의 뜻이 바뀔 때)</summary>
+    public void SetLabel(string label)
+    {
+        Initialize();
+        if (_labelText != null)
+        {
+            _labelText.text = label;
+        }
+
+        LayoutLeader();
+    }
+
     public void SetValue(string value)
     {
         Initialize();
@@ -59,6 +83,11 @@ public class EndingStatRowView : MonoBehaviour
         if (_valueText != null)
         {
             _normalValueColor = _valueText.color;
+        }
+
+        if (_labelText != null)
+        {
+            _defaultLabel = _labelText.text;
         }
     }
 }
