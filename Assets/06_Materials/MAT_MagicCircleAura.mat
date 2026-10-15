@@ -53,26 +53,27 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AuraOpacity: 0.35
+    - _AuraWidth: 0.012
     - _EnableExternalAlpha: 0
     - _GlowIntensity: 2
-    - _RevealProgress: 0
-    - _RevealFeather: 0.01
-    - _RevealStartRadius: 0.38
+    - _GlowTime: 0
     - _RevealEndRadius: 0.72
+    - _RevealFeather: 0.01
+    - _RevealProgress: 0
+    - _RevealStartRadius: 0.38
     - _ShimmerAmount: 0.003
     - _ShimmerSpeed: 1.3
     - _ShimmerStrength: 0.15
-    - _AuraWidth: 0.012
-    - _AuraOpacity: 0.35
-    - _GlowTime: 0
     - _ZWrite: 0
     m_Colors:
-    - _LayerRotationSpeeds: {r: 2, g: -3, b: 1.5, a: -2}
-    - _RevealStageRadii: {r: 0.46, g: 0.52, b: 0.55, a: 0}
     - White: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _GlowColor: {r: 0.1, g: 0.65, b: 1, a: 1}
+    - _LayerRotationSpeeds: {r: 2, g: -3, b: 1.5, a: -2}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RevealStageRadii: {r: 0.46, g: 0.52, b: 0.55, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &1391990152622955143

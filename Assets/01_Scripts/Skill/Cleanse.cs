@@ -77,6 +77,7 @@ public class Cleanse : MonoBehaviour
         _cooldownRefund = 0f;
         Used?.Invoke(_removed);
         Cleansed?.Invoke(cleared);
+        Sfx.Play(Sfx.CleanseSpell);
     }
 
     /// <summary>보상 특성용: 다음 정화 1회의 대기시간을 비율만큼 감산한다.</summary>

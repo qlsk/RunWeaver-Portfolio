@@ -39,6 +39,9 @@ public class PlayerHealth : MonoBehaviour
     /// <summary>보상 특성용 피해 배율 (기본 1). 받는 피해에 곱해진다.</summary>
     public float DamageTakenMultiplier { get; set; } = 1f;
 
+    /// <summary>피해로는 이 비율(최대 체력 대비) 아래로 내려가지 않는다. 0이면 제한이 없다. (튜토리얼) 탐사 포기(Kill)는 막지 않는다.</summary>
+    public float MinHealthRatio { get; set; }
+
     private bool _isDead = false;
     public bool IsDead => _isDead;
 
@@ -97,15 +100,19 @@ public class PlayerHealth : MonoBehaviour
             return;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(Sfx.PlayerHit);
         Damaged?.Invoke(finalDamage);
-        if (_currentHealth - finalDamage <= 0f)
+        // 하한보다 이미 낮은 체력은 올리지 않는다.
+        float floor = Mathf.Min(_currentHealth, _maxHealth * Mathf.Clamp01(MinHealthRatio));
+        float nextHealth = Mathf.Max(floor, _currentHealth - finalDamage);
+        if (nextHealth <= 0f)
         {
             _currentHealth = 0f;
             Death();
         }
         else
         {
-            _currentHealth -= finalDamage;
+            _currentHealth = nextHealth;
         }
     }
 
@@ -131,6 +138,13 @@ public class PlayerHealth : MonoBehaviour
 
         yield return new WaitForSeconds(invincibility);
         _hitInvincibility = false;
+    }
+
+    /// <summary>이어하기 : 저장된 체력으로 바로 맞춘다. (0 이하면 1로)</summary>
+    public void RestoreHealth(float health)
+    {
+        if (_isDead) return;
+        _currentHealth = Mathf.Clamp(health, 1f, _maxHealth);
     }
 
     // 체력 회복

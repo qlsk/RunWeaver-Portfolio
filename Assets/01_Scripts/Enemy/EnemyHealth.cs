@@ -8,6 +8,7 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private EnemyDataSO _enemyData;
     [SerializeField] private float _currentHealth = 10f;
     [SerializeField] private MMF_Player _damageFeedbacks;
+    [SerializeField] private bool _useBossHealthBar;
 
     private float _maxHealth;
     private bool _isDead = false;
@@ -36,6 +37,20 @@ public class EnemyHealth : MonoBehaviour
         }
 
         _currentHealth = _maxHealth;
+
+        var stage = FindAnyObjectByType<StageManager>();
+        if (_useBossHealthBar || (stage != null && stage.BossHealth == this))
+        {
+            if (TryGetComponent<EnemyHealthBar>(out var worldBar)) worldBar.enabled = false;
+            if (!TryGetComponent<BossHealthBar>(out var bossBar))
+                bossBar = gameObject.AddComponent<BossHealthBar>();
+            bossBar.Initialize(this);
+            return;
+        }
+
+        if (!TryGetComponent<EnemyHealthBar>(out var healthBar))
+            healthBar = gameObject.AddComponent<EnemyHealthBar>();
+        healthBar.Initialize(this);
     }
 
     public void TakeDamage(float damage)
@@ -54,6 +69,7 @@ public class EnemyHealth : MonoBehaviour
         if (killed) _isDead = true;
 
         _damageFeedbacks?.PlayFeedbacks(transform.position);
+        Sfx.Play(killed ? Sfx.EnemyDeath : Sfx.EnemyHit, killed ? 0.5f : 0.125f, killed ? 1f : 1.2f);
         OnDamaged?.Invoke();
         OnDamageDealt?.Invoke(this, actualDamage);
 

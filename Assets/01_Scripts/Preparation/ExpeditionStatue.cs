@@ -43,6 +43,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
     [Header("석상")]
     [SerializeField] private SpriteRenderer _statueRenderer;
+    [SerializeField] private GameObject _circleRoot;
     [Tooltip("석상과 함께 사라지는 것 (바닥 마법진 등)")]
     [SerializeField] private SpriteRenderer[] _fadeOutRenderers;
     [SerializeField] private Collider2D[] _colliders;
@@ -215,6 +216,21 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
         }
     }
 
+    /// <summary>이어하기에서는 연출 없이 석상과 별도로 배치된 발판까지 제거한다.</summary>
+    public void RemoveForContinuation()
+    {
+        // OnDisable의 연출 복구를 먼저 끝낸 뒤 최종적으로 숨긴다.
+        gameObject.SetActive(false);
+        HideStatueLeftovers();
+        SetCollidersEnabled(false);
+        if (_circleRoot != null)
+        {
+            _circleRoot.SetActive(false);
+            Destroy(_circleRoot);
+        }
+        Destroy(gameObject);
+    }
+
     // ───────────────────────── 상호작용 ─────────────────────────
 
     public void Interact()
@@ -307,6 +323,7 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
     {
         _isCrumbling = true;
         SetCollidersEnabled(false);
+        Sfx.Play(Sfx.StatueBreak);
 
         // 1. 점점 세게 흔들리며 빛난다.
         Transform statue = _statueRenderer != null ? _statueRenderer.transform : transform;
@@ -526,6 +543,23 @@ public class ExpeditionStatue : MonoBehaviour, IInteractable
 
         _circleBaseAlphas = null;
         SetCollidersEnabled(true);
+    }
+
+    /// <summary>
+    /// 상호작용 없이 출발 준비를 건너뛰고 붕괴 연출로 1층을 시작한다. (튜토리얼 건너뛰기)
+    /// 이미 무너지는 중이거나 1층이 시작됐으면 아무것도 하지 않는다.
+    /// </summary>
+    public void SkipPreparation()
+    {
+        if (_isCrumbling || _runBegun)
+        {
+            return;
+        }
+
+        _isChoosingElement = false;
+        _isWaitingRuneConfirm = false;
+        _isCrumbling = true;
+        _crumbleCoroutine = StartCoroutine(CrumbleRoutine());
     }
 
     // ───────────────────────── 1층 시작 ─────────────────────────

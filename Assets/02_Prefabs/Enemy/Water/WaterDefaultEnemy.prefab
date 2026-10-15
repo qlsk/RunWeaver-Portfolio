@@ -526,6 +526,8 @@ GameObject:
   - component: {fileID: 2527799871609909900}
   - component: {fileID: 5347450298949797985}
   - component: {fileID: 3210923008121914940}
+  - component: {fileID: 980700000}
+  - component: {fileID: 980700001}
   m_Layer: 8
   m_Name: WaterDefaultEnemy
   m_TagString: Enemy
@@ -802,3 +804,29 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: -0.36349005}
   m_Radius: 0.13650995
+--- !u!210 &980700000
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
+--- !u!114 &980700001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8121630921212012013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16760da1300426e8e82b37b15a4a00a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YSort
+  _sortingOffsetY: -0.36349005

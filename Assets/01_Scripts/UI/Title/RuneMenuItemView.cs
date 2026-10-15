@@ -62,6 +62,39 @@ public class RuneMenuItemView : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public bool IsSelected { get; set; }
     public bool IsDisabled => _isDisabled;
 
+    /// <summary>항목 글자</summary>
+    public string Label
+    {
+        get => _text != null ? _text.text : string.Empty;
+        set
+        {
+            if (_text != null)
+            {
+                _text.text = value;
+            }
+        }
+    }
+
+    /// <summary>누를 수 있는지 바꾼다. (타이틀의 이어하기)</summary>
+    public void SetDisabled(bool isDisabled)
+    {
+        Initialize();
+        _isDisabled = isDisabled;
+        Apply();
+    }
+
+    /// <summary>옆의 작은 글자를 바꾼다. 작은 글자가 없는 항목이면 아무것도 하지 않는다.</summary>
+    public void SetSubText(string text)
+    {
+        if (_subText != null)
+        {
+            _subText.text = text;
+        }
+    }
+
+    /// <summary>옆의 작은 글자. 없으면 빈 문자열</summary>
+    public string SubText => _subText != null ? _subText.text : string.Empty;
+
     /// <summary>등장 정도 (0 숨김 ~ 1 다 나옴)</summary>
     public float Appear { get; set; } = 1f;
 

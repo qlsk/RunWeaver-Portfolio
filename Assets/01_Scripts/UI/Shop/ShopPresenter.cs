@@ -184,6 +184,7 @@ public class ShopPresenter : MonoBehaviour
     /// <summary>상점을 새로 연다. (창을 켜고 리롤 비용을 초기화한 뒤 새로 진열)</summary>
     public void OpenShop()
     {
+        Sfx.Play(Sfx.ShopDoorBell);
         GameObject target = _closeTarget != null ? _closeTarget : gameObject;
         target.SetActive(true);
         _selectedIndex = -1;
@@ -201,6 +202,7 @@ public class ShopPresenter : MonoBehaviour
     /// <summary>매대가 밀려 들어오고, 칸이 하나씩 튀어나오고, 상점 주인이 인사한다.</summary>
     private void PlayOpenSequence()
     {
+        Sfx.Play(Sfx.ShopDrawer);
         if (_sellPanel != null)
         {
             if (_sellPanelRoutine != null)
@@ -394,6 +396,7 @@ public class ShopPresenter : MonoBehaviour
         bool isNewSelection = index != _selectedIndex;
         _selectedIndex = index;
         ShowDetails();
+        if (isNewSelection) Sfx.Play(Sfx.ShopSelect);
 
         if (isNewSelection && _merchant != null)
         {
@@ -414,6 +417,7 @@ public class ShopPresenter : MonoBehaviour
         // 살 수 없는 품목 (예: 체력이 가득 찬 상태의 포션)
         if (!_dataSource.CanPurchase(offer))
         {
+            Sfx.Play(Sfx.ShopDenied);
             slot.PlayDenied();
             if (_merchant != null)
             {
@@ -425,6 +429,7 @@ public class ShopPresenter : MonoBehaviour
 
         if (!_dataSource.CanAfford(offer.Price))
         {
+            Sfx.Play(Sfx.ShopDenied);
             slot.PlayDenied();
             if (_goldCounter != null)
             {
@@ -441,11 +446,26 @@ public class ShopPresenter : MonoBehaviour
 
         if (!_dataSource.TryBuy(index))
         {
+            Sfx.Play(Sfx.ShopDenied);
             slot.PlayDenied();
             return;
         }
 
         slot.PlayPurchase();
+        Sfx.Play(Sfx.ShopBuyCommon);
+        Sfx.Play(Sfx.ShopGold);
+        if (offer.Type == ShopItemType.RuneWord || offer.Type == ShopItemType.RuneStone)
+        {
+            Sfx.Play(Sfx.ShopBuyMagic);
+        }
+        else if (offer.Type == ShopItemType.Potion)
+        {
+            Sfx.Play(Sfx.ShopBuyPotion);
+        }
+        if (FindFirstOfferIndex() < 0)
+        {
+            Sfx.Play(Sfx.ShopSoldOut);
+        }
         if (_merchant != null)
         {
             _merchant.ReactToPurchase(offer, FindFirstOfferIndex() < 0);
@@ -461,6 +481,7 @@ public class ShopPresenter : MonoBehaviour
 
         if (!_dataSource.CanReroll())
         {
+            Sfx.Play(Sfx.ShopDenied);
             PlayRerollDenied();
             return;
         }
@@ -478,6 +499,7 @@ public class ShopPresenter : MonoBehaviour
 
         if (_dataSource.TryReroll())
         {
+            Sfx.Play(Sfx.ShopReroll);
             // 리롤하면 첫 칸을 다시 선택한다.
             _selectedIndex = FindFirstOfferIndex();
             ShowDetails();
@@ -555,6 +577,7 @@ public class ShopPresenter : MonoBehaviour
 
         _isLeaving = true;
         Debug.Log("[ShopPresenter] Leave shop", this);
+        Sfx.Play(Sfx.ShopLeave);
 
         if (_fadeRoutine != null)
         {
