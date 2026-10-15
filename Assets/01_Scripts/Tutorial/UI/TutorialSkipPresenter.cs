@@ -1,44 +1,41 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 일시정지 메뉴의 "튜토리얼 건너뛰기" 항목.
+/// 누르면 일시정지 메뉴의 확인 창(탐사 포기, 게임 종료와 같은 창)으로 묻는다.
+/// 확인 창이 떠 있는 동안 메뉴는 숨고 입력을 받지 않으며, 취소(Esc)하면 이 항목이 다시 선택된다.
+/// 튜토리얼이 진행 중일 때만 항목이 보인다.
+/// </summary>
 public class TutorialSkipPresenter : MonoBehaviour
 {
-    private const string ContinueButtonName = "ContinueButton";
-    private const string SkipButtonName = "SkipButton";
-
     [SerializeField] private TutorialController _controller;
     [SerializeField] private Button _menuButton;
+    [Tooltip("예전 전용 확인 창. 쓰지 않으며 켜져 있으면 끈다 (비워도 된다)")]
     [SerializeField] private GameObject _dialog;
     [SerializeField] private PauseController _pauseController;
 
-    private Button _continueButton;
-    private Button _skipButton;
+    [Header("확인 창 문구")]
+    [SerializeField] private string _title = "튜토리얼을 건너뛸까요?";
+    [SerializeField, TextArea] private string _body = "건너뛰면 바로 탐사를 시작합니다.\n안내는 <color=#2F5E8C>협회 지침서</color>에서 언제든 다시 볼 수 있어요.";
+    [SerializeField] private string _confirmLabel = "건너뛰기";
 
     private void Awake()
     {
-        if (_dialog == null)
-            return;
-        _continueButton = FindButton(_dialog.transform, ContinueButtonName);
-        _skipButton = FindButton(_dialog.transform, SkipButtonName);
-        SetDialogNavigation();
-        _dialog.SetActive(false);
+        if (_dialog != null)
+            _dialog.SetActive(false);
     }
 
     private void OnEnable()
     {
-        _menuButton.onClick.AddListener(HandleMenuClicked);
-        _continueButton.onClick.AddListener(HandleContinueClicked);
-        _skipButton.onClick.AddListener(HandleSkipClicked);
-        _pauseController.RegisterSubScreenCloseHandler(HandleEscape);
+        if (_menuButton != null)
+            _menuButton.onClick.AddListener(HandleMenuClicked);
     }
 
     private void OnDisable()
     {
-        _menuButton.onClick.RemoveListener(HandleMenuClicked);
-        _continueButton.onClick.RemoveListener(HandleContinueClicked);
-        _skipButton.onClick.RemoveListener(HandleSkipClicked);
-        _pauseController.UnregisterSubScreenCloseHandler(HandleEscape);
+        if (_menuButton != null)
+            _menuButton.onClick.RemoveListener(HandleMenuClicked);
     }
 
     private void LateUpdate()
@@ -49,69 +46,22 @@ public class TutorialSkipPresenter : MonoBehaviour
         bool isTutorialRunning = _controller != null && _controller.IsRunning;
         if (_menuButton.gameObject.activeSelf != isTutorialRunning)
             _menuButton.gameObject.SetActive(isTutorialRunning);
-
-        if (_dialog != null && _dialog.activeSelf && !_menuButton.gameObject.activeInHierarchy)
-            _dialog.SetActive(false);
-    }
-
-    private bool HandleEscape()
-    {
-        if (_dialog == null || !_dialog.activeSelf)
-            return false;
-
-        CloseDialog();
-        return true;
-    }
-
-    private void CloseDialog()
-    {
-        _dialog.SetActive(false);
-
-        if (_menuButton != null && _menuButton.gameObject.activeInHierarchy)
-            SetEventSelection(_menuButton.gameObject);
-    }
-
-    private void SetDialogNavigation()
-    {
-        if (_continueButton == null || _skipButton == null)
-            return;
-
-        _continueButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnRight = _skipButton };
-        _skipButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = _continueButton };
-    }
-
-    private static void SetEventSelection(GameObject target)
-    {
-        if (UnityEngine.EventSystems.EventSystem.current != null)
-            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(target);
     }
 
     private void HandleMenuClicked()
     {
-        if (_dialog == null)
+        if (_pauseController == null)
+        {
+            Skip();
             return;
+        }
 
-        _dialog.SetActive(true);
-
-        if (_continueButton != null)
-            SetEventSelection(_continueButton.gameObject);
+        _pauseController.ShowMenuConfirm(_title, _body, _confirmLabel, Skip, _menuButton.gameObject);
     }
 
-    private void HandleContinueClicked()
+    private void Skip()
     {
-        CloseDialog();
-    }
-
-    private void HandleSkipClicked()
-    {
-        _dialog.SetActive(false);
-
         if (_controller != null)
             _controller.Skip();
-    }
-
-    private static Button FindButton(Transform parent, string buttonName)
-    {
-        return parent.GetComponentsInChildren<Button>(true).FirstOrDefault(button => button.name == buttonName);
     }
 }

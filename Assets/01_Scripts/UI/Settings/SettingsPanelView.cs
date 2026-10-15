@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// - 슬라이더 / 전체 화면 토글을 바꾸면 그 자리에서 바로 적용된다.
 /// - Apply : 저장하고 닫는다.
 /// - Cancel : 창을 열기 전 값으로 되돌리고 닫는다. (Esc도 Cancel과 같다. Esc는 창을 연 쪽에서 Cancel을 부른다)
+/// - _group을 넣으면 열릴 때 서서히 나타난다. (타이틀 확인 창과 같은 연출, 실제 시간)
 /// </summary>
 [DisallowMultipleComponent]
 public class SettingsPanelView : MonoBehaviour
@@ -25,11 +26,17 @@ public class SettingsPanelView : MonoBehaviour
     [SerializeField] private Button _applyButton;
     [SerializeField] private Button _cancelButton;
 
+    [Header("등장")]
+    [Tooltip("창 전체. 넣으면 열릴 때 서서히 나타난다 (비워 두면 바로 나타난다)")]
+    [SerializeField] private CanvasGroup _group;
+    [SerializeField, Min(0.01f)] private float _fadeDuration = 0.2f;
+
     private float _savedMaster;
     private float _savedBgm;
     private float _savedSfx;
     private bool _savedFullscreen;
     private bool _isInitialized;
+    private float _openTime;
 
     /// <summary>Apply 또는 Cancel로 창이 닫혔을 때</summary>
     public event Action Closed;
@@ -86,10 +93,23 @@ public class SettingsPanelView : MonoBehaviour
         }
 
         gameObject.SetActive(true);
+        _openTime = Time.unscaledTime;
+        if (_group != null)
+        {
+            _group.alpha = 0f;
+        }
 
         if (EventSystem.current != null && _masterSlider != null)
         {
             EventSystem.current.SetSelectedGameObject(_masterSlider.gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        if (_group != null && _group.alpha < 1f)
+        {
+            _group.alpha = Mathf.Clamp01((Time.unscaledTime - _openTime) / _fadeDuration);
         }
     }
 

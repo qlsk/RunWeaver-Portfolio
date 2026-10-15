@@ -18,6 +18,11 @@ public class TutorialController : MonoBehaviour
     [SerializeField] private TutorialWorldMarkerView _worldMarkerView;
     [SerializeField] private TutorialRecordTracker _recordTracker;
 
+    [Header("월드 표식 (다른 안내와 같이 띄울 때)")]
+    [Tooltip("단계의 안내가 월드 표식이 아니어도 표식 대상(Marker Target)이 있으면 그 위에 표식을 같이 띄운다. 이때 쓰는 글자")]
+    [SerializeField] private string _statueMarkerText = "시작 석상";
+    [SerializeField] private string _portalMarkerText = "다음 층";
+
     [Header("룬석 지급")]
     [SerializeField] private string[] _grantedRuneWordIds;
 
@@ -209,6 +214,29 @@ public class TutorialController : MonoBehaviour
                 _spotlightView.Show(step);
                 break;
         }
+
+        // 안내가 월드 표식이 아니어도 표식 대상이 정해져 있으면 대상 위에 표식을 같이 띄운다. (1단계 : 이동 안내 + 시작 석상)
+        if (step.Overlay != TutorialOverlayKind.WorldMarker && step.MarkerTarget != TutorialMarkerTarget.None && _worldMarkerView != null)
+        {
+            _worldMarkerView.Show(FindWorldMarkerPrefab(), step.MarkerTarget, MarkerText(step.MarkerTarget));
+        }
+    }
+
+    /// <summary>월드 표식 프리팹. 월드 표식을 쓰는 단계(다음 층)의 프리팹을 같이 쓴다.</summary>
+    private GameObject FindWorldMarkerPrefab()
+    {
+        TutorialStepSO markerStep = Array.Find(_steps, step => step != null && step.Overlay == TutorialOverlayKind.WorldMarker && step.OverlayPrefab != null);
+        return markerStep != null ? markerStep.OverlayPrefab : null;
+    }
+
+    private string MarkerText(TutorialMarkerTarget target)
+    {
+        return target switch
+        {
+            TutorialMarkerTarget.StartStatue => _statueMarkerText,
+            TutorialMarkerTarget.Portal => _portalMarkerText,
+            _ => string.Empty
+        };
     }
 
     private void HideOverlay()
