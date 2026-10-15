@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyHealth))]
@@ -10,7 +9,6 @@ public class EnemyDrop : MonoBehaviour
     [SerializeField] private int _minQuantity = 0;
     [SerializeField] private int _maxQuantity = 1;
     [SerializeField] private RunePickup runePrefab;
-    private List<RuneStoneDefinition> _runeStones = new List<RuneStoneDefinition>();
     [SerializeField] private int _amountOfGold = 10;
 
     private void Start()
@@ -44,15 +42,23 @@ public class EnemyDrop : MonoBehaviour
         var runeStones = database.GetAll();
         if (runeStones == null || runeStones.Count == 0) return;
 
-        _runeStones = new List<RuneStoneDefinition>(runeStones);
-        int index = UnityEngine.Random.Range(0, _runeStones.Count);
-        char runeCharacter = _runeStones[index].RuneCharacter;
+        // 보유 기준 가중 추첨. 매니저 미초기화면 균등 랜덤으로 폴백한다.
+        RuneStoneInventory inventory = null;
+        PlayerRuneManager runeManager = PlayerRuneManager.Instance;
+        if (runeManager != null && runeManager.IsInitialized)
+        {
+            inventory = runeManager.RuneStoneInventory;
+        }
+
+        if (!RuneStoneDropSelector.TryPick(runeStones, inventory, out RuneStoneDefinition picked) || picked == null) return;
+
+        char runeCharacter = picked.RuneCharacter;
 
         // int Random.Range는 최댓값을 포함하지 않으므로 +1 해서 _maxQuantity까지 나오게 한다.
         int quantity = UnityEngine.Random.Range(_minQuantity, _maxQuantity + 1);
         if (quantity == 0) return;
 
-        Sprite runeIcon = _runeStones[index].Icon;
+        Sprite runeIcon = picked.Icon;
 
         RunePickup pickup = Instantiate(runePrefab, transform.position, Quaternion.identity);
         pickup.Initialize(runeCharacter, quantity, runeIcon);

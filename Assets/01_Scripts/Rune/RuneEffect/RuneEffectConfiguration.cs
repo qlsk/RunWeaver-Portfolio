@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 public sealed class RuneEffectConfiguration
 {
+    private const float PowerDamageBonusPerStack = 0.5f;
+    private const float SpeedBonusPerStack = 0.5f;
+    private const float RangeBonusPerStack = 0.5f;
+    private const float AbsorbHealRatioPerStack = 0.1f;
+
+    public const float EchoDelaySeconds = 1f;
+    private const float ChainDamageRatio = 0.5f;
+
     public ReactionElement? PrimaryElement { get; }
     public ReactionElement? SecondaryElement { get; }
 
@@ -14,12 +22,27 @@ public sealed class RuneEffectConfiguration
     public bool IsSeek { get; }
     public bool IsOrbit { get; }
     public bool IsFix { get; }
-    public bool IsChain { get; }
+    public bool IsChain => ChainCount > 0;
+
+    /// <summary>Chain 장착 개수. 한 번 맞을 때 연쇄하는 적의 수와 같다. (중복 장착 1개마다 1마리씩 늘어난다)</summary>
+    public int ChainCount { get; private set; }
+
+    /// <summary>연쇄로 받은 적에게 들어가는 피해 비율 (직접 맞은 피해 기준)</summary>
+    public float ChainDamageMultiplier => ChainDamageRatio;
 
     public int BulletsPerShot => IsSpread ? 3 : 1;
     public int ShotsPerAttack => IsMultiple ? 2 : 1;
     public float SpreadDamageMultiplier => IsSpread ? 0.5f : 1f;
     public float MultipleDamageMultiplier => IsMultiple ? 0.6f : 1f;
+    public int PowerCount { get; private set; }
+    public float PowerDamageMultiplier => 1f + PowerDamageBonusPerStack * PowerCount;
+    public int SpeedCount { get; private set; }
+    public float SpeedMultiplier => 1f + SpeedBonusPerStack * SpeedCount;
+    public int RangeCount { get; private set; }
+    public float RangeMultiplier => 1f + RangeBonusPerStack * RangeCount;
+    public int EchoCount { get; private set; }
+    public int AbsorbCount { get; private set; }
+    public float AbsorbHealRatio => AbsorbHealRatioPerStack * AbsorbCount;
 
     public RuneEffectConfiguration(IReadOnlyList<RuneEffectDefinition> effects)
     {
@@ -36,6 +59,15 @@ public sealed class RuneEffectConfiguration
 
             switch (effect.Id)
             {
+                case RuneEffectIds.Power:
+                    PowerCount += 1;
+                    break;
+                case RuneEffectIds.Speed:
+                    SpeedCount += 1;
+                    break;
+                case RuneEffectIds.Range:
+                    RangeCount += 1;
+                    break;
                 case RuneEffectIds.Spread:
                     IsSpread = true;
                     break;
@@ -61,7 +93,13 @@ public sealed class RuneEffectConfiguration
                     IsFix = true;
                     break;
                 case RuneEffectIds.Chain:
-                    IsChain = true;
+                    ChainCount += 1;
+                    break;
+                case RuneEffectIds.Echo:
+                    EchoCount += 1;
+                    break;
+                case RuneEffectIds.Absorb:
+                    AbsorbCount += 1;
                     break;
             }
         }

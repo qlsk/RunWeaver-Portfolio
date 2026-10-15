@@ -41,6 +41,19 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField, FormerlySerializedAs("spawnEffectPrefab")] private GameObject _spawnEffectPrefab;
     [SerializeField, FormerlySerializedAs("effectDuration")] private float _effectDuration = 1f;
 
+    [Header("장애물 소환 방지")]
+    [Tooltip("소환을 막는 장애물 레이어. 기본값은 Environment입니다.")]
+    [SerializeField] private LayerMask _spawnObstacleLayers = 1 << 10;
+    [SerializeField, Min(1)] private int _maxSpawnPositionAttempts = 30;
+
+    private readonly Collider2D[] _spawnOverlaps = new Collider2D[1];
+
+    private struct SpawnClearance
+    {
+        public Vector2 Offset;
+        public float Radius;
+    }
+
     private Transform _playerTransform;
     private Coroutine _spawnCoroutine;
 
@@ -48,6 +61,7 @@ public class MonsterSpawner : MonoBehaviour
     {
         public GameObject Prefab;
         public EnemyDataSO Data;
+        public List<SpawnClearance> Clearances;
 
         public int MinDepth => Data != null && Data.Info != null ? Data.Info.MinDepth : 1;
         public int Cost => Data != null && Data.Info != null ? Data.Info.Cost : 1;
@@ -112,6 +126,9 @@ public class MonsterSpawner : MonoBehaviour
     {
         _spawnableEntries.Clear();
 
+        if (_spawnObstacleLayers.value == 0)
+            Debug.LogWarning("[MonsterSpawner] Spawn Obstacle Layers를 지정해야 몬스터를 소환할 수 있습니다.", this);
+
         _enemyPrefabs = _enemyPrefabs.Where(p => p != null).ToList();
 
         if (_enemyPrefabs.Count == 0)
@@ -134,7 +151,8 @@ public class MonsterSpawner : MonoBehaviour
             _spawnableEntries.Add(new SpawnableEntry
             {
                 Prefab = prefab,
-                Data = data
+                Data = data,
+                Clearances = BuildSpawnClearances(prefab)
             });
             validCount++;
         }
@@ -286,7 +304,7 @@ public class MonsterSpawner : MonoBehaviour
             else return false;
         }
 
-        Vector2 spawnPos = GetRandomSpawnPosition();
+        if (!TryGetSpawnPosition(entry, out Vector2 spawnPos)) return false;
 
         GameObject spawned = Instantiate(entry.Prefab, spawnPos, Quaternion.identity);
 
@@ -317,6 +335,115 @@ public class MonsterSpawner : MonoBehaviour
         float distance = UnityEngine.Random.Range(_minSpawnDistance, _maxSpawnDistance);
 
         return center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+    }
+
+    private bool TryGetSpawnPosition(SpawnableEntry entry, out Vector2 position)
+    {
+        position = default;
+        if (entry.Clearances == null || _spawnObstacleLayers.value == 0) return false;
+
+        var filter = new ContactFilter2D();
+        filter.SetLayerMask(_spawnObstacleLayers);
+        filter.useTriggers = false;
+        Physics2D.SyncTransforms();
+
+        for (int attempt = 0; attempt < Mathf.Max(1, _maxSpawnPositionAttempts); attempt++)
+        {
+            Vector2 candidate = GetRandomSpawnPosition();
+            bool clear = true;
+            foreach (SpawnClearance clearance in entry.Clearances)
+            {
+                if (Physics2D.OverlapCircle(candidate + clearance.Offset, clearance.Radius,
+                        filter, _spawnOverlaps) > 0)
+                {
+                    clear = false;
+                    break;
+                }
+            }
+
+            if (clear)
+            {
+                position = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<SpawnClearance> BuildSpawnClearances(GameObject prefab)
+    {
+        var clearances = new List<SpawnClearance>();
+        Rigidbody2D body = prefab.GetComponent<Rigidbody2D>();
+        Quaternion spawnRotation = Quaternion.Inverse(prefab.transform.rotation);
+        foreach (Collider2D collider in prefab.GetComponentsInChildren<Collider2D>())
+        {
+            if (!collider.enabled || collider.isTrigger || collider.attachedRigidbody != body) continue;
+
+            float radius;
+            if (collider is CircleCollider2D circle)
+            {
+                radius = circle.radius * Mathf.Max(
+                    collider.transform.TransformVector(Vector3.right).magnitude,
+                    collider.transform.TransformVector(Vector3.up).magnitude);
+            }
+            else
+            {
+                Vector2 halfSize;
+                float edgeRadius = 0f;
+                if (collider is BoxCollider2D box)
+                {
+                    halfSize = box.size * 0.5f;
+                    edgeRadius = box.edgeRadius;
+                }
+                else if (collider is CapsuleCollider2D capsule)
+                {
+                    halfSize = capsule.size * 0.5f;
+                }
+                else if (collider is PolygonCollider2D polygon)
+                {
+                    radius = 0f;
+                    for (int path = 0; path < polygon.pathCount; path++)
+                    {
+                        foreach (Vector2 point in polygon.GetPath(path))
+                            radius = Mathf.Max(radius, collider.transform.TransformVector(point).magnitude);
+                    }
+                    clearances.Add(CreateSpawnClearance(prefab, collider, spawnRotation, radius));
+                    continue;
+                }
+                else
+                {
+                    Debug.LogWarning($"[MonsterSpawner] '{prefab.name}'의 {collider.GetType().Name}은 " +
+                        "소환 공간 검사에서 지원하지 않아 소환을 건너뜁니다.", this);
+                    return null;
+                }
+
+                radius = Mathf.Max(
+                    collider.transform.TransformVector(new Vector2(halfSize.x, halfSize.y)).magnitude,
+                    collider.transform.TransformVector(new Vector2(halfSize.x, -halfSize.y)).magnitude);
+                radius += edgeRadius * Mathf.Max(
+                    collider.transform.TransformVector(Vector3.right).magnitude,
+                    collider.transform.TransformVector(Vector3.up).magnitude);
+            }
+
+            clearances.Add(CreateSpawnClearance(prefab, collider, spawnRotation, radius));
+        }
+
+        // 몸체 Collider가 없는 프리팹도 소환 지점 자체가 장애물 안인지 확인한다.
+        if (clearances.Count == 0)
+            clearances.Add(new SpawnClearance { Radius = 0.01f });
+        return clearances;
+    }
+
+    private static SpawnClearance CreateSpawnClearance(GameObject prefab, Collider2D collider,
+        Quaternion spawnRotation, float radius)
+    {
+        Vector3 offset = collider.transform.TransformPoint(collider.offset) - prefab.transform.position;
+        return new SpawnClearance
+        {
+            Offset = spawnRotation * offset,
+            Radius = Mathf.Max(0.01f, radius)
+        };
     }
 
     private void HandleEnemyDied(EnemyHealth enemy)

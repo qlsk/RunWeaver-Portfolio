@@ -42,7 +42,8 @@ GameObject:
   m_Component:
   - component: {fileID: 703068605852088419}
   - component: {fileID: 2765927158586497332}
-  - component: {fileID: 7362197195859643653}
+  - component: {fileID: 1612665507085349768}
+  - component: {fileID: 8860129656753508819}
   - component: {fileID: 1590940781721483665}
   m_Layer: 0
   m_Name: Ground
@@ -125,38 +126,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &7362197195859643653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2909509503303496774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25f8ae5904a14677b070c37f3f9143b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpriteFramePlayer
-  _frames:
-  - {fileID: -1817204755, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 1534176583, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 1649184997, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 1811074597, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -721923702, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -1292131105, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -1615279735, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -610420590, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 732277739, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -808514223, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -333957784, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 679386676, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -1613776897, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: 225413224, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -1520658962, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  - {fileID: -1195358844, guid: fb6c74e0cdd54b799b4c9d6c998d027a, type: 3}
-  _framesPerSecond: 10
-  _loop: 1
-  _randomStart: 1
 --- !u!114 &1590940781721483665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,3 +140,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FxGrowIn
   _startScale: 0.25
   _duration: 0.35
+--- !u!95 &1612665507085349768
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2909509503303496774}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: cb1cccd272ea798492d24c84674034c9, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8860129656753508819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2909509503303496774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549e46c563f9a4bfc7b0b1d3092d86ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorRandomStart
+  _stateName: Loop

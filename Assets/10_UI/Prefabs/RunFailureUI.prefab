@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1000000000000000002}
   - component: {fileID: 103536636290503468}
+  - component: {fileID: 473131360156809318}
   m_Layer: 5
   m_Name: RunFailureUI
   m_TagString: Untagged
@@ -1054,17 +1055,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunFailureSequence
   _playerHealth: {fileID: 0}
   _shader: {fileID: 4800000, guid: 150c499b7f60422ebad6b93fd69f9aa9, type: 3}
-  _vignette: {fileID: 4130964847434168528}
-  _miasma: {fileID: 1624977439238990397}
-  _flash: {fileID: 1103777416534617503}
-  _fade: {fileID: 314346616017525663}
-  _banner: {fileID: 4580450804551557444}
+  _animator: {fileID: 473131360156809318}
   _bannerText: {fileID: 4812652304726972722}
-  _caption: {fileID: 5409092630447290027}
   _captionTitle: {fileID: 2670311452409360244}
   _captionSubtitle: {fileID: 4145807508661783394}
-  _moteSprite: {fileID: 21300000, guid: 13728913675940a780f10ff07b233d8c, type: 3}
-  _recallCircleSprite: {fileID: 21300000, guid: f5ef48ed3eed4c3f9ad8c74469c43f22, type: 3}
-  _lightColumnSprite: {fileID: 21300000, guid: 26edd3dc0e0440df868964e55d3eab4f, type: 3}
-  _veinsSprite: {fileID: 21300000, guid: 1180043413c94223a3573913e76ded81, type: 3}
+  _recallFxPrefab: {fileID: 790937401605728139, guid: 8a70c25d5bfaa54b2a355e61635dc651, type: 3}
+  _veinsFxPrefab: {fileID: 4539426401456202491, guid: 362be0fc301ba51257bdd8fad685add7, type: 3}
+  _diedMotesPrefab: {fileID: 8424722020446897670, guid: 98bd8116dfe201f4269d50c598f1c4aa, type: 3}
+  _abandonedMotesPrefab: {fileID: 1236802305134850821, guid: 564f52a55226e7019fa1859ee7b2c2ff, type: 3}
+  _missionFailedMotesPrefab: {fileID: 7884470578174910425, guid: 72140ac0f1c9adcdab033f17d2303455, type: 3}
   _groundSortingOrder: 1
+--- !u!95 &473131360156809318
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 359cdf6bd3bf60063b84935b4a4fa987, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 2
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

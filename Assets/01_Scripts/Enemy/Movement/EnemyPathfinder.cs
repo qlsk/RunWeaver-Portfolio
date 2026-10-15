@@ -12,7 +12,8 @@ public class EnemyPathfinder
         public int Sequence;
     }
 
-    public bool TryFindPath(EnemyNavigationGrid grid, Vector2 start, Vector2 destination, List<Vector2> result)
+    public bool TryFindPath(EnemyNavigationGrid grid, Vector2 start, Vector2 destination, List<Vector2> result,
+        Func<Vector2, bool> canReachFromStart = null)
     {
         if (result == null)
         {
@@ -32,9 +33,12 @@ public class EnemyPathfinder
             return true;
         }
 
-        if (!grid.IsWalkable(first))
+        bool CanReach(Vector2 point) => canReachFromStart != null
+            ? canReachFromStart(point) : grid.CanMoveDirectly(start, point);
+
+        if (!grid.IsWalkable(first) || !CanReach(grid.CellToWorld(first)))
         {
-            first = FindNearestWalkableCell(grid, first, 2);
+            first = FindNearestWalkableCell(grid, first, 2, CanReach);
         }
 
         if (!grid.IsWalkable(last))
@@ -42,7 +46,8 @@ public class EnemyPathfinder
             last = FindNearestWalkableCell(grid, last, 5);
         }
 
-        if (!grid.IsWalkable(first) || !grid.IsWalkable(last)) return false;
+        if (!grid.IsWalkable(first) || !grid.IsWalkable(last) ||
+            !CanReach(grid.CellToWorld(first))) return false;
 
         var open = new SortedSet<Entry>(Comparer<Entry>.Create((a, b) =>
         {
@@ -115,9 +120,10 @@ public class EnemyPathfinder
         return false;
     }
 
-    private Vector2Int FindNearestWalkableCell(EnemyNavigationGrid grid, Vector2Int center, int maxRadius)
+    private Vector2Int FindNearestWalkableCell(EnemyNavigationGrid grid, Vector2Int center, int maxRadius,
+        Func<Vector2, bool> canReach = null)
     {
-        if (grid.IsWalkable(center))
+        if (grid.IsWalkable(center) && (canReach == null || canReach(grid.CellToWorld(center))))
         {
             return center;
         }
@@ -134,7 +140,7 @@ public class EnemyPathfinder
                     }
 
                     Vector2Int neighbor = center + new Vector2Int(dx, dy);
-                    if (grid.IsWalkable(neighbor))
+                    if (grid.IsWalkable(neighbor) && (canReach == null || canReach(grid.CellToWorld(neighbor))))
                     {
                         return neighbor;
                     }

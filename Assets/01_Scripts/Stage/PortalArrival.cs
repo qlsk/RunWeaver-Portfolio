@@ -1,29 +1,24 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
-/// 플레이어 도착 연출. 플레이어 머리 위 공중에 균열이 열리고 플레이어를 뱉어낸 뒤 닫힌다.
-/// - 런 시작(시작 석상 앞)과 포탈로 다음 층에 내려왔을 때 쓴다.
-/// - 균열이 열리는 동안 플레이어는 숨겨지고 조작이 막힌다. (PortalPlayerHider)
-/// - 균열 애니메이션은 Resources/PortalRiftFrames의 컨트롤러(Open → Idle → Close)로 재생한다.
-///   없으면 플레이어를 바로 보여준다. 스프라이트는 애니메이션 클립이 바꾼다.
-/// - 페이드 방식(PortalRiftFrames.Style = Fade) : 플레이어 뒤에 균열이 열린 채로 화면이 밝아지고,
-///   완전히 밝아지면 조작을 돌려주고 균열이 닫힌다. 포탈에 들어갈 때도 플레이어를 숨기지 않는다.
+/// 플레이어 도착 연출. (런 시작, 포탈로 다음 층에 내려왔을 때)
+/// 화면이 어두운 동안 플레이어 뒤에 열린 균열(PortalRiftFrames의 프리팹)을 띄워 두고, 화면이 완전히 밝아지면
+/// 조작을 돌려주고 균열을 닫는다. 닫힌 바위 문은 가라앉으며 흐려진다. (모두 프리팹 Animator의 클립)
+/// 포탈에 들어갈 때도 같은 균열을 남겨 화면이 다 덮일 때까지 일렁이게 한다. (LingerExitRift)
 /// 게임 시간으로 움직인다. (일시정지하면 멈춘다)
 /// </summary>
 public class PortalArrival : MonoBehaviour
 {
-    private const float OpenFramesPerSecond = 16f;
     private const float CloseFramesPerSecond = 14f;
-    private const float IdleHold = 0.15f;
-    private const float SpitDuration = 0.45f;
-    /// <summary>페이드 방식 : 완전히 밝아진 뒤 균열이 닫히기까지 기다리는 시간</summary>
+    /// <summary>완전히 밝아진 뒤 균열이 닫히기까지 기다리는 시간</summary>
     private const float FadeCloseDelay = 0.15f;
-    /// <summary>페이드 방식 : 균열 바닥을 플레이어 발보다 이만큼 위(뒤)에 둔다. 플레이어가 균열 앞에 선다.</summary>
+    /// <summary>균열 바닥을 플레이어 발보다 이만큼 위(뒤)에 둔다. 플레이어가 균열 앞에 선다.</summary>
     private const float FadeRiftLift = 0.5f;
     /// <summary>포탈에 들어갈 때 남겨 두는 균열이 화면이 검게 되지 않아도 사라지는 시간 (실제 시간)</summary>
     private const float ExitLingerTimeout = 4f;
+
     /// <summary>
     /// 바닥 기준점(groundY)으로 정렬 순서를 정한다. 씬의 YSort와 같은 식(10000 - y*100)에
     /// 공중에 떠 있는 만큼 조금 앞으로 당긴다. (석상, 미션 오브젝트 등 YSort를 쓰는 것과 앞뒤가 맞는다)
@@ -37,55 +32,35 @@ public class PortalArrival : MonoBehaviour
 
     private PortalPlayerHider _hider;
     private float _delay;
+    private GameObject _rift;
 
-    /// <summary>층 이동을 페이드 방식으로 하는지 (균열 프레임이 없으면 false)</summary>
-    public static bool UseFadeStyle
-    {
-        get
-        {
-            PortalRiftFrames frames = Frames;
-            return frames != null && frames.Controller != null && frames.Style == PortalTransitionStyle.Fade;
-        }
-    }
+    /// <summary>균열 연출을 쓸 수 있는지 (설정과 프리팹이 있어야 한다)</summary>
+    public static bool UseFadeStyle => Frames != null && Frames.RiftPrefab != null;
 
-    /// <summary>플레이어를 숨기고(페이드 방식은 조작만 막고) delay 뒤 도착 연출을 시작한다. (런 시작)</summary>
+    /// <summary>조작을 막고 delay 뒤 도착 연출을 시작한다. (런 시작)</summary>
     public static void PlayFor(GameObject player, float delay)
     {
-        PortalPlayerHider hider = PortalPlayerHider.Hide(player, false, UseFadeStyle);
+        PortalPlayerHider hider = PortalPlayerHider.Hide(player, false, true);
         Play(hider, delay);
     }
 
     /// <summary>
-    /// 페이드 방식으로 포탈에 들어갈 때 : 포탈은 층 이동과 함께 바로 사라지므로,
-    /// 같은 모양의 균열을 따로 남겨 화면이 완전히 검게 될 때까지 계속 일렁이게 한다.
+    /// 포탈에 들어갈 때 : 포탈은 층 이동과 함께 바로 사라지므로, 같은 모양의 균열을 따로 남겨
+    /// 화면이 완전히 검게 될 때까지 일렁이게 한다. 남긴 균열의 소용돌이는 한 번 밝게 부풀었다 가라앉는다.
     /// </summary>
-    public static void LingerExitRift(SpriteRenderer source, Animator sourceAnimator)
+    public static void LingerExitRift(Animator source, Vector3 ground, int sortingOrder)
     {
-        if (source == null)
+        if (!UseFadeStyle)
         {
             return;
         }
 
-        var go = new GameObject("PortalExitRift");
-        go.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
-        go.transform.localScale = source.transform.lossyScale;
-        var rift = go.AddComponent<SpriteRenderer>();
-        rift.sprite = source.sprite;
-        rift.color = source.color;
-        rift.sharedMaterial = source.sharedMaterial;
-        rift.sortingLayerID = source.sortingLayerID;
-        rift.sortingOrder = source.sortingOrder;
-        rift.spriteSortPoint = source.spriteSortPoint;
-        rift.flipX = source.flipX;
-
-        // 원래 포탈과 같은 컨트롤러(보스 포탈이면 보스 컨트롤러)로 Idle을 이어서 재생한다.
-        if (sourceAnimator != null && sourceAnimator.runtimeAnimatorController != null)
-        {
-            Animator animator = PortalRiftAnimation.Attach(go, sourceAnimator.runtimeAnimatorController);
-            PortalRiftAnimation.PlayIdle(animator, Mathf.Repeat(sourceAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f));
-        }
-
-        go.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(go));
+        RuntimeAnimatorController controller = source != null ? source.runtimeAnimatorController : null;
+        Animator animator = SpawnRift(ground, sortingOrder, controller, out GameObject rift);
+        float time = source != null ? Mathf.Repeat(source.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f) : 0f;
+        PortalRiftAnimation.PlayIdle(animator, time);
+        PortalRiftAnimation.PlayLayer(animator, PortalRiftAnimation.FlashLayer, PortalRiftAnimation.FlashState);
+        rift.AddComponent<PortalArrival>().StartCoroutine(LingerRoutine(rift));
     }
 
     private static IEnumerator LingerRoutine(GameObject owner)
@@ -100,7 +75,25 @@ public class PortalArrival : MonoBehaviour
         Destroy(owner);
     }
 
-    /// <summary>이미 숨겨진 플레이어로 도착 연출을 시작한다. (층 이동 뒤)</summary>
+    /// <summary>균열 프리팹을 바닥 위치에 만들고 정렬 순서를 맞춘다.</summary>
+    private static Animator SpawnRift(Vector3 ground, int sortingOrder, RuntimeAnimatorController controller, out GameObject rift)
+    {
+        rift = Instantiate(Frames.RiftPrefab, ground, Quaternion.identity);
+        foreach (SortingGroup group in rift.GetComponentsInChildren<SortingGroup>())
+        {
+            group.sortingOrder = sortingOrder;
+        }
+
+        Animator animator = rift.GetComponentInChildren<Animator>();
+        if (animator != null && controller != null)
+        {
+            animator.runtimeAnimatorController = controller;
+        }
+
+        return animator;
+    }
+
+    /// <summary>이미 조작을 막은 플레이어로 도착 연출을 시작한다. (층 이동 뒤)</summary>
     public static void Play(PortalPlayerHider hider, float delay = 0f)
     {
         if (hider == null)
@@ -133,29 +126,21 @@ public class PortalArrival : MonoBehaviour
             return; // LingerExitRift로 만든 경우
         }
 
-        StartCoroutine(UseFadeStyle ? FadeRoutine() : PlayRoutine());
+        StartCoroutine(FadeRoutine());
     }
 
-    /// <summary>
-    /// 페이드 방식 : 플레이어 뒤에 열린 균열을 바로 띄워 두고, 화면이 완전히 밝아지면 조작을 돌려주고 닫는다.
-    /// </summary>
     private IEnumerator FadeRoutine()
     {
-        PortalRiftFrames frames = Frames;
-        Vector3 ground = _hider.PlayerPosition + Vector3.up * FadeRiftLift;
-        transform.position = ground;
-        var rift = gameObject.AddComponent<SpriteRenderer>();
-        if (frames.Material != null)
+        if (!UseFadeStyle)
         {
-            rift.sharedMaterial = frames.Material;
+            _hider.RestoreNow();
+            Destroy(gameObject);
+            yield break;
         }
 
-        rift.spriteSortPoint = SpriteSortPoint.Pivot;
         // 바닥 기준점이 플레이어보다 위라서 YSort상 플레이어 뒤에 그려진다.
-        rift.sortingOrder = RiftSortingOrder(ground.y);
-
-        // 열린 채로 일렁이는 Idle 애니메이션을 바로 재생한다.
-        Animator animator = PortalRiftAnimation.Attach(gameObject, frames.Controller);
+        Vector3 ground = _hider.PlayerPosition + Vector3.up * FadeRiftLift;
+        Animator animator = SpawnRift(ground, RiftSortingOrder(ground.y), null, out _rift);
         PortalRiftAnimation.PlayIdle(animator);
 
         float waited = 0f;
@@ -174,99 +159,17 @@ public class PortalArrival : MonoBehaviour
 
         _hider.RestoreNow();
         yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
+
+        // 닫힌 바위 문이 한 번에 사라지지 않고 가라앉으며 흐려진다.
+        yield return PortalRiftAnimation.PlayLayerAndWait(animator, PortalRiftAnimation.GateLayer, PortalRiftAnimation.SinkState);
         Destroy(gameObject);
     }
 
-    private IEnumerator PlayRoutine()
+    private void OnDestroy()
     {
-        PortalRiftFrames frames = Frames;
-        if (frames == null || frames.Controller == null || _hider == null)
+        if (_rift != null)
         {
-            _hider?.RestoreNow();
-            Destroy(gameObject);
-            yield break;
+            Destroy(_rift);
         }
-
-        if (_delay > 0f)
-        {
-            yield return new WaitForSeconds(_delay);
-        }
-
-        Vector3 ground = _hider.PlayerPosition;
-        transform.position = ground;
-        var rift = gameObject.AddComponent<SpriteRenderer>();
-        if (frames.Material != null)
-        {
-            rift.sharedMaterial = frames.Material;
-        }
-
-        rift.spriteSortPoint = SpriteSortPoint.Pivot;
-        // 공중에 떠 있으므로 석상, 미션 오브젝트 등 바닥에 선 것보다 앞에 그린다.
-        rift.sortingOrder = RiftSortingOrder(ground.y);
-        Vector3 center = ground + (Vector3)frames.CenterOffset;
-
-        // 1. 플레이어 위 공중에 균열이 열린다. (끝나면 Animator가 자동으로 Idle로 넘어간다)
-        Animator animator = PortalRiftAnimation.Attach(gameObject, frames.Controller);
-        yield return PortalRiftAnimation.PlayOpen(animator, OpenFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
-        float hold = 0f;
-        while (hold < IdleHold)
-        {
-            hold += Time.deltaTime;
-            yield return null;
-        }
-
-        // 2. 균열 가운데에서 플레이어가 튀어나와 바닥에 내려선다.
-        List<SpriteRenderer> ghosts = _hider.CreateGhosts(rift.sortingOrder + 1);
-        Vector3[] targets = new Vector3[ghosts.Count];
-        Vector3[] scales = new Vector3[ghosts.Count];
-        Color[] colors = new Color[ghosts.Count];
-        for (int i = 0; i < ghosts.Count; i++)
-        {
-            targets[i] = ghosts[i].transform.position;
-            scales[i] = ghosts[i].transform.localScale;
-            colors[i] = ghosts[i].color;
-        }
-
-        Color tint = new(0.75f, 0.92f, 1f, 1f);
-        float elapsed = 0f;
-        while (elapsed < SpitDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / SpitDuration);
-            float eased = 1f - (1f - t) * (1f - t) * (1f - t);
-            // 살짝 위로 튀었다가 내려앉는다.
-            float hop = Mathf.Sin(t * Mathf.PI) * 0.6f;
-            for (int i = 0; i < ghosts.Count; i++)
-            {
-                if (ghosts[i] == null)
-                {
-                    continue;
-                }
-
-                Transform ghost = ghosts[i].transform;
-                ghost.position = Vector3.Lerp(center, targets[i], eased) + Vector3.up * hop;
-                ghost.localScale = new Vector3(scales[i].x * Mathf.Lerp(0.15f, 1f, eased),
-                    scales[i].y * Mathf.Lerp(0.4f, 1f, eased), scales[i].z);
-                Color color = Color.Lerp(tint, colors[i], Mathf.Clamp01((t - 0.3f) / 0.7f));
-                color.a = colors[i].a * Mathf.Clamp01(t / 0.15f);
-                ghosts[i].color = color;
-            }
-
-            yield return null;
-        }
-
-        foreach (SpriteRenderer ghost in ghosts)
-        {
-            if (ghost != null)
-            {
-                Destroy(ghost.gameObject);
-            }
-        }
-
-        _hider.RestoreNow();
-
-        // 3. 균열이 닫힌다.
-        yield return PortalRiftAnimation.PlayClose(animator, CloseFramesPerSecond / PortalRiftAnimation.ClipFramesPerSecond);
-        Destroy(gameObject);
     }
 }

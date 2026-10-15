@@ -8,28 +8,28 @@ using UnityEngine;
 [DefaultExecutionOrder(300)]
 public class PlayerAttack : MonoBehaviour
 {
-    [FoldoutGroup("References")] [SerializeField] private Bullet _bulletPrefab;
-    [FoldoutGroup("References")] [SerializeField] private GameObject _firePosition;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _shootFeedbacks;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _hitFeedbacks;
-    [FoldoutGroup("References")] [SerializeField] private MMF_Player _killFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private Bullet _bulletPrefab;
+    [FoldoutGroup("References")][SerializeField] private GameObject _firePosition;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _shootFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _hitFeedbacks;
+    [FoldoutGroup("References")][SerializeField] private MMF_Player _killFeedbacks;
 
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _fireVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _waterVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _earthVfx = new();
-    [FoldoutGroup("Element VFX")] [SerializeField] private BulletVisualEffects _windVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _fireVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _waterVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _earthVfx = new();
+    [FoldoutGroup("Element VFX")][SerializeField] private BulletVisualEffects _windVfx = new();
 
-    [FoldoutGroup("Bullet Settings")] [SerializeField] private float _bulletFireRate = 1f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletDamage = 10f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField, Min(0f)] private float _bulletRange = 10f;
-    [FoldoutGroup("Bullet Settings")] [SerializeField] private ElementType _mainElement;
+    [FoldoutGroup("Bullet Settings")][SerializeField] private float _bulletFireRate = 1f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0f)] private float _bulletDamage = 10f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0.01f)] private float _bulletSpeed = 5f;
+    [FoldoutGroup("Bullet Settings")][SerializeField, Min(0f)] private float _bulletRange = 10f;
+    [FoldoutGroup("Bullet Settings")][SerializeField] private ElementType _mainElement;
 
-    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _spreadAngle = 15f;
-    [FoldoutGroup("Firing Pattern")] [SerializeField] private float _multipleInterval = 0.1f;
+    [FoldoutGroup("Firing Pattern")][SerializeField] private float _spreadAngle = 15f;
+    [FoldoutGroup("Firing Pattern")][SerializeField] private float _multipleInterval = 0.1f;
 
-    [FoldoutGroup("Magazine and Reload")] [SerializeField] private int _magazineSize = 10;
-    [FoldoutGroup("Magazine and Reload")] [SerializeField] private float _reloadTime = 2f;
+    [FoldoutGroup("Magazine and Reload")][SerializeField] private int _magazineSize = 10;
+    [FoldoutGroup("Magazine and Reload")][SerializeField] private float _reloadTime = 2f;
 
     // References
     private PlayerInputHandler _playerInputHandler;
@@ -60,7 +60,26 @@ public class PlayerAttack : MonoBehaviour
     public float DamageMultiplier { get; set; } = 1f;
     public float FireIntervalMultiplier { get; set; } = 1f;
 
+    /// <summary>보상 특성용: 다음 공격 1회에만 곱하는 피해 배율 (기본 1). 공격하면 1로 돌아간다. (dash_05)</summary>
+    public float NextAttackDamageMultiplier { get; set; } = 1f;
+
+    /// <summary>특성 연출용: 마지막 공격이 NextAttackDamageMultiplier로 강화되었는지. (Fired 직후에 읽는다)</summary>
+    public bool LastAttackWasEmpowered { get; private set; }
+
+    private readonly List<Transform> _lastAttackBullets = new();
+    private readonly List<Transform> _lastExtraBullets = new();
+
+    /// <summary>특성 연출용: 마지막 공격(Fire)의 첫 발사 탄환들. 다음 공격 때 바뀐다. (연발 추가탄 제외)</summary>
+    public IReadOnlyList<Transform> LastAttackBullets => _lastAttackBullets;
+
+    /// <summary>특성 연출용: 마지막 FireExtraShot(메아리)의 탄환들.</summary>
+    public IReadOnlyList<Transform> LastExtraBullets => _lastExtraBullets;
+
+    /// <summary>특성 연출용: 총구 위치.</summary>
+    public Transform FirePoint => _firePosition != null ? _firePosition.transform : transform;
+
     private int _magazineBonus;
+
     /// <summary>보상 특성용: 탄창 보너스 탄수 누적.</summary>
     public void AddMagazineBonus(int bonus)
     {
@@ -220,7 +239,7 @@ public class PlayerAttack : MonoBehaviour
             return;
 
         // 주력 원소를 고르기 전(시작 석상 전)에는 쏘지 않는다. 탄도 줄지 않는다.
-        if (_runeEffectConfiguration == null || !_runeEffectConfiguration.PrimaryElement.HasValue)
+        if (_runeEffectConfiguration is not { PrimaryElement: not null })
             return;
 
         Vector2 targetPosition = _playerInputHandler.MousePosition;
@@ -229,15 +248,26 @@ public class PlayerAttack : MonoBehaviour
         if (direction == Vector2.zero)
             return;
 
-        float damage = _bulletDamage * DamageMultiplier * _runeEffectConfiguration.SpreadDamageMultiplier *
-                       _runeEffectConfiguration.MultipleDamageMultiplier;
-        _attackData = new PlayerAttackData(direction, damage, _bulletSpeed, _bulletRange, _runeEffectConfiguration,
+        float damage = _bulletDamage *
+                       DamageMultiplier *
+                       NextAttackDamageMultiplier *
+                       _runeEffectConfiguration.SpreadDamageMultiplier *
+                       _runeEffectConfiguration.MultipleDamageMultiplier *
+                       _runeEffectConfiguration.PowerDamageMultiplier;
+
+        _attackData = new PlayerAttackData(direction,
+            damage,
+            _bulletSpeed * _runeEffectConfiguration.SpeedMultiplier,
+            _bulletRange * _runeEffectConfiguration.RangeMultiplier,
+            _runeEffectConfiguration,
             transform);
 
         _currentAmmo--;
         _bulletFireCoolTimer = 0f;
+        LastAttackWasEmpowered = NextAttackDamageMultiplier > 1f;
+        NextAttackDamageMultiplier = 1f;
 
-        SpawnBullets(_attackData);
+        SpawnBullets(_attackData, _lastAttackBullets);
         Fired?.Invoke();
 
         _remainingBurstShots = _attackData.Configuration.ShotsPerAttack - 1;
@@ -256,9 +286,11 @@ public class PlayerAttack : MonoBehaviour
         _multipleTimer = _multipleInterval;
     }
 
-    private void SpawnBullets(PlayerAttackData attackData)
+    /// <summary>탄환을 만든다. spawned가 있으면 만든 탄환을 담는다. (특성 연출용)</summary>
+    private void SpawnBullets(PlayerAttackData attackData, List<Transform> spawned = null)
     {
         BulletVisualEffects visualEffects = GetVisualEffects(attackData.Configuration.PrimaryElement);
+        spawned?.Clear();
         for (var i = 0; i < attackData.Configuration.BulletsPerShot; i++)
         {
             float angle = attackData.Configuration.IsSpread ? (i - 1) * _spreadAngle : 0f;
@@ -270,6 +302,7 @@ public class PlayerAttack : MonoBehaviour
 
             PlayerAttackData bulletData = attackData.WithDirection(bulletDirection);
             bullet.Initialize(bulletData, visualEffects);
+            spawned?.Add(bullet.transform);
         }
 
         // 산탄 수와 관계없이 한 발사당 한 번 재생한다. 연발은 각 발사마다 이 메서드를 호출한다.
@@ -346,7 +379,7 @@ public class PlayerAttack : MonoBehaviour
             _attackData.Range,
             _attackData.Configuration,
             _attackData.Owner != null ? _attackData.Owner : transform);
-        SpawnBullets(bonus);
+        SpawnBullets(bonus, _lastExtraBullets);
     }
 
     private void UpdateReload()

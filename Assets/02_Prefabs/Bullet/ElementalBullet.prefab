@@ -127,7 +127,8 @@ MonoBehaviour:
   _sandstormReaction: {fileID: 7216901170541185807}
   _startSpeed: 20
   _endSpeed: 10
-  _seekRadius: 5
+  _seekRadius: 3
+  _seekTurnTime: 1
   _seekEnemyLayers:
     serializedVersion: 2
     m_Bits: 1015
@@ -136,6 +137,7 @@ MonoBehaviour:
   _chainEnemyLayers:
     serializedVersion: 2
     m_Bits: 2039
+  _chainLinkFxPrefab: {fileID: 7320100000000000003, guid: fd61d1fc60d94bc787ee9a161fd8c516, type: 3}
 --- !u!61 &-1367794926946469454
 BoxCollider2D:
   m_ObjectHideFlags: 0

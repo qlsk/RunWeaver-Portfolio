@@ -29,12 +29,16 @@ public class Dash : MonoBehaviour
     public float DashPowerMultiplier { get; set; } = 1f;
     public float DashCooldownMultiplier { get; set; } = 1f;
     private float _cooldownEndTime;
+    private float _cooldownTotal;
 
     /// <summary>HUD용: 다시 대시할 수 있을 때까지 남은 시간(초). 쓸 수 있으면 0</summary>
     public float CooldownRemaining => _canDash ? 0f : Mathf.Max(0f, _cooldownEndTime - Time.time);
 
     /// <summary>HUD용: 대시를 쓴 뒤 다시 쓸 수 있을 때까지 걸리는 전체 시간(초) (지속 시간 + 쿨타임)</summary>
-    public float CooldownDuration => _dashDuration + _dashCooldown;
+    // 쿨타임 감소(DashCooldownMultiplier)가 적용된 값이다. (대시를 쓸 때 정한 값을 그대로 쓴다)
+    public float CooldownDuration => _cooldownTotal > 0f
+        ? _cooldownTotal
+        : _dashDuration + _dashCooldown * DashCooldownMultiplier;
 
     private void Start()
     {
@@ -85,7 +89,8 @@ public class Dash : MonoBehaviour
     {
         _isDashing = true;
         _canDash = false;
-        _cooldownEndTime = Time.time + _dashDuration + _dashCooldown * DashCooldownMultiplier;
+        _cooldownTotal = _dashDuration + _dashCooldown * DashCooldownMultiplier;
+        _cooldownEndTime = Time.time + _cooldownTotal;
         _dashAfterimage.BeginEmission();
 
         // dash 중 무적
@@ -116,8 +121,8 @@ public class Dash : MonoBehaviour
         _isDashing = false;
         DashFinished?.Invoke();
 
-        // dash 쿨타임
-        yield return new WaitForSeconds(_dashCooldown * DashCooldownMultiplier);
+        // dash 쿨타임 (시작할 때 정한 시간 그대로 기다린다)
+        yield return new WaitForSeconds(Mathf.Max(0f, _cooldownTotal - _dashDuration));
         _canDash = true;
     }
 

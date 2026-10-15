@@ -5,11 +5,14 @@ public class EnemyBullet : MonoBehaviour
     private Vector2 _direction;
     private bool _initialized;
     private bool _hasHit;
+    private ReactionElement? _element;
     [SerializeField] private float _damage = 5f;
     [SerializeField, Min(0f)] private float _speed = 2f;
 
-    public void Initialize(Vector2 direction)
+    public void Initialize(Vector2 direction, ReactionElement? element = null)
     {
+        _element = element;
+        _hasHit = false;
         _direction = direction.normalized;
         if (_direction.sqrMagnitude > 0f)
         {
@@ -43,7 +46,7 @@ public class EnemyBullet : MonoBehaviour
         if (collision.TryGetComponent(out PlayerHitbox hitbox) && hitbox.Health != null && !hitbox.Health.IsDead)
         {
             _hasHit = true;
-            hitbox.Health.TakeDamage(_damage);
+            hitbox.Health.TakeElementDamage(_damage, _element);
         }
         else
         {

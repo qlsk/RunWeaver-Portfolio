@@ -8,31 +8,43 @@ public class Bullet : MonoBehaviour
     private const float ReverseSteeringDelay = 0.1f;
     private const float OrbitDuration = 5f;
 
-    [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
-    [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
-    [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
-    [FoldoutGroup("References"), SerializeField] private FirestormReaction _firestormReaction;
-    [FoldoutGroup("References"), SerializeField] private DelugeReaction _delugeReaction;
-    [FoldoutGroup("References"), SerializeField] private MireReaction _mireReaction;
-    [FoldoutGroup("References"), SerializeField] private TempestReaction _tempestReaction;
-    [FoldoutGroup("References"), SerializeField] private PetrifyReaction _petrifyReaction;
-    [FoldoutGroup("References"), SerializeField] private CycloneReaction _cycloneReaction;
-    [FoldoutGroup("References"), SerializeField] private SandstormReaction _sandstormReaction;
+    [FoldoutGroup("References")][SerializeField] private OverHeatReaction _overHeatReaction;
+    [FoldoutGroup("References")][SerializeField] private SteamReaction _steamReaction;
+    [FoldoutGroup("References")][SerializeField] private MoltenReaction _moltenReaction;
+    [FoldoutGroup("References")][SerializeField] private FirestormReaction _firestormReaction;
+    [FoldoutGroup("References")][SerializeField] private DelugeReaction _delugeReaction;
+    [FoldoutGroup("References")][SerializeField] private MireReaction _mireReaction;
+    [FoldoutGroup("References")][SerializeField] private TempestReaction _tempestReaction;
+    [FoldoutGroup("References")][SerializeField] private PetrifyReaction _petrifyReaction;
+    [FoldoutGroup("References")][SerializeField] private CycloneReaction _cycloneReaction;
+    [FoldoutGroup("References")][SerializeField] private SandstormReaction _sandstormReaction;
 
-    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
-    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
+    [FoldoutGroup("Movement Settings")][SerializeField][Min(0.01f)] private float _startSpeed = 20f;
+    [FoldoutGroup("Movement Settings")][SerializeField][Min(0.01f)] private float _endSpeed = 10f;
 
-    [Header("Seek")] [SerializeField, Min(0f)]
+    [Header("Seek")]
+    [SerializeField][Min(0f)]
     private float _seekRadius = 5f;
+
+    [SerializeField, Min(0.01f), Tooltip("유도 곡선의 제어점 거리 = 현재 속도 × 이 값. 클수록 완만하게 회전합니다.")]
+    private float _seekTurnTime = 0.25f;
 
     [SerializeField] private LayerMask _seekEnemyLayers = ~0;
 
-    [Header("Fix")] [SerializeField] private FixTrap _fixTrapPrefab;
+    [Header("Fix")]
+    [SerializeField] private FixTrap _fixTrapPrefab;
 
-    [Header("Chain")] [SerializeField, Min(0f)]
+    [Header("Chain")]
+    [SerializeField][Min(0f)]
     private float _chainRadius = 5f;
 
     [SerializeField] private LayerMask _chainEnemyLayers = ~0;
+
+    [Tooltip("연쇄가 한 번 튈 때마다 늦게 적용하는 시간 (초, 게임 시간)")]
+    [SerializeField, Min(0f)] private float _chainDelay = 0.1f;
+
+    [Tooltip("연쇄 대상을 잇는 연출 (ChainLinkFx 프리팹). 비워두면 연출 없이 연쇄만 한다.")]
+    [SerializeField] private ChainLinkFx _chainLinkFxPrefab;
 
     private BulletMovement _movement;
     private BulletHitEffects _hitEffects;
@@ -47,6 +59,8 @@ public class Bullet : MonoBehaviour
     private BulletRuntime _runtime;
     private bool _isInitialized;
     private bool _processingHit;
+
+    private bool _isLingering;
 
     /// 공격 데이터를 저장하고 이동 거리와 적중 처리 상태를 초기화한다.
     public void Initialize(PlayerAttackData attackData, BulletVisualEffects visualEffects = null)
@@ -64,11 +78,11 @@ public class Bullet : MonoBehaviour
         _isInitialized = true;
         _movement = new BulletMovement(transform, _attackData, _runtime,
             _seekRadius, _seekEnemyLayers,
-            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed);
+            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed, _seekTurnTime);
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
             ExecuteReaction,
-            _chainRadius, _chainEnemyLayers, PlayHitEffect);
+            _chainRadius, _chainEnemyLayers, PlayHitEffect, PlayChainLink, _chainDelay);
         _movement.UpdateRotation();
         InitializeVisuals(visualEffects);
     }
@@ -103,6 +117,16 @@ public class Bullet : MonoBehaviour
     }
 
     /// 적중 효과는 탄환과 독립적으로 재생하여 탄환이 제거된 뒤에도 남는다.
+    /// 연쇄 : 직접 맞은 적에서 연쇄를 받은 적까지 주력 원소 색으로 잇는다.
+    private void PlayChainLink(EnemyHealth source, Vector2 hitPosition, EnemyHealth target)
+    {
+        if (_chainLinkFxPrefab == null || target == null || !_attackData.Configuration.PrimaryElement.HasValue)
+            return;
+
+        ChainLinkFx.Play(_chainLinkFxPrefab, source != null ? source.transform : null, hitPosition,
+            target.transform, _attackData.Configuration.PrimaryElement.Value);
+    }
+
     private void PlayHitEffect(Vector2 position, Vector2 direction)
     {
         if (_visualEffects == null) return;
@@ -113,6 +137,13 @@ public class Bullet : MonoBehaviour
     /// 비행 상태에 따라 일반 이동, 플레이어 복귀 또는 궤도 회전을 처리한다.
     private void Update()
     {
+        _hitEffects?.TickEcho(Time.deltaTime);
+
+        if (_isLingering && !_hitEffects.HasPendingWork)
+        {
+            Destroy(gameObject);
+        }
+
         if (!_isInitialized)
             return;
 
@@ -139,18 +170,29 @@ public class Bullet : MonoBehaviour
             return;
 
         bool isPierce = _attackData.Configuration.IsPierce;
-        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce);
+        // 보상 특성 사냥의 낙인(attack_05) : 표식이 있는 적에게는 피해가 늘어난다.
+        float markMultiplier = MarkedPrey.GetHitMultiplier(enemyHealth);
+        float hitDamage = _attackData.Damage * _runtime.GetDamageMultiplier(isPierce) * markMultiplier;
         _runtime.RecordHit();
         Vector2 hitPosition = collision.ClosestPoint(transform.position);
         bool reversedThisHit = false;
         _processingHit = true;
+
         try
         {
             PlayHitEffect(hitPosition, _runtime.Direction);
             float actualDamage = enemyHealth.ApplyDamage(hitDamage);
-            if (actualDamage > 0f && _attackData.Owner != null &&
+            MarkedPrey.MarkOnHit(enemyHealth, hitPosition, markMultiplier > 1f);
+
+            if (actualDamage > 0f &&
+                _attackData.Owner != null &&
                 _attackData.Owner.TryGetComponent(out PlayerAttack playerAttack))
+            {
                 playerAttack.PlayHitFeedback(hitPosition, enemyHealth.IsDead);
+            }
+
+            AbsorbHealth(actualDamage);
+
             _hitEffects.ApplyElementEffect(enemyHealth, hitPosition, hitDamage);
             _hitEffects.ApplyChain(enemyHealth, hitPosition, hitDamage);
             reversedThisHit = _movement.ApplyReverse();
@@ -158,9 +200,30 @@ public class Bullet : MonoBehaviour
         finally
         {
             _processingHit = false;
+
             if (!isPierce && (_runtime.Phase == BulletPhase.Orbiting || !reversedThisHit))
                 RequestEnd(BulletEndReason.Hit);
         }
+    }
+
+    private void AbsorbHealth(float actualDamage)
+    {
+        // 이미 사망했거나 피해가 0인 경우 반환한다
+        if (actualDamage <= 0f)
+            return;
+
+        // 흡수 룬을 장착하지 않은 경우 반환한다
+        if (_attackData.Configuration.AbsorbHealRatio <= 0f)
+            return;
+
+        // 플레이어 오브젝트가 파괴된 경우 반환한다
+        if (_attackData.Owner == null)
+            return;
+
+        if (!_attackData.Owner.TryGetComponent(out PlayerHealth playerHealth))
+            return;
+
+        playerHealth.Heal(actualDamage * _attackData.Configuration.AbsorbHealRatio);
     }
 
     /// 일반 비행 종료에 Return, Orbit 또는 Fix가 개입한다.
@@ -253,9 +316,32 @@ public class Bullet : MonoBehaviour
     {
         if (_runtime != null)
             _runtime.Phase = BulletPhase.Ended;
+
         _isInitialized = false;
-        if (_movement != null) _movement.EndRequested -= RequestEnd;
-        Destroy(gameObject);
-        if (reason.HasValue) Ended?.Invoke(reason.Value);
+
+        if (_movement != null)
+            _movement.EndRequested -= RequestEnd;
+
+        // 반향 예약이나 진행 중인 연쇄가 남아 있으면 보이지 않게 남아서 끝까지 처리한다.
+        if (_hitEffects is { HasPendingWork: true })
+        {
+            _isLingering = true;
+
+            if (TryGetComponent(out Collider2D thisCollider))
+                thisCollider.enabled = false;
+
+            if (TryGetComponent(out SpriteRenderer thisRenderer))
+                thisRenderer.enabled = false;
+
+            if (_projectileVisual != null)
+                _projectileVisual.gameObject.SetActive(false);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
+        if (reason.HasValue)
+            Ended?.Invoke(reason.Value);
     }
 }

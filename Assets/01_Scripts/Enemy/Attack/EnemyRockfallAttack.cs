@@ -43,6 +43,7 @@ public class EnemyRockfallAttack : MonoBehaviour
     private EnemyMotor _motor;
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
+    private Enemy _enemy;
     private EnemyStatusEffectController _statusEffects;
     private int _remainingMarks;
     private float _nextMarkTime, _nextAttackTime, _pendingRadius, _pendingDamage;
@@ -67,6 +68,7 @@ public class EnemyRockfallAttack : MonoBehaviour
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _motor = GetComponent<EnemyMotor>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _health = GetComponent<EnemyHealth>();
@@ -225,7 +227,7 @@ public class EnemyRockfallAttack : MonoBehaviour
             if (hit.TryGetComponent(out PlayerHitbox hitbox))
             {
                 PlayerHealth player = hitbox.Health;
-                if (player != null && !player.IsDead && _damagedPlayers.Add(player)) player.TakeDamage(_pendingDamage);
+                if (player != null && !player.IsDead && _damagedPlayers.Add(player)) player.TakeElementDamage(_pendingDamage, _enemy != null ? _enemy.AttackElement : null);
             }
             else
             {

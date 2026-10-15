@@ -14,7 +14,11 @@ using UnityEngine.UI;
 ///   B) 코드 자동 생성: 슬롯이 비어 있으면 코드로 Canvas/카드/버튼을 만든다 (플레이스홀더).
 /// - 선택 → 확정 버튼 2단계로 오선택을 방지한다. 선택 없이 닫을 수 없다.
 /// - 시간 정지/재개(Time.timeScale)는 RewardController가 맡는다. 이 UI는 표시/선택/확정만 한다.
-/// - 입력: 마우스 클릭 + 숫자키 1~3 + 방향키 이동 + Enter/Space 확정.
+/// - 입력: 마우스 클릭 + 숫자키 1~3 + A/D·방향키 이동 + F/Enter/Space 확정. (원소 선택·룬북 창과 같은 키)
+/// - 다시 뽑기는 RewardController가 정한 횟수만큼만 된다 (SetRerollRemaining).
+/// - 연출(열기·리롤·확정)은 UI 루트의 RewardSelectPresentation이 맡는다. 연출 중에는 입력을 받지 않는다.
+/// - Tab : 보기 전용 룬북을 연다. (장착 변경 불가) 룬북이 열려 있는 동안은 보상 입력을 받지 않는다.
+/// - 룬석 카드를 고르면 오른쪽 위 메뉴 안내의 룬북 표시가 한 번 빛난다. (룬북에서 지금 상태를 확인할 수 있다는 안내)
 /// </summary>
 [DisallowMultipleComponent]
 public class RewardSelectUI : MonoBehaviour
@@ -32,6 +36,10 @@ public class RewardSelectUI : MonoBehaviour
     [SerializeField] private Text _externalConfirmLabel;
     [Tooltip("리롤 버튼 (테스트용, 선택 사항. 비우면 리롤 없음)")]
     [SerializeField] private Button _externalRerollButton;
+    [Tooltip("연출. 비워 두면 외부 UI 루트에서 찾는다")]
+    [SerializeField] private RewardSelectPresentation _presentation;
+    [Tooltip("Tab으로 보기 전용 룬북을 여는 토글. 비워 두면 씬에서 찾는다")]
+    [SerializeField] private RuneBookV2Toggle _runeBookToggle;
 
     [Header("보상 UI 효과음")]
     [SerializeField] private AudioClip _openSound;
@@ -104,6 +112,7 @@ public class RewardSelectUI : MonoBehaviour
     private readonly List<RewardCardPresentation> _cardPresentations = new();
 
     private int _selectedIndex = -1;
+    private int _rerollsRemaining;
     private bool _confirmLocked;
     private AudioSource _audioSource;
     private AudioSource _rerollAudioSource;
@@ -123,17 +132,23 @@ public class RewardSelectUI : MonoBehaviour
 
     private void Update()
     {
-        if (!IsOpen || _confirmLocked)
+        if (!IsOpen || IsRuneBookOpen || _confirmLocked || IsPresentationBusy)
         {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            OpenRuneBook();
             return;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) SelectSlot(0);
         else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) SelectSlot(1);
         else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) SelectSlot(2);
-        else if (Input.GetKeyDown(KeyCode.LeftArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 2) % 3);
-        else if (Input.GetKeyDown(KeyCode.RightArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 1) % 3);
-        else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) ConfirmSelected();
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 2) % 3);
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) SelectSlot((_selectedIndex < 0 ? 0 : _selectedIndex + 1) % 3);
+        else if (Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmSelected();
         else if (Input.GetKeyDown(KeyCode.R)) RequestReroll();
     }
 
@@ -157,6 +172,51 @@ public class RewardSelectUI : MonoBehaviour
             return;
         }
 
+        // 이미 열려 있으면 리롤: 지금 카드를 태운 뒤 새 카드로 바꾼다.
+        if (wasOpen && _presentation != null)
+        {
+            List<RewardOption> next = new(options);
+            _selectedIndex = -1;
+            RefreshConfirmButton();
+            _presentation.PlayReroll(() => ApplyOptions(next));
+            return;
+        }
+
+        ApplyOptions(options);
+
+        if (!string.IsNullOrEmpty(_openTitleText))
+        {
+            _titleText.text = _openTitleText;
+        }
+
+        _root.SetActive(true);
+        if (_presentation != null)
+        {
+            _presentation.SetRerollRemaining(_rerollsRemaining);
+            _presentation.PlayOpen();
+        }
+
+        if (!wasOpen)
+            PlaySound(_openSound, _openSoundVolume);
+    }
+
+    /// <summary>RewardController가 남은 다시 뽑기 횟수를 알려 준다.</summary>
+    public void SetRerollRemaining(int remaining)
+    {
+        _rerollsRemaining = Mathf.Max(0, remaining);
+        if (_externalRerollButton != null)
+        {
+            _externalRerollButton.interactable = _rerollsRemaining > 0;
+        }
+
+        if (_presentation != null)
+        {
+            _presentation.SetRerollRemaining(_rerollsRemaining);
+        }
+    }
+
+    private void ApplyOptions(IReadOnlyList<RewardOption> options)
+    {
         _currentOptions.Clear();
         _currentOptions.AddRange(options);
         _selectedIndex = -1;
@@ -185,21 +245,55 @@ public class RewardSelectUI : MonoBehaviour
         }
 
         RefreshCardVisuals();
-
-        if (!string.IsNullOrEmpty(_openTitleText))
-        {
-            _titleText.text = _openTitleText;
-        }
         RefreshConfirmButton();
-        _root.SetActive(true);
-        if (!wasOpen)
-            PlaySound(_openSound, _openSoundVolume);
+    }
+
+    private bool IsPresentationBusy => _presentation != null && _presentation.IsBusy;
+
+    private bool IsPresentationOpening => _presentation != null && _presentation.IsOpening;
+
+    private RuneBookV2Toggle RuneBookToggle
+    {
+        get
+        {
+            if (_runeBookToggle == null)
+            {
+                _runeBookToggle = FindAnyObjectByType<RuneBookV2Toggle>();
+            }
+
+            return _runeBookToggle;
+        }
+    }
+
+    /// <summary>룬북이 열려 있거나 이번 프레임에 열리고 닫혔는지 (그동안은 보상 입력을 받지 않는다)</summary>
+    private bool IsRuneBookOpen
+    {
+        get
+        {
+            RuneBookV2Toggle toggle = RuneBookToggle;
+            return toggle != null && (toggle.IsOpen || toggle.IsClosing || toggle.WasToggledThisFrame);
+        }
+    }
+
+    /// <summary>보기 전용 룬북을 연다. (장착 변경 불가, 닫으면 보상 선택으로 돌아온다)</summary>
+    private void OpenRuneBook()
+    {
+        RuneBookV2Toggle toggle = RuneBookToggle;
+        if (toggle != null)
+        {
+            toggle.OpenViewOnly();
+        }
     }
 
     public void Close()
     {
         _selectedIndex = -1;
         _confirmLocked = false;
+        if (_presentation != null)
+        {
+            _presentation.ResetAll();
+        }
+
         if (_root != null)
         {
             _root.SetActive(false);
@@ -208,7 +302,7 @@ public class RewardSelectUI : MonoBehaviour
 
     public void SelectSlot(int index)
     {
-        if (!IsOpen || index < 0 || index >= _currentOptions.Count)
+        if (!IsOpen || IsRuneBookOpen || _confirmLocked || IsPresentationBusy || index < 0 || index >= _currentOptions.Count)
         {
             return;
         }
@@ -216,7 +310,16 @@ public class RewardSelectUI : MonoBehaviour
         bool selectionChanged = _selectedIndex != index;
         _selectedIndex = index;
         if (selectionChanged)
+        {
             PlaySound(_selectSound, _selectSoundVolume);
+
+            // 룬석 카드면 룬북에서 지금 상태를 확인할 수 있다고 알린다.
+            if (_currentOptions[index].Type == RewardType.RuneStone && RuneBookToggle != null)
+            {
+                RuneBookToggle.PulseHint();
+            }
+        }
+
         RefreshCardVisuals();
 
         Debug.Log($"[RewardSelectUI] 카드 선택: {index} ({_currentOptions[index].Title})", this);
@@ -235,7 +338,7 @@ public class RewardSelectUI : MonoBehaviour
 
     public void ConfirmSelected()
     {
-        if (!IsOpen || _confirmLocked)
+        if (!IsOpen || IsRuneBookOpen || _confirmLocked || IsPresentationBusy)
         {
             return;
         }
@@ -249,6 +352,13 @@ public class RewardSelectUI : MonoBehaviour
         PlaySound(_confirmSound, _confirmSoundVolume);
         RewardOption option = _currentOptions[_selectedIndex];
         Debug.Log($"[RewardSelectUI] 보상 확정: {option.Title}");
+        if (_presentation != null)
+        {
+            // 확정 연출이 끝난 뒤에 지급·닫기를 맡긴다.
+            _presentation.PlayConfirm(_selectedIndex, option.Title, () => OnOptionConfirmed?.Invoke(option));
+            return;
+        }
+
         OnOptionConfirmed?.Invoke(option);
     }
 
@@ -257,7 +367,8 @@ public class RewardSelectUI : MonoBehaviour
     /// </summary>
     public void RequestReroll()
     {
-        if (!IsOpen || _confirmLocked)
+        // 열기 연출이 끝나기 전(다시 뽑기 버튼이 나타나기 전)에는 받지 않는다.
+        if (!IsOpen || IsRuneBookOpen || _confirmLocked || IsPresentationBusy || IsPresentationOpening || _rerollsRemaining <= 0)
         {
             return;
         }
@@ -321,6 +432,11 @@ public class RewardSelectUI : MonoBehaviour
 
     private void RefreshCardVisuals()
     {
+        if (_presentation != null)
+        {
+            _presentation.SetSelection(_selectedIndex);
+        }
+
         for (int i = 0; i < _cardBackgrounds.Count; i++)
         {
             bool selected = i == _selectedIndex;
@@ -430,6 +546,11 @@ public class RewardSelectUI : MonoBehaviour
 
         _root = _externalRoot;
         _titleText = _externalTitle;
+        if (_presentation == null)
+        {
+            _presentation = _externalRoot.GetComponent<RewardSelectPresentation>();
+        }
+
         _confirmButton = _externalConfirmButton;
         _confirmLabel = _externalConfirmLabel;
 

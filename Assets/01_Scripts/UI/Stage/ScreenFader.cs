@@ -132,7 +132,9 @@ public class ScreenFader : MonoBehaviour
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration));
+            // 천천히 시작해 천천히 끝나도록 가감속을 준다.
+            float t = Mathf.Clamp01(elapsed / duration);
+            float alpha = Mathf.Lerp(from, to, t * t * (3f - 2f * t));
             bool isPaused = hideWhilePaused && Time.timeScale <= 0f;
             SetAlpha(isPaused ? 0f : alpha);
             _blackImage.raycastTarget = !isPaused;

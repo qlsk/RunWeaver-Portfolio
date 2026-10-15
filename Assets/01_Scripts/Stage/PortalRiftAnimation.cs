@@ -6,6 +6,10 @@ using UnityEngine;
 /// 균열(포탈) 애니메이션을 Animator로 재생하고 끝나길 기다리는 도우미.
 /// 스프라이트는 애니메이션 클립이 바꾼다. 스크립트는 상태를 고르고 끝날 때까지 기다리기만 한다.
 /// 컨트롤러 구조 : Open(끝나면 자동으로 Idle) → Idle(반복) → Close
+/// 바위 문 연출은 다른 레이어의 클립이 한다. (PlayLayer로 고른다)
+/// - Gate 레이어 : Rise(바닥에서 솟으며 나타남, 흙먼지) / Sink(가라앉으며 흐려짐, 흙먼지) / Shown
+/// - Flash 레이어 : Flash(들어갈 때 소용돌이가 밝게 부풀었다 가라앉음)
+/// - Focus 레이어 : "Focus" 값(0~1)만큼 크기와 밝기가 맥동한다. (가까이 간 포탈)
 /// - 필요한 상태가 컨트롤러에 없으면 오류를 남기고 기다리지 않고 바로 돌려준다. (잘못 연결해도 연출이 멈추지 않는다)
 /// - 기다리는 최대 시간은 재생할 상태의 실제 길이로 정한다. 일시정지(timeScale 0)에는 같이 멈춘다.
 /// </summary>
@@ -14,6 +18,12 @@ public static class PortalRiftAnimation
     public const string OpenState = "Open";
     public const string IdleState = "Idle";
     public const string CloseState = "Close";
+    public const string GateLayer = "Gate";
+    public const string RiseState = "Rise";
+    public const string SinkState = "Sink";
+    public const string FlashLayer = "Flash";
+    public const string FlashState = "Flash";
+    public static readonly int FocusHash = Animator.StringToHash("Focus");
 
     /// <summary>클립을 만든 프레임 속도. 재생 속도 배율(원하는 fps / 이 값)을 구할 때 쓴다.</summary>
     public const float ClipFramesPerSecond = 12f;
@@ -167,5 +177,55 @@ public static class PortalRiftAnimation
             elapsed += Time.deltaTime;
             yield return null;
         }
+    }
+
+    /// <summary>다른 레이어(Gate, Flash)의 상태를 처음부터 재생한다. 레이어나 상태가 없으면 아무것도 하지 않는다.</summary>
+    public static void PlayLayer(Animator animator, string layerName, string stateName)
+    {
+        int layer = LayerIndex(animator, layerName, stateName);
+        if (layer >= 0)
+        {
+            animator.Play(stateName, layer, 0f);
+        }
+    }
+
+    /// <summary>다른 레이어의 상태를 재생하고 끝날 때까지 기다린다. (마지막 프레임에서 멈추는 클립용)</summary>
+    public static IEnumerator PlayLayerAndWait(Animator animator, string layerName, string stateName)
+    {
+        int layer = LayerIndex(animator, layerName, stateName);
+        if (layer < 0)
+        {
+            yield break;
+        }
+
+        animator.Play(stateName, layer, 0f);
+        int hash = Animator.StringToHash(stateName);
+        float elapsed = 0f;
+        while (animator != null && animator.isActiveAndEnabled && elapsed < 5f)
+        {
+            yield return null;
+            elapsed += Time.deltaTime;
+            AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(layer);
+            if (info.shortNameHash == hash && info.normalizedTime >= 1f)
+            {
+                yield break;
+            }
+        }
+    }
+
+    private static int LayerIndex(Animator animator, string layerName, string stateName)
+    {
+        if (animator == null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController == null)
+        {
+            return -1;
+        }
+
+        if (!animator.isInitialized)
+        {
+            animator.Rebind();
+        }
+
+        int layer = animator.GetLayerIndex(layerName);
+        return layer >= 0 && animator.HasState(layer, Animator.StringToHash(stateName)) ? layer : -1;
     }
 }

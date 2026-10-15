@@ -27,6 +27,7 @@ public class EnemyTankAttack : MonoBehaviour
     [SerializeField] private float _warningDuration = 1f;
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
+    private Enemy _enemy;
     private EnemyStatusEffectController _statusEffects;
     private SpriteRenderer _indicator;
     private AttackRangeChargeVisual _chargeVisual;
@@ -65,6 +66,7 @@ public class EnemyTankAttack : MonoBehaviour
 
     private void Awake()
     {
+        _enemy = GetComponentInParent<Enemy>();
         _motor = GetComponent<EnemyMotor>();
         _targetDetector = GetComponent<EnemyTargetDetector>();
         _health = GetComponent<EnemyHealth>();
@@ -184,7 +186,7 @@ public class EnemyTankAttack : MonoBehaviour
             {
                 PlayerHealth player = hitbox.Health;
                 if (player != null && !player.IsDead && _damagedPlayers.Add(player))
-                    player.TakeDamage(_damage);
+                    player.TakeElementDamage(_damage, _enemy != null ? _enemy.AttackElement : null);
             }
             else
             {

@@ -110,7 +110,7 @@ public class SettingsKeyboardNavigator : MonoBehaviour
             }
         }
 
-        if (Pressed(KeyCode.Space, KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+        if (Pressed(KeyCode.F, KeyCode.Space) || Pressed(KeyCode.Return, KeyCode.KeypadEnter))
         {
             Submit(current);
         }
@@ -231,6 +231,6 @@ public class SettingsKeyboardNavigator : MonoBehaviour
     {
         return Pressed(KeyCode.W, KeyCode.UpArrow) || Pressed(KeyCode.S, KeyCode.DownArrow) ||
                Pressed(KeyCode.A, KeyCode.LeftArrow) || Pressed(KeyCode.D, KeyCode.RightArrow) ||
-               Pressed(KeyCode.Space, KeyCode.Return);
+               Pressed(KeyCode.Space, KeyCode.Return) || Input.GetKeyDown(KeyCode.F);
     }
 }
