@@ -85,10 +85,21 @@ public static class Sfx
     private static bool s_warned;
     private static bool s_subscribed;
 
+    // 클립 원본 음량 차이 보정(기준 약 -20 LUFS). 호출부가 따로 볼륨을 넘기는 id(EnemyDeath, EnemyHit, UiClick, UiHover)는 넣지 않는다.
+    private static readonly Dictionary<string, float> s_clipGains = new()
+    {
+        { ElementEarth, 0.22f }, { ElementFire, 0.24f }, { ElementWind, 0.43f }, { ElementWater, 0.62f },
+        { BossTryDash, 0.24f }, { BossTryRockfall, 0.28f }, { BossTryTank, 0.30f }, { BossTryShockwave, 0.37f },
+        { BossFootstep, 0.40f }, { BossShockwave, 0.57f }, { BossRackFall, 0.74f },
+        { TornadoLoop, 0.29f }, { MissionStart, 0.42f }, { ShieldInit, 0.42f },
+        { RewardShow, 0.43f }, { StatueBreak, 0.48f },
+    };
+
     public static void Play(string id, float volumeScale = 1f, float pitch = 1f)
     {
         if (!EnsureLibrary()) return;
         if (!s_clips.TryGetValue(id, out AudioClip clip) || clip == null) return;
+        if (s_clipGains.TryGetValue(id, out float gain)) volumeScale *= gain;
         EnsureRoot();
         for (int i = 0; i < PoolSize; i++)
         {
