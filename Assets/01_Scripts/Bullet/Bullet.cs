@@ -8,17 +8,19 @@ public class Bullet : MonoBehaviour
     private const float ReverseSteeringDelay = 0.1f;
     private const float OrbitDuration = 5f;
 
-    [FoldoutGroup("References"), SerializeField]
-    private OverHeatReaction _overHeatReaction;
+    [FoldoutGroup("References"), SerializeField] private OverHeatReaction _overHeatReaction;
+    [FoldoutGroup("References"), SerializeField] private SteamReaction _steamReaction;
+    [FoldoutGroup("References"), SerializeField] private MoltenReaction _moltenReaction;
+    [FoldoutGroup("References"), SerializeField] private FirestormReaction _firestormReaction;
+    [FoldoutGroup("References"), SerializeField] private DelugeReaction _delugeReaction;
+    [FoldoutGroup("References"), SerializeField] private MireReaction _mireReaction;
+    [FoldoutGroup("References"), SerializeField] private TempestReaction _tempestReaction;
+    [FoldoutGroup("References"), SerializeField] private PetrifyReaction _petrifyReaction;
+    [FoldoutGroup("References"), SerializeField] private CycloneReaction _cycloneReaction;
+    [FoldoutGroup("References"), SerializeField] private SandstormReaction _sandstormReaction;
 
-    [FoldoutGroup("References"), SerializeField]
-    private SteamReaction _steamReaction;
-
-    [FoldoutGroup("References"), SerializeField]
-    private MoltenReaction _moltenReaction;
-
-    [FoldoutGroup("References"), SerializeField]
-    private FirestormReaction _firestormReaction;
+    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _startSpeed = 20f;
+    [FoldoutGroup("Movement Settings"), SerializeField, Min(0.01f)] private float _endSpeed = 10f;
 
     [Header("Cast Effect")] [SerializeField]
     private ParticleSystem _castEffectPrefab;
@@ -66,10 +68,10 @@ public class Bullet : MonoBehaviour
         _isInitialized = true;
         _movement = new BulletMovement(transform, _attackData, _runtime,
             _seekRadius, _seekEnemyLayers,
-            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration);
+            OwnerArrivalDistance, ReverseSteeringDelay, OrbitDuration, _startSpeed, _endSpeed);
         _movement.EndRequested += RequestEnd;
         _hitEffects = new BulletHitEffects(_attackData, _runtime,
-            _overHeatReaction, _steamReaction, _moltenReaction, _firestormReaction,
+            ExecuteReaction,
             _chainRadius, _chainEnemyLayers);
         _movement.UpdateRotation();
     }
@@ -83,7 +85,7 @@ public class Bullet : MonoBehaviour
         if (!_isInitialized)
             return;
 
-        if (_attackData.Speed <= 0f && _runtime.Phase != BulletPhase.Orbiting)
+        if (_attackData.Speed <= 0f && _runtime.Phase == BulletPhase.Returning)
         {
             DestroyBullet();
             return;
@@ -165,6 +167,50 @@ public class Bullet : MonoBehaviour
         }
 
         DestroyBullet(reason);
+    }
+
+    /// 원소 조합에 해당하는 반응을 실행하며 서로 다른 원소의 순서는 구분하지 않는다.
+    private void ExecuteReaction(ReactionElement primary, ReactionElement secondary, ReactionContext context)
+    {
+        switch (primary, secondary)
+        {
+            case (ReactionElement.Fire, ReactionElement.Fire):
+                _overHeatReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Water):
+            case (ReactionElement.Water, ReactionElement.Fire):
+                _steamReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Earth):
+            case (ReactionElement.Earth, ReactionElement.Fire):
+                _moltenReaction.Execute(context);
+                break;
+            case (ReactionElement.Fire, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Fire):
+                _firestormReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Water):
+                _delugeReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Earth):
+            case (ReactionElement.Earth, ReactionElement.Water):
+                _mireReaction.Execute(context);
+                break;
+            case (ReactionElement.Water, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Water):
+                _tempestReaction.Execute(context);
+                break;
+            case (ReactionElement.Earth, ReactionElement.Earth):
+                _petrifyReaction.Execute(context);
+                break;
+            case (ReactionElement.Wind, ReactionElement.Wind):
+                _cycloneReaction.Execute(context);
+                break;
+            case (ReactionElement.Earth, ReactionElement.Wind):
+            case (ReactionElement.Wind, ReactionElement.Earth):
+                _sandstormReaction.Execute(context);
+                break;
+        }
     }
 
     /// 이동과 적중 처리를 중단하고 탄환 오브젝트를 제거한다.

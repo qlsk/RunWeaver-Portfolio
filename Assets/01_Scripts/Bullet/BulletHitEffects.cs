@@ -7,23 +7,17 @@ public sealed class BulletHitEffects
 {
     private readonly PlayerAttackData _attackData;
     private readonly BulletRuntime _runtime;
-    private readonly OverHeatReaction _overHeatReaction;
-    private readonly SteamReaction _steamReaction;
-    private readonly MoltenReaction _moltenReaction;
-    private readonly FirestormReaction _firestormReaction;
+    private readonly Action<ReactionElement, ReactionElement, ReactionContext> _executeReaction;
     private readonly float _chainRadius;
     private readonly LayerMask _chainEnemyLayers;
     private readonly List<Collider2D> _chainCandidates = new(16);
     public BulletHitEffects(PlayerAttackData attackData, BulletRuntime runtime,
-        OverHeatReaction overHeat, SteamReaction steam, MoltenReaction molten, FirestormReaction firestorm,
+        Action<ReactionElement, ReactionElement, ReactionContext> executeReaction,
         float chainRadius, LayerMask chainLayers)
     {
         _attackData = attackData;
         _runtime = runtime;
-        _overHeatReaction = overHeat;
-        _steamReaction = steam;
-        _moltenReaction = molten;
-        _firestormReaction = firestorm;
+        _executeReaction = executeReaction;
         _chainRadius = chainRadius;
         _chainEnemyLayers = chainLayers;
     }
@@ -42,25 +36,8 @@ public sealed class BulletHitEffects
 
         if (configuration.SecondaryElement.HasValue)
         {
-            switch (configuration.PrimaryElement.Value, configuration.SecondaryElement.Value)
-            {
-                case (ReactionElement.Fire, ReactionElement.Fire):
-                    _overHeatReaction.Execute(hitPosition, hitDamage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Water):
-                case (ReactionElement.Water, ReactionElement.Fire):
-                    _steamReaction.Execute(hitPosition, hitDamage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Earth):
-                case (ReactionElement.Earth, ReactionElement.Fire):
-                    _moltenReaction.Execute(hitPosition, hitDamage);
-                    break;
-                case (ReactionElement.Fire, ReactionElement.Wind):
-                case (ReactionElement.Wind, ReactionElement.Fire):
-                    _firestormReaction.Execute(hitPosition, hitDamage);
-                    break;
-            }
-
+            _executeReaction(configuration.PrimaryElement.Value, configuration.SecondaryElement.Value,
+                new ReactionContext(hitPosition, hitDamage, direction));
             return;
         }
 

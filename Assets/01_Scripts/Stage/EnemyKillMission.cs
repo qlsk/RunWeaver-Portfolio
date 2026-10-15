@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 미션 1: 적 처치 (일반 몬스터 및 엘리트 몬스터 지정 마릿수 처치)
@@ -7,22 +8,22 @@ using UnityEngine;
 public class EnemyKillMission : MissionBase
 {
     [Header("일반 몬스터 목표")]
-    [SerializeField] private int targetNormalKillCount = 5;
-    private int currentNormalKillCount = 0;
+    [SerializeField, FormerlySerializedAs("targetNormalKillCount")] private int _targetNormalKillCount = 5;
+    private int _currentNormalKillCount = 0;
 
     [Header("엘리트 몬스터 목표 (0이면 엘리트도 일반 처치로 집계)")]
-    [SerializeField] private int targetEliteKillCount = 0;
-    private int currentEliteKillCount = 0;
+    [SerializeField, FormerlySerializedAs("targetEliteKillCount")] private int _targetEliteKillCount = 0;
+    private int _currentEliteKillCount = 0;
 
-    public int CurrentNormalKillCount => currentNormalKillCount;
-    public int TargetNormalKillCount => targetNormalKillCount;
-    public int CurrentEliteKillCount => currentEliteKillCount;
-    public int TargetEliteKillCount => targetEliteKillCount;
+    public int CurrentNormalKillCount => _currentNormalKillCount;
+    public int TargetNormalKillCount => _targetNormalKillCount;
+    public int CurrentEliteKillCount => _currentEliteKillCount;
+    public int TargetEliteKillCount => _targetEliteKillCount;
 
     public override void Initialize()
     {
-        currentNormalKillCount = 0;
-        currentEliteKillCount = 0;
+        _currentNormalKillCount = 0;
+        _currentEliteKillCount = 0;
         IsCompleted = false;
         IsFailed = false;
 
@@ -76,23 +77,23 @@ public class EnemyKillMission : MissionBase
     {
         if (IsCompleted || IsFailed) return;
 
-        if (isElite && targetEliteKillCount <= 0) isElite = false;
+        if (isElite && _targetEliteKillCount <= 0) isElite = false;
 
         if (isElite)
         {
-            currentEliteKillCount += amount;
-            Debug.Log($"[적 처치 미션] ★ 엘리트 처치: {currentEliteKillCount} / {targetEliteKillCount}");
+            _currentEliteKillCount += amount;
+            Debug.Log($"[적 처치 미션] ★ 엘리트 처치: {_currentEliteKillCount} / {_targetEliteKillCount}");
         }
         else
         {
-            currentNormalKillCount += amount;
-            Debug.Log($"[적 처치 미션] 일반 처치: {currentNormalKillCount} / {targetNormalKillCount}");
+            _currentNormalKillCount += amount;
+            Debug.Log($"[적 처치 미션] 일반 처치: {_currentNormalKillCount} / {_targetNormalKillCount}");
         }
 
         NotifyProgressUpdated();
 
-        bool normalClear = currentNormalKillCount >= targetNormalKillCount;
-        bool eliteClear = targetEliteKillCount <= 0 || currentEliteKillCount >= targetEliteKillCount;
+        bool normalClear = _currentNormalKillCount >= _targetNormalKillCount;
+        bool eliteClear = _targetEliteKillCount <= 0 || _currentEliteKillCount >= _targetEliteKillCount;
 
         if (normalClear && eliteClear)
         {
@@ -102,21 +103,21 @@ public class EnemyKillMission : MissionBase
 
     public override float GetProgressRatio()
     {
-        int totalTarget = targetNormalKillCount + targetEliteKillCount;
+        int totalTarget = _targetNormalKillCount + _targetEliteKillCount;
         if (totalTarget <= 0) return 1f;
 
-        int totalCurrent = Mathf.Min(currentNormalKillCount, targetNormalKillCount)
-            + Mathf.Min(currentEliteKillCount, targetEliteKillCount);
+        int totalCurrent = Mathf.Min(_currentNormalKillCount, _targetNormalKillCount)
+            + Mathf.Min(_currentEliteKillCount, _targetEliteKillCount);
 
         return Mathf.Clamp01((float)totalCurrent / totalTarget);
     }
 
     public override string GetProgressText()
     {
-        if (targetEliteKillCount > 0)
+        if (_targetEliteKillCount > 0)
         {
-            return $"적 처치 - 일반: {currentNormalKillCount}/{targetNormalKillCount} | 엘리트: {currentEliteKillCount}/{targetEliteKillCount}";
+            return $"적 처치 - 일반: {_currentNormalKillCount}/{_targetNormalKillCount} | 엘리트: {_currentEliteKillCount}/{_targetEliteKillCount}";
         }
-        return $"적 처치: {currentNormalKillCount}/{targetNormalKillCount}";
+        return $"적 처치: {_currentNormalKillCount}/{_targetNormalKillCount}";
     }
 }

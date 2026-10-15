@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 미션 클리어 후 다음 층으로 내려가는 포탈 1개를 맵 중앙에 등장시킨다.
+/// 미션 클리어 후 다음 층으로 내려가는 포탈 1개를 등장시킨다. (StageManager가 위치를 정한다. 기본은 맵 중앙)
 ///
 /// - StageManager가 미션 클리어 즉시(정화 대기 시작과 함께) SpawnPortal을 부른다.
 /// - 포탈은 FadeIn으로 등장하며, 정화 대기 중에도 사용할 수 있다.
@@ -46,6 +46,14 @@ public class PortalSpawner : MonoBehaviour
     /// <param name="label">포탈 위에 띄울 문구 (예: Descend, Face the Boss)</param>
     public void SpawnPortal(string label)
     {
+        SpawnPortal(label, _center);
+    }
+
+    /// <summary>
+    /// 지정한 위치에 다음 층으로 내려가는 포탈을 만든다. 남아 있던 포탈은 정리한다.
+    /// </summary>
+    public void SpawnPortal(string label, Vector3 position)
+    {
         DespawnPortals();
 
         if (_portalPrefab == null)
@@ -53,7 +61,7 @@ public class PortalSpawner : MonoBehaviour
             return;
         }
 
-        Portal portal = Instantiate(_portalPrefab, _center, Quaternion.identity);
+        Portal portal = Instantiate(_portalPrefab, position, Quaternion.identity);
         portal.Setup(label);
         portal.PlayFadeIn();
         _spawned.Add(portal);

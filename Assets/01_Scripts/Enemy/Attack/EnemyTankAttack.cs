@@ -13,7 +13,7 @@ public class EnemyTankAttack : MonoBehaviour
     [SerializeField] private Color _rangeColor = new Color(1f, 0.2f, 0.1f, 0.35f);
     [SerializeField] private string _rangeSortingLayer = "Default";
     [SerializeField] private int _rangeSortingOrder = 10;
-    [SerializeField] private float WarningDuration = 1f;
+    [SerializeField] private float _warningDuration = 1f;
     private EnemyTargetDetector _targetDetector;
     private EnemyHealth _health;
     private EnemyStatusEffectController _statusEffects;
@@ -93,7 +93,7 @@ public class EnemyTankAttack : MonoBehaviour
         // 예고한 위치와 반경을 고정해서 플레이어가 범위 밖으로 피할 수 있게 한다.
         _attackCenter = transform.position;
         _pendingRadius = _attackRadius;
-        _attackTime = Time.time + WarningDuration;
+        _attackTime = Time.time + _warningDuration;
         State = EnemyAttackState.Preparing;
         _body.linearVelocity = Vector2.zero;
         _savedConstraints = _body.constraints;
@@ -118,13 +118,16 @@ public class EnemyTankAttack : MonoBehaviour
         _body.linearVelocity = Vector2.zero;
         _damagedPlayers.Clear();
 
-        // Trigger를 포함한 플레이어 콜라이더를 검사하고 중복 콜라이더 피해를 방지한다.
+        // 피격 영역만 검사하고 같은 플레이어의 중복 피해를 방지한다.
         var filter = new ContactFilter2D { useTriggers = true };
         var hits = new List<Collider2D>();
         Physics2D.OverlapCircle(_attackCenter, _pendingRadius, filter, hits);
         foreach (Collider2D hit in hits)
         {
-            PlayerHealth player = hit.GetComponentInParent<PlayerHealth>();
+            if (!hit.TryGetComponent(out PlayerHitbox hitbox))
+                continue;
+
+            PlayerHealth player = hitbox.Health;
             if (player != null && !player.IsDead && _damagedPlayers.Add(player))
             {
                 player.TakeDamage(_damage);
